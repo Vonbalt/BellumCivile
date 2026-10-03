@@ -1,0 +1,48 @@
+<Brushes>
+  <Brush Name="Bellum.MapWarScore.WarIcon">
+    <Layers>
+      <BrushLayer Name="Default" Sprite="SPGeneral\MapOverlay\Encounter\WarIcon" />
+    </Layers>
+    <Styles>
+      <Style Name="Default">
+        <BrushLayer Name="Default" AlphaFactor="1" />
+      </Style>
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapWarScore.Positive" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#65D96EFF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapWarScore.Negative" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#E35555FF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapWarScore.Neutral" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#E1E1E1FF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapClientState.Content" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#65D96EFF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapClientState.Restless" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#E6B95CFF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+
+  <Brush Name="Bellum.MapClientState.Defiant" Font="Galahad" TextHorizontalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#E35555FF" TextOutlineColor="#000000FF" TextOutlineAmount="0.15" TextGlowRadius="0" TextBlur="1" FontSize="25" />
+    </Styles>
+  </Brush>
+</Brushes>

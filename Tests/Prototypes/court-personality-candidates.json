@@ -1,0 +1,35 @@
+{
+  "status": "Offline hypotheses only; not loaded by the game",
+  "axes": ["Honor", "Generosity", "Mercy", "Valor", "Calculating"],
+  "blocs": ["Nobility", "Glory", "Liberty"],
+  "candidates": [
+    {
+      "id": "A_secondary_valor",
+      "description": "Equal theoretical ranges with secondary Valor effects outside Glory",
+      "weights": [[6, 2, 4], [-4, 2, 6], [2, -4, 6], [2, 8, -2], [6, -4, 2]]
+    },
+    {
+      "id": "B_glory_only_valor",
+      "description": "Valor affects only Glory; Honor carries more Nobility/Liberty distinction",
+      "weights": [[8, 2, 6], [-4, 2, 6], [2, -4, 6], [0, 8, 0], [6, -4, 2]]
+    },
+    {
+      "id": "C_standardized_strengths",
+      "description": "Standardized strengths; Honor defines Nobility, Valor Glory, and Generosity Liberty",
+      "allowed_weights": [-8, -4, -2, 0, 2, 4, 8],
+      "weights": [[8, 2, 4], [-4, 2, 8], [2, -4, 4], [0, 8, 0], [4, -4, 2]]
+    }
+  ],
+  "examples": [
+    {"name": "Neutral", "traits": [0, 0, 0, 0, 0]},
+    {"name": "Honorable only", "traits": [1, 0, 0, 0, 0]},
+    {"name": "Brave only", "traits": [0, 0, 0, 1, 0]},
+    {"name": "Cautious only", "traits": [0, 0, 0, -1, 0]},
+    {"name": "Generous and merciful", "traits": [0, 1, 1, 0, 0]},
+    {"name": "Honorable calculating self-interested", "traits": [1, -1, 0, 0, 1]},
+    {"name": "Honorable generous brave", "traits": [1, 1, 0, 1, 0]},
+    {"name": "Impulsive brave", "traits": [0, 0, 0, 1, -1]},
+    {"name": "Cruel calculating", "traits": [0, 0, -1, 0, 1]},
+    {"name": "Dishonorable only", "traits": [-1, 0, 0, 0, 0]}
+  ]
+}

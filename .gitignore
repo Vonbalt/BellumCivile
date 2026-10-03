@@ -1,0 +1,12 @@
+# Generated build output
+bin/
+obj/
+
+# Local IDE and development-tool settings
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local documentation and archived research
+/docs/

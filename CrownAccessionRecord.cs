@@ -1,0 +1,95 @@
+using System.Collections.Generic;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Election;
+using TaleWorlds.SaveSystem;
+
+namespace BellumCivile
+{
+    public sealed class CrownAccessionRecord
+    {
+        [SaveableField(1)] public Kingdom Realm;
+        [SaveableField(2)] public Hero Predecessor;
+        [SaveableField(3)] public Clan PreviousHouse;
+        [SaveableField(4)] public Hero Heir;
+        [SaveableField(5)] public bool RegentReplacement;
+        [SaveableField(6)] public bool PlayerContinuation;
+        [SaveableField(7)] public bool Completed;
+        [SaveableField(8)] public KingSelectionKingdomDecision EmergencyElection;
+        [SaveableField(9)] public bool Emergency;
+        [SaveableField(10)] public bool RelaxGender;
+        [SaveableField(11)] public bool TitleTransferred;
+        [SaveableField(12)] public bool Announced;
+        [SaveableField(13)] public CampaignTime Started;
+        [SaveableField(14)] public HouseSuccessionLaw HouseLaw;
+        [SaveableField(15)] public GenderSuccessionLaw GenderLaw;
+        [SaveableField(16)] public bool OutcomeApplied;
+        [SaveableField(17)] public Hero FirstNominee;
+        [SaveableField(18)] public Hero SecondNominee;
+        [SaveableField(19)] public Hero ThirdNominee;
+        [SaveableField(20)] public List<Clan> DeferredHouseDestructions = new List<Clan>();
+        [SaveableField(21)] public bool VoluntaryAbdication;
+        [SaveableField(22)] public bool CreatesCadet;
+        [SaveableField(23)] public Clan Cadet;
+        [SaveableField(24)] public string CadetId;
+        [SaveableField(25)] public string CadetName;
+        [SaveableField(26)] public List<string> EndowmentFiefs = new List<string>();
+        [SaveableField(27)] public List<string> EndowmentTitles = new List<string>();
+        [SaveableField(28)] public List<string> DeliveredFiefs = new List<string>();
+        [SaveableField(29)] public List<string> DeliveredTitles = new List<string>();
+        [SaveableField(30)] public List<string> Household = new List<string>();
+        [SaveableField(31)] public bool CadetInitialized;
+        [SaveableField(32)] public bool CadetAnnounced;
+        [SaveableField(33)] public bool EndowmentSettled;
+        [SaveableField(34)] public string AbdicationFailure;
+        [SaveableField(35)] public Clan HeirHouse;
+        [SaveableField(36)] public bool RequiresRegency;
+        [SaveableField(37)] public bool ForcedAbdication;
+        [SaveableField(38)] public bool ForcedPrepared;
+        [SaveableField(39)] public Clan SettlementRulingHouse;
+        [SaveableField(40)] public int EndowmentGold;
+        [SaveableField(41)] public int DeliveredGold;
+        [SaveableField(42)] public bool GoldDebited;
+        [SaveableField(43)] public bool GoldCredited;
+        [SaveableField(44)] public Hero GoldRecipient;
+        [SaveableField(45)] public string ForcedCauseId;
+        [SaveableField(46)] public bool IncomingHousePrepared;
+        [SaveableField(47)] public Clan IncomingSourceHouse;
+        [SaveableField(48)] public Hero IncomingSourceHead;
+        [SaveableField(49)] public bool HasLivingEndowment;
+        [SaveableField(50)] public Kingdom IncomingSourceRealm;
+        [SaveableField(51)] public Clan ForeignMovingClan;
+        [SaveableField(52)] public Kingdom ForeignOriginRealm;
+        [SaveableField(53)] public bool ForeignMoveStarted;
+        [SaveableField(54)] public bool ForeignMoveCompleted;
+        [SaveableField(55)] public bool ForeignInfluenceRestored;
+        [SaveableField(56)] public float ForeignInfluence;
+        [SaveableField(57)] public List<string> ForeignHoldings = new List<string>();
+        [SaveableField(58)] public Dictionary<string, string> ForeignLegalHolders = new Dictionary<string, string>();
+        [SaveableField(59)] public Dictionary<string, string> ForeignLegalParents = new Dictionary<string, string>();
+
+        [SaveableField(60)] public bool ElectiveElection;
+        [SaveableField(61)] public bool ElectiveSelected;
+        [SaveableField(62)] public bool MandateExpiry;
+        [SaveableField(63)] public bool MandateStarted;
+        [SaveableField(64)] public bool DefeatNoticePending;
+        [SaveableField(65)] public bool ExpiryPredecessorDied;
+        [SaveableField(66)] public bool ChallengeConcession;
+        [SaveableField(67)] public bool PreserveHeirParty;
+        [SaveableField(68)] public bool HeirPartyCaptured;
+        [SaveableField(69)] public TaleWorlds.CampaignSystem.Party.MobileParty PreservedHeirParty;
+        [SaveableField(70)] public string ElectiveContestId;
+        [SaveableField(71)] public bool ElectiveContestTest;
+        [SaveableField(72)] public Hero ElectiveExcluded;
+        [SaveableField(73)] public bool DepositionElection;
+        [SaveableField(74)] public bool AccessionReactionsApplied;
+        [SaveableField(75)] public bool ElectionReactionsApplied;
+        [SaveableField(76)] public Dictionary<FactionType, Clan> ElectionEndorsements = new Dictionary<FactionType, Clan>();
+        [SaveableField(77)] public bool ElectionEndorsementsCaptured;
+        [SaveableField(78)] public RealmUnionRecord Union;
+        public bool IsAbdication => VoluntaryAbdication || ForcedAbdication;
+        public Clan EndowmentHouse => IncomingSourceHouse ?? PreviousHouse;
+        public Hero EndowmentDonor => IncomingSourceHead ?? Predecessor;
+        public Kingdom HouseholdRealm => IncomingSourceRealm ?? Realm;
+        public Hero[] Nominees => new[] { FirstNominee, SecondNominee, ThirdNominee };
+    }
+}

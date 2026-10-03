@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Missing faction stance means Support; unlisted policies are neutral. Crown is independent. -->
+<BellumPolicyAgendas>
+  <Crown>
+    <Policy id="policy_sacred_majesty" />
+    <Policy id="policy_royal_privilege" />
+    <Policy id="policy_precarial_land_tenure" />
+    <Policy id="policy_imperial_towns" />
+    <Policy id="policy_royal_commissions" />
+    <Policy id="policy_royal_guard" />
+    <Policy id="policy_land_tax" />
+    <Policy id="policy_crown_duty" />
+    <Policy id="policy_state_monopolies" />
+    <Policy id="policy_debasement_of_the_currency" />
+    <Policy id="policy_war_tax" />
+    <Policy id="policy_kings_tithe_on_keels" />
+    <Policy id="policy_royal_ransom_claim" />
+    <Policy id="policy_royal_navy_prerogative" />
+  </Crown>
+  <Faction type="Nobility">
+    <Policy id="policy_land_tax" stance="Oppose" />
+    <Policy id="policy_state_monopolies" stance="Oppose" />
+    <Policy id="policy_sacred_majesty" stance="Oppose" />
+    <Policy id="policy_magistrates" />
+    <Policy id="policy_debasement_of_the_currency" stance="Oppose" />
+    <Policy id="policy_precarial_land_tenure" stance="Oppose" />
+    <Policy id="policy_imperial_towns" stance="Oppose" />
+    <Policy id="policy_royal_commissions" stance="Oppose" />
+    <Policy id="policy_royal_guard" stance="Oppose" />
+    <Policy id="policy_royal_privilege" stance="Oppose" />
+    <Policy id="policy_senate" />
+    <Policy id="policy_lords_privy_council" />
+    <Policy id="policy_feudal_inheritance" />
+    <Policy id="policy_serfdom" />
+    <Policy id="policy_noble_retinues" />
+    <Policy id="policy_castle_charters" />
+    <Policy id="policy_bailiffs" />
+    <Policy id="policy_hunting_rights" />
+    <Policy id="policy_road_tolls" />
+    <Policy id="policy_marshals" />
+    <Policy id="policy_council_of_the_commons" stance="Oppose" />
+    <Policy id="policy_forgiveness_of_debts" stance="Oppose" />
+    <Policy id="policy_tribunes_of_the_people" stance="Oppose" />
+    <Policy id="policy_grazing_rights" stance="Oppose" />
+    <Policy id="policy_lawspeakers" />
+    <Policy id="policy_kings_tithe_on_keels" stance="Oppose" />
+    <Policy id="policy_royal_ransom_claim" stance="Oppose" />
+    <Policy id="policy_royal_navy_prerogative" stance="Oppose" />
+    <Policy id="policy_raiders_spoils" stance="Oppose" />
+    <Policy id="policy_coastal_guard_edict" />
+    <Policy id="policy_naval_conjoining_statute" />
+  </Faction>
+  <Faction type="Glory">
+    <Policy id="policy_senate" stance="Oppose" />
+    <Policy id="policy_serfdom" stance="Oppose" />
+    <Policy id="policy_royal_guard" />
+    <Policy id="policy_military_coronae" />
+    <Policy id="policy_noble_retinues" />
+    <Policy id="policy_castle_charters" />
+    <Policy id="policy_marshals" />
+    <Policy id="policy_citizenship" />
+    <Policy id="policy_cantons" />
+    <Policy id="policy_land_grands_for_veteran" />
+    <Policy id="policy_fraternal_fleet_doctrine" />
+    <Policy id="policy_royal_ransom_claim" stance="Oppose" />
+    <Policy id="policy_Kings_pardon_for_pirates" />
+    <Policy id="policy_raiders_spoils" />
+    <Policy id="policy_coastal_guard_edict" />
+    <Policy id="policy_bolster_the_fyrd" />
+    <Policy id="policy_naval_conjoining_statute" />
+    <Policy id="policy_arsenal_depository_act" />
+  </Faction>
+  <Faction type="Liberty">
+    <Policy id="policy_state_monopolies" stance="Oppose" />
+    <Policy id="policy_sacred_majesty" stance="Oppose" />
+    <Policy id="policy_debasement_of_the_currency" stance="Oppose" />
+    <Policy id="policy_precarial_land_tenure" stance="Oppose" />
+    <Policy id="policy_crown_duty" stance="Oppose" />
+    <Policy id="policy_imperial_towns" stance="Oppose" />
+    <Policy id="policy_royal_commissions" stance="Oppose" />
+    <Policy id="policy_royal_guard" stance="Oppose" />
+    <Policy id="policy_war_tax" stance="Oppose" />
+    <Policy id="policy_royal_privilege" stance="Oppose" />
+    <Policy id="policy_lords_privy_council" stance="Oppose" />
+    <Policy id="policy_feudal_inheritance" />
+    <Policy id="policy_serfdom" stance="Oppose" />
+    <Policy id="policy_noble_retinues" stance="Oppose" />
+    <Policy id="policy_hunting_rights" stance="Oppose" />
+    <Policy id="policy_road_tolls" stance="Oppose" />
+    <Policy id="policy_marshals" stance="Oppose" />
+    <Policy id="policy_council_of_the_commons" />
+    <Policy id="policy_forgiveness_of_debts" />
+    <Policy id="policy_citizenship" />
+    <Policy id="policy_tribunes_of_the_people" />
+    <Policy id="policy_grazing_rights" />
+    <Policy id="policy_lawspeakers" />
+    <Policy id="policy_trial_by_jury" />
+    <Policy id="policy_land_grands_for_veteran" />
+    <Policy id="policy_kings_tithe_on_keels" stance="Oppose" />
+    <Policy id="policy_royal_navy_prerogative" stance="Oppose" />
+    <Policy id="policy_maritime_weal_edict" />
+    <Policy id="policy_raiders_spoils" stance="Oppose" />
+    <Policy id="policy_coastal_guard_edict" />
+    <Policy id="policy_naval_conjoining_statute" stance="Oppose" />
+    <Policy id="policy_arsenal_depository_act" />
+  </Faction>
+</BellumPolicyAgendas>

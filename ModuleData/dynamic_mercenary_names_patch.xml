@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Compatibility template for custom cultures and name-list changes.
+
+  Any loaded module may ship a file at:
+    ModuleData/dynamic_mercenary_names_patch.xml
+
+  Culture ids must match the custom CultureObject StringId. The default mode
+  is "append". Use mode="replace" to discard names loaded earlier for that
+  culture and define a new pool. The same modes can be used on <Fallback>.
+
+  Base name presets are deliberately unlocalized. Localization belongs here at
+  compatibility-patch level: a patch may replace a pool with entries carrying
+  unique string ids owned by the supplying module. Text may contain
+  {SETTLEMENT} and {FOUNDER_NAME}; visible English remains the fallback when no
+  translation is installed.
+-->
+<DynamicMercenaryNamesPatch>
+  <!--
+  <Culture id="my_custom_culture">
+    <Name text="{=MyMod_MercenaryName_FreeGuard}Free Guard of {SETTLEMENT}" />
+    <Name text="{=MyMod_MercenaryName_FounderBand}{FOUNDER_NAME}'s Band" />
+  </Culture>
+
+  <Culture id="vlandia" mode="replace">
+    <Name text="{=MyMod_MercenaryName_VlandiaCompany}Company of {SETTLEMENT}" />
+  </Culture>
+
+  <Fallback mode="append">
+    <Name text="{=MyMod_MercenaryName_Adventurers}Adventurers of {SETTLEMENT}" />
+  </Fallback>
+  -->
+</DynamicMercenaryNamesPatch>

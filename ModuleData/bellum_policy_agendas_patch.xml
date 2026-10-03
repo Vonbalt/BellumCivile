@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Example patch file for modded policy support.
+
+  Any module can ship a file named:
+    ModuleData/bellum_policy_agendas_patch.xml
+
+  Bellum Civile will load these patch files at runtime after its main
+  bellum_policy_agendas.xml. Use <Add id="..." /> to make a court faction
+  support a policy, and <Remove id="..." /> to remove a policy from that
+  faction's agenda.
+
+  Policy ids must match the PolicyObject StringId used by Bannerlord or the
+  mod that adds the policy. Unknown ids are harmless and are ignored by the
+  game until a mod provides a matching policy.
+-->
+<BellumPolicyAgendaPatch>
+  <!--
+  <Crown>
+    <Add id="my_mod_policy_centralized_crown" />
+    <Remove id="policy_debasement_of_the_currency" />
+  </Crown>
+
+  <Faction type="Nobility">
+    <Add id="my_mod_policy_noble_courts" />
+    <Add id="my_mod_policy_equal_estates" stance="Oppose" />
+    <Add id="my_mod_policy_unlisted" stance="Neutral" />
+  </Faction>
+
+  <Faction type="Glory">
+    <Add id="my_mod_policy_campaign_levies" />
+  </Faction>
+
+  <Faction type="Liberty">
+    <Add id="my_mod_policy_communal_granaries" />
+  </Faction>
+  -->
+</BellumPolicyAgendaPatch>

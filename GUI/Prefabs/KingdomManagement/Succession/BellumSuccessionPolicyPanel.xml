@@ -1,0 +1,229 @@
+<Prefab>
+  <Constants>
+    <Constant Name="Bellum.Banner.Width" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Width" />
+    <Constant Name="Bellum.Banner.Height" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Height" />
+    <Constant Name="Bellum.Banner.Width.Scaled" MultiplyResult="0.30" Value="!Bellum.Banner.Width" />
+    <Constant Name="Bellum.Banner.Height.Scaled" MultiplyResult="0.38" Value="!Bellum.Banner.Height" />
+  </Constants>
+  <Window>
+    <Widget Id="BellumSuccessionPolicyPanelRoot" IsVisible="@BellumSuccessionSelected" IsEnabled="@BellumSuccessionSelected" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget DataSource="{BellumSuccession}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="35" MarginRight="35" MarginTop="22" MarginBottom="20">
+          <Children>
+            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="VerticalTopToBottom">
+              <Children>
+                <Widget Id="HereditarySuccessionHeader" IsVisible="@IsHereditary" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="285">
+                  <Children>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="255" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <Widget DataSource="{CrownHeir}" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="250" IsVisible="@HasHero">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32" HorizontalAlignment="Center" VerticalAlignment="Top" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="25" Text="@CrownHeirLabel" />
+                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="170" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="30" Brush="Encyclopedia.NoAudioButton" Command.Click="ExecuteOpenHero" HoveredCursorState="RightClickLink">
+                              <Children>
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="150" SuggestedHeight="100" HorizontalAlignment="Center">
+                                  <Children>
+                                    <MaskedTextureWidget DoNotAcceptEvents="true" DataSource="{BannerVisual}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Banner.Width.Scaled" SuggestedHeight="!Bellum.Banner.Height.Scaled" HorizontalAlignment="Right" VerticalAlignment="Top" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" Brush="Flat.Tuple.Banner.Small.Hero" />
+                                    <ImageIdentifierWidget DataSource="{Portrait}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="125" SuggestedHeight="93" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="3" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" />
+                                  </Children>
+                                </Widget>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="98" MarginLeft="4" MarginRight="4" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@Name" />
+                                <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                              </Children>
+                            </ButtonWidget>
+                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginTop="216" Sprite="SPKingdom\Diplomacy\divider_left" AlphaFactor="0.7" />
+                            <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="18" Brush.FontColor="#F1D8A4FF" Text="@LoyaltyLabel" />
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="4" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="18" Brush.FontColor="@LoyaltyColor" Text="@LoyaltyText" />
+                              </Children>
+                            </ListPanel>
+                          </Children>
+                        </Widget>
+
+                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="@NextHeirsWidth" HeightSizePolicy="StretchToParent" MarginLeft="28" IsVisible="@HasNextHeirs">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32" HorizontalAlignment="Center" VerticalAlignment="Top" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="25" Text="@LineOfSuccessionLabel" />
+                        <NavigatableListPanel DataSource="{NextHeirs}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                          <ItemTemplate>
+                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="220" MarginLeft="4" MarginRight="4">
+                              <Children>
+                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="220" SuggestedHeight="155" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="30" Brush="Encyclopedia.NoAudioButton" Command.Click="ExecuteOpenHero" HoveredCursorState="RightClickLink">
+                                  <Children>
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="125" SuggestedHeight="80" HorizontalAlignment="Center">
+                                      <Children>
+                                        <MaskedTextureWidget DoNotAcceptEvents="true" DataSource="{BannerVisual}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Banner.Width.Scaled" SuggestedHeight="!Bellum.Banner.Height.Scaled" HorizontalAlignment="Right" VerticalAlignment="Top" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" Brush="Flat.Tuple.Banner.Small.Hero" />
+                                        <ImageIdentifierWidget DataSource="{Portrait}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="100" SuggestedHeight="74" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="3" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" />
+                                      </Children>
+                                    </Widget>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="55" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="79" MarginLeft="4" MarginRight="4" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@Name" />
+                                    <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                  </Children>
+                                </ButtonWidget>
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginTop="216" Sprite="SPKingdom\Diplomacy\divider_left" AlphaFactor="0.7" />
+                                <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="18" Brush.FontColor="#F1D8A4FF" Text="@LoyaltyLabel" />
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="4" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="18" Brush.FontColor="@LoyaltyColor" Text="@LoyaltyText" />
+                                  </Children>
+                                </ListPanel>
+                              </Children>
+                            </Widget>
+                          </ItemTemplate>
+                        </NavigatableListPanel>
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="70" SuggestedHeight="45" VerticalAlignment="Center" MarginLeft="10" IsVisible="@HasAdditionalHeirs">
+                          <Children>
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="25" Text="@AdditionalHeirsText" />
+                            <HintWidget DataSource="{AdditionalHeirsHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </ListPanel>
+                    <TextWidget IsVisible="@HasNoHeir" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" VerticalAlignment="Center" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@NoHeirText" />
+                    <TextWidget IsVisible="@HasRegency" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Bottom" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="20" Text="@RegencyText" />
+                  </Children>
+                </Widget>
+
+                <Widget Id="ElectiveSuccessionHeader" IsVisible="@IsElective" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="285">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" VerticalAlignment="Top" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="26" Brush.TextHorizontalAlignment="Center" Text="@ElectionHeading" />
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" MarginTop="36" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Text="@ElectionDate" />
+                    <NavigatableListPanel DataSource="{ElectionCandidates}" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="210" HorizontalAlignment="Center" MarginTop="70" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <ItemTemplate>
+                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="210" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8">
+                          <Children>
+                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" SuggestedWidth="125" HeightSizePolicy="Fixed" SuggestedHeight="86" HorizontalAlignment="Center" Brush="Encyclopedia.NoAudioButton" Command.Click="ExecuteOpenHero" Command.HoverBegin="ExecuteBeginSupportHint" Command.HoverEnd="ExecuteEndSupportHint" HoveredCursorState="RightClickLink">
+                              <Children>
+                                <Widget DataSource="{Person}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                                  <Children>
+                                    <MaskedTextureWidget DataSource="{BannerVisual}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Banner.Width.Scaled" SuggestedHeight="!Bellum.Banner.Height.Scaled" HorizontalAlignment="Right" VerticalAlignment="Top" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" Brush="Flat.Tuple.Banner.Small.Hero" />
+                                    <ImageIdentifierWidget DataSource="{Portrait}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="110" SuggestedHeight="82" HorizontalAlignment="Center" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ButtonWidget>
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="47" MarginTop="86" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@ClanName" />
+                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginTop="137" Sprite="SPKingdom\Diplomacy\divider_left" AlphaFactor="0.7" />
+                            <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="30" VerticalAlignment="Bottom" MarginBottom="30" Brush="@CheckboxBrush" IsSelected="@IsSelected" IsEnabled="@CanSelect" Command.Click="ExecuteSelect" />
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32" MarginLeft="34" VerticalAlignment="Bottom" MarginBottom="30">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Text="@SupportText" />
+                              </Children>
+                            </Widget>
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" MarginLeft="34" VerticalAlignment="Bottom" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Text="@AcceptanceText" />
+                          </Children>
+                        </Widget>
+                      </ItemTemplate>
+                    </NavigatableListPanel>
+                  </Children>
+                </Widget>
+
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="SPKingdom\Diplomacy\divider_left" MarginTop="8" MarginBottom="12" AlphaFactor="0.7" />
+
+                <Widget Id="SuccessionLawGroups" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="25" MarginRight="25">
+                  <Children>
+                    <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="18" AutoHideScrollBars="true" ClipRect="SuccessionPolicyLawClip" InnerPanel="SuccessionPolicyLawClip\SuccessionPolicyLawColumns" VerticalScrollbar="..\SuccessionPolicyLawScrollbar">
+                      <Children>
+                        <Widget Id="SuccessionPolicyLawClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                          <Children>
+                            <ListPanel Id="SuccessionPolicyLawColumns" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <ListPanel Id="SuccessionLeftLaws" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginRight="24" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                              <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" MarginTop="0" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@GenderLawsLabel" HorizontalAlignment="Center" />
+                              <NavigatableListPanel DataSource="{GenderLaws}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                <ItemTemplate>
+                                  <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginTop="4" MarginBottom="4">
+                                    <Children>
+                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Center" Command.Click="ExecuteSelect" IsSelected="@IsActive" IsEnabled="@IsButtonEnabled" UpdateChildrenStates="true">
+                                        <Children>
+                                          <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8" Brush="SPOptions.Dropdown.Center.Text" Brush.FontSize="22" Text="@Name" />
+                                          <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsActive" />
+                                        </Children>
+                                      </ButtonWidget>
+                                      <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                    </Children>
+                                  </Widget>
+                                </ItemTemplate>
+                              </NavigatableListPanel>
+                              <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" MarginTop="18" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@ElectiveTermsLabel" HorizontalAlignment="Center" />
+                              <NavigatableListPanel DataSource="{ElectiveTerms}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                <ItemTemplate>
+                                  <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginTop="4" MarginBottom="4">
+                                    <Children>
+                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Center" Command.Click="ExecuteSelect" IsSelected="@IsActive" IsEnabled="@IsButtonEnabled" UpdateChildrenStates="true">
+                                        <Children>
+                                          <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8" Brush="SPOptions.Dropdown.Center.Text" Brush.FontSize="22" Text="@Name" />
+                                          <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsActive" />
+                                        </Children>
+                                      </ButtonWidget>
+                                      <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                    </Children>
+                                  </Widget>
+                                </ItemTemplate>
+                              </NavigatableListPanel>
+                                  </Children>
+                                </ListPanel>
+                                <ListPanel Id="SuccessionRightLaws" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                              <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" MarginTop="0" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@HereditaryLawsLabel" HorizontalAlignment="Center" />
+                              <NavigatableListPanel DataSource="{HereditaryLaws}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                <ItemTemplate>
+                                  <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginTop="4" MarginBottom="4">
+                                    <Children>
+                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Center" Command.Click="ExecuteSelect" IsSelected="@IsActive" IsEnabled="@IsButtonEnabled" UpdateChildrenStates="true">
+                                        <Children>
+                                          <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8" Brush="SPOptions.Dropdown.Center.Text" Brush.FontSize="22" Text="@Name" />
+                                          <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsActive" />
+                                        </Children>
+                                      </ButtonWidget>
+                                      <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                    </Children>
+                                  </Widget>
+                                </ItemTemplate>
+                              </NavigatableListPanel>
+                              <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" MarginTop="18" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@ElectiveLawsLabel" HorizontalAlignment="Center" />
+                              <NavigatableListPanel DataSource="{ElectiveLaws}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                <ItemTemplate>
+                                  <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginTop="4" MarginBottom="4">
+                                    <Children>
+                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Center" Command.Click="ExecuteSelect" IsSelected="@IsActive" IsEnabled="@IsButtonEnabled" UpdateChildrenStates="true">
+                                        <Children>
+                                          <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8" Brush="SPOptions.Dropdown.Center.Text" Brush.FontSize="22" Text="@Name" />
+                                          <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsActive" />
+                                        </Children>
+                                      </ButtonWidget>
+                                      <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                    </Children>
+                                  </Widget>
+                                </ItemTemplate>
+                              </NavigatableListPanel>
+                                  </Children>
+                                </ListPanel>
+                              </Children>
+                            </ListPanel>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </ScrollablePanel>
+                    <ScrollbarWidget Id="SuccessionPolicyLawScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" AlignmentAxis="Vertical" Handle="SuccessionPolicyLawScrollbarHandle" MaxValue="100" MinValue="0">
+                      <Children>
+                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
+                        <BrushWidget Id="SuccessionPolicyLawScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />
+                      </Children>
+                    </ScrollbarWidget>
+                  </Children>
+                </Widget>
+
+
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="20" Text="@ReformCostText" />
+              </Children>
+            </ListPanel>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

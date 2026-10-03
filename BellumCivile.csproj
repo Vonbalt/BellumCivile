@@ -1,0 +1,154 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>BellumCivile</RootNamespace>
+    <AssemblyName>BellumCivile</AssemblyName>
+    
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="BellumCivile.NavalDLCPatch\\**\\*.cs" />
+    <EmbeddedResource Include="ModuleData\bellum_policy_agendas.xml" />
+    <EmbeddedResource Include="ModuleData\bellum_laws.xml" />
+    <Compile Remove="Tests\CourtRedesignHarness\**\*.cs" />
+    <Compile Remove="Tests\SuccessionEngineHarness\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.MCM" Version="5.11.4" IncludeAssets="compile" />
+
+    <Reference Include="0Harmony">
+      <HintPath>$(GameFolder)\Modules\Bannerlord.Harmony\bin\Win64_Shipping_Client\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Bannerlord.UIExtenderEx">
+      <HintPath>$(GameFolder)\Modules\Bannerlord.UIExtenderEx\bin\Win64_Shipping_Client\Bannerlord.UIExtenderEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <Reference Include="SandBox.View">
+      <HintPath>$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SandBox">
+      <HintPath>$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <Reference Include="SandBox.GauntletUI">
+      <HintPath>$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.GauntletUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+
+    <Reference Include="TaleWorlds.CampaignSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.ViewModelCollection.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Core">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Core.ViewModelCollection">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Core.ViewModelCollection.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine.GauntletUI">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\System.Numerics.Vectors.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.GauntletUI">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.GauntletUI.Data">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.GauntletUI.PrefabSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.PrefabSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.InputSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.InputSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Library">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Localization">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.View">
+      <HintPath>$(GameFolder)\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.View.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.ViewModelCollection">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.ViewModelCollection.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ModuleManager">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.ModuleManager.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ObjectSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.SaveSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ScreenSystem">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.TwoDimension">
+      <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.TwoDimension.dll</HintPath>
+      <Private>False</Private>
+    </Reference>  
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="GUI\Prefabs\KingdomManagement\Factions\BellumFactionsPanel.xml" />
+    <Content Include="GUI\Prefabs\KingdomManagement\Hierarchy\BellumHierarchyPanel.xml" />
+    <Content Include="GUI\Prefabs\KingdomManagement\Hierarchy\BellumHierarchyTitleTreeNode.xml" />
+    <Content Include="GUI\Prefabs\KingdomManagement\Succession\BellumSuccessionPolicyPanel.xml" />
+    <Content Include="GUI\Prefabs\Map\BellumWarScoreMapWidget.xml" />
+    <Content Include="GUI\Prefabs\KingdomManagement\Diplomacy\*.xml" />
+    <Content Include="GUI\Prefabs\Parley\BellumPeaceParley.xml" />
+    <Content Include="GUI\Brushes\BellumMap.xml" />
+    <Content Include="ModuleData\bellum_policy_agendas.xml" />
+    <Content Include="ModuleData\bellum_policy_agendas_patch.xml" />
+    <Content Include="ModuleData\bellum_title_styles_anglicized.xml" />
+    <Content Include="ModuleData\bellum_title_styles_immersive.xml" />
+    <Content Include="ModuleData\succession_config.xml" />
+    <Content Include="ModuleData\bellum_laws.xml" />
+    <Content Include="ModuleData\bellum_concepts.xml" />
+    <Content Include="ModuleData\bellum_realm_names.xml" />
+    <Content Include="ModuleData\bellum_realm_names_patch.xml" />
+    <Content Include="ModuleData\dynamic_mercenary_names.xml" />
+    <Content Include="ModuleData\dynamic_mercenary_names_patch.xml" />
+  </ItemGroup>
+
+</Project>

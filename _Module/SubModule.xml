@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+    <Name value="Bellum Civile"/>
+    <Id value="BellumCivile"/>
+    <Version value="v1.4.0"/>
+	<DefaultModule value="false"/>
+	<ModuleCategory value="Singleplayer"/>
+	<Official value="false"/>
+
+    <DependedModules>
+        <DependedModule Id="Bannerlord.Harmony" />
+        <DependedModule Id="Bannerlord.MBOptionScreen" />
+        <DependedModule Id="Bannerlord.UIExtenderEx" />
+        <DependedModule Id="Native" />
+        <DependedModule Id="SandBoxCore" />
+        <DependedModule Id="Sandbox" />
+        <DependedModule Id="CustomBattle" />
+        <DependedModule Id="StoryMode" />
+        <DependedModule Id="HarvestAndProduction" Optional="true" />			
+    </DependedModules>
+
+    <SubModules>
+        <SubModule>
+            <Name value="BellumCivile"/>
+            <DLLName value="BellumCivile.dll"/>
+            <SubModuleClassType value="BellumCivile.SubModule"/>
+            <Tags>
+                <Tag key="StrictPlayMode" value="false" />
+            </Tags>
+        </SubModule>
+    </SubModules>
+    <Xmls>
+        <XmlNode>
+            <XmlName id="Concepts" path="bellum_concepts" />
+            <IncludedGameTypes>
+                <GameType value="Campaign" />
+                <GameType value="CampaignStoryMode" />
+            </IncludedGameTypes>
+        </XmlNode>
+    </Xmls>
+</Module>

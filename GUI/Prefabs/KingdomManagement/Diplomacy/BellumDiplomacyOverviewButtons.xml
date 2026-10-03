@@ -1,0 +1,18 @@
+<Prefab>
+  <Window>
+    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="44" HorizontalAlignment="Center" MarginRight="42" MarginBottom="12" StackLayout.LayoutMethod="HorizontalLeftToRight">
+      <Children>
+        <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="227" SuggestedHeight="40" MarginRight="12" Brush="ButtonBrush2" IsSelected="@BellumOverviewSelected" Command.Click="ExecuteBellumOverview" DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
+          <Children>
+            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.GeneralButtons.Text" Text="@BellumOverviewText" />
+          </Children>
+        </ButtonWidget>
+        <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="227" SuggestedHeight="40" Brush="ButtonBrush2" IsSelected="@BellumStatsSelected" Command.Click="ExecuteBellumStats" DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
+          <Children>
+            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.GeneralButtons.Text" Text="@BellumStatsText" />
+          </Children>
+        </ButtonWidget>
+      </Children>
+    </ListPanel>
+  </Window>
+</Prefab>

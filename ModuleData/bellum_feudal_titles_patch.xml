@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Example patch file for modpack authors.
+  Put a file named bellum_feudal_titles_patch.xml in another module's ModuleData folder.
+  Bellum will load it after its main feudal title config.
+
+  Reusing the same title id overwrites that configured title definition.
+  Reusing the same TitleStyle culture/kingdom merges it rank by rank and field
+  by field. Omitted ranks and fields retain the value loaded before this patch.
+
+  Selectable terminology presets use bellum_title_styles_*.xml instead. Their
+  load order is main hierarchy, selected style preset, then every compatibility
+  patch, so this file always has final authority.
+
+  Presets and patches may rename an individual title without redefining its
+  structure:
+    <TitleName id="duchy_ebor" name="Ebor" />
+
+  Title name is the territorial root/custom name. TitleStyle decides how that
+  root is rendered by culture or kingdom:
+    name="the Tall Hills" + Vlandian County style => County of the Tall Hills
+    holder display => Count of the Tall Hills
+
+  Optional rank formats can change word order per culture/kingdom:
+    titleFormat="{TITLE_NAME} {TITLE_NOUN}"      => Jaculan County
+    heldTitleFormat="{TITLE_NAME} {TITLE_RANK}"  => Jaculan Count
+
+  Recruited wanderers receive no honorific unless the applicable Rank adds:
+    wandererRank="Retainer" femaleWandererRank="Retainer"
+
+  Optional landless noble house-leader honorifics on the sovereign Rank tier:
+    landlessLeaderRank="Patriarch" femaleLandlessLeaderRank="Matriarch"
+  These apply only to adult noble clan leaders in a realm with no active
+  de facto title. Royal/heir/consort styles retain priority. Omit both to
+  keep the ordinary noble honorific; one gender can serve as fallback for both.
+  Like nobleRank, own-culture styles are preferred over realm fallbacks.
+
+  Optional mercenary/minor-faction leader honorifics on Rank tier="Kingdom":
+    mercenaryLeaderRank="Captain" femaleMercenaryLeaderRank="Captain"
+  Own-culture style first, realm fallback; works between contracts as well.
+  Only adult company leaders qualify (including a hired player); bandits,
+  notables, ordinary members and spouses do not. Omitted fields retain names.
+-->
+<BellumFeudalTitles>
+  <!--
+  <TitleStyle culture="Vlandia">
+    <CouncilOffices name="Privy Council" marshal="Marshal" chancellor="Chancellor" seneschal="Seneschal" spymaster="Spymaster" firstAdvisor="First Advisor" secondAdvisor="Second Advisor" />
+    <Rank tier="Barony" titleName="Barony" maleRank="Baron" femaleRank="Baroness" />
+    <Rank tier="County" titleName="County" maleRank="Count" femaleRank="Countess" />
+    <Rank tier="Duchy" titleName="Duchy" maleRank="Duke" femaleRank="Duchess" />
+    <Rank tier="Kingdom" titleName="Kingdom" maleRank="King" femaleRank="Queen" heirRank="Crown Prince" femaleHeirRank="Crown Princess" childRank="Prince" femaleChildRank="Princess" nobleRank="Lord" femaleNobleRank="Lady" />
+    <Rank tier="Empire" titleName="Empire" maleRank="Emperor" femaleRank="Empress" heirRank="Crown Prince" femaleHeirRank="Crown Princess" childRank="Prince" femaleChildRank="Princess" nobleRank="Lord" femaleNobleRank="Lady" />
+  </TitleStyle>
+
+  <Title id="county_custom_sargot" type="County" name="the Tall Hills" capital="Sargot" deJureClan="dey Meroc" kingdom="Vlandia">
+    <Child settlement="Sargot" />
+    <Child settlement="Talivel Castle" />
+    <Child settlement="Thractorae Castle" />
+  </Title>
+
+  <TitleStyle culture="example_culture">
+    <Rank tier="County" titleName="County" maleRank="Count" femaleRank="Countess" titleFormat="{TITLE_NAME} {TITLE_NOUN}" heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+  </TitleStyle>
+  -->
+</BellumFeudalTitles>

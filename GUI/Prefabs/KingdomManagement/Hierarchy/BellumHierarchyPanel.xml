@@ -1,0 +1,252 @@
+<Prefab>
+  <Constants>
+    <Constant Name="Bellum.Kingdom.Header.Policies.Width" BrushLayer="Default" BrushName="Kingdom.Header.Policies" BrushValueType="Width" />
+    <Constant Name="Bellum.Kingdom.Header.Policies.Height" BrushLayer="Default" BrushName="Kingdom.Header.Policies" BrushValueType="Height" />
+    <Constant Name="Bellum.Kingdom.Scroll.Header.Width" BrushLayer="Default" BrushName="Scroll.Header" BrushValueType="Width" />
+    <Constant Name="Bellum.Kingdom.Scroll.Header.Height" BrushLayer="Default" BrushName="Scroll.Header" BrushValueType="Height" />
+    <Constant Name="Bellum.Hierarchy.Item.Width" BrushLayer="Default" BrushName="Kingdom.Item.Tuple" BrushValueType="Width" />
+    <Constant Name="Bellum.Hierarchy.Item.Height" BrushLayer="Default" BrushName="Kingdom.Item.Tuple" BrushValueType="Height" />
+    <Constant Name="Bellum.Hierarchy.RealmBanner.Width" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Width" />
+    <Constant Name="Bellum.Hierarchy.RealmBanner.Height" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Height" />
+    <Constant Name="Bellum.Hierarchy.RealmBanner.Width.Scaled" MultiplyResult="0.43" Value="!Bellum.Hierarchy.RealmBanner.Width" />
+    <Constant Name="Bellum.Hierarchy.RealmBanner.Height.Scaled" MultiplyResult="0.43" Value="!Bellum.Hierarchy.RealmBanner.Height" />
+    <Constant Name="Bellum.Hierarchy.Banner.Width" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Width" />
+    <Constant Name="Bellum.Hierarchy.Banner.Height" BrushLayer="Default" BrushName="Flat.Tuple.Banner.Small" BrushValueType="Height" />
+    <Constant Name="Bellum.Hierarchy.Banner.Width.Scaled" MultiplyResult="0.30" Value="!Bellum.Hierarchy.Banner.Width" />
+    <Constant Name="Bellum.Hierarchy.Banner.Height.Scaled" MultiplyResult="0.38" Value="!Bellum.Hierarchy.Banner.Height" />
+  </Constants>
+  <Window>
+    <Widget Id="BellumHierarchyPanelRoot" IsVisible="@BellumHierarchySelected" IsEnabled="@BellumHierarchySelected" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="188" MarginBottom="75">
+      <Children>
+        <HierarchyActionMenuWidget DataSource="{BellumHierarchy}" Command.ClearSelection="ExecuteClearSelection" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+          <Children>
+            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+              <Children>
+                <BrushListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" VerticalAlignment="Bottom" MarginTop="6" MarginBottom="9" MarginLeft="0" Brush="Frame1Brush" StackLayout.LayoutMethod="VerticalTopToBottom">
+                  <Children>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" RenderLate="true">
+                      <Children>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Kingdom.Header.Policies.Width" SuggestedHeight="!Bellum.Kingdom.Header.Policies.Height" Sprite="SPKingdom\header_policies" ExtendTop="21" ExtendRight="13" ExtendBottom="20" RenderLate="true">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" MarginBottom="8" IsDisabled="true" Text="@KingdomsHeader" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Kingdom.Scroll.Header.Width" SuggestedHeight="!Bellum.Kingdom.Scroll.Header.Height" Sprite="StdAssets\scroll_header" ExtendRight="3" ExtendTop="6" ExtendLeft="3" ExtendBottom="4" HorizontalAlignment="Right" />
+                      </Children>
+                    </ListPanel>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                      <Children>
+                        <ScrollablePanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="3" MarginBottom="3" AutoHideScrollBars="true" ClipRect="HierarchyRealmClip" InnerPanel="HierarchyRealmClip\HierarchyRealmList" VerticalScrollbar="..\HierarchyRealmScrollbar\Scrollbar">
+                          <Children>
+                            <Widget Id="HierarchyRealmClip" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children>
+                                <NavigatableListPanel Id="HierarchyRealmList" DataSource="{Kingdoms}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom" MinIndex="0" StepSize="1000">
+                                  <ItemTemplate>
+                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Hierarchy.Item.Width" SuggestedHeight="!Bellum.Hierarchy.Item.Height" Brush="Kingdom.Policy.Active.Tuple" Command.Click="ExecuteSelect" UpdateChildrenStates="true" IsSelected="@IsSelected">
+                                      <Children>
+                                        <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8">
+                                          <Children>
+                                            <MaskedTextureWidget DataSource="{BannerVisual}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Hierarchy.RealmBanner.Width.Scaled" SuggestedHeight="!Bellum.Hierarchy.RealmBanner.Height.Scaled" HorizontalAlignment="Center" VerticalAlignment="Top" Brush="Flat.Tuple.Banner.Small" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="40" MarginLeft="15" />
+                                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center" MarginRight="75" Brush="ArmyManagement.Army.Tuple.Name" IsEnabled="false" Text="@Name" />
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </ButtonWidget>
+                                  </ItemTemplate>
+                                </NavigatableListPanel>
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Standard.VerticalScrollbar Id="HierarchyRealmScrollbar" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginLeft="2" MarginRight="2" MarginBottom="3" />
+                      </Children>
+                    </ListPanel>
+                  </Children>
+                </BrushListPanel>
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="12" MarginTop="6" MarginBottom="9">
+                  <Children>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="78" HorizontalAlignment="Left" MarginTop="12" MarginLeft="28" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <MaskedTextureWidget DataSource="{SovereignBannerVisual}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!Bellum.Hierarchy.RealmBanner.Width.Scaled" SuggestedHeight="!Bellum.Hierarchy.RealmBanner.Height.Scaled" VerticalAlignment="Center" Brush="Flat.Tuple.Banner.Small" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+                        <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" VerticalAlignment="Center" MarginLeft="12" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <Children>
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="38" Brush="Kingdom.DecisionTitle.Text" Brush.FontSize="30" Brush.TextHorizontalAlignment="Left" Text="@SovereignTitleName" />
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="25" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Text="@SovereignTitleSummary" />
+                          </Children>
+                        </ListPanel>
+                      </Children>
+                    </ListPanel>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" MarginTop="20" MarginRight="44" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" VerticalAlignment="Center" MarginRight="10" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="22" Text="@ViewModeText" />
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="100" SuggestedHeight="40">
+                          <Children>
+                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Header.Tab.Center" Command.Click="ExecuteShowDeFacto" UpdateChildrenStates="true" IsSelected="@IsDeFactoMode" IsEnabled="@IsDeFactoAvailable">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Clan.TabControl.Text" Text="@DeFactoText" />
+                              </Children>
+                            </ButtonWidget>
+                            <HintWidget DataSource="{DeFactoHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="100" SuggestedHeight="40" MarginLeft="10">
+                          <Children>
+                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Header.Tab.Center" Command.Click="ExecuteShowDeJure" UpdateChildrenStates="true" IsSelected="@IsDeJureMode" IsEnabled="@IsDeJureAvailable">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Clan.TabControl.Text" Text="@DeJureText" />
+                              </Children>
+                            </ButtonWidget>
+                            <HintWidget DataSource="{DeJureHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </ListPanel>
+                    <EncyclopediaTroopScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="96" MarginBottom="20" MarginLeft="18" MarginRight="18" AutoHideScrollBars="true" IsEnabled="@IsSelected" PanWithMouseEnabled="@IsSelected" ClipRect="HierarchyTreeClip" InnerPanel="HierarchyTreeClip\HierarchyTierList" HorizontalScrollbar="..\HierarchyHorizontalScrollbar" VerticalScrollbar="..\HierarchyVerticalScrollbar">
+                      <Children>
+                        <Widget Id="HierarchyTreeClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                          <Children>
+                            <NavigatableListPanel Id="HierarchyTierList" DataSource="{HierarchyRoots}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" MinIndex="0" StepSize="1000">
+                              <ItemTemplate>
+                                <BellumHierarchyTitleTreeNode />
+                              </ItemTemplate>
+                            </NavigatableListPanel>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </EncyclopediaTroopScrollablePanel>
+                    <ScrollbarWidget Id="HierarchyHorizontalScrollbar" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="40" MarginRight="55" MarginBottom="6" AlignmentAxis="Horizontal" Handle="HierarchyHorizontalScrollbarHandle" MaxValue="100" MinValue="0">
+                      <Children>
+                        <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
+                        <BrushWidget Id="HierarchyHorizontalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="50" SuggestedHeight="8" VerticalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />
+                      </Children>
+                    </ScrollbarWidget>
+                    <ScrollbarWidget Id="HierarchyVerticalScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" VerticalAlignment="Center" MarginTop="102" MarginBottom="28" MarginRight="10" AlignmentAxis="Vertical" Handle="HierarchyVerticalScrollbarHandle" MaxValue="100" MinValue="0">
+                      <Children>
+                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
+                        <BrushWidget Id="HierarchyVerticalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />
+                      </Children>
+                    </ScrollbarWidget>
+                  </Children>
+                </Widget>
+              </Children>
+            </ListPanel>
+            <Widget Id="TitleActionOverlay" IsVisible="false" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+              <Children>
+                <HierarchyActionButtonWidget Id="TitleActionBackdrop" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Encyclopedia.NoAudioButton" />
+                <BrushWidget Id="TitleActionMenu" DataSource="{SelectedTitle}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="240" SuggestedHeight="@ActionMenuHeight" HorizontalAlignment="Left" VerticalAlignment="Top" Brush="SPOptions.Dropdown.Extension">
+                  <Children>
+                    <ListPanel Id="HierarchyActionList" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom" MarginTop="8" MarginLeft="8" MarginRight="8">
+                      <Children>
+                        <Widget IsVisible="@IsChallengeVisible" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteChallenge" UpdateChildrenStates="true" IsEnabled="@IsChallengeEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ChallengeText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{ChallengeHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteClaim" UpdateChildrenStates="true" IsEnabled="@IsClaimEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ClaimText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{ClaimHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget IsVisible="@IsRenounceVisible" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRenounce" UpdateChildrenStates="true" IsEnabled="@IsRenounceEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RenounceText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{RenounceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteUsurp" UpdateChildrenStates="true" IsEnabled="@IsUsurpEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@UsurpText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{UsurpHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRevoke" UpdateChildrenStates="true" IsEnabled="@IsRevocationEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RevokeText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{RevocationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget IsVisible="@IsFormationVisible" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteForm" UpdateChildrenStates="true" IsEnabled="@IsFormationEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@FormText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{FormationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteService" UpdateChildrenStates="true" IsEnabled="@IsServiceEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ServiceText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{ServiceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteGrant" UpdateChildrenStates="true" IsEnabled="@IsGrantEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@GrantText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{GrantHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRename" UpdateChildrenStates="true" IsEnabled="@IsRenameEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RenameText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{RenameHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                          <Children>
+                            <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteDissolve" UpdateChildrenStates="true" IsEnabled="@IsDissolutionEnabled">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@DissolveText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Children>
+                            </HierarchyActionButtonWidget>
+                            <HintWidget DataSource="{DissolutionHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </ListPanel>
+                  </Children>
+                </BrushWidget>
+              </Children>
+            </Widget>
+          </Children>
+        </HierarchyActionMenuWidget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

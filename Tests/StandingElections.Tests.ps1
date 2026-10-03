@@ -1,0 +1,32 @@
+$ErrorActionPreference = 'Stop'
+$root = Split-Path $PSScriptRoot -Parent
+function Read($path) { Get-Content -Raw (Join-Path $root $path) }
+function Check($condition, $message) { if (!$condition) { throw $message }; Write-Output "PASS: $message" }
+$behavior = Read 'Behaviors/ElectiveSuccessionBehavior.cs'
+$crown = Read 'Behaviors/CrownAccessionBehavior.cs'
+$court = Read 'Behaviors/CourtAgendaBehavior.cs'
+$ui = Read 'UI/VanillaTabs/Kingdoms/Succession/ElectiveCandidateVM.cs'
+$politics = Read 'Patches/KingSelectionAIPatch.cs'
+$rules = Read 'ElectiveSuccessionRules.cs'
+[xml]$xml = Read 'GUI/Prefabs/KingdomManagement/Succession/BellumSuccessionPolicyPanel.xml'
+Check ($court.Contains('CheckMandate(realm);') -and $court.Contains('Maintain(realm, renewal: true)')) 'Existing court maintenance and renewal own stance reconsideration.'
+Check (!$behavior.Contains('DailyTickEvent') -and !$behavior.Contains('HourlyTickEvent')) 'Election preferences have no independent periodic scheduler.'
+Check (!$behavior.Contains('new KingSelectionKingdomDecision')) 'Standing election does not create a normal native succession ballot.'
+Check ($crown.Contains('ElectiveElection = sovereign == victim') -and $crown.Contains('SelectSuccessor(record)')) 'Ordinary elective death is captured by the existing Crown journal.'
+Check ($crown.Contains('!record.ElectiveElection && !PrepareAbdicationTransfer')) 'Elective abdication cannot trigger hereditary living estate distribution.'
+Check ($behavior.Contains('old.Source') -and $behavior.Contains('!old.Until.IsPast') -and $behavior.Contains('CampaignTime.Now + CampaignTime.Days(BellumCivileOptions.CourtTermDays)')) 'Personal promises have captured expiry dates and survive renewal while valid.'
+Check ($behavior.Contains('record.Frozen ? previous.FirstOrDefault') -and $behavior.Contains('RetallyFrozen(record)')) 'Final prompt changes votes without repricing captured clan weights.'
+Check ($behavior.Contains('_scoring = true') -and $behavior.Contains('if (_scoring') -and $behavior.Contains('InvalidateRelations()')) 'Conditional endorsement is excluded from scoring with relation-cache invalidation.'
+Check ($behavior.Contains('vote.Nominee == candidate ? 10 : -5')) 'Endorsement effects use the approved +10 and -5 values.'
+Check ($politics.Contains('!standing && voterClan == candidateClan') -and
+    $rules.Contains('if (vote.Speaker != null && finalists.Contains(vote.Speaker)) return vote.Speaker;')) 'Natural nominations stay merit-based; finalist houses back themselves in the final ballot.'
+Check ($rules.Contains('if (vote.Source != "natural") return finalists.Contains(vote.Nominee)') -and
+    $behavior.Contains('v.Supported = ElectiveSuccessionRules.ResolveSupport(v, finalists);')) 'Player/promised votes survive self-support; live and frozen ballots share the rule.'
+Check ($xml.SelectNodes('//*[@DataSource="{ElectionCandidates}"]').Count -eq 1 -and $ui.Contains('IsSelected ? null : _candidate')) 'Panel offers single-choice support and clicking the current selection clears it.'
+Check ($ui.Contains('score.Total.ToString') -and $ui.Contains('Acceptance: --')) 'Acceptance uses S5 assessment and retains an unset fallback for unavailable data.'
+Check ($ui.Contains('TooltipPropertyFlags.Title') -and $ui.Contains('_candidate.Name.ToString()') -and !$ui.Contains('?.Explain(')) 'Candidate support tooltip has a leader-name header without the verbose preference footer.'
+Check ($xml.SelectNodes('//*[@Text="@ClanName"]').Count -eq 1 -and $xml.SelectNodes('//*[@Text="@ElectionStateText"]').Count -eq 0) 'Candidate portraits use clan names and no uncommitted-weight footer.'
+Check ($xml.SelectSingleNode('//*[@Text="@SupportText"]').GetAttribute('Brush.TextHorizontalAlignment') -eq 'Left') 'Support label aligns to the adjacent selection box.'
+Check ($behavior.Contains('ElectiveSuccessionRules.RefreshWeights(record, clan => RebellionPowerHelper.CalculateClanPower(clan))')) 'Unchanged court commitments still refresh current strength-plus-influence voting power.'
+Check ($behavior.Contains('LegalHead(clan)') -and $behavior.Contains('Speaker == speaker')) 'Regents do not replace ward candidacy and promises bind the actual speaker.'
+Write-Output 'Source contracts only. Campaign transitions, save/load and Gauntlet input require in-game testing.'

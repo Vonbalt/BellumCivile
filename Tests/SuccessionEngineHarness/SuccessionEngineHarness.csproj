@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../BellumCivile.csproj" />
+    <Reference Include="0Harmony" HintPath="$(GameFolder)/Modules/Bannerlord.Harmony/bin/Win64_Shipping_Client/0Harmony.dll" />
+    <Reference Include="TaleWorlds.CampaignSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.CampaignSystem.dll" />
+    <Reference Include="TaleWorlds.Core" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Core.dll" />
+    <Reference Include="TaleWorlds.Library" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Library.dll" />
+    <Reference Include="TaleWorlds.Localization" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Localization.dll" />
+    <Reference Include="TaleWorlds.SaveSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.SaveSystem.dll" />
+    <Reference Include="TaleWorlds.ObjectSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.ObjectSystem.dll" />
+  </ItemGroup>
+</Project>

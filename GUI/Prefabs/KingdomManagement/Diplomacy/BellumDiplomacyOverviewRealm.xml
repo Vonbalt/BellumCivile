@@ -1,0 +1,10 @@
+<Prefab>
+  <Window>
+    <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="108" SuggestedHeight="128" Brush="Encyclopedia.NoAudioButton" DoNotPassEventsToChildren="true" Command.Click="ExecuteLink" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+      <Children>
+        <MaskedTextureWidget DataSource="{Banner}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="60" SuggestedHeight="72" HorizontalAlignment="Center" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" TextureProviderName="@TextureProviderName" IsDisabled="true" />
+        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="52" MarginTop="74" MarginLeft="2" MarginRight="2" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="16" Text="@Name" DoNotAcceptEvents="true" />
+      </Children>
+    </ButtonWidget>
+  </Window>
+</Prefab>

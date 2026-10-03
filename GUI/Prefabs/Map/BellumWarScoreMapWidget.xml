@@ -1,0 +1,41 @@
+<Prefab>
+  <Window>
+    <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+        <ListPanel DataSource="{Clients}" DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="100" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="10" MarginTop="8" StackLayout.LayoutMethod="HorizontalLeftToRight">
+          <ItemTemplate>
+            <HintWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginLibertyHint" Command.HoverEnd="ExecuteEndLibertyHint">
+              <Children>
+                <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                  <Children>
+                    <MaskedTextureWidget DataSource="{ClientBanner}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="48" SuggestedHeight="64" HorizontalAlignment="Center" VerticalAlignment="Top" PositionYOffset="6" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" ImageTypeCode="@ImageTypeCode" TextureProviderName="@TextureProviderName" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapClientState.Content" Text="@LibertyDesireText" IsVisible="@IsContent" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapClientState.Restless" Text="@LibertyDesireText" IsVisible="@IsRestless" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapClientState.Defiant" Text="@LibertyDesireText" IsVisible="@IsDefiant" />
+                  </Children>
+                </Widget>
+              </Children>
+            </HintWidget>
+          </ItemTemplate>
+        </ListPanel>
+        <ListPanel DataSource="{Wars}" DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="100" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="10" MarginTop="8" StackLayout.LayoutMethod="HorizontalRightToLeft">
+          <ItemTemplate>
+            <HintWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginWarScoreHint" Command.HoverEnd="ExecuteEndWarScoreHint">
+              <Children>
+                <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                  <Children>
+                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="78" HorizontalAlignment="Center" VerticalAlignment="Top" PositionYOffset="0" Brush="Bellum.MapWarScore.WarIcon" />
+                    <MaskedTextureWidget DataSource="{OpposingBanner}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="48" SuggestedHeight="64" HorizontalAlignment="Center" VerticalAlignment="Top" PositionYOffset="6" Brush="Flat.Tuple.Banner.Small" AdditionalArgs="@AdditionalArgs" ImageId="@Id" ImageTypeCode="@ImageTypeCode" TextureProviderName="@TextureProviderName" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapWarScore.Positive" Text="@ScoreText" IsVisible="@IsWinning" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapWarScore.Negative" Text="@ScoreText" IsVisible="@IsLosing" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Bottom" Brush="Bellum.MapWarScore.Neutral" Text="@ScoreText" IsVisible="@IsEven" />
+                  </Children>
+                </Widget>
+              </Children>
+            </HintWidget>
+          </ItemTemplate>
+        </ListPanel>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../../CourtLiberationRules.cs" Link="CourtLiberationRules.cs" />
+    <Compile Include="../../CourtLiberationRecord.cs" Link="CourtLiberationRecord.cs" />
+    <Compile Include="../../ClientKingdomRecord.cs" Link="ClientKingdomRecord.cs" />
+    <Compile Include="../../SuccessionLaws.cs" Link="SuccessionLaws.cs" />
+    <Compile Include="../../SuccessionRealmRules.cs" Link="SuccessionRealmRules.cs" />
+    <Compile Include="CourtObjectiveFrameworkTests.cs" />
+    <Compile Include="CouncilSelectionSimulation.cs" />
+    <Compile Include="MarriageStrategySimulation.cs" />
+    <Compile Include="../../Behaviors/MarriageHealthRules.cs" Link="MarriageHealthRules.cs" />
+    <Compile Include="MarriageHealthTests.cs" />
+    <Compile Include="../../Behaviors/MarriagePoliticalRules.cs" Link="MarriagePoliticalRules.cs" />
+    <Compile Include="MarriagePoliticalTests.cs" />
+    <Compile Include="../../CourtExecutiveRules.cs" Link="CourtExecutiveRules.cs" />
+    <Compile Include="../../CourtRoyalPeaceRules.cs" Link="CourtRoyalPeaceRules.cs" />
+    <Compile Include="../../CourtDecreeCase.cs" Link="CourtDecreeCase.cs" />
+    <Compile Include="../../CourtObjectiveSelection.cs" Link="CourtObjectiveSelection.cs" />
+    <Compile Include="../../CourtCouncilWeights.cs" Link="CourtCouncilWeights.cs" />
+    <Compile Include="../../CourtActivityRules.cs" Link="CourtActivityRules.cs" />
+    <Compile Include="../../CourtActivityRecord.cs" Link="CourtActivityRecord.cs" />
+    <Compile Include="CourtActivityTests.cs" />
+    <Compile Include="../../CourtAppeasementRules.cs" Link="CourtAppeasementRules.cs" />
+    <Compile Include="../../CourtAppeasementRecord.cs" Link="CourtAppeasementRecord.cs" />
+    <Compile Include="CourtAppeasementTests.cs" />
+    <Compile Include="../../CourtPeaceRules.cs" Link="CourtPeaceRules.cs" />
+    <Compile Include="../../CourtPeaceRecord.cs" Link="CourtPeaceRecord.cs" />
+    <Compile Include="CourtPeaceTests.cs" />
+    <Compile Include="../../CourtCampaignRules.cs" Link="CourtCampaignRules.cs" />
+    <Compile Include="../../CourtCampaignRecord.cs" Link="CourtCampaignRecord.cs" />
+    <Compile Include="CourtCampaignTests.cs" />
+    <Compile Include="../../CourtSubjugationRules.cs" Link="CourtSubjugationRules.cs" />
+    <Compile Include="../../CourtSubjugationRecord.cs" Link="CourtSubjugationRecord.cs" />
+    <Compile Include="CourtSubjugationTests.cs" />
+    <Compile Include="../../CourtClaimRules.cs" Link="CourtClaimRules.cs" />
+    <Compile Include="../../CourtClaimRecord.cs" Link="CourtClaimRecord.cs" />
+    <Compile Include="CourtClaimTests.cs" />
+    <Compile Include="../../CourtDynasticRecord.cs" Link="CourtDynasticRecord.cs" />
+    <Compile Include="CourtDynasticTests.cs" />
+    <Compile Include="../../CourtProtectionRules.cs" Link="CourtProtectionRules.cs" />
+    <Compile Include="CourtProtectionTests.cs" />
+    <Compile Include="../../CourtProtectionRecord.cs" Link="CourtProtectionRecord.cs" />
+    <Compile Include="CourtProtectionExecutionTests.cs" />
+    <Compile Include="../../CourtTradeRecord.cs" Link="CourtTradeRecord.cs" />
+    <Compile Include="CourtTradeTests.cs" />
+    <Compile Include="../../CourtTitleGrantRecord.cs" Link="CourtTitleGrantRecord.cs" />
+    <Compile Include="CourtTitleGrantTests.cs" />
+    <Compile Include="../../CourtRallyRecord.cs" Link="CourtRallyRecord.cs" />
+    <Compile Include="CourtRallyTests.cs" />
+    <Compile Include="../../CourtMandateRules.cs" Link="CourtMandateRules.cs" />
+    <Compile Include="../../CourtMandateRecord.cs" Link="CourtMandateRecord.cs" />
+    <Compile Include="CourtMandateTests.cs" />
+    <Compile Include="../../CourtObjectiveRecord.cs" Link="CourtObjectiveRecord.cs" />
+    <Compile Include="../../CourtPolicyObjectiveBridge.cs" Link="CourtPolicyObjectiveBridge.cs" />
+    <Compile Include="Stubs.cs" />
+    <Compile Include="CrownFavoritismPrototype.cs" />
+    <Compile Include="../../CourtAffiliationMath.cs" Link="CourtAffiliationMath.cs" />
+    <Compile Include="../../CourtFactionRoster.cs" Link="CourtFactionRoster.cs" />
+    <Compile Include="../../CourtAgendaRules.cs" Link="CourtAgendaRules.cs" />
+    <Compile Include="../../CrownFavoritismMath.cs" Link="CrownFavoritismMath.cs" />
+    <Compile Include="../../CourtMembershipEligibility.cs" Link="CourtMembershipEligibility.cs" />
+    <Compile Include="../../CourtAgendaRecord.cs" Link="CourtAgendaRecord.cs" />
+    <Compile Include="../../CourtClientGrantRecord.cs" Link="CourtClientGrantRecord.cs" />
+    <Compile Include="../../CourtPolicyStanceRules.cs" Link="CourtPolicyStanceRules.cs" />
+    <Compile Include="../../PolicyRefundRules.cs" Link="PolicyRefundRules.cs" />
+    <Compile Include="../../EnactedPolicyStances.cs" Link="EnactedPolicyStances.cs" />
+    <Compile Include="../../CourtAgendaPresentation.cs" Link="CourtAgendaPresentation.cs" />
+    <Compile Include="../../CrownReignClock.cs" Link="CrownReignClock.cs" />
+    <Compile Include="../../CrownFavorSelectionRules.cs" Link="CrownFavorSelectionRules.cs" />
+    <Compile Include="../../CrownPowerShare.cs" Link="CrownPowerShare.cs" />
+    <Compile Include="../../IdeologyPolicyAgendaConfig.cs" Link="IdeologyPolicyAgendaConfig.cs" />
+    <EmbeddedResource Include="../../ModuleData/bellum_policy_agendas.xml" LogicalName="BellumCivile.ModuleData.bellum_policy_agendas.xml" />
+  </ItemGroup>
+</Project>

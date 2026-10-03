@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <GameFolder Condition="'$(GameFolder)' == ''">$([System.Environment]::GetFolderPath(SpecialFolder.ProgramFilesX86))\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</GameFolder>
+  </PropertyGroup>
+</Project>

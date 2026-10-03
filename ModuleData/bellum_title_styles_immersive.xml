@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BellumFeudalTitles presetId="immersive" presetName="Immersive" presetOrder="20">
+  <!-- Presentation-only title roots. These never alter holders, ownership, or hierarchy. -->
+  <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
+       Examples: heroNameFormat="{DISPLAY_TITLE} &#xB7; {HERO_NAME}"
+       or heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
+  <TitleName id="bc_title_kingdom_vlandia" name="Valandorum" />
+  <TitleName id="duchy_ebor" name="Eboraci" />
+  <TitleName id="duchy_svadia" name="Svadiae" />
+  <TitleName id="duchy_walhdok" name="Walhdochi" />
+  <TitleName id="county_neurval" name="Neurvalliae" />
+  <TitleName id="county_epiris" name="Epiridis" />
+  <TitleName id="county_biscan" name="Biscaniae" />
+  <TitleName id="county_trand" name="Trandiae" />
+  <TitleName id="county_ocspool" name="Ocspoolii" />
+  <TitleName id="county_n_rhennod" name="Rhennodi Septentrionalis" />
+  <TitleName id="county_morcomb" name="Morcombae" />
+  <TitleName id="bc_title_kingdom_battania" name="Bhattanach" />
+  <TitleName id="duchy_uchalion" name="Uchalion" />
+  <TitleName id="duchy_llyntywal" name="Llyn Tywal" />
+  <TitleName id="county_glanys" name="Glanys" />
+  <TitleName id="county_rhennod" name="Rhennod" />
+  <TitleName id="county_ailtadruin" name="Ailta Druin" />
+  <TitleName id="county_cafalcombe" name="Cafalcombe" />
+  <TitleName id="county_fiur" name="Fiur" />
+  <TitleName id="bc_title_kingdom_sturgia" name="Sturgova" />
+  <TitleName id="duchy_zapadu" name="Zapada" />
+  <TitleName id="duchy_vostoku" name="Vostoka" />
+  <TitleName id="county_mazopor" name="Mazopora" />
+  <TitleName id="county_kachyar" name="Kachyara" />
+  <TitleName id="county_icara" name="Icary" />
+  <TitleName id="county_minador" name="Minadora" />
+  <TitleName id="county_chertyg" name="Chertyga" />
+  <TitleName id="county_iltan" name="Iltana" />
+  <TitleName id="bc_title_kingdom_nord" name="Nordmanna" />
+  <TitleName id="duchy_nordvyg" name="Norðvegs" />
+  <TitleName id="duchy_jumne" name="Jumnis" />
+  <TitleName id="county_beinland" name="Beinlands" />
+  <TitleName id="county_vestroenn" name="Vestræna" />
+  <TitleName id="county_kjolfjallen" name="Kjólfjalla" />
+  <TitleName id="county_kjolfjallen" name="Kjólfjalla" />
+  <TitleName id="county_byal" name="Byals" />
+  <TitleName id="county_iltanhindrun" name="Iltanhindranar" />
+  <TitleName id="bc_title_kingdom_aserai" name="al-Asarin" />
+  <TitleName id="duchy_jarjara" name="Jarjara" />
+  <TitleName id="duchy_nahasa" name="al-Nahasa" />
+  <TitleName id="duchy_alkinaniyya" name="Al-Kinaniyya" />
+  <TitleName id="county_jabaltamar" name="Jabal Tamar" />
+  <TitleName id="county_bahralyeshm" name="Bahr al Yeshm" />
+  <TitleName id="county_damar" name="Damar" />
+  <TitleName id="county_alyachiyya" name="Al-Yachiyya" />
+  <TitleName id="county_aleshoriyya" name="Al-Eshoriyya" />
+  <TitleName id="county_jabalashab" name="Jabal Ashab" />
+  <TitleName id="county_nahralkals" name="Nahr Al-Kals" />
+  <TitleName id="bc_title_kingdom_khuzait" name="Quzayt" />
+  <TitleName id="duchy_tarantanya" name="Tarantanya" />
+  <TitleName id="duchy_devseg" name="Devseg" />
+  <TitleName id="county_akkan" name="Akkan" />
+  <TitleName id="county_zakhan" name="Zakhan" />
+  <TitleName id="county_karakaz" name="Karakas" />
+  <TitleName id="county_barsdag" name="Bars Dag" />
+  <TitleName id="county_sulundag" name="Sulun Dag" />
+  <TitleName id="county_kohirohini" name="Kohi Rohini" />
+  <TitleName id="empire_calradia" name="Kalradōn" />
+  <TitleName id="bc_title_kingdom_empire_n" name="Voreiōn Kalradōn" />
+  <TitleName id="duchy_dryatica" name="Dryatikon" />
+  <TitleName id="duchy_laconia" name="Lakonon" />
+  <TitleName id="county_galchas" name="Galchadon" />
+  <TitleName id="county_diatagmatia" name="Diatagmatikon" />
+  <TitleName id="county_ophthys" name="Ophthyon" />
+  <TitleName id="county_nevis" name="Nevidon" />
+  <TitleName id="county_myzead" name="Myzeadon" />
+  <TitleName id="county_portatia" name="Portatikon" />
+  <TitleName id="bc_title_kingdom_empire_s" name="Notiōn Kalradōn" />
+  <TitleName id="duchy_lycarea" name="Lykareon" />
+  <TitleName id="duchy_tanaesia" name="Tanaesion" />
+  <TitleName id="duchy_tripotamia" name="Tripotamion" />
+  <TitleName id="county_ornia" name="Ornion" />
+  <TitleName id="county_sethys" name="Sethyon" />
+  <TitleName id="county_sarpene" name="Sarpenon" />
+  <TitleName id="county_sericea" name="Serikon" />
+  <TitleName id="county_gorea" name="Goreon" />
+  <TitleName id="county_calsa" name="Kalson" />
+  <TitleName id="bc_title_kingdom_empire_w" name="Dytikōn Kalradōn" />
+  <TitleName id="duchy_ilatarea" name="Ilatareon" />
+  <TitleName id="duchy_aminys" name="Aminyon" />
+  <TitleName id="duchy_erithrys" name="Erithron" />
+  <TitleName id="county_temea" name="Temeon" />
+  <TitleName id="county_aris" name="Aridon" />
+  <TitleName id="county_mesogea" name="Mesogeion" />
+  <TitleName id="county_gavys" name="Gavyon" />
+  <TitleName id="county_sarapia" name="Sarapion" />
+  <TitleName id="county_zeos" name="Zeon" />
+  <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
+  <TitleStyle culture="Empire_n">
+    <Rank tier="Empire"
+          titleName="Imperium"
+          maleRank="Imperator"
+          femaleRank="Imperatrix"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Exarchatus"
+          maleRank="Exarchos"
+          femaleRank="Exarchissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Doukaton"
+          maleRank="Doux"
+          femaleRank="Doukissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Thema"
+          maleRank="Strategos"
+          femaleRank="Strategina"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Toparchia"
+          maleRank="Archon"
+          femaleRank="Archontissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Empire_s">
+    <Rank tier="Empire"
+          titleName="Imperium"
+          maleRank="Imperator"
+          femaleRank="Imperatrix"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Exarchatus"
+          maleRank="Exarchos"
+          femaleRank="Exarchissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Doukaton"
+          maleRank="Doux"
+          femaleRank="Doukissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Thema"
+          maleRank="Strategos"
+          femaleRank="Strategina"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Toparchia"
+          maleRank="Archon"
+          femaleRank="Archontissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Empire_w">
+    <Rank tier="Empire"
+          titleName="Imperium"
+          maleRank="Imperator"
+          femaleRank="Imperatrix"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Exarchatus"
+          maleRank="Exarchos"
+          femaleRank="Exarchissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Doukaton"
+          maleRank="Doux"
+          femaleRank="Doukissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Thema"
+          maleRank="Strategos"
+          femaleRank="Strategina"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Toparchia"
+          maleRank="Archon"
+          femaleRank="Archontissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Empire">
+    <Rank tier="Empire"
+          titleName="Imperium"
+          maleRank="Imperator"
+          femaleRank="Imperatrix"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Exarchatus"
+          maleRank="Exarchos"
+          femaleRank="Exarchissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Doukaton"
+          maleRank="Doux"
+          femaleRank="Doukissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Thema"
+          maleRank="Strategos"
+          femaleRank="Strategina"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Toparchia"
+          maleRank="Archon"
+          femaleRank="Archontissa"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle kingdom="empire_s">
+    <Rank tier="Kingdom"
+          titleName="Basileia"
+          maleRank="Basileus"
+          femaleRank="Basilissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle kingdom="empire_w">
+    <Rank tier="Kingdom"
+          titleName="Autokrateia"
+          maleRank="Autokrator"
+          femaleRank="Autokratorissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle kingdom="empire">
+    <Rank tier="Kingdom"
+          titleName="Politeia"
+          maleRank="Hypatos"
+          femaleRank="Hypatissa"
+          heirRank="Kaisar"
+          femaleHeirRank="Kaisarissa"
+          childRank="Porphyrogennetos"
+          femaleChildRank="Porphyrogenneta"
+          nobleRank="Patrikios"
+          femaleNobleRank="Patrikia"
+          titleFormat="{TITLE_NOUN} tōn {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Vlandia">
+    <Rank tier="Empire"
+          titleName="Imperium"
+          maleRank="Imperator"
+          femaleRank="Imperatrix"
+          heirRank="Princeps Hereditarius"
+          femaleHeirRank="Principissa Hereditaria"
+          childRank="Princeps"
+          femaleChildRank="Principissa"
+          nobleRank="Dominus"
+          femaleNobleRank="Domina"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Regnum"
+          maleRank="Rex"
+          femaleRank="Regina"
+          heirRank="Princeps Hereditarius"
+          femaleHeirRank="Principissa Hereditaria"
+          childRank="Princeps"
+          femaleChildRank="Principissa"
+          nobleRank="Dominus"
+          femaleNobleRank="Domina"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Ducatus"
+          maleRank="Dux"
+          femaleRank="Ducissa"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Comitatus"
+          maleRank="Comes"
+          femaleRank="Comitissa"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Baronatus"
+          maleRank="Baro"
+          femaleRank="Baronissa"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Battania">
+    <Rank tier="Empire"
+          titleName="Ríocht Ruirech"
+          maleRank="Rí Ruirech"
+          femaleRank="Banrí Ruirech"
+          heirRank="Tánaiste"
+          femaleHeirRank="Ban-tánaiste"
+          childRank="Mac Flaith"
+          femaleChildRank="Inghean Flaith"
+          nobleRank="Tighearna"
+          femaleNobleRank="Bantighearna"
+          titleFormat="{TITLE_NOUN} na {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Ard Ríocht"
+          maleRank="Ard Rí"
+          femaleRank="Ardbhainríon"
+          heirRank="Tánaiste"
+          femaleHeirRank="Ban-tánaiste"
+          childRank="Mac Flaith"
+          femaleChildRank="Inghean Flaith"
+          nobleRank="Tighearna"
+          femaleNobleRank="Bantighearna"
+          titleFormat="{TITLE_NOUN} na {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Ríocht"
+          maleRank="Rí"
+          femaleRank="Bainríon"
+          titleFormat="{TITLE_NOUN} na {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Mormaeracht"
+          maleRank="Mormaer"
+          femaleRank="Banmormaer"
+          titleFormat="{TITLE_NOUN} na {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Tuath"
+          maleRank="Taoiseach"
+          femaleRank="Bantaoiseach"
+          titleFormat="{TITLE_NOUN} na {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} na {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Khuzait">
+    <Rank tier="Empire"
+          titleName="Khaganliqi"
+          maleRank="Khagan"
+          femaleRank="Khatun"
+          heirRank="Veliaht"
+          femaleHeirRank="Veliaht Hatun"
+          childRank="Tegin"
+          femaleChildRank="Khanika"
+          nobleRank="Tarkhan"
+          femaleNobleRank="Tarkhanah"
+          titleFormat="{TITLE_NAME} {TITLE_NOUN}"
+          heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+    <Rank tier="Kingdom"
+          titleName="Khanliqi"
+          maleRank="Khan"
+          femaleRank="Khanum"
+          heirRank="Veliaht"
+          femaleHeirRank="Veliaht Hatun"
+          childRank="Tegin"
+          femaleChildRank="Khanika"
+          nobleRank="Tarkhan"
+          femaleNobleRank="Tarkhanah"
+          titleFormat="{TITLE_NAME} {TITLE_NOUN}"
+          heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+    <Rank tier="Duchy"
+          titleName="Beylerbeyliyi"
+          maleRank="Beylerbey"
+          femaleRank="Begum"
+          titleFormat="{TITLE_NAME} {TITLE_NOUN}"
+          heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+    <Rank tier="County"
+          titleName="Beyliyi"
+          maleRank="Bey"
+          femaleRank="Bike"
+          titleFormat="{TITLE_NAME} {TITLE_NOUN}"
+          heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+    <Rank tier="Barony"
+          titleName="Noyanliqi"
+          maleRank="Noyan"
+          femaleRank="Noyan"
+          titleFormat="{TITLE_NAME} {TITLE_NOUN}"
+          heldTitleFormat="{TITLE_NAME} {TITLE_RANK}" />
+  </TitleStyle>
+  <TitleStyle culture="Aserai">
+    <Rank tier="Empire"
+          titleName="Saltanat Uzma"
+          maleRank="Sultan al-Salatin"
+          femaleRank="Sultana al-Salatin"
+          heirRank="Wali al-Ahd"
+          femaleHeirRank="Waliyat al-Ahd"
+          childRank="Amirzadeh"
+          femaleChildRank="Amirzadi"
+          nobleRank="Sharif"
+          femaleNobleRank="Sharifa"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Saltanat"
+          maleRank="Sultan"
+          femaleRank="Sultana"
+          heirRank="Wali al-Ahd"
+          femaleHeirRank="Waliyat al-Ahd"
+          childRank="Amirzadeh"
+          femaleChildRank="Amirzadi"
+          nobleRank="Sharif"
+          femaleNobleRank="Sharifa"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Mamlakat"
+          maleRank="Malik"
+          femaleRank="Malika"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Imarat"
+          maleRank="Amir"
+          femaleRank="Amira"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Mashyakhat"
+          maleRank="Shaykh"
+          femaleRank="Shaykha"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Sturgia">
+    <Rank tier="Empire"
+          titleName="Samoderzhaviye"
+          maleRank="Samoderzhets"
+          femaleRank="Samoderzhitsa"
+          heirRank="Naslednik"
+          femaleHeirRank="Naslednitsa"
+          childRank="Knyazhich"
+          femaleChildRank="Knyazhna"
+          nobleRank="Boyarich"
+          femaleNobleRank="Boyaryshnya"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Velikoye Knyazhestvo"
+          maleRank="Velikiy Knyaz"
+          femaleRank="Velikaya Knyaginya"
+          heirRank="Naslednik"
+          femaleHeirRank="Naslednitsa"
+          childRank="Knyazhich"
+          femaleChildRank="Knyazhna"
+          nobleRank="Boyarich"
+          femaleNobleRank="Boyaryshnya"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Knyazhestvo"
+          maleRank="Knyaz"
+          femaleRank="Knyaginya"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Boyarstvo"
+          maleRank="Boyar"
+          femaleRank="Boyarynya"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Votchina"
+          maleRank="Dvoryanin"
+          femaleRank="Dvoryanka"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+  </TitleStyle>
+  <TitleStyle culture="Nord">
+    <Rank tier="Empire"
+          titleName="Fylkirate"
+          maleRank="Fylkir"
+          femaleRank="Fylkja"
+          heirRank="Konungserfingi"
+          femaleHeirRank="Konungserfingja"
+          childRank="Konungsson"
+          femaleChildRank="Konungsdóttir"
+          nobleRank="Herra"
+          femaleNobleRank="Frú"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Kingdom"
+          titleName="Konungsríki"
+          maleRank="Konungr"
+          femaleRank="Dróttning"
+          heirRank="Konungserfingi"
+          femaleHeirRank="Konungserfingja"
+          childRank="Konungsson"
+          femaleChildRank="Konungsdóttir"
+          nobleRank="Herra"
+          femaleNobleRank="Frú"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Duchy"
+          titleName="Hertugadæmi"
+          maleRank="Hertogi"
+          femaleRank="Hertogynja"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="County"
+          titleName="Jarlsdæmi"
+          maleRank="Jarl"
+          femaleRank="Jarlkona"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <Rank tier="Barony"
+          titleName="Hersirsdæmi"
+          maleRank="Hersir"
+          femaleRank="Hersirkona"
+          titleFormat="{TITLE_NOUN} {TITLE_NAME}"
+          heldTitleFormat="{DISPLAY_TITLE} {TITLE_NAME}" />
+  </TitleStyle>
+  <!-- Court terminology uses the same culture/kingdom/rulerCulture selectors as ranks.-->
+  <!--<TitleStyle culture="Empire">
+    <CourtFactions
+      nobility="Nobility"
+      glory="Glory"
+      liberty="Liberty" />
+    <CouncilOffices
+      name="Privy Council"
+      marshal="Marshal"
+      chancellor="Chancellor"
+      seneschal="Seneschal"
+      spymaster="Spymaster"
+      firstAdvisor="First Advisor"
+      secondAdvisor="Second Advisor" />
+  </TitleStyle>-->
+</BellumFeudalTitles>

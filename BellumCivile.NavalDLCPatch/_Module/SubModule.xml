@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+    <Name value="Bellum Civile Naval DLC Patch"/>
+    <Id value="BellumCivile.NavalDLCPatch"/>
+    <Version value="v1.0.33"/>
+    <SingleplayerModule value="true"/>
+    <MultiplayerModule value="false"/>
+
+    <DependedModules>
+        <DependedModule Id="Bannerlord.Harmony"/>
+        <DependedModule Id="Bannerlord.UIExtenderEx"/>
+        <DependedModule Id="Native"/>
+        <DependedModule Id="SandBoxCore"/>
+        <DependedModule Id="Sandbox"/>
+        <DependedModule Id="CustomBattle"/>
+        <DependedModule Id="StoryMode" />
+        <DependedModule Id="NavalDLC"/>		
+        <DependedModule Id="BellumCivile"/>		
+    </DependedModules>
+
+    <DependedModuleMetadatas>
+        <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="Bannerlord.UIExtenderEx" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="Native" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="CustomBattle" order="LoadBeforeThis" />
+        <DependedModuleMetadata id="NavalDLC" order="LoadBeforeThis" />		
+        <DependedModuleMetadata id="BellumCivile" order="LoadBeforeThis" />		
+    </DependedModuleMetadatas>
+
+    <SubModules>
+        <SubModule>
+            <Name value="BellumCivile.NavalDLCPatch"/>
+            <DLLName value="BellumCivile.NavalDLCPatch.dll"/>
+            <SubModuleClassType value="BellumCivile.NavalDLCPatch.SubModule"/>
+            <Tags>
+                <Tag key="StrictPlayMode" value="false" />
+            </Tags>
+        </SubModule>
+    </SubModules>
+    <Xmls/>
+</Module>

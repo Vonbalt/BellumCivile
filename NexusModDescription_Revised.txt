@@ -1,0 +1,493 @@
+ABOUT THIS MOD
+
+Kingdom politics in Bannerlord have always felt a little too static. Lords obediently follow the king, vote on fiefs through simple economic calculations, forget old grudges, and rarely allow their private ambitions to threaten the realm.
+
+I built Bellum Civile to change that.
+
+Bellum Civile creates a living political ecosystem where lords have personalities, legal rights, family loyalties, political agendas, personal rivalries, and memories. A kingdom is no longer a single unified block. It is a fragile hierarchy of rulers and vassals held together by law, influence, friendship, fear, and the constant possibility that somebody decides they deserve more.
+
+The mod is heavily inspired by the Crusader Kings series, the excellent CK2Plus mod, and political features from Warband, all reinterpreted to work within Bannerlord rather than trying to turn it into a different game.
+
+
+THE FEUDAL POLITICS UPDATE
+
+The next major Bellum Civile update expands the mod through three large, interconnected systems:
+
+FEUDAL TITLES AND HIERARCHY
+Every landed realm now has a legal hierarchy of Baronies, Counties, Duchies, Kingdoms, and Empires. Titles distinguish between who lawfully owns them and who actually controls them, creating long-term disputes that conquest alone does not erase.
+
+CLAIMS AND PETTY FEUDS
+Lords can inherit, fabricate, press, surrender, or fight over claims. Internal land disputes can begin as political pressure, grow into a bitter feud between houses, reach the ruler's court for judgment, and finally erupt into a contained private war.
+
+WAR WILL, WAR SCORE, AND PEACE PARLEYS
+When the optional War and Peace Logic Revamp is enabled, clans develop their own appetite for war, kingdoms choose targets for actual strategic reasons, conflicts generate War Score, and peace is settled through a full treaty negotiation instead of an unexplained tribute calculation.
+
+These systems do not sit apart from the rest of Bellum Civile. Titles affect relations, elections, taxation, army calls, succession, treason, rebellion, foreign policy, and peace settlements. A disputed castle can poison relations between two houses, become the cause of a feud, draw their allies into a private war, and later become a demand in a foreign peace treaty.
+
+
+CURRENT TARGET, REQUIREMENTS, AND WARNING
+
+Current target: Bannerlord 1.4.5+
+
+Required mods:
+- Harmony
+- UIExtenderEx
+- Mod Configuration Menu
+
+War Sails / Naval DLC support is bundled with Bellum Civile and automatically activates only when the DLC is detected. The base mod does not require War Sails.
+
+BEWARE:
+Bellum Civile is still a work in progress and I am an amateur coder. Please back up important saves. The mod writes substantial political data into the save file, and removing it after saving a campaign can make that save unusable.
+
+This update adds a large persistent title, claim, feud, and diplomacy simulation. A new campaign is strongly recommended so the complete de jure hierarchy can initialize cleanly and every system can begin from its intended starting state.
+
+Expect bugs. If you find one, please report it with as much information as possible. Crash reports, Bellum logs, and a description of what was happening before the problem are especially useful, and I will do my best to fix it.
+
+
+THE POLITICAL WORLD OF BELLUM CIVILE
+
+Bellum Civile now connects four broad layers of politics:
+
+COURT FACTIONS
+Permanent political parties debate laws, influence votes, shape the mood of the realm, and organize grand coalitions when the crown loses control.
+
+FEUDAL HIERARCHY
+Titles define who owes service to whom, which lands belong under which lord, who has authority to summon a vassal, and where taxes and influence should flow.
+
+CLAIMS AND FEUDS
+Personal disputes over land can be fabricated, inherited, judged at court, settled legally, or pressed through private war without automatically becoming a rebellion against the crown.
+
+REBELLION AND FOREIGN WAR
+When politics truly collapse, lords can seek independence, force an abdication, install a claimant, or fight foreign realms through Bellum's War Will, War Score, and treaty systems.
+
+
+MAIN FEATURES
+
+
+FEUDAL TITLES, CLAIMS, AND HIERARCHY
+
+Every castle and town is represented by a Barony title. Those Baronies can belong beneath Counties, Counties beneath Duchies, and Duchies beneath Kingdom or Empire titles. Higher titles can be defined through XML at the start of a campaign or formed organically when a clan controls the necessary neighboring lands.
+
+DE JURE AND DE FACTO OWNERSHIP
+
+Bellum Civile separates lawful ownership from actual control:
+
+- De jure represents who legally holds a title and where it rightfully belongs in the hierarchy.
+- De facto represents who currently controls it in political reality.
+
+Conquest usually changes de facto control first. A foreign occupier might control a castle for decades while its former lord, liege, or kingdom still claims it as lawful property. Legal grants, ruler judgments, inheritance, usurpation, and long-term drift can eventually change that situation.
+
+This distinction feeds relations, claims, fief elections, taxation, service owed, army authority, feuds, rebellions, and foreign wars.
+
+THE HIERARCHY TAB
+
+The Kingdom menu now contains a full Hierarchy tab beside Factions. It displays valid realms on the left and a scrollable title tree on the right.
+
+The player can switch between:
+
+- De Facto View: the realm as it is actually controlled.
+- De Jure View: the lawful hierarchy and the titles the realm considers rightfully its own.
+
+Title names are color coded to show player ownership, lawful control, contested control, and enemy occupation. Hovering a portrait displays its current holder, rank, legitimacy, de jure and de facto holders, allegiance, service owed, active claimants, and de jure drift where applicable.
+
+Selecting a title opens the available actions in the lower bar:
+
+- Claim: fabricate a legal claim.
+- Usurp: convert sufficient de facto control and a valid claim into lawful ownership.
+- Revoke: as the direct liege, demand a claimed lesser title from a vassal who may submit or refuse and fight.
+- Form: create a higher title from qualifying neighboring titles.
+- Service: change what an immediate vassal owes through their title.
+- Grant: as ruler, legally grant a personally held title to a vassal.
+
+Disabled buttons remain visible and explain their requirements through tooltips.
+
+CULTURAL TITLE STYLES
+
+Title and rank names are data driven. Cultures can use their own words for Baron, Count, Duke, King, and Emperor, while individual kingdoms can override the shared cultural style. Title display formats can also be changed, allowing both forms such as "County of Jaculan" and "Jaculan County."
+
+The same system controls the honorific shown before a title holder's name. A Vlandian ruler, Nord ruler, and Imperial ruler can hold the same rank without describing themselves in the same way.
+
+Clan leader encyclopedia pages now list the titles and active claims held by that character, while noble names can display their proper rank, spouse title, princely status, or a fallback Lord/Lady honorific.
+
+DE JURE DRIFT
+
+Long occupation can slowly become accepted law. If a foreign realm holds a title completely de facto and de jure through the local holder for long enough, that title begins drifting away from its former sovereign hierarchy and toward the realm that now governs it.
+
+Drift is intentionally slow, visible in the title tooltip, and affected by the skills of the lord administering the title. Control can reverse before completion, preventing a few years of occupation from instantly rewriting centuries of legal tradition.
+
+
+FEUDAL SERVICE, TAXATION, AND AUTHORITY
+
+Titles are not only names. They define working chains of command.
+
+Immediate title-vassal relationships can carry one of five service levels:
+
+- Exemption
+- Lessened Service
+- Customary Tenure
+- Elevated Service
+- Extortion
+
+Service affects how much of a title's effective income travels upward, the influence cost of calling that vassal to an army, and the long-term relationship between liege and vassal.
+
+Taxation follows the effective hierarchy rather than blindly following geography. A normal lesser vassal pays upward. A peer or higher-ranked lord controlling land inside another lord's de jure borders refuses lateral service and redirects authority through their own hierarchy instead. That fixes absurd cases where a king would pay taxes to a count merely because the king personally owns a barony inside the count's lawful county.
+
+Each de facto barony whose authority flows through a clan contributes daily influence, representing the political and military authority that lord can actually command. A count gains authority from the baronies properly serving beneath the county, but not from a stray barony controlled by an equal-ranked peer who refuses that service.
+
+If enabled in MCM, non-ruler lords can legally call only clans beneath their own de facto title authority into an army. Vassals with sufficiently ruined relations can refuse a call to arms, while rebellious court factions may refuse the ruler. Temporary civil-war and feud realms remain exempt so their war leaders can still coordinate the clans committed to their cause.
+
+
+CLAIM FABRICATION
+
+Lords do not receive free claims merely because they covet a neighbor's land. They can spend gold and influence to fabricate one.
+
+Fabrication is a hidden political plot. It progresses through three discovery checks at 33%, 66%, and completion. Each check compares the plotter's Stewardship and Roguery against the title holder's ability to uncover the scheme, with configurable uncertainty.
+
+Early discovery can be explained away or covered up at a cost. Later discovery causes harsher relationship and political consequences. Being caught at the final stage exposes an outright forgery scandal and can disgrace the plotter at home or create a diplomatic incident abroad.
+
+If the fabrication survives every check, the claimant publicly announces a new weak claim to the title. AI clans evaluate fabrication on a staggered schedule and are far less likely to fabricate when honorable, generous, satisfied, or politically weak.
+
+
+PETTY FEUDS BETWEEN HOUSES
+
+Land disputes inside a kingdom no longer need to become a full rebellion against the ruler. A claimant can begin a personal feud with the clan that controls the disputed title.
+
+A feud appears in its own Feuds category inside the Factions tab. The panel displays both leaders, their supporters, Feud Intensity, and the balance of power between their houses.
+
+Feuds escalate in stages:
+
+- Beginning: the claimant begins pressing the holder and relations sour.
+- 33% Intensity: retainers harass one another and the dispute becomes public.
+- 66% Intensity: both houses summon friends, relatives, marriage allies, and title-vassals. An outmatched AI claimant may abandon the case to save face, while the player may continue at their own risk.
+- 100% Intensity: the dispute boils over and is taken before the ruler for judgment.
+
+RULER JUDGMENT
+
+AI rulers weigh the law, claim strength, relations, marriage alliances, political power, and their own personality before ruling. A player ruler receives a formal petition and can:
+
+- Uphold the claimant.
+- Uphold the current holder.
+- Refuse to intervene.
+- Spend influence to enforce the realm's peace.
+
+If both parties accept, the judgment is legally binding. A claimant victory transfers the title and preserves a lesser grievance for the former holder. A holder victory weakens or removes the claimant's right. Enforced peace ends the immediate feud but leaves the underlying claim alive to return another day.
+
+PRIVATE FEUD WARS
+
+A lord who believes the ruler's judgment intolerable may refuse and fight. The feuding sides temporarily separate into contained political shells that are at war with each other, not with their parent kingdom. These shells use the highest real title of their leaders and never invent false Kingdom titles merely because Bannerlord internally represents independent factions as kingdoms.
+
+Feud wars preserve clan influence, supporters, ownership, and the original parent realm so everyone can safely return when the dispute ends. The claimant fights to enforce the contested claim. The holder fights to preserve it. White peace cools the dispute without erasing the claim, while victory settles the title and deepens the hatred between the houses.
+
+The ruler can force a realm peace when an external threat becomes more important than a vassal's private quarrel. If the parent kingdom collapses during the feud, title hierarchy and successor-state logic decide where the stranded houses belong afterward.
+
+
+WAR WILL AND STRATEGIC TARGETS
+
+The War and Peace Logic Revamp is independently toggleable in MCM. Disable it and Bannerlord returns to its vanilla war and peace proposal behavior.
+
+When enabled, every clan tracks War Will from 0 to 100.
+
+During peace, War Will represents appetite for a new campaign. During war, the same value becomes the clan's remaining determination to continue fighting. This means a lord who spends years bleeding for one war cannot immediately demand another merely because a second tempting target exists.
+
+War Will is shaped by:
+
+- Personality and court faction affiliation.
+- Battles won or lost.
+- Casualties suffered.
+- Villages raided.
+- Castles and towns captured or lost.
+- Claims achieved or left unfulfilled.
+- Noble, heir, and ruler captivity.
+- Deaths of important nobles.
+- The length and number of simultaneous wars.
+- Civil wars and active private feuds inside the realm.
+
+Militarists retain their appetite longer. Populists tire more quickly from offensive wars but rally strongly to defend their homes. Royalists care about the sovereign's claims. Aristocrats care about lawful title rights and the interests of great houses. Fighting on several fronts increasingly drains the whole realm, especially when a civil war is raging at home.
+
+Each clan also ranks likely enemies instead of asking about random kingdoms. Local land borders, maritime routes, realm frontiers, power, culture, claims, personal relations, trade agreements, formal alliances, and marriage ties all affect that ranking. Lords normally care about nearby threats. A distant kingdom enters their calculations only when a claim, sea route, or important political connection gives them a reason.
+
+
+WAR SCORE
+
+Every foreign war tracks a shared War Score from -100 to +100. Battles alone are capped so a realm cannot win a major war entirely through field engagements without taking or defending meaningful objectives.
+
+War Score considers:
+
+- Battle victories and military losses.
+- Captured and occupied settlements.
+- Raids.
+- Important prisoners.
+- War objectives and claims.
+- Time and territorial momentum.
+- Complete occupation or political collapse.
+
+The Diplomacy tab replaces vanilla War Progress with Bellum's War Score while the revamp is enabled. Reaching total victory forces the losing side to negotiate, but many wars end earlier when both kingdoms lose the will to continue or one side decides that its current gains are enough.
+
+Civil wars and feud wars use the same conflict foundation but resolve through their own clear political objectives rather than a foreign treaty full of unrelated concessions.
+
+
+THE PEACE PARLEY
+
+Foreign wars no longer end with an unexplained daily tribute number. Bellum Civile opens a full-screen Peace Parley where both realms present terms and their clans decide whether those terms are acceptable.
+
+AI rulers draft treaty terms based on War Score, occupied land, border logic, legal claims, ruler personality, pressure from their vassals, and how badly each side wants the war to end. A losing ruler may offer concessions to prevent a worse defeat. A victorious ruler may prefer a limited settlement, territorial gains, wealth, political humiliation, or the complete subordination of a weaker enemy.
+
+If the player is a vassal, the terms are controlled by the rulers but the player can vote YAY, NAY, or ABSTAIN and commit influence behind that vote.
+
+If the player is the ruler, they can edit the demands and offerings, watch both councils recalculate their positions, spend influence to overrule their own vassals, reject the parley, or sign the treaty once both sides accept.
+
+Clans do not vote only from abstract War Will. They consider how the actual treaty affects them. A lord may demand continued war because their claim remains unfulfilled, reject surrendering their personal castle, support peace because the realm secured its conquests, or accept an ugly settlement because the war has exhausted their house.
+
+Overruling strong votes damages relations with those lords. Supporting their position improves relations, while clans voting together or against one another can also leave the council more united or divided after peace.
+
+The treaty contains four sections:
+
+FIEFS
+- Demand or offer occupied land.
+- Demand unoccupied land at a higher War Score price.
+- Prosperous settlements cost more.
+- Claims reduce the political difficulty of demanding rightful territory.
+- Already distributed conquests remain with their elected holder.
+- New treaty concessions pass through the normal fief-election system.
+- Fortifications replace the departing garrison with troops from the receiving realm.
+
+PRISONERS
+- Demand or offer the release of named noble prisoners.
+- The menu identifies where each prisoner is held.
+- Demanding a fief automatically includes and prices relevant nobles trapped in its dungeon.
+- Peace no longer grants every foreign noble a free automatic amnesty.
+- Prisoners not included in the treaty remain captive and must be ransomed, rescued, or escape naturally.
+
+WEALTH
+- Demand or offer immediate reparations.
+- Demand or offer daily tribute for a fixed duration.
+- Payments are collected and distributed across the participating clans rather than appearing from nowhere.
+- Tribute uses Bannerlord's diplomatic tribute display and duration tracking.
+
+POLITICS
+- Force an enemy claimant to renounce a weak or strong title claim.
+- Discredit or humiliate the enemy ruler.
+- Force the end of a third-party trade agreement or alliance.
+- Release a coherent non-de-jure vassal cluster as an independent realm.
+- Force a legally subordinate lower-ranked realm back into vassalage.
+- Establish a defeated realm as a client kingdom.
+- Arrange a royal marriage between eligible members of the two ruling houses.
+
+Political demands scale with the size and structure of the affected realm. Winning one decisive war does not allow a small kingdom to casually vassalize an enormous empire. Some outcomes require repeated victories and the gradual weakening of the target before they become affordable.
+
+
+CLIENT KINGDOMS
+
+A defeated realm can be forced into clientage, or offer client status as the price of survival.
+
+A client kingdom keeps its ruler, clans, lands, titles, and internal politics, but surrenders control of foreign policy to its suzerain. It remains allied and trading with the overlord, follows the overlord into wars and peaces, and cannot independently maintain rival alliances or trade agreements.
+
+The Diplomacy tab marks a client with its suzerain's shield. Notifications distinguish voluntary submission from humiliating forced clientage.
+
+Submission is not necessarily permanent. Client clans develop Liberty Desire from culture, legal status, relations, personality, ideology, how they were subordinated, and the balance of power between client and suzerain. A client that regains confidence may eventually place liberation from its overlord at the top of its strategic priorities.
+
+
+DYNAMIC POLITICAL PARTIES
+
+Every kingdom naturally forms up to four permanent court factions:
+
+ROYALISTS
+The backbone of the crown. They remain loyal not merely to the office of ruler but to a particular dynasty. A usurper may win them over through legitimacy and competent rule, but until then they may conspire to restore the house they consider rightful.
+
+ARISTOCRATS
+The great houses and defenders of noble privilege. Their attraction is now strongly shaped by actual landed title rank rather than clan tier alone. Dukes and powerful lawful lords carry more aristocratic weight than mere barons or landless nobles.
+
+GLORY HOUNDS / MILITARISTS
+Warriors who prize martial success, military strength, honor, renown, and conquest. Clan tier now works mainly as a militarist pull because Bannerlord clan tier represents renown earned from battles, tournaments, and public achievement.
+
+POPULISTS
+Lords drawn by generosity, mercy, local prosperity, lower landed status, and concern for the realm's ordinary subjects. They resent famine, destructive wars, unlawful rewards, and rulers who neglect the stability of the kingdom.
+
+Faction alignment comes from personality, title rank, clan renown, relations, marriage ties, policies, and political circumstances. Lords can change faction when another ideology becomes substantially more attractive, suffering social consequences with their former allies.
+
+Court factions debate internal policy through asynchronous meetings. If the player leads a faction, they can approve its motion, block it, or spend influence to substitute another valid internal proposal. Policies backed by the player's current court faction are tinted blue in the Policies tab so its agenda can be recognized at a glance without constantly switching menus.
+
+The factions have permanent rivalries:
+
+- Royalists vs Aristocrats: central crown authority against noble autonomy.
+- Populists vs Militarists: common welfare against military supremacy.
+
+Faction mood drifts over time from policies and conditions rather than changing randomly. Famine, demesne hoarding, unlawful fief distribution, succession, battlefield disasters, captured rulers, executions, and political concessions all influence how a faction views the crown.
+
+When several court factions become rebellious together, they may form a Grand Coalition. Royalists loyal to an overthrown dynasty can instead launch a Grand Restoration to return their chosen house to the throne.
+
+
+ARMED REBELLIONS AND CIVIL WARS
+
+Lords track Rebellious Intent from relations with the ruler, personality, cultural friction, ruler controversy, demesne hoarding, title grievances, dynastic claims, and the strength of their potential cause.
+
+Bellum Civile currently supports three armed rebellion goals:
+
+- Independence: break from the parent realm and establish self-rule.
+- Force Abdication: remove a ruler considered intolerable.
+- Install Ruler: place a claimant or rival dynasty on the throne.
+
+The old Fief Redistribution rebellion has been retired. Personal land disputes are now handled through lawful claims, court motions, revocation, usurpation, and claim feuds instead of a generic rebellion that redistributes land by force.
+
+Rebel factions gather supporters, build discontent, measure the balance of power, issue an ultimatum, and become a civil war if neither side yields. Opportunistic lords can defect into an active rebellion when the crown appears to be losing.
+
+Vassalage matters. Lords may rise alongside an immediate liege even when they were not formal members of the same rebel or court faction. Friends, relatives, marriage allies, and direct title-vassals all receive solidarity considerations. Refusing a liege's call can damage that relationship. If the player is placed in this position, they receive a popup and choose between local loyalty and the crown.
+
+Independence victories respect the title hierarchy. Lower-ranked vassals and child-title clusters follow their proper leader, while equal or higher-ranked allies become independent peers rather than submitting to a lesser rebel merely because that rebel started the war.
+
+Civil wars use temporary political kingdoms internally so Bannerlord can run armies, sieges, and diplomacy correctly. Bellum snapshots the participants, influence, ownership, parent realm, and conflict state, then safely restores or reorganizes everything when the war ends. Temporary shells are hidden from the encyclopedia and do not create false kingdom-tier titles.
+
+Player rulers can conduct a postwar tribunal over defeated rebel clans, choosing to pardon, punish, or execute them. Independence, abdication, restoration, white peace, successor-state collapse, and outside conquest all have their own resolution paths.
+
+
+NATURAL RELATIONS AND POLITICAL MEMORY
+
+Relations combine a natural foundation, current political conditions, and lasting memories. Each important pair of lords has a natural relationship shaped by:
+
+- Charm.
+- Compatible or opposed personality traits.
+- Culture.
+- Marriage alliances and shared dynasty.
+- Realm diplomacy and foreign wars.
+- Court faction alignment and rivalry.
+- Civil-war sides.
+- Rightful or unlawful liege relationships.
+- Service owed.
+- Strong and weak title claims.
+- Lords controlling lands another house considers rightfully beneath its title.
+
+Political events create timed personal or house memories instead of disappearing through a continuous weekly drift. A favor may be remembered for months, a confiscation for years, and the killing of kin for decades. House memories survive leadership changes, while live conditions such as war, court alignment, and title disputes update independently. This preserves political history without an expensive global hero-pair sweep.
+
+Hero encyclopedia pages display the natural foundation, current political conditions, active memories, remaining durations, and resulting relation.
+
+
+VICIOUS, TITLE-AWARE VOTING
+
+Vanilla's simple economic voting is replaced with politics, ideology, legality, and spite.
+
+Fief votes consider claims, de jure ownership, faction agenda, personality, military value, title hierarchy, rivalries, relations, and whether a candidate already controls connected land. Aristocrats care most about lawful title rights. Militarists care about strength. Populists distrust excessive concentration of wealth. Royalists support the interests of the crown and their chosen dynasty.
+
+The player receives a deliberation window before important fief votes and can use influence, bribery, and persuasion to build support. A claimant can make a specific legal-right argument for themselves or another candidate.
+
+Policy votes follow court ideology instead of asking only what gives a lord the largest immediate bonus. Succession protects the lawful dynastic or claimant candidate, while the nobility nominates the remaining contenders by weighing legitimacy, hierarchy, renown, wealth, influence, and military strength through its own political worldview.
+
+Delayed votes now include recovery safeguards. If an old or interrupted fief, policy, or expulsion decision becomes stale, Bellum can repair or requeue it rather than leaving the kingdom permanently trapped behind a vote that never appears.
+
+
+TREASON IS NO LONGER A SIMPLE BUTTON
+
+Bellum Civile restores indictments of treason from Warband.
+
+An NPC ruler who comes to despise a vassal may call a legal expulsion vote, accuse them of high treason, or eventually bypass the court through a direct royal decree. These paths are staggered and cooldown protected rather than firing automatically every day.
+
+The accused may submit, flee, or raise their banners in desperate defiance. Friends, relatives, marriage allies, and direct title-vassals may join them through the shared solidarity system, unless stronger loyalties bind them to the crown.
+
+If the player is accused, punishment is never silently applied. A judgment popup explains the outcome and allows the player to submit or refuse and fight.
+
+Expulsion confiscates both physical fiefs and higher titles. The condemned house retains claims to its lost inheritance rather than walking into exile as the lawful Count or Duke of land it no longer controls. Confiscated land returns to normal delayed voting instead of remaining forever in an unassigned state.
+
+
+POLITICS BECOMES MILITARY POWER
+
+Kings can no longer treat unhappy vassals as perfectly obedient soldiers.
+
+Court mood affects how much military power a faction contributes to loyalist calculations and how expensive its lords are to summon into a royal army. Loyal Royalists are the easiest for the rightful ruler to call. Hostile factions become expensive and can refuse completely when openly rebellious.
+
+Feudal hierarchy also matters. With Feudal Army Summons enabled, ordinary lords can summon only their own de facto vassal chain. The ruler retains the royal prerogative to call the full host of the kingdom, but sour relations and rebellious court factions can still make that authority fail in practice.
+
+
+PROXY WARS AND SHADOW DIPLOMACY
+
+Rulers with deep treasuries can destabilize rivals without declaring open war.
+
+The player can send companions with high Roguery on clandestine missions to smear hostile court factions, fund dissent, hire highwaymen, or support active rebellions with gold, advisors, and troops.
+
+AI rulers can also use subterfuge if enabled in MCM. Calculating or dishonorable rulers evaluate targets asynchronously so every kingdom does not run the same heavy check on the same day.
+
+Discovery can cause a serious diplomatic incident. An exposed ruler loses relations with the victim, while a captured agent may pay the ultimate price.
+
+
+COMRADES IN ARMS
+
+War shapes relationships for good or ill.
+
+Lords fighting side by side in victory forge stronger bonds. Defeated lords may blame one another, their commander, or the ruler who failed to protect their lands and left them in captivity.
+
+Every meaningful shared battle can now affect relations. Messages from the same battle are consolidated into one report rather than spamming a separate line for every lord. Battlefield friendship, blame, captivity, and lost holdings become named memories with durations suited to their importance.
+
+
+CULTURALLY ACCURATE SUCCESSION
+
+Succession is no longer decided by one universal formula. Every realm combines a gender law (male preference, female preference, or no preference) with a separate succession law: Primogeniture, Ultimogeniture, Gerontocracy, Stratocracy, Tanistry, Rota, Shura, or Elective. Defaults are configured by kingdom with cultural fallback, while independent houses retain their cultural customs.
+
+A dedicated Succession screen displays the crown heir and following heirs together with the realm's current laws. A player ruler may spend influence to reform either law, though every vassal house will resent such an intrusion upon established custom. Clan succession, dynastic legitimacy, partition inheritance, and the player's legal heir all consult the same rules. Players who prefer Bannerlord's free playable-heir choice may disable only that final restriction in MCM without disabling legal succession for the rest of the world.
+
+Kingdom succession elections remain contested. A lawful dynastic heir, rightful sovereign, or strongest claimant receives protected consideration; the remaining ballot places are earned through realm-wide noble nominations. Royalists emphasize legitimacy and renown, Aristocrats hierarchy and influence, Militarists strength and renown, and Populists influence and wealth, while every faction still considers all six pillars alongside personal relations and character.
+
+The player heir selection popup identifies and enforces the legal heir by default, preventing succession law from existing only for NPCs.
+
+
+PARTITION SUCCESSION AND CADET BRANCHES
+
+Large noble houses can split when a clan leader dies. If the main heir controls more title packages than they are expected to retain, secondary blood heirs may inherit spare lands and found cadet branches with their own name, banner, wealth, titles, claims, and political future.
+
+The main heir keeps the senior inheritance. Secondary heirs receive coherent title clusters rather than random settlements. Cadet names follow localization-friendly cultural patterns, and their claims preserve the possibility of future family feuds, restoration movements, and disputed successions.
+
+This prevents enormous late-game super-clans from swallowing every branch of a dynasty and keeps the noble world changing across generations.
+
+
+STRATEGIC MARRIAGE REVAMP
+
+Bellum Civile can replace vanilla NPC marriage dice rolls with a strategic marriage system.
+
+Lords consider dynastic survival, clan health, rank, culture, relations, local alliances, foreign royal ties, succession, and political pacification. Rulers may marry into a rebellious house to stabilize the realm or seek a foreign royal marriage when their own court is secure.
+
+Clan tier and status matter when negotiating with the player. Powerful houses look down on marrying important heirs to unknown upstarts unless the suitor can pay an appropriate political and financial price.
+
+Marriage offers involving the player reuse Bannerlord's familiar proposal notification and allow the player to accept, refuse, or make the required payment. The entire strategic marriage system and vanilla marriage blocking are configurable through MCM.
+
+
+MCM CUSTOMIZATION
+
+Bellum Civile exposes major systems and balance values through Mod Configuration Menu, including:
+
+- War and Peace Logic Revamp.
+- War Will and strategic target values.
+- Prisoner retention and escape chances.
+- Ruler controversy.
+- Rebellion thresholds.
+- Court meeting cadence.
+- Feudal army summons and rebellious refusal.
+- Claim fabrication discovery.
+- Strategic marriages.
+- Partition succession.
+- Relationship memory.
+- NPC subterfuge.
+- Notification scope and debug output.
+
+The most invasive foreign-policy replacement can be disabled independently, returning war and peace proposals to vanilla while leaving the title, feud, court, succession, and rebellion systems active.
+
+
+COMPATIBILITY AND TECHNICAL DETAILS
+
+SAVE DATA
+Bellum Civile stores factions, titles, claims, de jure drift, service contracts, fabrications, feuds, civil wars, War Will, War Score, treaty state, client kingdoms, succession records, relationship memories, and political cooldowns in the campaign save.
+
+Do not remove the mod from an active save without expecting problems. Keep backups.
+
+PERFORMANCE
+The mod is designed with performance in mind to the best of my ability. Expensive clan evaluations are staggered across the calendar, title ownership updates are event driven where possible, relation foundations and political conditions use separate caches, and memory expiry is processed lazily. Heavy diagnostic logging is reserved for debug use. The yearly report remains available for long-term balance testing without producing normal debug-log volume.
+
+PATCHING
+Bellum Civile uses Harmony and UIExtenderEx and tries to patch narrow methods rather than replacing unrelated systems. Compatibility is generally best with mods that do not overhaul the exact same kingdom voting, army, succession, finance, diplomacy, or UI paths.
+
+War Sails support is loaded conditionally. Bellum's feudal finance model uses Bannerlord's clan-income model and exposes a centralized service/tax routing path, but major economy overhauls touching the same model may require a compatibility patch.
+
+
+FINAL NOTE
+
+Bellum Civile is trying to make Calradia feel political without making politics separate from Bannerlord's battles, sieges, marriages, and kingdoms.
+
+A lost castle is not only a number on the diplomacy screen. It is somebody's lawful inheritance, somebody else's conquest, a grievance between two houses, a demand at the peace table, and perhaps the reason the next war begins.
+
+That is the kind of story this mod is built to create.

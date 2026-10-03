@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bellum Civile - default succession laws
+
+  Every permanent kingdom receives one gender law and one house succession law.
+  Kingdom entries take priority. Culture entries provide defaults for kingdoms that
+  do not have an explicit entry. Unlisted kingdoms and cultures use MalePreference
+  plus Primogeniture.
+
+  Gender laws:
+    MaleOnly, MalePreference, Equal, FemalePreference,
+    FemaleOnly
+
+  Succession laws:
+    Primogeniture, Ultimogeniture, Seniority, Kinship,
+    MilitaryAcclamation, ElectiveSeniority, ShuraCouncil, Tanistry
+
+  Custom examples:
+    <Culture id="my_culture" genderLaw="Equal" successionLaw="Tanistry" />
+    <Kingdom id="my_kingdom" genderLaw="FemalePreference" successionLaw="Primogeniture" />
+
+  Legacy entries using type="1" through type="9" remain supported for compatibility.
+-->
+<SuccessionConfig>
+
+  <!-- Cultural defaults -->
+  <Culture
+    id="vlandia"
+    genderLaw="MalePreference"
+    successionLaw="Primogeniture" />
+
+  <Culture
+    id="sturgia"
+    genderLaw="MalePreference"
+    successionLaw="Seniority" />
+
+  <Culture
+    id="khuzait"
+    genderLaw="MalePreference"
+    successionLaw="Ultimogeniture" />
+
+  <Culture
+    id="aserai"
+    genderLaw="Equal"
+    successionLaw="ShuraCouncil" />
+
+  <Culture
+    id="battania"
+    genderLaw="Equal"
+    successionLaw="Tanistry" />
+
+  <Culture
+    id="nord"
+    genderLaw="MalePreference"
+    successionLaw="Kinship" />
+
+  <Culture
+    id="empire"
+    genderLaw="MalePreference"
+    successionLaw="ElectiveSeniority" />
+
+  <!-- Kingdom overrides -->
+  <!-- electiveTerm accepts 1, 5, 10 or lifetime; omitted values default to lifetime
+       unless a culture explicitly supplies a term. Existing saved dates never change. -->
+  <Kingdom id="empire" electiveTerm="5" />
+  <Kingdom
+    id="empire_s"
+    genderLaw="Equal"
+    successionLaw="Primogeniture" />
+
+  <Kingdom
+    id="empire_w"
+    genderLaw="Equal"
+    successionLaw="MilitaryAcclamation" />
+
+</SuccessionConfig>

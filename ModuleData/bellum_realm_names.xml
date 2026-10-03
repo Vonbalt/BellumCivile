@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Geographic roots, separate from rank and vanilla informal names.
+     Files are read in active module order; bellum_realm_names_patch.xml overrides
+     this file within each module. Empty root removes an earlier entry.
+     nativeName is an optional guard protecting player renames and conversion mods.
+     Roots and guards accept Bannerlord localization strings. Unknown realms keep
+     their native name when sovereign-title naming is disabled. -->
+<RealmNames>
+  <Realm id="vlandia" nativeName="{=FjwRsf1C}Vlandia" root="{=FjwRsf1C}Vlandia" />
+  <Realm id="sturgia" nativeName="{=PjO7oY16}Sturgia" root="{=PjO7oY16}Sturgia" />
+  <Realm id="aserai" nativeName="{=aseraifaction}Aserai" root="{=aseraifaction}Aserai" />
+  <Realm id="battania" nativeName="{=0B27RrYJ}Battania" root="{=0B27RrYJ}Battania" />
+  <Realm id="khuzait" nativeName="{=sZLd6VHi}Khuzait" root="{=sZLd6VHi}Khuzait" />
+  <Realm id="nord" nativeName="{=sYFaoW7G}Nord" root="{=sYFaoW7G}Nord" />
+  <Realm id="empire" nativeName="{=NF627oiX}Northern Empire" root="{=BC_RealmRoot_NorthernCalradia}Northern Calradia" />
+  <Realm id="empire_w" nativeName="{=yG3YUySN}Western Empire" root="{=BC_RealmRoot_WesternCalradia}Western Calradia" />
+  <Realm id="empire_s" nativeName="{=frBQ9mbP}Southern Empire" root="{=BC_RealmRoot_SouthernCalradia}Southern Calradia" />
+</RealmNames>

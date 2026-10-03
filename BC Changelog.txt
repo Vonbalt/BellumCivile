@@ -1,0 +1,715 @@
+1.0.1:
+Fix UI gauntled overlay, now the factions menu shouldnt open when looking over the wiki like other menus.
+Fix menu null exceptions that could happen when a faction leader or ruler died and the player opened the menu before the game had chosen a replacement leading to potential crashes.
+
+1.0.2:
+More null exception fixes across the entire mod, hopefully i've caught them all
+
+1.0.3: Attempt to fix a crash during ruler succession when the player clan is king or gets chosen as king.
+
+1.0.4: 
+improvements to post civil war cleanup to avoid potential timing issues.
+fix rebel factions not being removed completely from the parent kingdom when a civil war started which could lead to the kingdom accepting or rejecting their demands again on the next daily tick and invalid ellections triggering.
+Fixed an edge case when an usurper was crowned but soon after another faction deposed him and the mod failed to properly block them from running again, correct behavior is the new usurper/faction leader taking their place in the ballot.
+fix fund highwaymen action that was spawning bandit parties inside settlement icon on the world map due to too low radius and no check to find valid terrain
+Improvements to foreign advisors and expeditionary mercenaries actions, now if they dont find a valid target they'll abort the mission instead of silently succeeding.
+
+1.0.5:
+fixed abdication civil wars that could end with the king executed in the post war which would trigger the kingdom election twice, now he is properly deposed and his clan taken out of the ballot in disgrace, only his old supporters might face the executioner now.
+Revisited the "buy out contracts" subterfuge option so it will sever mercenary contracts with the parent kingdom of up to 2 minor clans they might have hired and switch the mercenaries to work for the rebels now, previously it was just making them leave.
+added a cleanup logic at save load to clean up any bandit spawns from the "fund highwayman" action that might have gotten stuck inside city icons from before the 1.0.4 fix, should be lightweight enough and target only bandits spawned by this mod to not affect performance at all.
+added a check for royalist loyalty when a grand coallition led by another faction in court triggers, now if the rightful king sits in the throne the royalists will not join the rebellion even if their mood is unhappy or worse.
+
+1.0.6:
+
+- Fixed mercenary clans being deleted from rebel kingdom alongisde post civil war, now they are properly released from service before the cleanup logic runs.
+- Fixed potential crash source when trying to spawn bandits from the "fund highwaymen" action, code was calling the method to check a valid spawn position two times leading to potential invalid record and crashing a native interlop.
+- Fixed a crash source where lords who left a kingdom due to rebellions could be referenced in their old kingdom by the war sails dlc which caused a null crash.
+- Fief Vote Resolution fix, proposer no longer penalized for voluntary redistribution since it wasnt the crown who took if by force, petty rivalries over who receives the fief later still apply.
+- Voting logic improvements, a clan that personally voted for the winning outcome no longer receives their faction's losing-side ruler penalty.
+- Made some changes to my Gauntlet UI menu to hopefully fix some compatibility issues with Fourbery.
+
+1.0.7:
+
+- Fixed an edge case that could create orphaned coalitions that are stuck at peace.
+- Updated grand coalition naming schemes to be more clear, now they list like "Sturgian Aristocrats Grand Coalition" instead of simply "Aristocrats Grand Coalition".
+- Double check fund highwayman action, working as intended, slight change to the logic, it was spawing all looter parties always concentrated into one fief even if the target king had multiple cities, now they are spread across them.
+- Fund highwayman now spawns stronger bandit parties like sea raiders for nords/sturgians and forest bandits for battanians, fallback to looters in modded cultures, it's intended to simulate local gangs being paid to terrify the countryside.
+- Fixed post civil war logic where clans who were left landless and had not found a valid target to flee in exile were all killed by the game instead of remaining landless clans in disgrace in their native kingdom.
+- Some updates to translation strings reflecting the changes done in the patch.
+
+1.0.8
+
+- Fixed scenario where defeated clan in civil war would go in exile to his own lost rebellion just before the cleanup logic ran and deleted the faction killing the whole clan stuck there.
+- Also aligned the two scenarios where a clan could be exiled to behave the same (try to find kingdom with same culture, any valid kingdom > go independent as minor clan.
+- Fixed post war confiscation logic that was targeting only cities, now castles can also be confiscated from defeated clans as originally intended.
+- Fixed grand coalition never triggering if the king was a member of a court faction (other than royalists) in case they had the right conditions to rebel, now they expel the king from the faction first and then trigger the war.
+- Refinements to voting logic, now faction members have a slight pull towards voting accordingly to their faction leader based on how much they like him, if relations are too low they'll vote only accordingly to their own views that may or not align.
+- Added a popup when a grand coalition triggers that would pull the player in due to his faction affiliation, now it explains the war is triggering and asks the player if they want to stay loyal or follow his faction into open rebellion to give more player agency.
+- Some updates to translation strings reflecting the chances done in the patch.
+
+1.0.9
+
+- Fixed bug where if a clan had previously led a rebellion the game would try to reutilize the same, already cleanedup faction due to internal ID and get an already eliminated one.
+- Refine logic when faction leaders die (pre and during civil wars), now their next natural heir will inherit the position, if they don't have one the next strongest and influential faction member and if none are found it will disband.
+- Small improvements to call to war popup, now it's will differentiate if it was the player faction who called him to war or if his faction joined in the grand coalition led by another due to their grievances with the crown.
+
+1.0.10
+
+Added some checks to hopefully fix any compatibility issues with True Noble Opinion/Nemesis since both mods complement BC very well adding more variation to the political machine after each succession.
+Improvements to "demand fiefs" rebel faction, before only the leader could receive a fief from the defeated loyalists and the clan who had his fief stripped away would get -50 relationship with the king for failing to protect his property, now each member of the faction can get a fief from the defeated side and lords who had their fiefs confiscated will lose 30 relationship with the king and 20 with the clan who stole their fief.
+Fixed the clan tier difference penalty for marriages, i was mistakenly calculating the proposer and proposed in reverse which meant the penalty was inverted (higher tier player would be paying more to marry lower tier brides and not get any penalty for proposing to higher tier clans), should be working as intended now.
+
+1.0.11
+
+Fixed and edge case crash source with war sails
+Improvements to logic behind a lord decision to join an existing rebel faction instead of founding his own, lords should band together for rebellions more often now and only found their own factions if they trully despise the faction leader.
+Improvements to logic behind lords reevaluating their faction membership in court, now it should catch significant changes in a lord's standing in the realm and reevaluate their allegiance during meetings if they arent the faction leader.
+When a grand coalition triggers and the player follows his faction into open rebellion he now gains some relationship with the leader and members mirroring the same effect with king and loyalists if he decides to stay loyal to the crown.
+Fixed player rulers being blocked from founding any faction, including court ones when they dont exist yet, correct behavior is blocking the ruler from founding/joining rebel factions only.
+Added config file inside ModuleData to set the succession law of each culture/kingdom, useful to change vanilla ones to your preference or to add modded cultures from overhaul mods, any culture not specified there defaults to vlandian agnatic primogeniture.
+New feature, made policy votings take time for consideration when a faction meets to propose them (around a week) where the player can now try to swing the votes of clan leaders with bribes similar to how votings worked in warband.
+Also added the same behavior to expulsion and fief granting voting, now the player has around a week's time to try and swing clan leaders votes.
+Fixed players under mercenary service getting relationship drops with lords for not joining a faction in court which cant happen when the player is a mercenary.
+Fixed indictments of treason spiralling out of control making lords rebel again and again due to the king keeping trying to expel them, now there is a cooldown per clan for this feature giving a window of time to relations to recover, or not, before the king might try to indict the same clan again.
+Fixed indictments of treason auto firing when player was ruler, now you have control of who you want to expel or execute as a proper monarch.
+added dialogue when player is ruler to directly indict lords for treason bypassing the voting (harsher), player can confiscate fiefs to expel and also execute the clan leader for high treason, lords might not agree and raise in desperate rebellions.
+Added improvements to how vanilla calculates candidates in fief votings to avoid one influential political faction dominating the pools, now the mod will filter the candidates list to have at max one candidate from a faction, then it skips others until the next best candidate for another faction for the other slots.
+Improved post civil war confiscation and execution logic, should be less harsh than before to the defeated side, pardons grant relationship between defeated lord and victor (rebel leader/kingdom ruler), confiscation and execution decrease it as well (affecting family members and friends in case of execution).
+Lots of improvements to subterfuge actions taken by rulers, they should act more smart now and with more downtime between actions instead of spamming them whenever they could afford it and traits aligned.
+-----------------------------------------------------------
+Fixed an edge-case crash related to war sails.
+Fixed an issue where player rulers were blocked from founding court factions. The game now correctly only blocks rulers from founding or joining rebel factions.
+Fixed a bug where mercenary players suffered relationship drops with lords for not joining a court faction (which mercenaries cannot do).
+Fixed treason indictments automatically firing for player rulers, giving you proper monarch control over who to expel or execute.
+Fixed treason indictments spiraling out of control. Added a per-clan cooldown to stop kings from endlessly expelling the same lords, giving relations a window of time to recover.
+Added a one-week consideration period for policy, expulsion, and fief-granting votings. During this time, players can bribe clan leaders to sway their votes.
+Added dialogue for player rulers to directly indict lords for treason. This harsher action bypasses voting, allowing you to confiscate fiefs or execute clan leaders, but it risks triggering desperate rebellions.
+Added a config file in ModuleData to set succession laws per culture or kingdom (great for overhaul mods). Unspecified cultures default to Vlandian Agnatic Primogeniture.
+Added relationship gains when taking sides in a Grand Coalition. Joining the rebellion improves relations with rebel members, mirroring the effect of staying loyal to the crown.
+Rulers now act smarter with their subterfuge actions, utilizing a cooldown period to prevent them from spamming actions just because they can afford them.
+Lords are now more likely to band together and join existing rebel factions. They will only found their own faction if they truly despise the current rebel leader.
+Lords will now properly catch significant changes in their realm standing and reevaluate their faction allegiances during court meetings (applies to non-leaders).
+Improved the vanilla candidate calculation to prevent one influential faction from dominating the pool. Fief votings are now filtered to reduce one faction dominating the polls.
+Rebalanced confiscation and execution logic to be less harsh on the defeated side. Pardons now grant positive relations, while confiscations and executions decrease them (including penalties with the victim's family and friends).
+
+1.0.12
+
+Fixed player being switching into different ideologies when his standing changed in the realm, now this logic should only run for NPCs since the player can make these decisions by himself.
+Fixes to civil war ending logic, now if a rebel kingdom and its parent make peace outside the normal victory path it counts as white peace, in case of white-peace independence type rebels get their independence recognized, other rebel types get reabsorbed into the parent kingdom with no punishments, if the parent kingdom is destroyed by outside forces during a civil war the strongest rebel active becomes it's successor, other active rebellions get absorbed back into the fold since their cause for war ended except for independence type rebels who manage to break away.
+Fixed a bug that could cause rebel fiefs to not be properly initialized with constant changing between parent kingdom and rebels, should prevent bugs where the player can enter or interact with a rebel held fief.
+
+-----------------------------------------------------------
+
+Player clan is now excluded from automatic ideological faction reevaluation.
+Civil wars now handle white peace, recognized independence, and destroyed-parent edge cases more cleanly to fix compatibility issues with Diplomacy.
+Rebel-held settlements now get a refresh pass after kingdom-side transfers to avoid broken settlement interactions.
+Diplomacy Right of Conquest is now respected through a reflection-based soft integration preventing unwanted delayed fief votes.
+Independence rebellions now get ideology-shaped rebel policies and keep them if they become a permanent kingdom.
+Fixed rebellion realm transitions so clans no longer keep stale ideology memberships from their old kingdom, and newly created independent or successor kingdoms now immediately initialize and sort their lords into ideological factions.
+Fixed a crash caused by temporary proxy-war highwaymen interacting with vanilla hideout reassignment.
+
+1.0.13
+
+Hopefully fixed for good this time civil war peace resolution to track rebel kingdoms explicitly and intercept rebel-parent peace before vanilla or Diplomacy cleanup can misfire, preventing kingdoms from being wrongly absorbed and clans from being destroyed during reunification.
+Added a tooltip explanation of the general formula for subterfuge options.
+Some menu backend improvements.
+
+1.0.14
+
+Fixed indictment of treason outcomes so indicted lords now either rebel before expulsion or submit cleanly, preventing unsafe post-expulsion rebel creation states.
+Fixed accepted rebel ultimatums so recently settled rebel lords are temporarily pacified and no longer risk immediate treason indictments on the next daily tick.
+Hardened delayed kingdom vote systems for fiefs, policies, and expulsions by validating queued votes before they fire, cleaning stale bribery data, fixing swallowed UI edge cases, and correctly limiting player-only deliberation routing to the current kingdom.
+Fixed civil wars so territorial collapse now resolves them immediately: landless parent realms no longer wait on vanilla elimination, landless rebel factions now surrender automatically, stalemated landless civil wars clean up safely, and successor rebel kingdoms inherit the fallen realm’s mantle and outside wars correctly.
+Fixed abdication civil war resolutions by deferring the post-war royal succession vote to the next daily tick, preventing crashes from throne elections firing immediately during volatile rebellion cleanup or forced capitulation.
+Rebalanced the Comrades in Arms system with softer battle and defeat blame numbers, trait-based camaraderie and rivalry on the battlefield, capped short-term relation swings between recurring war companions, and a new timed captivity resentment system that triggers every few days instead of applying guaranteed daily penalties.
+Added a new player-controlled post-war tribunal for civil war victors, allowing rulers and rebel leaders to judge each defeated clan through Pardon, Punish, or Execute decisions, complete with explanatory hover tooltips for each verdict.
+Improved exile safety by routing banished clans through a shared refuge selector that avoids unstable rebel realms and other invalid destinations, falling back to kingdomless exile only when no safe refuge exists.
+Rebalanced fief vote scoring so rulers remain favored, especially with Royalist backing, but no longer dominate by default, while capturers and underlanded claimants now have a stronger chance to win settlements.
+Hardened fief ballot filtering by making claimant detection cache reflection data per outcome type and adding diagnostics for unresolved candidates or duplicate ideology representatives that still slip onto the final ballot.
+
+1.0.15
+
+Fixed civil war resolution so ruler-capture outcomes now respect landless-parent collapse logic immediately, preventing broken successor kingdoms when a collapsing realm is defeated before the daily cleanup runs.
+Updated cultural succession law overrides so kingdom-specific succession rules can require a matching clan culture, letting foreign vassals keep their native cultural law instead of always inheriting the host kingdom’s override.
+Added ruler demesne hoarding as a new rebellion pressure factor, increasing rebellious intent when kings keep more than three fiefs, with stronger impact on underlanded lords and a mitigating loyalty bonus for Royalists if the rightful house sits on the throne.
+Fixed civil wars triggered by capturing an enemy ruler so their victory resolution now runs on the next daily tick instead of immediately after battle, preventing encounter-time crashes during rebellion cleanup.
+Fixed version-sensitive Harmony patches for civil war peace-by-decision and fief ballot candidate diversity, restoring compatibility with current Bannerlord method signatures.
+
+1.0.16
+
+Fixed an issue where player rulers with no vassals could become stuck unable to pass kingdom policies; solo-ruler kingdoms now bypass the delayed court deliberation system and resolve policy decisions immediately by royal decree, with existing stuck pending votes recovering automatically.
+Improved civil war cleanup and Diplomacy compatibility by preserving peace-event side effects on white peace and recognized independence, hardening temporary rebel kingdom teardown with safe deferred cleanup, and migrating long-lived kingdom/clan tracking to leak-resistant ID-based state.
+Exiled noble clans are no longer left to be silently deleted by vanilla when no immediate refuge is available, mod now preserves kingdomless exiles, retries safe refuge placement over time using its own exile rules, and rescues eligible kingdomless clans from older saves.
+Dynastic heiress marriages now found cadet branches when they marry a non-player, no clan leader or heir groom, preserving succession claims without destabilizing marriage resolution, and granting new cadet houses an immediate dowry of captured marriage gold plus a fief when appropriate.
+Fixed an issue where defeated or condemned one-member clans could still be exiled into another kingdom after their leader’s execution; eliminated clans are now removed cleanly and no longer processed by Bellum Civile’s exile/refuge logic.
+Added a defensive cleanup pass for stale or duplicate kingdom fief decisions, preventing orphaned claimant votes from blocking delayed fief awards and subsequent kingdom votes.
+Added a tribunal flow improvement for post-civil-war judgments, now all judgements open sequentially in the same daily tick unless the player deliberately chose to decide later, then it queues to the next daily tick.
+Rebalanced voting intentions for succession, now the 3 slots are much better represented by their archetypes (heir/warlord/steward) and the royalists, militarists, aristocracts will generally vote more aligned to party lines than personal relations, the populists and any non-aligned clans are the tie breakers now and swing their votes much more heavily on popularity and personal relations.
+Added kingdom decision UI role labels for succession candidates and ideology-alignment hover text for voters.
+Fixed broken deliberation vote process for fiefs and policies when player called from the menu cause he was being treated mistakenly as a minor faction that's excluded from the voting process.
+Slight improvements to localization, ongoing process.
+
+1.0.17
+
+Reduced the chance of mod interaction crashes during post-war daily clan defection logic, especially with mods that override diplomacy/defection scoring like Fourberie.
+
+1.0.18
+
+Fixed a rare post-civil-war crash where a separatist victory through total territorial collapse could leave the old or successor realm in a transient invalid ruler state, causing vanilla or modded clan kingdom-leave logic to crash during daily defection checks.
+
+1.0.19
+
+Fixed an abdication civil-war edge case where the post-war tribunal could still be assigned to the rebellion’s original leader even after a different clan won the succession vote, causing judgments to now be deferred until the new ruler is officially chosen.
+Fixed an exploit and stability issue where clans actively fighting on the rebel side of a civil war could be recruited into an unrelated kingdom, now blocking such defections until the civil war is resolved and preventing related faction-screen succession crashes.
+
+1.0.20
+
+Fixed a stability issue where post-war emergency repair could silently replace rulers in unrelated kingdoms, now restricting automatic ruler repair to Bellum Civile’s own temporary civil-war transition realms only.
+Improved faction mood event notifications by appending the exact gameplay effects to each message, including dynamic values for influence, relations, gold, troops, army cohesion, and affected settlements, while fully localizing the new effect-summary system for translation support.
+Added permanent Royalist legitimacy pressure to faction mood, granting a bonus when the rightful dynastic house rules and a penalty while an unrecognized usurper sits the throne, with both effects now displayed in the faction UI and fully localized for translation.
+
+1.0.21
+
+Extended the delayed voting system to player-ordered fief revocations, so once a revocation passes its initial judgment the final ownership vote now enters a deliberation period with the same bribery, dialogue, safety checks, and localization support as other delayed fief decisions.
+Improved policy-vote reliability by preventing already-filed motions from being silently cancelled just because their proposer later lost influence, while also adding a new court-influence gate that makes underpowered faction leaders fail to table policy changes gracefully with an immersive explanation instead of creating doomed votes.
+Rebalanced ideological faction alignment so all personality traits now contribute through a broader primary/secondary weighting matrix, making clan political leanings less binary and more evenly distributed across the four court factions.
+Rebalanced fief election AI with a new desired-holdings pressure system that rewards land-hungry clans and penalizes over-sated ones, while toning down bloc voting, personal bias, spite, and status-driven extremes to produce fairer but still highly political fief grants.
+Rebalanced policy voting by unifying deliberation previews and live AI votes under the same scoring logic, then softening the strongest ideological, royal, honor, and personality weight extremes so kingdom policy debates remain faction-driven without becoming overly rigid or predictable.
+Rebalanced expulsion voting into a harsher but fairer crown-loyalty inquest, unifying preview and live vote logic while adding king-target suspicion and personal ties so clan purges remain strongly anti-rebel without feeling overly automatic or binary.
+Reworked faction menu access by removing the old F key shortcut, adding a proper Factions tab inside the kingdom menu, integrating with Diplomacy so its existing tab opens Bellum Civile when both mods are loaded, and moving War Sails support into a separate optional submodule to preserve compatibility for non-NavalDLC setups (thanks Diplomacy devs for enlighten me on how to do this)
+Fixed a UI cleanup bug where closing the Bellum Civile factions menu could temporarily unload shared kingdom/encyclopedia prefab visuals, causing missing images and bars in the underlying menu until it was reopened.
+
+1.0.22
+
+Fixed a rare post-civil-war clan-defection crash where Bellum Civile transition states could leave a referenced kingdom with an invalid ruling clan for a tick, causing vanilla join/leave kingdom AI to crash during daily diplomacy evaluation.
+
+1.0.23
+CHECK LOG Documents\Mount and Blade II Bannerlord\Configs\ModLogs\BellumCivileYYYYMMDD.log
+
+EXPERIMENTAL: Improved AI Influence compatibility by both guarding against suspicious early civil-war white peace and routing Bellum Civile’s scripted rebellion war/peace actions through AI Influence’s own diplomacy bypass, preventing AI-controlled diplomacy from prematurely collapsing BC civil wars.
+Fixed a delayed fief-vote crash where stale or invalid settlement claimant proposals could still fire after their original proposer or kingdom chooser state had broken, now validating them up front and safely retrying or discarding bad claimant decisions instead of crashing during chooser resolution.
+Fixed dynastic cadet branches to form only from valid queued heiress marriages on the intended next-day resolution, preventing succession checks from spawning random or duplicate double-barrelled clans and stopping lone-heiress cadet branches from appearing outside the proper marriage rules.
+Improved rebel kingdom visuals by centralizing civil-war kingdom banner/color generation, preserving diversified clan palettes when available while automatically assigning distinct breakaway colors when a new rebel realm would otherwise inherit the same look as its parent kingdom.
+
+1.0.24
+
+Fixed a rare diplomacy crash during clan-defection scoring by repairing invalid kingdom rulers on the fly and safely skipping broken leave-kingdom barter evaluations instead of letting vanilla relation checks crash the campaign.
+
+1.0.25
+
+Added centralized civil-war cleanup and old-save repair for eliminated kingdoms that still have live clans or fiefs, with immediate kingdom-destruction handling and safer deferred rebel cleanup.
+
+1.0.26
+
+Improvements to POC compatibility in case the player use it for unique banners.
+Fixed succession elections incorrectly promoting vassals or old rulers over the current ruler, especially in player kingdoms and peaceful install-ruler usurpations.
+Improved handling of eliminated main factions, now if they have been succedded by a rebel or breakaway faction claiming their legacy the old kingdom will be properly cleaned from wiki and diplomacy to not get confusing duplicates, it lives on in it's successor state.
+Reworked fief-election candidate selection with Bellum’s own political scoring, improving ideology diversity and preventing satisfied rulers or dominant blocs from monopolizing fief ballots.
+Faction leaders now spend influence to propose policy enactment or repeal motions, and underfunded attempts are aborted with the existing outmaneuvered-in-court notification.
+Added faction labels to fief, policy, expulsion, and revocation vote options, using each party’s display name.
+Small rebalancing to conditions to join and remain a part of the royalist faction.
+
+1.0.27
+
+Improved civil-war ultimatum acceptance messages to show the exact demand accepted, including land redistribution, abdication, overthrowing, or recognition of independence.
+Hardened post-civil-war punishment so only truly landless defeated clans can be exiled, while preventing defeated clans from receiving confiscated fiefs during the same tribunal.
+Fixed a solo-ruler policy crash by applying royal decrees directly instead of forcing a degenerate kingdom election when no other lords are present.
+Hardened deferred abdication succession so legacy or stale king-selection queues can no longer replace a player ruler with a vassal unless the current Bellum abdication outcome explicitly authorizes it.
+Added player civil-war side switching from the Factions menu, allowing loyalists to defect to active rebels or rebel supporters to rejoin the crown with proper kingdom transfer, diplomacy, and banner handling.
+Blocked joining court factions whose members are already fighting in an active civil war, directing players to join the rebel coalition tab for proper side switching instead.
+Initial rebalancing of the intensity of likes/dislikes in court factions.
+
+1.0.28
+
+Rebalanced royalist strong/weak royal demesne conditions, now less than 2 fiefs is considered weak and 5 or more strong since i've switched to consider every fief type instead of just towns.
+Added player asylum requests for exiled clans seeking refuge in a player-ruled kingdom, allowing the player to accept them or deny asylum and force the exile system to search for another home.
+Reworked rebellious court-faction army behavior so factions at -60 mood or worse refuse calls to arms from outside their own faction, with player-facing army UI explanations and loyal Royalist exceptions.
+Fixed player rulers being wrongly replaced by vassals during diplomacy scoring by limiting emergency ruler repair to Bellum-tracked transition states and blocking unauthorized repairs over player-ruled kingdoms (Hopefully this fixes the issue for good now)
+EXPERIMENTAL: Player-led court factions now let the player approve, block, or substitute meeting agendas, including policy motions, faction events, fief pressure, royalist claim switches, and grand coalition ultimatums, with escalating influence costs to suppress rebellions at crisis mood.
+
+1.0.29
+
+Fixed a faction menu crash when Royalist dynasty heir previews encountered invalid or legacy succession data.
+Improvements to the mod factions menu, now it should look more in line with the vanilla feel.
+Player faction leaders can now approve their faction’s proposed court agenda for free, influence is only spent when blocking or substituting the motion.
+Player-led court factions with no other members now get a solo agenda popup, allowing the player to spend 100 influence to set a motion or end the meeting without action.
+Exiled clans now seek refuge with active enemies of their former kingdom first, then same-culture realms, then a random valid kingdom, preventing one large realm from absorbing every banished clan by default.
+Asylum requests from exiled clans now include background reports explaining why the clan was banished and which court faction they last supported, giving player rulers more context before accepting them.
+Fixed independence ultimatums being triggerable multiple times from the faction tab, preventing duplicate breakaway kingdoms, unintended peace recognition, and unstable ruler/faction state after secession.
+Rebalanced court faction ideology scoring so Royalists are less of a default “good noble” faction and more focused on monarchy loyalists, while Aristocrats, Populists, and Militarists receive stronger personality-based pull.
+Subterfuge mission tooltips now display companion-based mission success, survival odds, and agent skill impact, with rebel-support missions using the parent ruler’s counter-intrigue as intended.
+Changed player-led active civil wars from “Disband” to “Surrender”, resolving the rebellion through the normal loyalist victory path instead of deleting the rebel faction which could cause issues.
+Suppressed vanilla faction-join cutscenes for Bellum civil-war kingdom transfers, preventing the player from seeing out of place animations during rebel transitions, reintegration, or self-led rebellions.
+Fief Redistribution victories and accepted ultimatums now prioritize a faction leader for the first confiscated fief before rewarding other needy supporters.
+
+1.0.30
+
+Fixed faction-menu crashes from malformed dynasty heir data and stopped finalized independence kingdoms from being tracked as temporary repair states, preventing unnecessary ruler replacement in breakaway realms.
+Reworked emergency ruler repair into one-shot transition validation, removing daily rebel-kingdom ruler tracking and preventing Bellum from guessing replacement rulers during active civil wars.
+Hardened exiled-clan recovery to ensure Bellum only preserves landless noble clans with living adult members, allowing vanilla cleanup to destroy houses that can no longer field an adult leader to avoid potential issues.
+
+1.0.31
+
+Fixed succession elections wrongly crowning heirs over living clan heads, including player spouses and royalist restoration heirs, and made player-ruler replacement authorization require Bellum's exact intended successor.
+
+1.0.32
+
+Added Custom Spawns compatibility guards so factions with a "ForceNoKingdom" can no longer be recruited as civil-war mercenaries, without blocking valid vanilla mercenary clans.
+Also fixed Custom Spawns / Calradia at War diplomacy compatibility by wrapping the active diplomacy model instead of replacing it, preserving forced-hostility behavior while keeping Bellum’s civil-war safeguards.
+Fixed rebel faction join/leave loops by making lords avoid siding with hated rebel leaders and remember recently abandoned rebel factions for 30 days to avoid.
+Fixed post-civil-war tribunals sometimes targeting the newly crowned victor, preventing rulers from executing themselves after succession-based rebellion victories.
+Slight adjustments to subterfuge related messages trying to make them more immersive.
+
+1.0.33
+
+Added MCM support to Bellum Civile, it's a hard requirement now.
+Improved kingdom creation for newly independent realms with proper formatation and a basic realm description.
+Rebalanced grand coalitions so now they only pull in other court factions that are truly rebellious by default, not simply angry.
+Grand coalitions now check their projected balance of power before issuing an ultimatum, using the same trait-based rebellion threshold as normal factions, with desperate -100 mood factions willing to revolt at worse odds.
+Independence movements can now attract landed lords with fiefs of the rebel leader’s culture, allowing border nobles to side with local separatists even when their own clan culture differs.
+
+1.0.34
+
+Improved banner handling so vanilla-style banners are detected more consistently to receive correct primary/secondary random colors, POC/custom unique clan banners are preserved untouched.
+Removed the remaining legacy faction-menu connections, Diplomacy’s own encyclopedia/wiki faction button is left to open their menu that should be empty when using alongside BC anyway.
+
+1.0.35
+
+EXPERIMENTAL: Reworked fief voting logic to make it more similar to warband, bribe during deliberation period now allows the chosing of specific candidates instead of faction bloc like before and added persuasion mini-game to fief, policy and expulsion vote types accessible during the deliberation period as well before the actual vote.
+Fixed civil-war succession transitions so Independence and Install Ruler victories consistently crown the rebel leader after all kingdom/clan transfer cleanup is complete preventing cases where the intended ruler was replaced by a vassal.
+
+1.0.36
+
+Reworked NPC marriages into a Bellum strategic marriage system, favoring dynastic survival, ruler/vassal pacification, foreign alliance goals, configurable age rules and player-clan marriage offers interwoven in the same logic. By default the MCM enables Bellum marriage logic and blocks vanilla dice-roll ones. You can toggle each or disable them entirely in case you want another mod to oversee this logic like Houses of Calradia.
+Hardened clan kingdom-change diplomacy against malformed or leaderless clans, preventing vanilla relation-penalty crashes during daily clan defections after civil-war/exile transitions.
+Fixed balance-of-power calculations using inflated clan strength in some cases, especially mercenary/player clans, by centralizing the math around actual clan military strength plus influence.
+Fixed repeated AI expulsion vote spam by adding stable kingdom and target-clan cooldowns, and making expulsion attempts respect the configured treason purge cooldown.
+Added an MCM-controlled Bellum Civile notification setting with Disabled, Kingdom Only, and Global modes, and migrated major political/civil-war chat messages to respect it.
+Slight tweak to abdication type rebel factions that are the dominant rebellion type to better balance their joining conditions.
+
+1.0.37
+
+Refined fief redistribution rebellions so underlanded clans use consistent desired-fief logic when joining, while confiscations now spread across landed loyalists and never strip a clan’s final fief.
+Fixed post-civil-war punishment logic so the player clan is no longer accidentally shielded by Bannerlord’s IsMinorFaction flag when losing as a vassal or ruler, while mercenary players remain properly exempt.
+Abdication civil-war victories can now subject the deposed ruling clan to post-war judgment after succession resolves, instead of automatically shielding them from tribunal punishment.
+Improved post-civil-war fief reward logic: Bellum now tracks each clan’s fief count across side switches and late civil-war joins, so clans that already gained land during the war are deprioritized when victory rewards are distributed.
+Fixed a crash in alliance decision scoring by hardening Bellum’s dynastic marriage alliance bonus against invalid kingdoms, missing ruling clans, and Diplomacy/vanilla alliance patch interactions.
+Fixed a daily-tick crash in war-declaration scoring by hardening Bellum’s CivilWarDiplomacyModel against invalid, eliminated, or leaderless factions before passing decisions to vanilla diplomacy logic.
+Reworked post-war tribunal logic so NPC verdicts now resolve cleanly as execution, land confiscation, or pardon fallback, with lower base punishment chances and trait-based tuning.
+Fixed a rare post-war execution issue where executing a temporary rebel ruler could trigger invalid rebel-kingdom succession, duplicate execution messages, and possible clan loss.
+Added XML-driven court faction policy agendas, allowing modders to add, remove, or reassign supported policies through bellum_policy_agendas.xml and patch files with an example file inside the mod's moduledata folder.
+Localization improvements.
+
+1.0.38
+Fixed a kingdom-menu crash by lazy-loading Bellum’s Factions tab only when opened, preventing peace offers and diplomacy screens from initializing the full faction UI at unsafe times.
+Fixed a fief-award loop where stale or duplicate votes could cause the same fief to be repeatedly regranted between clans in npc kingdoms.
+Fixed a fief-vote crash by making Bellum fully own claimant support scoring, preventing vanilla’s settlement-value logic from crashing on kingdoms with invalid or missing faction mid-settlements.
+Rightful dynasties can now use Install Ruler rebellions to reclaim a lost throne, with Royalist supporters favoring claimant factions if rebellious enough, having rightful status allows clan to bypass the usual clan-tier requirement to found such faction.
+Lowered clan tier requirement to form Install Ruler rebellions from 5 to 4 bringing it more in line with vanilla requirements to found a kingdom.
+More localization improvements.
+
+1.0.39
+
+Hardened alliance decision scoring against invalid or transient kingdom states, hopefully preventing any rare daily tick crashes during alliance proposal.
+Fixed policy agenda patch discovery so bellum_policy_agendas_patch.xml files are correctly loaded from other mod's ModuleData folders.
+Fixed faction-menu rebellious intent tooltips for active civil-war rebels, so rebel rulers no longer appear as “the crown” and instead show their rebellion cause.
+
+1.0.40
+
+Mod updated to 1.4.5, from this patch onwards updates are going to be 1.4+ only.
+Added NPC succession partition: large noble clans now split excess inherited fiefs into cadet branches after succession, with culture-aware branch names, randomized banners and clan wealth is also shared between heirs, MCM toggle support
+Court faction leaders can now abandon their own faction when their ideology shifts strongly enough, requiring a higher threshold than normal members and causing a larger relation penalty with followers they leave behind.
+Refined dynastic heiress marriages so when marrying lesser foreign nobles (no clan leader/direct heir) he moves into her kingdom to preserve her claim and allowing Bellum’s cadet-branch system to form a new dynastic branch.
+Fixed delayed fief votes repeatedly re-firing after Bannerlord resolved them immediately, preventing captured castles from being reassigned between clans every daily tick.
+Removed marriage between rulling clans increasing the likelihood of forming alliances between kingdoms since vanilla has implemented the same feature in 1.4.5
+Improve npc subterfuge logic so rulers will only try to sabotage neighbouring kingdoms instead of a Sturgian sabotaging the Aserai on the other side of the map simply for disliking the sultan.
+Improved cultural succession laws logic to better filter clan and kingdom heirs in more elective types like nord, battania, aserai and western empire models.
+Rebalanced court faction members refusal to join armies when this setting is enabled in the mcm, to properly represent the crown losing their loyalty they are barred from joining any armies now, they are refusing to contribute to the kingdom war machine until mood improves.
+Rebalance of balance of power to improve success chances for rebels against loyalists a bit.
+Rebalance of join/switch requirements in court factions logic.
+
+1.0.41
+
+Blocked vanilla feature where clans could evaluate to randomly defect to another kingdom while keeping their fiefs, was annoying and BC implement logical ways in which a clan can be exiled or rise in rebellion.
+Improved Bellum's own exiled clan refuge selection so banished clans now weigh ruler relations and court connections when choosing a new kingdom, while still prioritizing enemies of their old realm and same-culture.
+Improved claim throne rebel logic so cadet-branches formed from rulling clans get a lifetime claim that stirs them into trying to claim the throne if they get rebellious enough, also centralized backend logic for rightful rulers, royal heirs and cadet-branches.
+Hardened Bellum’s army-creation model against a Naval DLC/vanilla food-consumption null crash, safely denying the affected army creation check and logging the suppressed issue instead of crashing the save.
+Fixed some npc marriage factors in their consideration for desirable and strategic marriages being counted twice mistakenly doubling it's importance.
+Standardized Mod chat messages coloring by topic like politics, rebellion, inheritance etc just to keep things more cohesive.
+
+1.0.42
+
+Small fix to stop mod related chat message spam when the player is a wanderer, should correctly respect the MCM settings now.
+
+1.0.43
+
+Fixed old-save crashes caused by stale dynastic claim records being validated too early during save loading.
+Fixed a bug were militarists were voting more like aristocrats favoring high tier clans instead of high strength ones in some situations.
+rebalanced general voting logic to be more cohesive overall for fiefs, policies, expulsion and succession.
+
+1.0.44
+
+
+Fixed a post-civil-war tribunal edge case where executing and exiling a defeated clan could leave a kingdom ruled by a clan that had been moved into another realm.
+halved vanilla relations gains from voting support.
+Implemented optional feature (toggle in MCM) for relationships to follow a natural threshold curve and slowly gravitate towards that baseline (default 1 point per week) instead of being static awaiting for increases/decreases from events, should make relations feel more natural and require maintenance over time.
+Added into the encyclopedia hero page the natural relation threshold when that feature is enabled.
+Added into the encyclopedia clan page the succession law type and a tooltip showing the line of succession and if it's being decided by culture or kingdom internal law.
+Revamped random generation of banners for rebellions/cadet branches to follow more natural and pleasant colors with a tailored list instead of fully random ones that could create some atrocious combinations.
+
+1.0.45
+
+Improved Relations Threshold performance by caching raw relationship baselines and political lookup data, reducing repeated recalculations during campaign ticks and UI relation checks, hopefully fixing stuttering reported.
+Small fix to subterfuge logic so sending mercenaries to support a rebellion will correctly only pick from basic/noble troops instead of broader selection that could lead to potential issues by mistakenly choosing a broken/malformed/test troop type that met the other criteria.
+Added into the MCM more options to customize Ruler Controversy increase/decrease to player tastes, original is kept as the default modelled after Warband's highly infuriating marshal controversy system (that i adore) with 50% and 25% options now as well. 
+Localization improvements so internal politicking chat messages now also say from which realm they are talking about to be less confusing when using Global chat message options.
+
+1.0.46
+
+Added "heir to the throne" modifier for new kingdom heiress cadet branches, reducing their rebellious intent while their parent dynasty rules and improving relations with the parent clan on creation for general cadet branches.
+Blocked a remaining vanilla path where clans could silently leave kingdoms through the daily barter system, preventing a vanilla crash that could happen due to temporarily malformed kingdom and keeping realm departures under Bellum’s rebellion, exile, expulsion, and player-persuasion systems.
+Made portraits of faction members clickable to open their respective clan pages in the encyclopedia.
+Polish pass on general tooltips of the mod to make them more vanilla like in style and improve readability.
+
+1.0.47
+
+Made vanilla’s daily AI clan defection system explicitly blocked for player clan as well to avoid potential issues with the campaign mode.
+Centralized dynastic succession tracking into a canonical per-kingdom state record, reducing heir/claim/Royalist desync issues.
+Bundled War Sails support into the main mod so the factions tab patch auto-loads when NavalDLC is detected, old separate optional patch is not needed anymore (thanks budmao for the suggestion)
+Rebalance of the fief voting logic fixing some remaining quirks and leftovers from vanilla i thought were already removed.
+Added a guard to prevent ultimatums from being sent by npcs if their faction leader is inside an unsafe fief meaning he would be captured on day one of a civil war and forced to surrender, now they'll delay until the next daily tick the leader is safe to start his war.
+Players leading rebellious court factions can now outright call for a grand coalition at their faction meeting with a substitute motion instead of waiting for the faction to decide that on it's own or reach full -100 mood to auto trigger it.
+Grand Coalitions led by the royalist faction are now called Grand Restoration to display at a glance their intend to restore a rightful house to the throne, not just overthrowing a tyrant.
+
+1.0.48
+
+Added MCM option to disable indictments of treason feature
+Improvements to player ruler dialogue to indict a lord for treason or high treason and now gated behind low relationships similar to npc rulers.
+Improvements to indictments of treason logic so now lords who might defy the crown's judgment and rebel can receive support from close friends and marriage ties to other clans in the same realm, player can be summoned by friendship or marriage ties as well and get a popup to chose as when he himself is target of an indictment now being able to submit to judgement or defying the crown hoping his close connections will come to his aid.
+
+1.0.49
+
+Fixed a crash when opening the clan menu after partition of fiefs during succession when new cadet branches were created for lords who were still leading parties for their parent clan, now they are properly cleared from the role.
+Improved marriage logic, lords will consider marriages in allied kingdoms and rank was made more important when they are seeking potential matches now, unless truly desperate to maintain their bloodlines to accept marrying bellow their station.
+
+1.1.0
+
+Added a complete feudal title hierarchy covering baronies, counties, duchies, kingdoms, and empires.
+Added separate De Jure and De Facto hierarchy views to distinguish lawful ownership from actual control.
+Added claim fabrication with staged discovery checks, cover-ups, scandals, and personality-driven AI.
+Added petty claim feuds with supporters, royal petitions, legal rulings, and contained private wars.
+Added long-term De Jure Drift for titles controlled by foreign realms.
+Added Service Owed contracts governing taxation, army costs, influence, and liege-vassal relations.
+Added a unified War Enthusiasm system controlling clan support for war and peace.
+Added War Score for foreign wars, civil wars, and open claim feuds.
+Added the Peace Parley menu with territorial, prisoner, political, tribute, and reparations terms.
+Added postwar prisoner retention, allowing nobles to remain imprisoned or become treaty bargaining pieces.
+Added client kingdoms, forced diplomacy, liberty desire, and eventual wars of liberation.
+Added a player-facing Hierarchy tab with claim, usurp, revoke, form, service, and grant actions.
+Lords now receive influence from baronies answering through their effective feudal hierarchy.
+Rulers may directly grant titles, including creating independent peers through equal-rank grants.
+Direct lieges with valid claims may demand the revocation of subordinate titles.
+Title rank and lawful status now influence court factions, elections, fief votes, and policy votes.
+Lords now consider local borders, maritime access, claims, alliances, and relationships when choosing war targets.
+Rebel and coalition leaders may call their title-vassals to join them through a shared solidarity system.
+Army summons can be restricted to the ruler or a lord’s lawful vassal chain.
+Civil wars, feuds, and foreign wars now share consistent battle, occupation, raid, and prisoner scoring.
+The political-action scheduler now centralizes AI usurpation, feuds, fabrication, service, title formation, and grants.
+Court-faction policies are highlighted in the Policies tab and identified during policy votes.
+Encyclopedia pages now display held titles and claims in compact two-column layouts.
+Comrades-in-arms relationship messages are consolidated into one report per battle.
+Removed the legacy fief-redistribution rebellion type in favor of claims, court motions, and feuds.
+Expanded MCM settings for War Will, prisoner escape chances, army summons, controversy, and political systems.
+Fixed a crash caused by null hero relation checks by adding defensive guards around vanilla relation read/write calls, improving compatibility with relation-altering mods like Dramalord.
+Fixed stale delayed votes blocking policies and leaving confiscated fiefs permanently undistributed.
+Fixed several hardcoded or incomplete localization strings, title formats, and notification names.
+Fixed village income adjustments being applied twice when using custom economy models.
+Improved preservation of custom POC banners during rebellions, independence, and realm transitions.
+
+1.1.1
+
+Fixed an issue with the war&peace revamp where mercenary players were mistakenly being counted as vassals which confused the resolution of peace parleys making wars stuck until the merc interacted with the notification for the kingdom he was serving, now it resolves correctly.
+Added notifications about parleys who were refused and accepted avoiding confusing the player for not knowing why a war didnt ended despite peace being offered, unlike vanilla, in BC both sides have to agree to peace terms for it to take effect.
+Updated the default feudal titles xml file to use IDs for baronies instead of their display name which improves compatibility with any mods that might rename vanilla fiefs while keeping their IDs under the hood.
+Slight improvements to factions and hierarchy tabs left panels to make them correctly aligned as other vanilla ones.
+Fixed peace parley not pausing the game when opened from the campaign map notification.
+
+1.1.2 CHANGELOG:
+
+Fixed stale prisoner terms trapping players in invalid peace parleys.
+Fixed client states not entering an automatic trade agreement with their new overlords as they should by default.
+Made so wanderers in the player clan don't get an honorific lord/lady title as nobility by default, can still be added and customizable by culture in the feudal_titles.xml patch.
+Fixed a small issue with the parley menu mistakenly not loading the influence icons.
+
+1.1.3 CHANGELOG:
+
+Fixed exhausted civil wars, grand coalitions, and claim feuds not concluding through surrender or white peace based on War Score as intended.
+Removed temporary rebel, grand-coalition, and feud kingdoms from the title hierarchy list, they should only get their entry there when becoming a full independent realm.
+Fixed Install Ruler and Abdication civil-war victories to correctly crown the claimant or trigger a proper election without successor-state logic overriding the outcome.
+Fixed noble honorifics sometimes displaying a stale lower title rank after the title hierarchy changed or finished loading.
+Fixed grand coalition/restoration missing localization.
+Updated default titles and honorifics localization.
+
+1.1.4 CHANGELOG:
+
+Added selectable Anglicized and Immersive title-style presets to the MCM, custom presets supported as well.
+Fixed mercenaries becoming permanent vassals after participating in temporary claim-feud wars.
+Added popup notification when player takes leadership of a court faction so it isn't as easily missed.
+Added MCM option to control the length of claims fabrication, default value is 4 in-game years before skills modify it.
+Added MCM option to control minimum war duration in the War&Peace logic, realms can still accept peace before that if one side reached 100 war score.
+Added optional Diplomacy compatibility safeguards, including conflict detection, recurring MCM warnings, and safe routing through Bellum’s war, peace, civil-war, and client-state systems.
+Added optional War Score widget to the campaign map displaying active wars when the MCM option is on and also the War&Peace revamp logic that feeds it, thanks diplomacy team for showing how to properly add this.
+AI rulers can now spend influence to overrule harmful motions from court factions they lead, with proper political fallout and rebellion suppression.
+Fixed missing localized faction adjectives for restored and other dynamically generated Bellum realms.
+Localization improvements.
+
+1.1.5 CHANGELOG
+
+Fixed unnecessary Diplomacy compatibility scans running every frame, reducing Bellum CPU usage.
+Fixed dialogue army recruitment bypassing feudal command restrictions, with high-relation lords now able to join as a personal favor.
+Rebalanced fief elections to curb overlanded houses and ensure nominations reflect claims, relationships, faction ties, and genuine political support.
+
+1.1.6 CHANGELOG
+
+Added customizable honorific placement and separators for character names through title-style XML.
+Optimized title processing, political scheduling, relationship calculations, and war-target evaluation to reduce unnecessary campaign CPU usage.
+Improved compatibility with rise of Rhodoks and the relationship threshold feature so it's new lords are correctly initialized into it.
+Fixed solo court faction leaders being prompted to set their agenda every day during a critical faction crisis.
+Deferred war conclusions until after active battles and sieges finish, preventing stuck assault screens and correcting feud outcomes when temporary kingdoms collapse.
+Deferred postwar executions to a safe campaign tick to prevent edge case succession and party-creation crashes.
+Improved forced surrender parleys with stable terminal war score, an envoy notification, and council reactions that correctly reflect victory and defeat.
+Localization improvements.
+
+1.1.7 CHANGELOG
+
+Reworked ideological War enthusiasm hard caps, allowing every clan to eventually recover to full readiness at their natural variable rates, this should fix some realms being stuck at peace for years due to having a composition of hippie nobles unwilling to attack anyone.
+Removed some trait checks from War enthusiasm recovery rate to avoid double-counting personality through court affiliation.
+Fixed and edge case of eliminated rebel kingdoms leaving stale civil-war records and preventing proper postwar resolution.
+Reduced the default claim fabrication baseline from four years to three before skill modifiers.
+After completing a claim fabrication lords will check sooner about trying to feud over them.
+
+1.1.8 CHANGELOG
+
+Fixed vassals with negative influence being unable to abstain and resolve peace parleys.
+Rebalanced default enthusiasm values for declaring war and suing for peace, initiating more than one war should be a rarer occurance now, the build up for war a little slower and their duration longer.
+General rebalance on peace treaty actions costs and added new peace terms for conceding defeat, liberating client states, and forcing enemy realms to accept active rebel demands.
+Added immersive balance-of-power reports to civil war, feud, treason, and ultimatum decision popups.
+Reorganized deliberation dialogues to improve reliability of ongoing fief, policy, and expulsion votes.
+Shortened the peace treaty report for prisoner releases.
+Streamlined MCM around more meaningful options.
+
+1.1.9 CHANGELOG
+
+Fixed client kingdom liberation decisions failing to patch and being cancelled by vanilla alliance restrictions.
+Fixed policy mandates being wasted when another court faction already had a motion under deliberation.
+Added a ruler-only campaign map widget showing their active client states with liberty desire breakdown.
+Fixed accepted enemy peace offers failing to open the Peace Parley immediately for player rulers.
+Consolidated multiple fief transfers into cleaner, grouped peace treaty summaries.
+Increased tribute and reparations per war score point in the peace treaty and exposed MCM settings to fine tune them better.
+Court faction leaders may now propose policies outside their agenda at the cost of relations with faction allies, with harsher penalties for betraying their agenda or supporting rivals.
+Rebalanced realm succession vote to be less deterministic by archetype, lords should evaluate their preferences better now.
+Marriage now grants immediate dynastic title claims if the bride was blood relative of the de jure title holder instead of waiting for succession to register the claim only to her heirs.
+Player is able to reject leadership of a court faction now instead of always being granted it if he's the strongest member.
+
+1.1.10 CHANGELOG
+
+Fixed a possible crash caused by leaderless kingdoms during daily mercenary recruitment evaluations.
+Fixed claim feuds leaving invisible temporary kingdoms when their parent realm collapsed, including automatic repair for affected saves.
+Fixed weekly title reconciliation repeatedly overwriting customized title names and rebuilding the hierarchy, not an issue but waste of CPU power.
+Fixed policy repeal motions being withdrawn before voting, ensuring valid court motions reach the council even when likely to fail.
+Rebalanced peace parleys with capped offering credit, preventing unlimited concessions from funding excessive territorial demands while preserving negotiated barter.
+Rebalanced some court faction mood shock events to make them swing a little less into rebellious mood.
+Rebalanced claim feuds to be a little more frequent.
+Hardened dynastic succession cache pruning against malformed save data causing daily-tick memory crashes.
+Improved war declaration logic so realms consider the combined strength of all enemy fronts before starting another war.
+
+1.1.11 CHANGELOG
+
+Fixed court factions repeatedly renouncing and readmitting their ruler when a grand coalition failed to launch.
+Localization improvements.
+
+1.2.0 CHANGELOG
+
+Added the Privy Council system, featuring political appointments, overhauled controversy system and councillor offices tied to competence, support, controversy, and faction influence.
+Added MCM option to replace displayed kingdom names with the sovereign held title name from Bellum.
+Added coequal title partition, allowing independent realms to split between heirs when no higher sovereign title binds them together.
+Added a ransom broker service for arranging the release of imprisoned relatives and companions.
+Rebalanced war declaration logic, more considerations added to target sellection and recovery during peace time for a next conflict should be faster in general.
+Fixed an edge case succession bug when the player abidicated a crown and the upcoming sucession ellection treated the crown heir as the correct candidate for royalists even if the previous sovereign was still alive which could force an early retirement with the prince couping his own father to become clan leader.
+Fixed specific marriage proposal pagination failing to display additional eligible candidates.
+Fixed duplicate upper-title formation by validating both de jure and de facto hierarchies.
+Added manual selection and custom naming when forming higher titles.
+Added an influence-based option to dissolve non-sovereign upper titles.
+Added automatic cleanup of orphaned titles with no subordinate lands.
+Improved hierarchy reconciliation after usurping an upper title.
+Improved AI royal grants so rulers preserve their capitals and last towns while favoring less prosperous titles for deserving vassals.
+Added support in the default anglicizied and immersive titles preset for the "Empires at War" mod custom imperial cultures.
+Fixed lords using honorifics from titles they control only de jure but not de facto, now a deposed king will stop styling himself as king and utilize the honorific from the highest title he actually controls.
+Fixed title notifications using the claimant’s cultural terminology and duplicate claim-fabrication messages.
+Improve fabricate claim logic so now holders of an upper title can fabricate claims downwards as well, not only laterally or upwards in the hierarchy.
+Revamped realm succession elections, replacing fixed Warlord and Steward archetypes with ideology-driven noble nominations based on legitimacy, hierarchy, renown, wealth, influence, and clan strength.
+War declaration votes now display localized Bellum war motives instead of contradictory vanilla diplomacy arguments when the War & Peace Revamp is enabled.
+Increased the loyalty period of clans bribed into player-led rebel factions from 30 to 100 days following feedback.
+Prevented temporary feud realms from being considered valid targets for foreign war declarations.
+Preserved the de jure hierarchies of destroyed kingdoms until their legal titles drift away or their vacant crown is usurped
+Landless kingdoms now accumulate War Score pressure toward surrender until they secure a town or castle.
+Fixed clan wealth temporarily causing vastly inflated faction balance-of-power calculations.
+Player leaving his realm while retaining their fiefs no longer inherit unrelated foreign wars from their former realm under the War & Peace Revamp.
+Story Mode coalition wars from being prematurely ended by Bellum’s War Score and peace-parley systems.
+Added prisoner tooltips to the Clan Members tab explaining available rescue, ransom, and treaty options.
+Fixed empty court factions expressing jealousy when rulers retained newly awarded fiefs.
+Improved AI peace negotiations to strategically exchange prisoners for additional treaty concessions.
+Fixed open feuds allowing repeat petitions and failing to restore both sides properly after surrender.
+Reworked rebellion balance of power to account for projected support from vassals, allies, and marriage ties.
+
+1.2.1 CHANGELOG
+
+Fixed feud founding dates displaying raw day counts instead of localized campaign dates.
+Fixed ruling clans being counted toward rebel faction power instead of the loyalist side.
+Reorganized the Factions tab by grouping the Privy Council and political factions under the realm’s localized court.
+Fixed party and army names retaining outdated noble titles after accession, abdication, or succession.
+Improved council assignment tooltips with current effects, active incident modifiers, durations, costs, and reassignment availability.
+Improved HAP compatibility for Stockpile Provisions with percentage-based market requisitions and accurate assignment tooltips.
+Fixed Organize Patrols increasing patrol capacity without recruiting soldiers to fill the new slots.
+Added immersive messenger popups reporting allies and vassals accepting or refusing the player’s calls to arms during rebellions and feuds, also for failed or successful claim fabrications.
+Captured councilors now suspend their duties, accrue daily controversy, and cannot receive new assignments until released.
+
+1.2.2 CHANGELOG
+
+Improved Royalist balance-of-power tooltips to clearly separate crown loyalty, solidarity support, and remaining realm opposition.
+Fixed court and Privy Council headers to consistently use the realm’s concise sovereign hierarchy title.
+Fixed ignored peace proposals opening a redundant disabled vanilla vote instead of Bellum’s peace parley when the revamp is active.
+Fixed title usurpation to respect irregular de jure hierarchies and preserve accessible titles from destroyed realms.
+Expanded title formation to support lawful hierarchy reorganization, including custom sovereign titles assembled from personal and direct-vassal lands.
+Fixed edge case bugs on the de jure drift logic.
+Vassals forming or usurping a title of the same rank of their sovereign now separate into a new realm with the option to go peacefully by relinquishing every title held inside the old realm de jure structure or keeping them and going to war with his old kingdom.
+
+1.2.3 CHANGELOG
+
+Fixed victorious claim-feud participants losing the contested fief to a postwar realm election.
+rulerCulture title-style support, allowing realm-wide terminology based on the reigning ruler’s culture.
+Fixed recruited clans remaining imprisoned by their new kingdom after accepting allegiance.
+Fixed player leaving a kingdom and deciding to keep his fiefs being excluded from Bellum’s war score and independence-war systems with the war&peace revamp enabled.
+
+1.2.4 CHANGELOG
+
+Fixed destroyed or invalid realms leaving stale foreign war-score records active indefinitely.
+Fixed compatibility errors from other encyclopedia patches causing the Kingdoms list to appear empty.
+Fixed an edge case issue where arranged royal marriages could become invalid between treaty ratification and execution.
+Prevented temporary feud and rebellion realms from scheduling court policy motions.
+Fixed one-clan realms rejecting peace due to impossible council quorum requirements.
+
+1.2.5 CHANGELOG
+
+Fixed losing realms exploiting tribute, reparations, and other reverse demands during peace negotiations.
+Fixed white peace failing to restore occupied settlements.
+Prevented nobles from being captured during negotiated settlement handovers.
+Aligned displayed War Score with the available treaty-term budget.
+Prevented duplicate faction ultimatums and ensured player responses execute only once.
+Made rebellion creation and solidarity recruitment idempotent, including protection against duplicate grand coalitions.
+Added a ruler-side Surrender action that ends an active rebellion by enforcing its demands.
+Fixed authorized abdication elections so any legitimate winner can replace the player ruler.
+Added a clear notification when the loyalist realm collapses after losing every stronghold.
+Prevented rulers from granting away their realm’s active sovereign title, including titles held only de facto.
+Fixed rulers belonging to hostile court factions unintentionally preventing those factions from forming grand coalitions.
+
+1.2.6 CHANGELOG
+
+Fixed accepted abdication demands failing to remove the ruler and initiate a valid succession election.
+Fixed successful expulsion votes leaving clans in the kingdom when their attempted rebellion failed to start.
+Raised council office influence gain from 0.1 to 1 influence per day.
+Localization improvements.
+
+1.2.7 CHANGELOG
+
+Added anonymous reports for successful covert operations affecting the player’s realm, revealing their consequences without exposing the foreign sponsor.
+Overhauled clan expulsion and rebellion resolution to prevent failed, pending, or legacy civil-war states from leaving clans trapped in their original kingdom.
+Fixed landless nobles adopting their host kingdom’s honorifics instead of their own cultural titles.
+Fixed sovereign-title realm names corrupting faction names when disabled by adding safe native-name restoration and serialization handling.
+Added new title preset based on Banner Kings (an approximation, not 100% the same).
+Court factions and council office display names now have preset support and can be customized by culture, ruler culture or specific kingdom.
+Fixed vote outcomes incorrectly improving ruler relations with opposing or abstaining vassals due to their faction affiliation, now faction mood is clearly separated from personal relations as intended.
+
+1.3.0 CHANGELOG
+
+Overhauled relations drift feature into a far more performant relations memory feature inspired by crusader kings, now relationship changes are stored as memories and remain for a set amount of time until they expire which will also create longer lasting friendships and rivalries, around 94% reduced CPU usage on this feature.
+Optimized council system, claim evaluation, dynastic heir resolution, relationship reads, and title registry maintenance for improved campaign performance.
+Added dynamic cultural mercenary companies, allowing landless adventurous nobles to leave their houses, form or join bands.
+Added NPC regencies that preserve underage heirs through appointed or generated regents until they come of age at 16y old (MCM setting).
+Added companion subinfeudation, allowing landed player vassals to establish new subordinate noble houses through barony grants.
+Improved claim feuds with more assertive AI pursuit, parallel disputes, conflict-aware pausing, refreshed allies, and more political royal judgments.
+Revamped treason indictments with periodic ruler reviews, unified relation thresholds, escalation-based retries, and consistent player and AI judgment rules.
+Improved rebel faction formation and recruitment with clearer claimant, independence, loyalty, and abdication priorities.
+Improved peace parleys with stronger AI bargaining, reciprocal prisoner and wealth exchanges, and clearer council and ruler opposition.
+Improved hierarchy tree, buttons and tooltips presentation.
+Revamped succession laws with a in-game menu where players can se the line of succession and modify its rules if they are the ruler.
+Restricted royal peace enforcement to private claim feuds; rulers can no longer spend influence to abruptly end rebellions or grand coalitions.
+Fixed failed land-grant persuasion attempts potentially trapping the player in dialogue with no available responses.
+Fixed a crash caused by destroyed client kingdoms leaving stale alliances that vanilla later attempted to renew.
+Fixed a potential crash during kingdom creation by assigning the intended ruler before transferring clans and settlements.
+Centralized NPC influence costs under a shared reserve system, preventing political actions and votes from exhausting the influence needed for warfare and emergencies.
+Adjusted factions tab rebellious intent tooltip to only show when looking at members of a rebel faction, it isn't relevant to court factions and was creating confusion between features.
+Rebalanced rebellious intent with weaker marriage-alliance restraint, clearer Regards and Grievances tracking, and crown-hoarding pressure tied to actual unmet vassal land demand.
+Added a prominent ruler message when the player is dismissed from a council office for excessive controversy.
+Close friends can now be summoned directly through the army menu without requiring an in-person conversation.
+Corrected misleading advisor vacancy messages and clarified when an office’s own appointment is under deliberation or awaiting a vote.
+Tuned down controversy gain of the marshal office and adjusted controversy to fully resets when a councilor is replaced instead of only 50% like it was.
+Adjusted some policies between agendas of court factions.
+
+1.3.1 CHANGELOG
+
+Fixed settlement barter to also transfer lawful ownership, when the seller had it.
+Fixed independent realm rank updates after title acquisitions and losses, allowing eligible de jure drift and dynamic and rank-based naming.
+Fixed lawful owners being unable to assume vacant higher titles and prevented destroyed-realm cleanup from clearing titles held by surviving successor houses.
+Fixed settlement transfers failing to preserve claims for displaced legal owners, including titles lost during wars.
+Fixed AI claim-feud evaluation automatically starting feuds on behalf of the player clan without player approval.
+Added configurable childhood education ages alongside the custom adulthood setting, preserving completed stages and ensuring the final milestone occurs before adulthood.
+Added a configurable relation-memory duration multiplier, automatically updating active memories and their tooltip durations.
+Added encyclopedia descriptions to bellum formed mercenary companies.
+Adjusted subinfeudation feature so non-ruler players can now grant personally held baronies beneath any superior title they control, not only counties.
+Removed post-war judgments after successful independence rebellion, replacing them with lasting resentment between the former ruling house and departing houses, still applies if losing the civil war or for other causes that reunify the realm at the end.
+
+1.4.0 CHANGELOG
+
+- Court and Council
+Revamped court factions, separating the ruler's Crown faction from three political blocs: Nobility, Glory, and Liberty.
+Prevented faction-membership relation farming by replacing joining and leaving rewards with conditional +10/-10 affiliation modifiers. Removed obsolete faction-rivalry rules.
+NPC rulers now relieve captured councilors and prioritize replacement appointments, with reduced dismissal grievances and dedicated notifications.
+Council salaries now appear in the clan income breakdown.
+- Succession and Marriage
+Reworked clan and realm succession, with distinct inheritance rules for hereditary and elective realms.
+Updated succession laws to four hereditary and four elective options, with law-specific considerations for inheritance and candidate merit.
+Refined hereditary heir selection, including gender preference and seniority among blood relatives across different clans.
+Added standing weighted elections, player endorsements, and elective abdication. Election support updates with military strength and influence while preserving finalized ballots.
+Fixed military succession granting army-command credit to candidates without a party.
+Fixed regents being replaced when temporarily unavailable as though they had died.
+Improved marriage and cadet-branch logic for consistent household and inheritance outcomes. Newly founded cadet branches receive two additional members, following the vanilla companion-to-vassal pattern.
+Added personal unions for hereditary realms: a ruler inheriting a second crown can peacefully unite both kingdoms while preserving their separate title hierarchies. Later inheritance can divide them again unless a common Empire title binds the crowns.
+- Titles and Claims
+Fixed civil wars and private feuds erasing de jure drift progress during temporary realm separation.
+De jure drift progresses independently for each title, preserving existing progress when a higher title begins drifting.
+Relaxed title-reorganization restrictions, replacing claimant vetoes with resentment while preserving drift history and protecting active feuds.
+Added a Renounce action for claims to titles the player does not control.
+Prevented ruling houses from gaining strong claims through temporary custody of confiscated fiefs awaiting redistribution.
+Reworked claim fabrication with recoverable early setbacks, revised gold and influence costs, improved NPC decisions, and retry cooldowns.
+- Wars and Diplomacy
+Rebalanced War Score and peace acceptance to encourage longer, more decisive conflicts.
+Fixed stalled civil-war and private-feud peace votes and added proper white-peace and surrender settlements.
+Added withdrawal for feud supporters, including wartime return to the parent realm and Oathbreaker relation penalties.
+Fixed mercenary players receiving private-feud calls to arms and prevented invalid summons from applying support or relation penalties.
+Blocked persuasion and bribery recruitment of active feud participants, preventing lost payments and unintended clan reversions.
+Fixed a peace-negotiation exploit that rewarded relations for proposing unpopular terms and then rejecting them.
+Expanded StoryMode conspiracy protections: scripted wars are excluded from passive fatigue and additional-front penalties, reducing constant peace demands in unrelated conflicts.
+Added land grants to client kingdoms and peace terms recognizing their possession of occupied fiefs.
+Added hostage-backed, 100-day non-aggression pacts negotiated through the Peace Parley when the War and Peace Revamp is enabled.
+- Relations and Presentation
+Extended personal relation memories and tooltips to regular clan members, relatives, and notables.
+Fixed relation-memory targeting and reduced unnecessary relationship-cache invalidation.
+Added configurable honorifics for landless clan leaders and mercenary captains, such as Patriarch, Matriarch, and Captain.
+Fixed incorrect kingdom names, ruler ranks, and misleading civil-war references in hero descriptions.
+Standardized title ownership labels across the encyclopedia and Hierarchy as (de facto only) and (de jure only).
+Fixed the location area of clan-member cards blocking selection clicks.
+Simplified election tooltips and aligned support controls beneath candidate clan names.
+Added a Diplomacy Overview showing wars, alliances, hostage pacts, and client states with detailed tooltips. Based on Diplomacy's overview, with credit to its authors.
+Added Bellum Civile gameplay articles under Encyclopedia > Concepts.
