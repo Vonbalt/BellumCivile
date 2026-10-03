@@ -25,7 +25,7 @@ namespace BellumCivile.Behaviors
                 return new TextObject("{=BC_CourtActivityDate}Scheduled for {DATE}").SetTextVariable("DATE", agenda.SessionDate.ToString());
             if (agenda.State == CourtAgendaState.Completed) return new TextObject("{=BC_CourtActivityCompleted}Completed.");
             if (agenda.State == CourtAgendaState.Withdrawn) return new TextObject("{=BC_CourtActivityWithdrawn}Withdrawn; the undertaking can no longer proceed as promised.");
-            return new TextObject("{=BC_CourtStatus_" + agenda.State + "}" + StatusLabel(agenda.State));
+            return StatusLabel(agenda.State);
         }
 
         internal TextObject ActivityHint(Kingdom realm, FactionObject faction)

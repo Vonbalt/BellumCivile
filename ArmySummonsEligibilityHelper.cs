@@ -78,7 +78,7 @@ namespace BellumCivile
                 return false;
 
             refusalKind = ArmySummonsRefusalKind.RebelliousFaction;
-            reason = new TextObject("{=BC_Army_RefuseRebelliousFaction}The {FACTION_NAME} are openly rebellious and refuse all call to arms.");
+            reason = new TextObject("{=BC_Army_RefuseRebelliousFaction}The {FACTION_NAME} are openly rebellious and refuse all calls to arms.");
             reason.SetTextVariable("FACTION_NAME", calledIdeology.GetDisplayName());
             return true;
         }

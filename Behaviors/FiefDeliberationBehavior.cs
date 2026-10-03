@@ -1740,7 +1740,7 @@ namespace BellumCivile.Behaviors
                 110, null);
 
             starter.AddDialogLine("fief_candidate_selected_npc", "fief_candidate_selected_response", "fief_query_player_choice",
-                "{=BC_Fief_Delib_CandidateSelectedResponse}Very well. I am listening, why should i back the claim of {SELECTED_CANDIDATE_NAME}?",
+                "{=BC_Fief_Delib_CandidateSelectedResponse}Very well. I am listening, why should I back the claim of {SELECTED_CANDIDATE_NAME}?",
                 FiefSelectedCandidateIsOtherCondition,
                 null,
                 100, null);

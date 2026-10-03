@@ -189,6 +189,7 @@
     <string id="BC_MCM_WarWillCasualtyMultiplier_Hint" text="Multiplier applied to War Will loss from battle casualties. Default: 1." />
     <string id="BC_WarWill_Motive_TooltipLine" text="{REASON}: {AMOUNT}" />
     <string id="BC_Parley_Enthusiasm" text="Enthusiasm: {VALUE}" />
+    <string id="BC_Parley_EnthusiasmLabel" text="Enthusiasm" />
     <string id="BC_Parley_Influence" text="Influence: {VALUE}" />
     <string id="BC_Parley_NoStrongMotive" text="No decisive motive" />
     <string id="BC_Parley_VoteYay" text="YAY" />
@@ -282,6 +283,8 @@
     <string id="BC_MCM_MeetingRandom_Hint" text="Random extra days added to the minimum meeting interval. Default: 22." />
     <string id="BC_MCM_CourtAgendaCost" text="Court Motion Override Cost" />
     <string id="BC_MCM_CourtAgendaCost_Hint" text="Influence paid by a court faction leader to block or replace a faction motion. AI rulers who lead a dissatisfied faction use this cost to protect the realm from its hostile motions. Default: 100." />
+    <string id="BC_MCM_CourtTerm" text="Court Term Length (Years)" />
+    <string id="BC_MCM_CourtTerm_Hint" text="Time between public court agendas. Changes apply to the next term, not announced sessions or existing policy reconsideration dates. Default: 1 year." />
     <string id="BC_MCM_MandateDays" text="Policy Mandate Days" />
     <string id="BC_MCM_MandateDays_Hint" text="Days a player faction leader has to propose an aligned policy after forcing a policy mandate. Default: 5." />
     <string id="BC_MCM_DeliberationDays" text="Political Deliberation Days" />
@@ -770,7 +773,7 @@
     <string id="BC_Hierarchy_FormNameDesc" text="How will your {TITLE_NOUN} be called?" />
     <string id="BC_Hierarchy_FormNameInvalid" text="Enter a name of no more than 64 characters without braces or line breaks." />
     <string id="BC_Hierarchy_FormConfirmTitle" text="Form Higher Title" />
-    <string id="BC_Hierarchy_FormConfirmDesc" text="Form the {TITLE_NAME} from {CHILD_TITLES}? This will cost {GOLD_COST} denars and reward your clan with {INFLUENCE_REWARD} influence.{REORGANIZATION}{SUCCESSION_WARNING}" />
+    <string id="BC_Hierarchy_FormConfirmDesc" text="Form the {TITLE_NAME} from {CHILD_TITLES}? This will cost {GOLD_COST} denars and reward your clan with {INFLUENCE_REWARD} influence.{REORGANIZATION}{SUCCESSION_WARNING}{SOVEREIGN_WARNING}" />
     <string id="BC_Hierarchy_FormReorganizationWarning" text="&#xA;&#xA;This reorganizes the existing hierarchy: {MOVED_TITLES}. Current vassal holders retain their titles and service beneath the new parent." />
     <string id="BC_Hierarchy_FormSuccessionWarning" text="&#xA;&#xA;Warning: this creates another sovereign title of equal rank. Without a higher crown, succession may divide these realms among different heirs." />
     <string id="BC_Hierarchy_FormHintAssessment" text="{STATUS}&#xA;&#xA;Eligible contiguous {CHILD_TIER} titles: {AVAILABLE}/{REQUIRED}&#xA;Cost: {GOLD_COST} denars&#xA;Reward: {INFLUENCE_REWARD} influence{OBSTACLES}" />
@@ -858,6 +861,9 @@
     <string id="BC_FacName_Abdic" text="{CLAN_NAME} Coalition" />
     <string id="BC_FacName_Install" text="{CLAN_NAME} Claimants" />
     <string id="BC_FacName_Royalists" text="Traditionalists" />
+    <string id="BC_FacName_Glory" text="Glory" />
+    <string id="BC_FacName_Nobility" text="Nobility" />
+    <string id="BC_FacName_Liberty" text="Liberty" />
     <string id="BC_FacName_Militarists" text="Militarists" />
     <string id="BC_FacName_Aristocrats" text="Aristocrats" />
     <string id="BC_FacName_Populists" text="Populists" />
@@ -928,7 +934,7 @@
     <string id="BC_UI_Err_DisbandOther" text="You can only disband a rebellion that you lead. Select your rebellion to disband it." />
     <string id="BC_UI_Err_MercFound" text="Mercenaries cannot found political factions." />
     <string id="BC_UI_Err_AlreadyRebel" text="You are already participating in a rebellion." />
-    <string id="BC_UI_Err_NeedInfluence" text="You need 100 influence to found a faction." />
+    <string id="BC_UI_Err_NeedInfluence" text="You need more influence to perform any available political action." />
     <string id="BC_UI_Err_NeedActionInfluence" text="You need {COST} influence to perform this action." />
     <string id="BC_UI_Err_NoValidFactions" text="There are no valid factions for you to found right now." />
     <string id="BC_UI_Err_ActionUnavailable" text="This political action is not available right now." />
@@ -2071,8 +2077,8 @@
     <string id="BC_Fief_Delib_PersuadeNeedSelf" text="My house lacks the lands expected of its station." />
     <string id="BC_Fief_Delib_PersuadeLegalClaim" text="Their house has a lawful claim to these lands." />
     <string id="BC_Fief_Delib_PersuadeLegalClaimSelf" text="My house has a lawful claim to these lands." />
-    <string id="BC_Fief_Delib_PersuadeStability" text="I believe it would be in the best interest of the realm." />
-    <string id="BC_Fief_Delib_PersuadeStabilitySelf" text="I believe it would be in the best interest of the realm." />
+    <string id="BC_Fief_Delib_PersuadeStability" text="This grant would strengthen the realm and quiet discontent." />
+    <string id="BC_Fief_Delib_PersuadeStabilitySelf" text="Granting this fief to my clan would strengthen the realm and quiet discontent." />
     <string id="BC_Fief_Delib_PersuadeFaction" text="Our faction should stand together in this vote." />
     <string id="BC_Fief_Delib_PersuadeFactionOther" text="Your faction should stand together in this vote." />
     <string id="BC_Fief_Delib_PersuadeFactionSelf" text="Our faction should stand behind my claim." />
@@ -2211,7 +2217,7 @@
     <string id="BC_WarScore_ForcedPeace" text="With {LOSER_REALM} unable to continue the war, {WINNER_REALM} imposes a settlement and the fighting comes to an end." />
     <string id="BC_WarScore_WhitePeace" text="With neither side able to press its advantage, {FIRST_REALM} and {SECOND_REALM} agree to a white peace." />
     <string id="BC_WarScore_PlayerWhitePeaceTitle" text="White Peace Proposed" />
-    <string id="BC_WarScore_PlayerWhitePeaceBody" text="Envoys report that both sides are exhausted by the conflict between {FIRST_REALM} and {SECOND_REALM}. Neither holds enough advantage to dictate terms.\n\nWar Score: {WAR_SCORE}\n{FIRST_REALM} War Will: {FIRST_WILL}\n{SECOND_REALM} War Will: {SECOND_WILL}" />
+    <string id="BC_WarScore_PlayerWhitePeaceBody" text="Envoys report that both sides are exhausted by the conflict between {FIRST_REALM} and {SECOND_REALM}. Neither holds enough advantage to dictate terms.&#xA;&#xA;War Score: {WAR_SCORE}&#xA;{FIRST_REALM} War Will: {FIRST_WILL}&#xA;{SECOND_REALM} War Will: {SECOND_WILL}" />
     <string id="BC_WarScore_PlayerWhitePeaceAccept" text="Accept White Peace" />
     <string id="BC_WarScore_PlayerWhitePeaceContinue" text="Continue the Conflict" />
     <string id="BC_Parley_Title" text="Peace Parley" />
@@ -3206,7 +3212,7 @@
     <string id="BC_Council_AssignmentStockpileProvisionsHapHint" text="At average competence: requisitions up to 2% of eligible market food into each stronghold's granary every day. Actual transfers depend on market supply and available granary capacity. The ruler pays 30 denars per stronghold each day, and no requisition occurs unless the full daily cost can be paid." />
 
     <string id="BC_Council_AssignmentCounterEspionage" text="Counter-Espionage" />
-    <string id="BC_Council_AssignmentCounterEspionageHint" text="At average competence: +15 defensive intrigue, +5 percentage points to hostile claim discovery, and -5 offensive intrigue. The defensive." />
+    <string id="BC_Council_AssignmentCounterEspionageHint" text="At average competence: +15 defensive intrigue, +5 percentage points to hostile claim discovery, and -5 offensive intrigue." />
     <string id="BC_Council_AssignmentUncoverDissent" text="Uncover Dissent" />
     <string id="BC_Council_AssignmentUncoverDissentHint" text="At average competence: covert rebel conspiracies build 15% slower and hostile claim discovery gains 10 percentage points. Creates 1 {OFFICE} controversy each week." />
     <string id="BC_Council_AssignmentSowRumors" text="Sow Rumors" />
@@ -4056,7 +4062,7 @@
     <string id="BC_Notification_TitleAssumed" text="After consolidating control of its lands, {USURPER_NAME} of the {USURPER_CLAN} has assumed the vacant {TITLE_NAME}, exercising the house's lawful rights." />
     <string id="BC_Hierarchy_AssumeConfirmDesc" text="Assuming the vacant {TITLE_NAME} will cost {GOLD_COST} denars and {INFLUENCE_COST} influence. Your house already owns the lawful title and will now exercise its authority. Proceed?" />
     <string id="BC_Hierarchy_AssumeHintEnabled" text="Assume the vacant {TITLE_NAME}. Your lawful ownership replaces the claim requirement. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled subordinate titles: {CONTROLLED}/{TOTAL}." />
-    <string id="BC_Hierarchy_AssumeHintDisabled" text="You cannot assume the vacant {TITLE_NAME}: {REASON}\n\nYour house already owns the lawful title. You must control more than half of its immediate subordinate titles and pay {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled: {CONTROLLED}/{TOTAL}." />
+    <string id="BC_Hierarchy_AssumeHintDisabled" text="You cannot assume the vacant {TITLE_NAME}: {REASON}&#xA;&#xA;Your house already owns the lawful title. You must control more than half of its immediate subordinate titles and pay {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled: {CONTROLLED}/{TOTAL}." />
     <string id="BC_MercenaryFoundingDescription" text="On {DATE}, the {COMPANY} was founded by {FOUNDER}. The company established its base in {HOME}." />
     <string id="BC_MercenaryGeneralDescription" text="The {COMPANY} is a mercenary company based in {HOME}, offering its swords to those who can pay." />
     <string id="BC_MercenaryUnknownHome" text="an unrecorded settlement" />
@@ -5178,5 +5184,165 @@
     <string id="BC_Overview_NoHostage" text="{REALM} has pledged no hostage." />
     <string id="BC_Overview_Hostage" text="{REALM} has pledged {HERO} of {HOUSE}, held by {CAPTOR} at {HOLDING}." />
     <string id="BC_Overview_Expires" text="Expires on {DATE} ({DAYS} days remaining)." />
+    <!-- Court agenda outcomes and executive motions -->
+    <string id="BC_CourtStatus_Announced" text="Announced." />
+    <string id="BC_CourtStatus_Deliberating" text="Deliberating." />
+    <string id="BC_CourtStatus_Voting" text="Voting." />
+    <string id="BC_CourtStatus_Passed" text="Passed." />
+    <string id="BC_CourtStatus_Defeated" text="Defeated." />
+    <string id="BC_CourtStatus_NotProposed" text="Not brought to a vote." />
+    <string id="BC_CourtStatus_Cancelled" text="Cancelled." />
+    <string id="BC_CourtStatus_FulfilledElsewhere" text="Fulfilled elsewhere." />
+    <string id="BC_CourtStatus_Crisis" text="Faction challenge underway." />
+    <string id="BC_CourtStatus_Withdrawn" text="Challenge withdrawn." />
+    <string id="BC_CourtStatus_TooWeak" text="Challenge ended: insufficient backing." />
+    <string id="BC_CourtStatus_Ultimatum" text="Coalition ultimatum issued." />
+    <string id="BC_CourtStatus_AwaitingPlayerDecision" text="Awaiting your decision." />
+    <string id="BC_CourtStatus_AwaitingNomination" text="Awaiting nomination." />
+    <string id="BC_CourtStatus_Blocked" text="Blocked by the faction leader." />
+    <string id="BC_CourtStatus_NominationExpired" text="No nomination before the promised deadline." />
+    <string id="BC_CourtStatus_Decreed" text="Decree issued." />
+    <string id="BC_CourtStatus_Completed" text="Completed." />
+    <string id="BC_CourtStatus_PursuingObjective" text="Pursuing the objective." />
+    <string id="BC_CourtStatus_Unknown" text="Status unavailable." />
+    <string id="BC_AgendaShortDecreed" text="decree issued" />
+    <string id="BC_CrownName" text="Crown" />
+    <string id="BC_CourtDecreeDate" text="Royal judgment is appointed for {DATE}." />
+    <string id="BC_CourtDecreeObjective" text="Decree judgment upon {TARGET}" />
+    <string id="BC_CourtTreasonObjective" text="Indict {TARGET} for treason" />
+    <string id="BC_CourtGrantObjective" text="Grant {TARGET}" />
+    <string id="BC_CourtRevokeObjective" text="Revoke {TARGET}" />
+    <string id="BC_CrownDecreeDeferred" text="The crown has reserved judgment upon the {CLAN} for its next court agenda. The present proceedings will continue undisturbed." />
+    <string id="BC_CrownDecreeScheduled" text="The crown has summoned the {CLAN} to answer for its disloyalty. On {DATE}, {RULER} will pronounce judgment by royal decree." />
+    <string id="BC_TreasonTermOnly" text="Charges of treason must be placed upon the crown's agenda before its appointed session." />
+    <string id="BC_Treason_DecreeThreshold" text="A royal decree requires relations of -100 and a valid vassal of the realm." />
+    <string id="BC_CourtRevocationDeliberation" text="The {FACTION} has called upon the lords to consider taking {SETTLEMENT} from the {CLAN}. The court will deliberate and vote on {DATE}." />
+    <string id="BC_CrownGrantDeliberation" text="The crown has placed {SETTLEMENT_NAME} before the lords of the realm. The court will deliberate on who should receive it and call for a vote within {DAYS} days." />
+    <string id="BC_CrownGrantElectionDescription" text="The crown has offered {SETTLEMENT} to the realm. The lord who commands the greatest support of the assembled houses shall receive it." />
+    <string id="BC_CrownGrantRatificationDescription" text="The crown shall honor the support of the assembled houses. Their leading candidate will receive {SETTLEMENT}; where support is equal, the crown may settle the tie." />
+    <string id="BC_CourtPolicyReconsideration" text="This policy already has a pending motion or is awaiting the next permitted reconsideration date." />
+    <!-- Court condition fallbacks and event units -->
+    <string id="BC_CourtSupportedPolicies" text="Supported Policies" />
+    <string id="BC_CourtOpposedPolicies" text="Opposed Policies" />
+    <string id="BC_CourtCentralization" text="Centralized Authority" />
+    <string id="BC_CourtGloryWar" text="Foreign War" />
+    <string id="BC_CourtGloryPeace" text="Prolonged Peace" />
+    <string id="BC_CourtTributeReceived" text="Receiving Tribute" />
+    <string id="BC_CourtTributePaid" text="Paying Tribute" />
+    <string id="BC_CourtLibertyPeace" text="Peace" />
+    <string id="BC_CourtLibertyWar" text="Prolonged Foreign War" />
+    <string id="BC_CourtTrade" text="Trade Agreements" />
+    <string id="BC_CourtNoTrade" text="No Trade Agreements" />
+    <string id="BC_CourtProsperity" text="Prosperous Towns" />
+    <string id="BC_CourtHunger" text="Widespread Hunger" />
+    <string id="BC_CourtAlliances" text="Foreign Alliances" />
+    <string id="BC_CourtNoAlliances" text="No Foreign Alliances" />
+    <string id="BC_CourtInternalPeace" text="Internal Peace" />
+    <string id="BC_CourtInternalWar" text="Internal War" />
+    <string id="BC_CourtLawfulEstates" text="Lawful Landholding" />
+    <string id="BC_CourtUnlawfulEstates" text="Unlawful Landholding" />
+    <string id="BC_CourtConcentratedLand" text="Concentrated Landownership" />
+    <string id="BC_CourtBroadLand" text="Broad Landownership" />
+    <string id="BC_CourtOwnSeats" text="Council Representation" />
+    <string id="BC_CourtOtherSeats" text="Competing Council Representation" />
+    <string id="BC_CourtAdvisorRepresentation" text="Advisor Representation" />
+    <string id="BC_CourtCrownFavor" text="Favored by the Crown" />
+    <string id="BC_CourtCrownFavorsOthers" text="Crown Favors Another Faction" />
+    <string id="BC_CourtProsperityUnit" text="prosperity" />
+    <string id="BC_CourtSecurityUnit" text="security" />
+    <string id="BC_CourtLoyaltyUnit" text="loyalty" />
+    <string id="BC_CourtHearths" text="hearths" />
+    <string id="BC_CourtCohesion" text="army cohesion" />
+    <string id="BC_CourtRelationUnit" text="relation with the ruler" />
+    <string id="BC_CourtInfluence" text="influence" />
+    <string id="BC_CourtRenown" text="renown" />
+    <string id="BC_CourtDenars" text="denars" />
+    <!-- Elective mandates and elections -->
+    <string id="BC_Term_OneYear" text="1 year" />
+    <string id="BC_Term_OneYear_Desc" text="Each elected sovereign receives a one-year mandate. Reforms also affect the sitting ruler: fixed terms retain their original start, while a lifetime mandate converted to a fixed term begins upon adoption. An overdue term leads to an election after deliberation." />
+    <string id="BC_Term_FiveYears" text="5 years" />
+    <string id="BC_Term_FiveYears_Desc" text="Each elected sovereign receives a five-year mandate. Reforms also affect the sitting ruler: fixed terms retain their original start, while a lifetime mandate converted to a fixed term begins upon adoption. An overdue term leads to an election after deliberation." />
+    <string id="BC_Term_TenYears" text="10 years" />
+    <string id="BC_Term_TenYears_Desc" text="Each elected sovereign receives a ten-year mandate. Reforms also affect the sitting ruler: fixed terms retain their original start, while a lifetime mandate converted to a fixed term begins upon adoption. An overdue term leads to an election after deliberation." />
+    <string id="BC_Term_Lifetime" text="Lifetime mandate" />
+    <string id="BC_Term_Lifetime_Desc" text="Each elected sovereign serves for life or until abdication. Reforms also affect the sitting ruler: fixed terms retain their original start, while a lifetime mandate converted to a fixed term begins upon adoption. An overdue term leads to an election after deliberation." />
+    <string id="BC_Election_NextDate" text="Next election: {DATE} (~{DAYS} days)" />
+    <string id="BC_Election_Approaching" text="The mandate of {RULER} draws to a close. The nobles of {REALM} will choose their sovereign on {DATE}." />
+    <string id="BC_Election_PlayerDefeat" text="The nobles have chosen {RULER} to rule {REALM}. You retain your house, lands and wealth, and remain in the realm as a vassal." />
+    <string id="BC_Election_Result" text="Election Result" />
+    <string id="BC_Election_Continue" text="Continue" />
+    <string id="BC_Election_ConfirmChoice" text="The nobles assemble to choose their sovereign. Your house currently supports {CANDIDATE}. Confirm your choice, or reconsider before the tally is sealed." />
+    <string id="BC_Election_Abstention" text="no candidate" />
+    <string id="BC_Election_ConfirmSupport" text="Confirm support" />
+    <string id="BC_Election_ChangeSupport" text="Change support" />
+    <!-- Companion subinfeudation -->
+    <string id="BC_Subinfeudation_Start" text="I wish to establish you as a landed vassal within my domains." />
+    <string id="BC_Subinfeudation_CaravanResponse" text="I would be honored, my {?PLAYER.GENDER}lady{?}lord{\?}, but I cannot assume a landed estate while leading this caravan." />
+    <string id="BC_Subinfeudation_CaravanEnd" text="Then we will speak again once you are relieved of that duty." />
+    <string id="BC_Subinfeudation_Response" text="You would grant me lands to hold beneath your protection? I would be honored to found a house within your domains and serve its rightful liege." />
+    <string id="BC_Subinfeudation_Offer" text="You have served my house faithfully. I would grant you an estate of your own." />
+    <string id="BC_Subinfeudation_NoFiefs" text="I am grateful, but you personally hold no suitable barony beneath one of your superior titles." />
+    <string id="BC_Subinfeudation_NoFiefsEnd" text="Then we will revisit the matter another time." />
+    <string id="BC_Subinfeudation_ChooseFief" text="Which estate would you entrust to my new house?" />
+    <string id="BC_Subinfeudation_FiefChoice" text="{SETTLEMENT_NAME}." />
+    <string id="BC_Subinfeudation_FiefChoiceOther" text="I am considering another estate." />
+    <string id="BC_Subinfeudation_Cancel" text="Actually, let us leave this matter for another time." />
+    <string id="BC_Subinfeudation_FiefSelected" text="{SETTLEMENT_NAME}? I will hold it faithfully and render the service owed through {LIEGE_TITLE}." />
+    <string id="BC_Subinfeudation_ConfirmFull" text="I grant you both possession of {SETTLEMENT_NAME} and its lawful title." />
+    <string id="BC_Subinfeudation_ConfirmPossession" text="I grant you possession of {SETTLEMENT_NAME}, subject to its existing lawful rights." />
+    <string id="BC_Subinfeudation_ChooseAnother" text="I should choose another estate." />
+    <string id="BC_Subinfeudation_NamePrompt" text="Then let my oath be witnessed. It would be an honor if you chose the name of my new house." />
+    <string id="BC_Subinfeudation_Success" text="I swear to hold these lands from you and to render the service owed by my house.[ib:hip][if:convo_happy]" />
+    <string id="BC_Subinfeudation_NotCompleted" text="As you wish. I remain ready should you decide to renew the offer." />
+    <string id="BC_Subinfeudation_TitleUnavailable" text="The barony's feudal title is unavailable." />
+    <string id="BC_Subinfeudation_NoSelection" text="No estate has been selected." />
+    <string id="BC_Subinfeudation_GrantChanged" text="The proposed grant has changed and must be reconsidered." />
+    <string id="BC_Subinfeudation_ConfirmTitle" text="Establish a Vassal House" />
+    <string id="BC_Subinfeudation_SelectClanName" text="Choose the name of {COMPANION.NAME}{.o} new house:" />
+    <string id="BC_Subinfeudation_UnexpectedFailure" text="The new house could not be established because the grant failed unexpectedly." />
+    <string id="BC_Subinfeudation_FullHint" text="{SETTLEMENT} will be granted with both possession and lawful title. The new house will owe feudal service through {LIEGE_TITLE}.{RELATION}{COSTS}" />
+    <string id="BC_Subinfeudation_PossessionHint" text="{SETTLEMENT} will be granted in possession only. Its lawful title remains with {LAWFUL_HOLDER}, and existing claims or disputes remain in force. The new house will owe feudal service through {LIEGE_TITLE}.{RELATION}{COSTS}" />
+    <string id="BC_Subinfeudation_UnknownHolder" text="its present lawful holder" />
+    <string id="BC_Subinfeudation_RelationHint" text="{newline}Relation with the new house: +{RELATION_GAIN}." />
+    <string id="BC_Subinfeudation_CostHint" text="{newline}Cost: {GOLD} denars and {INFLUENCE} influence." />
+    <string id="BC_Subinfeudation_NeedBoth" text="You need {GOLD} denars and {INFLUENCE} influence." />
+    <string id="BC_Subinfeudation_NeedGoldAmount" text="You need {GOLD} denars." />
+    <string id="BC_Subinfeudation_NeedInfluenceAmount" text="You need {INFLUENCE} influence." />
+    <string id="BC_Subinfeudation_InvalidParticipants" text="You and this companion are not presently able to establish a new vassal house." />
+    <string id="BC_Subinfeudation_Caravan" text="This companion must be relieved from caravan duty first." />
+    <string id="BC_Subinfeudation_NotPossessed" text="You must personally possess this barony before granting it to a sub-vassal." />
+    <string id="BC_Subinfeudation_NoLiegeTitle" text="You must hold a superior title in this barony's de facto hierarchy within your realm. Its existing immediate liege will remain unchanged." />
+    <string id="BC_Subinfeudation_UnderSiege" text="The settlement is under siege." />
+    <string id="BC_Subinfeudation_PendingDecision" text="The settlement's ownership is awaiting a realm decision." />
+    <string id="BC_Subinfeudation_ActiveFeud" text="This barony is already contested in an active claim feud." />
+    <string id="BC_Subinfeudation_NeedGold" text="You no longer have enough denars to establish the new house." />
+    <string id="BC_Subinfeudation_NeedInfluence" text="You no longer have enough influence to establish the new house." />
+    <string id="BC_Subinfeudation_InvalidClanName" text="The new house requires a valid name." />
+    <string id="BC_Subinfeudation_ClanCreationFailed" text="The new house could not be created." />
+    <!-- Mercenary company name patterns -->
+    <string id="BC_MercenaryName_FoundersCompany" text="{FOUNDER_NAME}'s Company" />
+    <string id="BC_MercenaryName_FreeCompany" text="Free Company of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FreeLances" text="Free Lances of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FreeSpears" text="Free Spears of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FoundersWarband" text="{FOUNDER_NAME}'s Warband" />
+    <string id="BC_MercenaryName_SacredBand" text="Sacred Band of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FreeCohort" text="Free Cohort of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FoundersCompanions" text="{FOUNDER_NAME}'s Companions" />
+    <string id="BC_MercenaryName_GrandCompany" text="Grand Company of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_Knights" text="Knights of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_ShieldBrothers" text="Shield Brothers of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_SturgianGuard" text="Sturgian Guard" />
+    <string id="BC_MercenaryName_NordGuard" text="Nord Guard" />
+    <string id="BC_MercenaryName_Brotherhood" text="Brotherhood of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_Order" text="Order of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_AseraiGuard" text="Aserai Guard" />
+    <string id="BC_MercenaryName_FreeRiders" text="Free Riders of {SETTLEMENT}" />
+    <string id="BC_MercenaryName_FoundersHorde" text="{FOUNDER_NAME}'s Horde" />
+    <string id="BC_MercenaryName_KhuzaitGuard" text="Khuzait Guard" />
+    <string id="BC_MercenaryName_Oathbound" text="{SETTLEMENT}'s Oathbound" />
+    <string id="BC_MercenaryName_Wolves" text="Wolves of {SETTLEMENT}" />
+    <!-- Miscellaneous notification and intrigue fallbacks -->
+    <string id="BC_Notification_Unknown" text="Unknown" />
+    <string id="BC_Proxy_AbortReason_ScandalSpent" text="the target court was no longer vulnerable to another scandal" />
   </strings>
 </base>

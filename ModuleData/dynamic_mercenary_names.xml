@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Base dynamic mercenary-company name pools. Culture ids match CultureObject
-  StringIds. {SETTLEMENT} and {FOUNDER_NAME} are replaced at runtime. Like
-  Bellum's title presets, these base entries intentionally use plain text;
-  compatibility patches may supply localized overrides.
+  StringIds. {SETTLEMENT} and {FOUNDER_NAME} are replaced at runtime. Base
+  entries use localization IDs with English fallbacks. Compatibility patches
+  may supply either localized patterns or custom plain-text names.
 
   Other loaded modules can extend these pools without editing this file by
   supplying ModuleData/dynamic_mercenary_names_patch.xml.
 -->
 <DynamicMercenaryNames>
   <Fallback>
-    <Name text="Free Company of {SETTLEMENT}" />
-    <Name text="Free Lances of {SETTLEMENT}" />
-    <Name text="{FOUNDER_NAME}'s Warband" />
+    <Name text="{=BC_MercenaryName_FreeCompany}Free Company of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FreeLances}Free Lances of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FoundersWarband}{FOUNDER_NAME}'s Warband" />
   </Fallback>
   <Culture id="empire">
-    <Name text="Sacred Band of {SETTLEMENT}" />
-    <Name text="Free Cohort of {SETTLEMENT}" />
-    <Name text="{FOUNDER_NAME}'s Companions" />
+    <Name text="{=BC_MercenaryName_SacredBand}Sacred Band of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FreeCohort}Free Cohort of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FoundersCompanions}{FOUNDER_NAME}'s Companions" />
   </Culture>
   <Culture id="vlandia">
-    <Name text="Free Company of {SETTLEMENT}" />
-    <Name text="Free Lances of {SETTLEMENT}" />
-    <Name text="Grand Company of {SETTLEMENT}" />
-    <Name text="Knights of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FreeCompany}Free Company of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FreeLances}Free Lances of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_GrandCompany}Grand Company of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_Knights}Knights of {SETTLEMENT}" />
   </Culture>
   <Culture id="sturgia">
-    <Name text="{FOUNDER_NAME}'s Warband" />
-    <Name text="Shield Brothers of {SETTLEMENT}" />
-    <Name text="Sturgian Guard" />
+    <Name text="{=BC_MercenaryName_FoundersWarband}{FOUNDER_NAME}'s Warband" />
+    <Name text="{=BC_MercenaryName_ShieldBrothers}Shield Brothers of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_SturgianGuard}Sturgian Guard" />
   </Culture>
   <Culture id="nord">
-    <Name text="{FOUNDER_NAME}'s Warband" />
-    <Name text="Shield Brothers of {SETTLEMENT}" />
-    <Name text="Nord Guard" />
+    <Name text="{=BC_MercenaryName_FoundersWarband}{FOUNDER_NAME}'s Warband" />
+    <Name text="{=BC_MercenaryName_ShieldBrothers}Shield Brothers of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_NordGuard}Nord Guard" />
   </Culture>
   <Culture id="aserai">
-    <Name text="Brotherhood of {SETTLEMENT}" />
-    <Name text="Order of {SETTLEMENT}" />	
-    <Name text="Aserai Guard" />	
+    <Name text="{=BC_MercenaryName_Brotherhood}Brotherhood of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_Order}Order of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_AseraiGuard}Aserai Guard" />
   </Culture>
   <Culture id="khuzait">
-    <Name text="Free Riders of {SETTLEMENT}" />
-    <Name text="{FOUNDER_NAME}'s Horde" />
-    <Name text="Khuzait Guard" />	
+    <Name text="{=BC_MercenaryName_FreeRiders}Free Riders of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FoundersHorde}{FOUNDER_NAME}'s Horde" />
+    <Name text="{=BC_MercenaryName_KhuzaitGuard}Khuzait Guard" />
   </Culture>
   <Culture id="battania">
-    <Name text="{FOUNDER_NAME}'s Warband" />
-    <Name text="{SETTLEMENT}'s Oathbound" />
-    <Name text="Wolves of {SETTLEMENT}" />
+    <Name text="{=BC_MercenaryName_FoundersWarband}{FOUNDER_NAME}'s Warband" />
+    <Name text="{=BC_MercenaryName_Oathbound}{SETTLEMENT}'s Oathbound" />
+    <Name text="{=BC_MercenaryName_Wolves}Wolves of {SETTLEMENT}" />
   </Culture>
 </DynamicMercenaryNames>

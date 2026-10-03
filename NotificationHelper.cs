@@ -96,7 +96,7 @@ namespace BellumCivile
                 case FactionType.Abdication: demand = new TextObject("{=BC_Demand_Abdication}step down from the throne"); break;
                 case FactionType.InstallRuler:
                     demand = new TextObject("{=BC_Demand_InstallRuler}surrender the crown to {LEADER_NAME}");
-                    demand.SetTextVariable("LEADER_NAME", faction.Leader?.Leader?.Name ?? new TextObject("Unknown"));
+                    demand.SetTextVariable("LEADER_NAME", faction.Leader?.Leader?.Name ?? new TextObject("{=BC_Notification_Unknown}Unknown"));
                     break;
                 case FactionType.Royalists: demand = new TextObject("{=BC_Demand_Royalist}centralize power to the crown"); break;
                 case FactionType.Glory: demand = new TextObject("{=BC_Demand_Militarist}prioritize military campaigns and conquest"); break;
@@ -115,7 +115,7 @@ namespace BellumCivile
             TextObject title = new TextObject("{=BC_Notification_UltimatumTitle}Faction Ultimatum!");
             TextObject desc = new TextObject("{=BC_Notification_UltimatumDesc}The leader of the {FACTION_NAME}, {LEADER_NAME}, demands that you {DEMAND}. Refuse, and they will declare war!\n\n{BALANCE_REPORT}");
             desc.SetTextVariable("FACTION_NAME", GetFactionDisplayName(faction));
-            desc.SetTextVariable("LEADER_NAME", faction.Leader?.Name ?? new TextObject("Unknown"));
+            desc.SetTextVariable("LEADER_NAME", faction.Leader?.Name ?? new TextObject("{=BC_Notification_Unknown}Unknown"));
             desc.SetTextVariable("DEMAND", demand);
             desc.SetTextVariable("BALANCE_REPORT", balanceReport);
 

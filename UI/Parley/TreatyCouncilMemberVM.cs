@@ -159,7 +159,7 @@ namespace BellumCivile.UI.Parley
             properties.Add(new TooltipProperty(name, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.Title));
             properties.Add(new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator));
             properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_TreatyUtility}Treaty Assessment").ToString(), (evaluation?.Utility ?? 0f).ToString("+0.0;-0.0;0.0"), 0));
-            properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_Enthusiasm}Enthusiasm").ToString(), (evaluation?.Enthusiasm ?? 0f).ToString("0") + "%", 0));
+            properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_EnthusiasmLabel}Enthusiasm").ToString(), (evaluation?.Enthusiasm ?? 0f).ToString("0") + "%", 0));
             if (isRuler)
                 properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_RulerDecision}Ruler Decision").ToString(), BuildRulerDecisionText(realmAccepts), 0));
             properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_CommittedInfluence}Committed Influence").ToString(), committedInfluence.ToString(), 0));

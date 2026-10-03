@@ -274,7 +274,7 @@ namespace BellumCivile.Behaviors
                 status = new TextObject("{=BC_CourtScheduledVote}Deliberating; voting is scheduled for {DATE}.");
                 status.SetTextVariable("DATE", (agenda.AllocationStage ? agenda.AllocationVoteDate : agenda.VoteDate).ToString());
             }
-            else status = new TextObject("{=BC_CourtStatus_" + agenda.State + "}" + StatusLabel(agenda.State));
+            else status = StatusLabel(agenda.State);
             if (compact)
                 status = new TextObject(CourtAgendaPresentation.Status(agenda?.State, agenda?.CrisisInterventionPending == true,
                     IsCampaignObjective(agenda), IsSubjugationObjective(agenda), IsClaimObjective(agenda), IsDynastic(agenda), IsProtection(agenda), IsTrade(agenda), IsTitleGrant(agenda), IsRally(agenda), IsLiberation(agenda)));
@@ -288,18 +288,30 @@ namespace BellumCivile.Behaviors
             return text.ToString();
         }
 
-        private static string StatusLabel(CourtAgendaState state)
+        private static TextObject StatusLabel(CourtAgendaState state)
         {
             switch (state)
             {
-                case CourtAgendaState.NotProposed: return "Not brought to a vote.";
-                case CourtAgendaState.FulfilledElsewhere: return "Fulfilled elsewhere.";
-                case CourtAgendaState.TooWeak: return "Challenge ended: insufficient backing.";
-                case CourtAgendaState.Withdrawn: return "Challenge withdrawn.";
-                case CourtAgendaState.Ultimatum: return "Coalition ultimatum issued.";
-                case CourtAgendaState.Blocked: return "Blocked by the faction leader.";
-                case CourtAgendaState.NominationExpired: return "No nomination before the promised deadline.";
-                default: return state + ".";
+                case CourtAgendaState.Announced: return new TextObject("{=BC_CourtStatus_Announced}Announced.");
+                case CourtAgendaState.Deliberating: return new TextObject("{=BC_CourtStatus_Deliberating}Deliberating.");
+                case CourtAgendaState.Voting: return new TextObject("{=BC_CourtStatus_Voting}Voting.");
+                case CourtAgendaState.Passed: return new TextObject("{=BC_CourtStatus_Passed}Passed.");
+                case CourtAgendaState.Defeated: return new TextObject("{=BC_CourtStatus_Defeated}Defeated.");
+                case CourtAgendaState.NotProposed: return new TextObject("{=BC_CourtStatus_NotProposed}Not brought to a vote.");
+                case CourtAgendaState.Cancelled: return new TextObject("{=BC_CourtStatus_Cancelled}Cancelled.");
+                case CourtAgendaState.FulfilledElsewhere: return new TextObject("{=BC_CourtStatus_FulfilledElsewhere}Fulfilled elsewhere.");
+                case CourtAgendaState.Crisis: return new TextObject("{=BC_CourtStatus_Crisis}Faction challenge underway.");
+                case CourtAgendaState.Withdrawn: return new TextObject("{=BC_CourtStatus_Withdrawn}Challenge withdrawn.");
+                case CourtAgendaState.TooWeak: return new TextObject("{=BC_CourtStatus_TooWeak}Challenge ended: insufficient backing.");
+                case CourtAgendaState.Ultimatum: return new TextObject("{=BC_CourtStatus_Ultimatum}Coalition ultimatum issued.");
+                case CourtAgendaState.AwaitingPlayerDecision: return new TextObject("{=BC_CourtStatus_AwaitingPlayerDecision}Awaiting your decision.");
+                case CourtAgendaState.AwaitingNomination: return new TextObject("{=BC_CourtStatus_AwaitingNomination}Awaiting nomination.");
+                case CourtAgendaState.Blocked: return new TextObject("{=BC_CourtStatus_Blocked}Blocked by the faction leader.");
+                case CourtAgendaState.NominationExpired: return new TextObject("{=BC_CourtStatus_NominationExpired}No nomination before the promised deadline.");
+                case CourtAgendaState.Decreed: return new TextObject("{=BC_CourtStatus_Decreed}Decree issued.");
+                case CourtAgendaState.Completed: return new TextObject("{=BC_CourtStatus_Completed}Completed.");
+                case CourtAgendaState.PursuingObjective: return new TextObject("{=BC_CourtStatus_PursuingObjective}Pursuing the objective.");
+                default: return new TextObject("{=BC_CourtStatus_Unknown}Status unavailable.");
             }
         }
 

@@ -713,3 +713,7 @@ Fixed the location area of clan-member cards blocking selection clicks.
 Simplified election tooltips and aligned support controls beneath candidate clan names.
 Added a Diplomacy Overview showing wars, alliances, hostage pacts, and client states with detailed tooltips. Based on Diplomacy's overview, with credit to its authors.
 Added Bellum Civile gameplay articles under Encyclopedia > Concepts.
+
+1.4.1 CHANGELOG
+
+Added missing localization strings from VVL99 report.

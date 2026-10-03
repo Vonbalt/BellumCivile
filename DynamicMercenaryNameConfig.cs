@@ -34,7 +34,7 @@ namespace BellumCivile
                     return candidate;
             }
 
-            TextObject fallback = new TextObject("{FOUNDER_NAME}'s Company");
+            TextObject fallback = new TextObject("{=BC_MercenaryName_FoundersCompany}{FOUNDER_NAME}'s Company");
             fallback.SetTextVariable("FOUNDER_NAME", founder?.FirstName ?? founder?.Name ?? new TextObject("?"));
             return fallback;
         }
@@ -108,9 +108,9 @@ namespace BellumCivile
 
         private void LoadFallbacks()
         {
-            _fallbackPatterns.Add("Free Company of {SETTLEMENT}");
-            _fallbackPatterns.Add("Free Lances of {SETTLEMENT}");
-            _fallbackPatterns.Add("Free Spears of {SETTLEMENT}");
+            _fallbackPatterns.Add("{=BC_MercenaryName_FreeCompany}Free Company of {SETTLEMENT}");
+            _fallbackPatterns.Add("{=BC_MercenaryName_FreeLances}Free Lances of {SETTLEMENT}");
+            _fallbackPatterns.Add("{=BC_MercenaryName_FreeSpears}Free Spears of {SETTLEMENT}");
         }
 
         private void EnsureFallbackPatterns()

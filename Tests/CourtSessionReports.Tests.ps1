@@ -23,7 +23,7 @@ Check (!$events.Contains('BC_CourtSessionEvent}')) 'Generic ledger-style notific
 Check ($events.Contains('CourtSessionEventReports.Narrative(plan.EventId)')) 'Saved activity uses its own report without another random roll.'
 Check ($events.Contains('beforeSecurity, town.Security') -and $events.Contains('beforeLoyalty, town.Loyalty') -and $events.Contains('beforeProsperity, town.Prosperity')) 'Settlement details use measured post-cap deltas.'
 Check ($events.Contains('Change(beforeCohesion, army.Cohesion') -and $events.Contains('Change(beforeHearths, village.Hearth')) 'Army cohesion and village hearth details use measured deltas.'
-Check ($events.Contains('new TextObject("{=" + d.Id + "}" + d.Label).ToString()')) 'Short relation-memory labels remain separate from narrative reports.'
+Check ($events.Contains('d.AgendaText.ToString()')) 'Relation-memory context uses the translated agenda label, separate from the narrative report.'
 Check ((Read 'CourtActivityRules.cs').Contains('positive ? mood >= 21 : mood <= -21') -and $events.Contains('Math.Min(3, targets.Count)')) 'Mood gate and maximum target count are unchanged.'
 Check ($events.Contains('plan.Positive ? BellumNotificationColors.Success : BellumNotificationColors.Danger, primaryKingdom: realm')) 'Existing notification colors and realm filtering remain unchanged.'
 'Source/localization contracts only; rendered campaign notifications require an in-game check.'
