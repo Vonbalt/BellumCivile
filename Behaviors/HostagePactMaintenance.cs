@@ -12,7 +12,10 @@ namespace BellumCivile.Behaviors
     {
         private bool _maintaining;
 
-        private void MaintainCustody()
+        private void MaintainCustody() => MaintainCustody(false);
+        private void MaintainDailyCustody() => MaintainCustody(true);
+
+        private void MaintainCustody(bool dailyTick)
         {
             if (_maintaining) return;
             _maintaining = true;
@@ -20,14 +23,14 @@ namespace BellumCivile.Behaviors
             {
                 foreach (var pact in _pacts.Where(p => p != null && p.Phase != HostagePactPhase.Ended).ToList())
                 {
-                    try { Maintain(pact); }
+                    try { Maintain(pact, dailyTick); }
                     catch (Exception ex) { BellumCivileLogger.Log($"Hostage custody maintenance deferred; pact={pact.Id}; {ex}"); }
                 }
             }
             finally { _maintaining = false; }
         }
 
-        private void Maintain(HostagePactRecord pact)
+        private void Maintain(HostagePactRecord pact, bool dailyTick)
         {
             // An interrupted handover is rolled back, never resumed by taking a now-unavailable hero.
             if (pact.Phase == HostagePactPhase.Preparing)
@@ -47,7 +50,7 @@ namespace BellumCivile.Behaviors
                     pact.FirstRealm?.RulingClan != pact.FirstHouse || pact.SecondRealm?.RulingClan != pact.SecondHouse,
                     Dead(pact.FirstHostage) || Dead(pact.SecondHostage),
                     !lost && pact.FirstRealm.IsAtWarWith(pact.SecondRealm),
-                    BellumCivileOptions.EnableWarPeaceLogicRevamp, pact.IsDue(CampaignTime.Now.ToDays));
+                    BellumCivileOptions.EnableWarPeaceLogicRevamp, pact.CanExpire(CampaignTime.Now.ToDays, dailyTick));
                 if (reason != HostagePactEndReason.None) pact.TryBeginResolution(reason);
                 else
                 {

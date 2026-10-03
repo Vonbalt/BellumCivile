@@ -7,7 +7,9 @@ namespace BellumCivile
     // Pure rules only. Custody and transaction integration must validate candidates separately.
     internal static class HostagePactRules
     {
-        internal const int DurationDays = 100;
+        internal const int DefaultDurationDays = 100;
+        internal const int MaximumDurationDays = 1000;
+        internal static bool IsValidDuration(int days) => days >= 0 && days <= MaximumDurationDays;
 
         internal static int GetTier(int rightfulSuccessionPosition)
             => rightfulSuccessionPosition <= 0 ? 4 : Math.Min(4, rightfulSuccessionPosition);

@@ -717,3 +717,4 @@ Added Bellum Civile gameplay articles under Encyclopedia > Concepts.
 1.4.1 CHANGELOG
 
 Added missing localization strings from VVL99 report.
+Added MCM slider for non-aggression pacts ranging 0-1000, default 100 days.

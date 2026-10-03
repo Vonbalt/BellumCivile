@@ -72,7 +72,13 @@ internal static class HostageTreatyTermTests
         check(Valid(Hostage(), Hostage(true)), "Reciprocal pact accepts one hostage per side");
         check(!Valid(Hostage(), Hostage(hero: "other_heir")), "Two hostages from one realm are rejected");
         check(!Valid(Hostage(hero: "same"), Hostage(true, hero: "same")), "Same hero cannot secure both sides");
-        check(!Valid(Hostage(cost: 1)) && !Valid(Hostage(days: 99)) && !Valid(Hostage(tier: 0)), "Forged cost, duration and tier are rejected");
+        check(Valid(Hostage(days: 0)) && Valid(Hostage(days: 99)) && Valid(Hostage(days: 1000)),
+            "Stored hostage clauses support configurable duration including zero and maximum");
+        check(!Valid(Hostage(cost: 1)) && !Valid(Hostage(days: -1)) && !Valid(Hostage(days: 1001))
+            && !Valid(Hostage(tier: 0)), "Forged cost, out-of-range duration and tier are rejected");
+        check(Valid(Hostage(days: 250), Hostage(true, days: 250))
+            && !Valid(Hostage(days: 250), Hostage(true, days: 100)),
+            "Reciprocal pledges must agree on the same pact duration");
         var reverse = new TreatyTermRecord(TreatyTermType.HostagePeace, 30, durationDays: 100,
             fromKingdomId: "winner", toKingdomId: "loser", heroId: "heir", clanId: "winner_house", hostageTier: 1,
             hostageReceivingClanId: "loser_house");
@@ -86,6 +92,9 @@ internal static class HostageTreatyTermTests
         bool Combines(TreatyTermRecord next, params TreatyTermRecord[] existing) =>
             (bool)AccessTools.Method(ai, "CanCombineWithSelectedTerms").Invoke(null, new object[] { next, existing });
         check(Combines(Hostage(true), Hostage()), "AI supports reciprocal hostage offerings");
+        check(Combines(Hostage(true, days: 250), Hostage(days: 250))
+            && !Combines(Hostage(true, days: 100), Hostage(days: 250)),
+            "AI reciprocal pledges preserve the drafted duration");
         check(!Combines(Hostage(hero: "other"), Hostage()), "AI rejects multiple hostages from one side");
         check(!Combines(new TreatyTermRecord(TreatyTermType.ForceVassalization, 100), Hostage()), "AI cannot append annexation to hostage pledge");
         check(!Combines(Hostage(), new TreatyTermRecord(TreatyTermType.ArrangeRoyalMarriage, 20, heroId: "demanded_heir")),

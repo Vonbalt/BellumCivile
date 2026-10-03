@@ -12,7 +12,8 @@ namespace BellumCivile.UI.Parley
         private void AddHostageOption(Kingdom supplier, Kingdom receiver)
         {
             var existing = _proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace && t.FromKingdomId == supplier.StringId);
-            var candidates = TreatyHostageTerms.Available(supplier, receiver);
+            int durationDays = TreatyHostageTerms.DurationForDraft(_proposal.Terms);
+            var candidates = TreatyHostageTerms.Available(supplier, receiver, durationDays);
             if (existing == null && candidates.Count == 0) return;
             if (supplier.StringId == _proposal.WinnerKingdomId && !IsOfferingsMode) return;
             var hero = Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == existing?.HeroId);
@@ -20,7 +21,8 @@ namespace BellumCivile.UI.Parley
                 : new TextObject("{=BC_Parley_HostageSelected}Hostage for peace: {HERO}").SetTextVariable("HERO", hero?.Name ?? TextObject.GetEmpty());
             AvailablePoliticsTerms.Add(new TreatyClaimDraftOptionVM("hostage_peace", label.ToString(),
                 existing?.WarScoreCost ?? candidates.Min(c => c.Cost), existing != null, IsDraftEditingDisabled,
-                ToggleHostageTerm, new TextObject("{=BC_Parley_HostageHint}A blood relative of the ruler remains in the other house's custody for 100 days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it.")));
+                ToggleHostageTerm, new TextObject("{=BC_Parley_HostageHint}A blood relative of the ruler remains in the other house's custody for {DAYS} days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it.")
+                    .SetTextVariable("DAYS", durationDays)));
         }
 
         private void ToggleHostageTerm(string key)
@@ -33,19 +35,21 @@ namespace BellumCivile.UI.Parley
             bool offering = IsOfferingsMode;
             if (supplier.StringId == _proposal.WinnerKingdomId && !offering) return;
             var proposal = _proposal;
-            var candidates = TreatyHostageTerms.Available(supplier, receiver);
+            int durationDays = TreatyHostageTerms.DurationForDraft(terms);
+            var candidates = TreatyHostageTerms.Available(supplier, receiver, durationDays);
             if (candidates.Count == 0) return;
             var choices = candidates.Select(c => new InquiryElement(c.Hero.StringId,
                 new TextObject("{=BC_Parley_HostageCandidate}{HERO} - {COST} WS (tier {TIER})")
                     .SetTextVariable("HERO", c.Hero.Name).SetTextVariable("COST", c.Cost).SetTextVariable("TIER", c.Tier).ToString(), null)).ToList();
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                 new TextObject("{=BC_Parley_HostageTitle}A Pledge of Peace").ToString(),
-                new TextObject("{=BC_Parley_HostageChoose}Which relative shall stand hostage for 100 days? They remain a member of their own house. A voluntary offering earns half its value in treaty credit, subject to the shared offering limit.").ToString(),
+                new TextObject("{=BC_Parley_HostageChoose}Which relative shall stand hostage for {DAYS} days? They remain a member of their own house. A voluntary offering earns half its value in treaty credit, subject to the shared offering limit.")
+                    .SetTextVariable("DAYS", durationDays).ToString(),
                 choices, true, 1, 1, new TextObject("{=BC_UI_Continue}Continue").ToString(), new TextObject("{=BC_UI_Cancel}Cancel").ToString(),
                 selected =>
                 {
                     if (_proposal != proposal || IsDraftEditingDisabled) return;
-                    var candidate = TreatyHostageTerms.Available(supplier, receiver)
+                    var candidate = TreatyHostageTerms.Available(supplier, receiver, durationDays)
                         .FirstOrDefault(c => c.Hero.StringId == selected?.FirstOrDefault()?.Identifier as string);
                     if (candidate == null)
                     {
@@ -54,7 +58,7 @@ namespace BellumCivile.UI.Parley
                     }
                     var updated = GetEditableDemandTerms();
                     updated.RemoveAll(t => t.Type == TreatyTermType.HostagePeace && t.FromKingdomId == supplier.StringId);
-                    updated.Add(TreatyHostageTerms.Create(supplier, receiver, candidate, offering));
+                    updated.Add(TreatyHostageTerms.Create(supplier, receiver, candidate, offering, durationDays));
                     ReplaceDraft(updated);
                 }, null), true);
         }

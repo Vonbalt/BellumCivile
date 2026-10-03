@@ -32,7 +32,8 @@ namespace BellumCivile.UI.Parley
             switch (term.Type)
             {
                 case TreatyTermType.HostagePeace:
-                    return new TextObject("{=BC_Parley_TermHostage}{FROM} pledges {HERO} to {TO} for 100 days of peace")
+                    return new TextObject("{=BC_Parley_TermHostage}{FROM} pledges {HERO} to {TO} for {DAYS} days of peace")
+                        .SetTextVariable("DAYS", term.DurationDays)
                         .SetTextVariable("FROM", ResolveKingdomName(term.FromKingdomId))
                         .SetTextVariable("TO", ResolveKingdomName(term.ToKingdomId))
                         .SetTextVariable("HERO", Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == term.HeroId)?.Name ?? TextObject.GetEmpty()).ToString();

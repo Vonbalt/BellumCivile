@@ -38,6 +38,7 @@ namespace BellumCivile.Behaviors
                 pact = new HostagePactRecord { Id = Guid.NewGuid().ToString("N"), TreatyProposalId = proposal.ProposalId,
                     FirstRealm = first, SecondRealm = second, FirstHouse = first.RulingClan, SecondHouse = second.RulingClan,
                     SigningDayRecorded = true, TreatySigningDay = CampaignTime.Now.ToDays,
+                    AgreedDurationDays = terms[0].DurationDays, DurationRecorded = true,
                     FirstHostage = PrepareSide(first, second), SecondHostage = PrepareSide(second, first) };
                 // Do not stage custody in a holding this very settlement is about to surrender.
                 if (terms.Any(t => t.FromKingdomId == first.StringId) && pact.FirstHostage == null

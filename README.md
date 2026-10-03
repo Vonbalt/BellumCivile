@@ -538,7 +538,9 @@ Unexchanged foreign nobles can remain captive after peace under retained-prisone
 
 ### Hostage-Backed Pacts
 
-Treaties can demand or offer a blood relative of the supplying ruler for **100 days**. Children are eligible. Succession standing supplies four value tiers; voluntary pledges use shared half-value offering credit.
+Treaties can demand or offer a blood relative of the supplying ruler for **100 days by default**. Children are eligible. Succession standing supplies four value tiers; voluntary pledges use shared half-value offering credit.
+
+The **Hostage Pact Duration (Days)** MCM slider ranges from 0 to 1,000 and applies when a new pledge is drafted. Reciprocal pledges share that duration, which is saved before handover and retained through delivery recovery. Existing pacts keep their saved expiry; older records retain their original 100-day agreement. Setting 0 disables new pacts for players and NPCs without invalidating existing or pending agreements. A zero-day pact, if signed, returns its hostages on the next daily tick.
 
 Hostages remain in their own house but enter protected custody in an eligible captor stronghold. Ordinary escape, ransom, and manual release are blocked. Encyclopedia/clan descriptions identify treaty custody; the broker explains why ordinary ransom is unavailable.
 
@@ -630,6 +632,7 @@ Use `BellumCivileNotifications` for optional political chat messages. Its Disabl
 | --- | --- |
 | Presentation | Anglicized titles; sovereign-title realm names off; both widgets on |
 | War/peace | Revamp on; reluctance 100 days (1-500); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
+| Hostage pacts | Duration 100 days (0-1,000), fixed per drafted agreement; 0 disables new pacts without shortening existing ones |
 | Treaty wealth/captivity | 5,000 gold or 250 daily tribute per point; dungeon/mobile escape 1%/3% |
 | Court | One-year terms (0.25-4); five-day deliberation; rebellion threshold 100; automatic treason indictments on |
 | Titles/armies | Three-year fabrication; minimum two children for formation; restricted summons on; friend exception +60 relation |

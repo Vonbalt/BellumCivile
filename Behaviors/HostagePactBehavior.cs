@@ -12,6 +12,7 @@ namespace BellumCivile.Behaviors
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RegisterHostageDialogues);
             CampaignEvents.TickEvent.AddNonSerializedListener(this, ProcessHostageJudgment);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainCustody);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, MaintainDailyCustody);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, OnHoldingOwnerChanged);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, OnPactWarDeclared);
         }

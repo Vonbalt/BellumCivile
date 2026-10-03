@@ -73,6 +73,19 @@ internal static class Program
                 CrownHouseholdRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} Crown household recovery checks passed.");
             }
+            else if (args.Contains("--hostage-pacts"))
+            {
+                HostagePactRulesTests.Run(Check);
+                HostagePactRecordTests.Run(Check);
+                HostagePactDurationTests.Run(Check);
+                HostageTreatyTermTests.Run(Check);
+                HostageDeliveryTests.Run(Check);
+                HostagePresentationTests.Run(Check);
+                HostageCustodyGuardTests.Run(Check);
+                HostageTerminationTests.Run(Check);
+                HostagePoliticsTests.Run(Check);
+                Console.WriteLine($"{_checks} hostage pact checks passed.");
+            }
             else Run();
             return 0;
         }
@@ -537,6 +550,7 @@ internal static class Program
         PeaceFeasibilityTests.Run(Check);
         HostagePactRulesTests.Run(Check);
         HostagePactRecordTests.Run(Check);
+        HostagePactDurationTests.Run(Check);
         HostageCustodyGuardTests.Run(Check);
         HostagePresentationTests.Run(Check);
         DiplomacyOverviewTests.Run(Check, _game);

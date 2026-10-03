@@ -30,6 +30,8 @@ namespace BellumCivile
             Settings?.WarDurationReluctanceDays ?? C.WarPeaceDurationReluctanceDays));
         public static int MinimumPeaceBeforeRenewedWarDays =>
             Math.Max(0, Math.Min(500, Settings?.MinimumPeaceBeforeRenewedWarDays ?? C.WarPeaceRevampRecentPeaceBlockDays));
+        public static int HostagePactDurationDays => Math.Max(0, Math.Min(HostagePactRules.MaximumDurationDays,
+            Settings?.HostagePactDurationDays ?? HostagePactRules.DefaultDurationDays));
         public static int TreatyReparationsGoldPerWarScore =>
             Math.Max(0, Math.Min(100000, Settings?.TreatyReparationsGoldPerWarScore ?? C.TreatyReparationsGoldPerWarScore));
         public static int TreatyDailyTributePerWarScore =>

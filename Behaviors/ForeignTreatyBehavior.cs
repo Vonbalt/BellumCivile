@@ -2220,7 +2220,8 @@ namespace BellumCivile.Behaviors
             switch (term.Type)
             {
                 case TreatyTermType.HostagePeace:
-                    return new TextObject("{=BC_Treaty_SummaryHostagePeace}{FROM_REALM} entrusts {HERO} to {TO_REALM} as a hostage to secure 100 days of peace")
+                    return new TextObject("{=BC_Treaty_SummaryHostagePeace}{FROM_REALM} entrusts {HERO} to {TO_REALM} as a hostage to secure {DAYS} days of peace")
+                        .SetTextVariable("DAYS", term.DurationDays)
                         .SetTextVariable("FROM_REALM", fromRealm).SetTextVariable("TO_REALM", toRealm)
                         .SetTextVariable("HERO", Hero.AllAliveHeroes.FirstOrDefault(h => h?.StringId == term.HeroId)?.Name ?? TextObject.GetEmpty()).ToString();
                 case TreatyTermType.TransferFief:

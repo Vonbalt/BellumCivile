@@ -73,10 +73,15 @@ namespace BellumCivile
         [SaveableField(24)] public bool TerminationTraitApplied;
         [SaveableField(25)] public bool ReleaseGratitudeApplied;
         [SaveableField(26)] public bool ExecutionNeedsHonorPenalty;
+        [SaveableField(27)] public int AgreedDurationDays;
+        [SaveableField(28)] public bool DurationRecorded;
+
+        // Older saves lack this snapshot and used the original 100-day agreement.
+        internal int DurationDays => DurationRecorded ? AgreedDurationDays : HostagePactRules.DefaultDurationDays;
 
         internal bool TryActivate(double day)
         {
-            if (Phase != HostagePactPhase.Preparing || !Finite(day) || day < 0
+            if (Phase != HostagePactPhase.Preparing || !Finite(day) || day < 0 || !HostagePactRules.IsValidDuration(DurationDays)
                 || string.IsNullOrWhiteSpace(Id) || FirstRealm == null || SecondRealm == null
                 || FirstRealm == SecondRealm || FirstHouse == null || SecondHouse == null
                 || FirstHouse == SecondHouse || (FirstHostage == null && SecondHostage == null)
@@ -85,7 +90,7 @@ namespace BellumCivile
                 || (FirstHostage != null && SecondHostage != null && FirstHostage.Hero == SecondHostage.Hero))
                 return false;
             SignedDay = day;
-            EndDay = day + HostagePactRules.DurationDays;
+            EndDay = day + DurationDays;
             FirstSignatory = FirstRealm.Leader;
             SecondSignatory = SecondRealm.Leader;
             Phase = HostagePactPhase.Active;
@@ -93,6 +98,8 @@ namespace BellumCivile
         }
 
         internal bool IsDue(double day) => Phase == HostagePactPhase.Active && Finite(day) && day >= EndDay;
+
+        internal bool CanExpire(double day, bool dailyTick) => IsDue(day) && (dailyTick || EndDay > SignedDay);
 
         internal bool TryAbortPreparation()
         {

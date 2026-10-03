@@ -9,8 +9,13 @@ internal static class HostagePactRulesTests
     {
         Type rules = typeof(TreatyTermRecord).Assembly.GetType("BellumCivile.HostagePactRules", true);
         object Call(string name, params object[] args) => AccessTools.Method(rules, name).Invoke(null, args);
-        check((int)AccessTools.Field(rules, "DurationDays").GetRawConstantValue() == 100,
-            "Hostage pact duration is fixed at 100 days");
+        check((int)AccessTools.Field(rules, "DefaultDurationDays").GetRawConstantValue() == 100,
+            "Hostage pact duration defaults to 100 days");
+        check((int)AccessTools.Field(rules, "MaximumDurationDays").GetRawConstantValue() == 1000,
+            "Hostage pact duration permits up to 1000 days");
+        check((bool)Call("IsValidDuration", 0) && (bool)Call("IsValidDuration", 1000)
+            && !(bool)Call("IsValidDuration", -1) && !(bool)Call("IsValidDuration", 1001),
+            "Hostage duration validates both slider boundaries");
         check((int)Call("GetTier", 0) == 4 && (int)Call("GetTier", -1) == 4
             && (int)Call("GetTier", 20) == 4, "Unranked and later heirs use lowest hostage tier");
         for (int tier = 1; tier <= 4; tier++)

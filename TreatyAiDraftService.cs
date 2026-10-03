@@ -208,10 +208,11 @@ namespace BellumCivile
             if (drafter == winner && terms.Any(t => t.Type == TreatyTermType.HostagePeace && t.FromKingdomId == loser.StringId)
                 && GetTrait(winner.Leader, DefaultTraits.Honor) > 0 && GetTrait(winner.Leader, DefaultTraits.Mercy) > 0)
             {
-                var pledge = TreatyHostageTerms.Available(winner, loser).OrderByDescending(c => c.Tier).FirstOrDefault();
+                int durationDays = TreatyHostageTerms.DurationForDraft(terms);
+                var pledge = TreatyHostageTerms.Available(winner, loser, durationDays).OrderByDescending(c => c.Tier).FirstOrDefault();
                 if (pledge != null)
                 {
-                    var offer = TreatyHostageTerms.Create(winner, loser, pledge, true);
+                    var offer = TreatyHostageTerms.Create(winner, loser, pledge, true, durationDays);
                     if (CanCombineWithSelectedTerms(offer, terms))
                     { terms.Add(offer); reasons.Add("pledge our own kin in reciprocal good faith"); }
                 }
@@ -463,9 +464,10 @@ namespace BellumCivile
         {
             List<TreatyAiTermCandidate> candidates = new List<TreatyAiTermCandidate>();
             Hero ruler = (drafter ?? winner)?.RulingClan?.Leader;
+            int durationDays = BellumCivileOptions.HostagePactDurationDays;
 
             if (war?.ConflictType == WarScoreConflictType.ForeignWar)
-                foreach (var hostage in TreatyHostageTerms.Available(loser, winner))
+                foreach (var hostage in TreatyHostageTerms.Available(loser, winner, durationDays))
                 {
                     float priority = 28 + GetTrait(ruler, DefaultTraits.Calculating) * 6
                         + GetTrait(ruler, DefaultTraits.Honor) * 4 + GetTrait(ruler, DefaultTraits.Mercy) * 4
@@ -474,7 +476,7 @@ namespace BellumCivile
                         priority -= (float)HostagePactRules.GetHouseReluctance(hostage.Tier,
                             GetTrait(ruler, DefaultTraits.Mercy), ruler == null ? 0 : ruler.GetRelation(hostage.Hero)) * .5f;
                     if (priority >= 20)
-                        candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering),
+                        candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering, durationDays),
                             priority, "secure the peace with a royal hostage"));
                 }
 

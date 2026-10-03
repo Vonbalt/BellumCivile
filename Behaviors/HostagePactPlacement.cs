@@ -10,7 +10,8 @@ namespace BellumCivile.Behaviors
         // Called only after peace is concluded. Treaty UI integration remains gated.
         internal bool TryEstablish(Kingdom first, Kingdom second, Hero firstHostage, Hero secondHostage)
         {
-            if (_maintaining || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first == null || second == null
+            int durationDays = BellumCivileOptions.HostagePactDurationDays;
+            if (_maintaining || durationDays == 0 || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first == null || second == null
                 || first == second || first.IsEliminated || second.IsEliminated || first.IsAtWarWith(second)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(first)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(second)
@@ -28,6 +29,7 @@ namespace BellumCivile.Behaviors
             if ((a != null && firstRecord == null) || (b != null && secondRecord == null)) return false;
             var pact = new HostagePactRecord { Id = Guid.NewGuid().ToString("N"), FirstRealm = first, SecondRealm = second,
                 FirstHouse = first.RulingClan, SecondHouse = second.RulingClan,
+                AgreedDurationDays = durationDays, DurationRecorded = true,
                 FirstHostage = firstRecord, SecondHostage = secondRecord };
             _pacts.Add(pact);
             _maintaining = true;
