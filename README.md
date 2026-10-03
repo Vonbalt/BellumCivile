@@ -13,6 +13,7 @@ This repository contains the source for the released **Bellum Civile 1.4.0**. Th
 | Required mod dependencies | Harmony, UIExtenderEx, Mod Configuration Menu v5 |
 | Optional integrations | Diplomacy, True Noble Opinion, Harvest and Production Overhaul (HAP), custom-banner integrations, Naval DLC / War Sails |
 | Development branch | `main` |
+| License | [CC BY-NC-SA 4.0](LICENSE.txt) |
 
 ### Reading This Guide
 
@@ -38,6 +39,7 @@ The mod centers on term-based court agendas, three-way policy stances, separate 
 - [Build and Packaging](#build-and-packaging)
 - [Verification and Diagnostics](#verification-and-diagnostics)
 - [Maintenance](#maintenance)
+- [License](#license)
 
 ## Project Map
 
@@ -737,6 +739,7 @@ Compilation is not deployment. The core project lists content but does not autom
 ```text
 BellumCivile/
   SubModule.xml                  <- _Module/SubModule.xml
+  LICENSE.txt                    <- repository license
   bin/Win64_Shipping_Client/
     BellumCivile.dll              <- bin/Release/net472/
     BellumCivile.NavalDLCPatch.dll <- bundled integration, when shipped
@@ -839,3 +842,17 @@ Measure performance changes with matched saves, modules, speed, and duration. Di
 A court objective must be registered with `CourtAgendaBehavior.CreateObjectiveSelector` and use the shared agenda contracts. Adding only a menu option or a weighted candidate does not implement its lifecycle. Likewise, every treaty draft needs final validation against current state even if its picker previously declared the term valid.
 
 For bug reports, begin with the owning behavior's saved record and the corresponding action log. Establish the last verified stage and its current preconditions before changing state. A deferred journal may be correctly waiting for a siege, decision, hostage lifecycle, or conflicting commitment; it is not automatically a failed scheduler. Reproduce and distinguish that wait from a lost callback before adding recovery code.
+
+## License
+
+Bellum Civile by **Vonbalt** is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/). Unless otherwise noted, this applies to the project's original source code, documentation, and assets in this repository.
+
+You may share and adapt this material under the license's terms:
+
+- **Attribution:** credit Bellum Civile and Vonbalt, retain existing contributor and copyright notices, include the license text or a link to it, and indicate changes when sharing modified material.
+- **NonCommercial:** use and redistribution under this license must be for noncommercial purposes.
+- **ShareAlike:** shared adaptations must use the same license or another license permitted by its ShareAlike terms.
+
+The full terms are in [LICENSE.txt](LICENSE.txt); the summary above does not replace them. Bellum's release packages should include this file alongside the mod.
+
+Third-party code, libraries, game assets, and other separately licensed material remain subject to their respective licenses and attribution requirements. This license does not grant rights to TaleWorlds' game files or to other mods' material beyond the permissions their owners provide.
