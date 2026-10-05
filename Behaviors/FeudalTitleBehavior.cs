@@ -474,7 +474,8 @@ namespace BellumCivile.Behaviors
             if (kingdom == null) return null;
             if (!_realmIdentityRoots.ContainsKey(kingdom.StringId))
                 RememberRealmIdentity(kingdom, GetIndependentRealmSovereignTitle(kingdom));
-            return _realmIdentityNativeNames.TryGetValue(kingdom.StringId, out string expected) && expected == nativeName
+            return _realmIdentityNativeNames.TryGetValue(kingdom.StringId, out string expected)
+                && (expected == nativeName || new TextObject(expected ?? string.Empty).ToString() == nativeName)
                 && _realmIdentityRoots.TryGetValue(kingdom.StringId, out string root) ? root : null;
         }
 
@@ -482,8 +483,12 @@ namespace BellumCivile.Behaviors
         {
             EnsureCollectionsInitialized();
             if (kingdom == null || name == null) return;
-            _realmIdentityRoots[kingdom.StringId] = name.ToString();
-            _realmIdentityNativeNames[kingdom.StringId] = name.ToString();
+            // These existing save fields accept both legacy rendered names and raw
+            // localization tokens. Runtime variables still need a literal snapshot.
+            string identity = name.Attributes == null || name.Attributes.Count == 0
+                ? name.Value : "{=!}" + name.ToString();
+            _realmIdentityRoots[kingdom.StringId] = identity;
+            _realmIdentityNativeNames[kingdom.StringId] = identity;
         }
 
         public void UnregisterIndependentRealmShell(Kingdom kingdom, string reason)

@@ -47,9 +47,22 @@ namespace BellumCivile
         [SettingPropertyGroup(FeudalTitles, GroupOrder = FeudalTitlesGroupOrder)]
         public Dropdown<string> TitleStylePreset { get; set; } = FeudalTitleStylePresetCatalog.CreateDropdown();
 
-        [SettingPropertyBool("{=BC_MCM_UseSovereignRealmNames}Use Sovereign Titles as Realm Names", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_UseSovereignRealmNames_Hint}When enabled, realm names follow the current sovereign title. When disabled, configured and Bellum title-founded realms retain their identity while their rank updates. Unknown realm names remain unchanged unless configured. Cultural title presets apply in both modes. Temporary rebellion and feud names are unchanged. Default: Off.")]
+        [SettingPropertyDropdown("{=BC_MCM_RealmNameDisplay}Realm Name Display", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_RealmNameDisplay_Hint}Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default: Sovereign Title.")]
         [SettingPropertyGroup(FeudalTitles, GroupOrder = FeudalTitlesGroupOrder)]
-        public bool UseSovereignTitlesAsRealmNames { get; set; } = false;
+        public Dropdown<string> RealmNameDisplay { get; set; } = new Dropdown<string>(new[]
+        {
+            "{=BC_MCM_RealmNameNative}Native",
+            "{=BC_MCM_RealmNameIdentity}Realm Identity",
+            "{=BC_MCM_RealmNameSovereign}Sovereign Title"
+        }, (int)RealmNameDisplayMode.SovereignTitle);
+
+        // Retain the old API for bridges; only the selector is shown and serialized by MCM.
+        public bool UseSovereignTitlesAsRealmNames
+        {
+            get => RealmNameDisplay?.SelectedIndex == (int)RealmNameDisplayMode.SovereignTitle;
+            set => RealmNameDisplay.SelectedIndex = (int)(value
+                ? RealmNameDisplayMode.SovereignTitle : RealmNameDisplayMode.RealmIdentity);
+        }
 
         [SettingPropertyBool("{=BC_MCM_EnableWarPeaceLogicRevamp}Enable War & Peace Logic Revamp", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableWarPeaceLogicRevamp_Hint}When enabled, Bellum uses its War Will, target-ranking, War Score, and peace-parley systems to control war and peace politics. Disable this to return war and peace proposals and vote support to vanilla Bannerlord. Default: On.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]

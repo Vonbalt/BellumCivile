@@ -350,7 +350,15 @@ Player vassals can grant eligible baronies to companions through subinfeudation 
 
 Styles support holder, female holder, consort, landless house-head, mercenary-leader, and optional wanderer honorifics. `spouseRank`/`femaleSpouseRank`, `landlessLeaderRank`/`femaleLandlessLeaderRank`, and `mercenaryLeaderRank`/`femaleMercenaryLeaderRank` fall back to existing forms when omitted. Hero, party, army, and encyclopedia descriptions share styling services.
 
-Realm rank follows the highest de facto title independently of the naming toggle. Sovereign-title naming uses the territorial title; otherwise known realms combine configured geography with rank. Explicit player renames survive presentation updates. Configuration precedence is documented below.
+Realm rank follows the highest de facto title. The **Realm Name Display** selector provides three presentation modes:
+
+- **Native:** original game or conversion-mod names.
+- **Realm Identity:** the current sovereign rank combined with the realm's configured or remembered identity.
+- **Sovereign Title** (default): the current sovereign rank and territorial title name, including title presets and player title renames.
+
+`DynamicKingdomTitleNameHelper` is the shared realm naming service. It supplies full names to kingdom names, encyclopedia titles, and Bannerlord's formal-name helper, and rank-free roots to `InformalName` for links and dialogue. Unknown identities and temporary rebellion/feud realms keep their native names. Realm renames affect Realm Identity; legal title renames affect Sovereign Title. Neither operation silently renames the other.
+
+The service keeps localized `TextObject` roots and formats intact, caches full/short projections by title display revision, ruler, mode and language, and preserves native names during save collection and serialization. No new campaign save fields are required. The retired MCM boolean migrates to Realm Identity when off and Sovereign Title when on; an existing selector value takes precedence. An optional adapter updates Artem's Better UI Visuals map labels in both naming modes without rebuilding borders or changing its settings. Configuration precedence is documented below.
 
 ## Succession, Marriage, and Households
 
@@ -634,7 +642,7 @@ Use `BellumCivileNotifications` for optional political chat messages. Its Disabl
 
 | Group | Important defaults |
 | --- | --- |
-| Presentation | Anglicized titles; sovereign-title realm names off; both widgets on |
+| Presentation | Anglicized titles; Sovereign Title name display; both widgets on |
 | War/peace | Revamp on; reluctance 100 days (1-500); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
 | Hostage pacts | Duration 100 days (0-1,000), fixed per drafted agreement; 0 disables new pacts without shortening existing ones |
 | Treaty wealth/captivity | 5,000 gold or 250 daily tribute per point; dungeon/mobile escape 1%/3% |
@@ -659,7 +667,7 @@ Some saved/internal names retain older terminology, such as `EnableDynamicRelati
 | `bellum_policy_agendas.xml` / `bellum_policy_agendas_patch.xml` | Crown interests and bloc stances |
 | `bellum_laws.xml` | Grouped law definitions |
 | `succession_config.xml` | Realm/cultural succession defaults |
-| `bellum_realm_names.xml` / `bellum_realm_names_patch.xml` | Geographic roots and native-name guards, independent of rank |
+| `bellum_realm_names.xml` / `bellum_realm_names_patch.xml` | Localizable roots and native-name guards for Realm Identity mode |
 | `dynamic_mercenary_names.xml` / `dynamic_mercenary_names_patch.xml` | Cultural/generic name pools and overrides |
 | `bellum_concepts.xml` | Native encyclopedia definitions |
 | `Languages/EN/strings.xml` | English localization |
@@ -782,11 +790,14 @@ dotnet run --project Tests/CourtRedesignHarness/CourtRedesignHarness.csproj
 dotnet build Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj -p:GameFolder="$game"
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game"
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --title-name-cache
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-names
 ```
 
 Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Record results with the revision/environment rather than maintaining a stale passed-check count here.
 
 The engine harness accepts an installation path as its first positional argument, ahead of the `GameFolder` environment variable and the standard Steam default. `ChildhoodEducation.Tests.ps1` accepts `-GameFolder` with the same precedence. Court prototypes resolve Sandbox data through `GameFolder`; their existing `-ModuleData` parameter overrides that location. Prototypes supporting `-SyntheticOnly` can run without game data.
+
+`--realm-names` checks MCM preference migration and roundtrips, full/short/formal names, translated roots and word order, renames, cache invalidation, native save collector/value identity, and the optional Artem adapter against a minimal label-view double. It does not replace an in-game save/load and map-label check with the installed third-party mod.
 
 `Tests/EncyclopediaConcepts.Tests.ps1` also compares text with the manuscript through `Tests/ConceptArticleSource.ps1`. It needs `docs/encyclopedia-articles-draft.md` and **cannot run unchanged in a clean clone without that private file**. The engine harness separately checks shipped Concepts XML/filter. Runtime has no manuscript dependency.
 

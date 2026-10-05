@@ -37,18 +37,27 @@ namespace BellumCivile
         {
             base.OnSubModuleLoad();
 
+            _harmony = new Harmony("com.bellumcivile.patch");
+            try
+            {
+                // Install preference migration before any of our UI/patches can request settings.
+                _harmony.CreateClassProcessor(typeof(Patches.RealmNameSettingsMigrationPatch)).Patch();
+            }
+            catch (Exception ex)
+            {
+                BellumCivileLogger.Log($"Failed to apply realm-name settings migration: {ex.Message}");
+            }
+
             _uiExtender = UIExtender.Create("BellumCivile");
             _uiExtender.Register(Assembly.GetExecutingAssembly());
             TryRegisterBundledNavalDlcPatch();
             _uiExtender.Enable();
 
-            _harmony = new Harmony("com.bellumcivile.patch");
-            
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 try
                 {
-                    if (ShouldSkipOptionalPatch(type))
+                    if (type == typeof(Patches.RealmNameSettingsMigrationPatch) || ShouldSkipOptionalPatch(type))
                         continue;
 
                     if (type.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
@@ -68,6 +77,7 @@ namespace BellumCivile
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
             InitializeDiplomacyIntegration(finalAttempt: false);
+            Patches.ArtemRealmNameCompatibility.TryApply(_harmony);
         }
 
         private void TryRegisterBundledNavalDlcPatch()
@@ -227,6 +237,7 @@ namespace BellumCivile
 
                 if (!_diplomacyKingdomFactionsButtonHijackPatched || !_diplomacyKingdomListFilterPatched)
                     InitializeDiplomacyIntegration(finalAttempt: true);
+                    Patches.ArtemRealmNameCompatibility.TryApply(_harmony);
 
                 CampaignGameStarter campaignStarter = (CampaignGameStarter)gameStarterObject;
 

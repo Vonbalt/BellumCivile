@@ -253,6 +253,21 @@ namespace BellumCivile
             return ResolveLandedTitleNoun(type, style);
         }
 
+        internal static TextObject FormatRealmName(FeudalTitleType type, TextObject root, Clan styleClan,
+            Kingdom kingdom, string fallbackCultureRef = "")
+        {
+            FeudalTitleConfig.RankStyle style = ResolveRankStyle(type, styleClan, kingdom, fallbackCultureRef);
+            TextObject noun = !string.IsNullOrWhiteSpace(style?.TitleName)
+                ? new TextObject(style.TitleName) : GetDefaultLandedTitleNoun(type);
+            if (noun.IsEmpty()) return root;
+            TextObject text = new TextObject(!string.IsNullOrWhiteSpace(style?.TitleFormat)
+                ? style.TitleFormat : "{=BC_TitleDisplay_LandedTitle}{TITLE_NOUN} of {TITLE_NAME}");
+            // Keep nested TextObjects, including translation IDs and grammatical variables.
+            text.SetTextVariable("TITLE_NOUN", noun);
+            text.SetTextVariable("TITLE_NAME", root);
+            return text;
+        }
+
         private static string FormatHeldTitleName(Clan clan, FeudalTitleRecord title)
         {
             if (title == null)
@@ -701,7 +716,7 @@ namespace BellumCivile
             FeudalTitleConfig.RankStyle Find(string id, string name) => FeudalTitleConfig.Instance.Styles
                 .Where(style => style != null && MatchesRef(style.KingdomRef, id, name))
                 .SelectMany(style => style.Ranks).FirstOrDefault(rank => rank != null && rank.Tier == type);
-            var direct = Find(kingdom.StringId, kingdom.Name?.ToString());
+            var direct = Find(kingdom.StringId, DynamicKingdomTitleNameHelper.GetNativeName(kingdom));
             if (direct != null) return direct;
             string source = FeudalTitleBehavior.Instance?.GetRealmTitleStyleSourceId(kingdom);
             if (string.IsNullOrEmpty(source) || source == kingdom.StringId) return null;

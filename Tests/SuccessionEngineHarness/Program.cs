@@ -51,6 +51,11 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--realm-names"))
+            {
+                RealmNameTests.Run(Check);
+                Console.WriteLine($"{_checks} realm naming checks passed.");
+            }
             else if (args.Contains("--title-name-cache"))
             {
                 TitleNameCacheTests.Run(Check);

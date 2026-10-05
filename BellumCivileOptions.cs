@@ -9,7 +9,16 @@ namespace BellumCivile
         private static BellumCivileSettings Settings => _settings ?? (_settings = BellumCivileSettings.Instance);
 
         public static bool ShowDebugMessagesInGame => Settings?.ShowDebugMessagesInGame ?? false;
-        public static bool UseSovereignTitlesAsRealmNames => Settings?.UseSovereignTitlesAsRealmNames ?? false;
+        public static RealmNameDisplayMode RealmNameDisplay
+        {
+            get
+            {
+                int index = Settings?.RealmNameDisplay?.SelectedIndex ?? (int)RealmNameDisplayMode.SovereignTitle;
+                return index >= 0 && index <= (int)RealmNameDisplayMode.SovereignTitle
+                    ? (RealmNameDisplayMode)index : RealmNameDisplayMode.SovereignTitle;
+            }
+        }
+        public static bool UseSovereignTitlesAsRealmNames => RealmNameDisplay == RealmNameDisplayMode.SovereignTitle;
 
         public static float RebelliousIntentThreshold => Settings?.RebellionThreshold ?? C.RebelliousIntentThreshold;
         public static float DiscontentTrigger => C.DiscontentTrigger;

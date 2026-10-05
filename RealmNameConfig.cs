@@ -19,6 +19,9 @@ namespace BellumCivile
         public static void Reset() => _entries = null;
 
         public static string ResolveRoot(string kingdomId, string nativeName)
+            => ResolveRootText(kingdomId, nativeName)?.ToString();
+
+        public static TextObject ResolveRootText(string kingdomId, string nativeName)
         {
             if (_entries == null) Load();
             if (kingdomId == null || !_entries.TryGetValue(kingdomId, out Entry entry)) return null;
@@ -26,7 +29,7 @@ namespace BellumCivile
             if (!string.IsNullOrWhiteSpace(entry.NativeName)
                 && !string.Equals(new TextObject(entry.NativeName).ToString(), nativeName, StringComparison.Ordinal))
                 return null;
-            return new TextObject(entry.Root).ToString();
+            return new TextObject(entry.Root);
         }
 
         private static void Load()

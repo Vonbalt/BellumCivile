@@ -84,10 +84,10 @@ namespace BellumCivile
 '@
 $driftSource = Get-Content (Join-Path $root 'Behaviors/FeudalDeJureDriftBehavior.cs') -Raw
 $findStart = $driftSource.IndexOf('        private FeudalTitleRecord FindTargetParent(')
-$findEnd = $driftSource.IndexOf('        private bool TryFindHighestSupersedingPackage(', $findStart)
+$findEnd = $driftSource.IndexOf('        private bool TryResolveUnifiedHolderKingdom(', $findStart)
 $resolveStart = $driftSource.IndexOf('        private string ResolveRecordedLegalKingdomId(')
 $resolveEnd = $driftSource.IndexOf('        private bool ShouldReverseDrift(', $resolveStart)
-if ($findStart -lt 0 -or $resolveStart -lt 0) { throw 'Drift production methods not found.' }
+if ($findStart -lt 0 -or $resolveStart -lt 0 -or $findEnd -le $findStart -or $resolveEnd -le $resolveStart) { throw 'Drift production method boundaries not found.' }
 $driftDoubles = @'
 namespace BellumCivile
 {
