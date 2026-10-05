@@ -441,14 +441,36 @@ namespace BellumCivile.Behaviors
             }
 
             float warWill = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>()?.GetWarWill(proposer) ?? 0f;
-            if (warWill < BellumCivileOptions.WarWillDeclareThreshold)
+            float desire = clanAssessment.LibertyDesire;
+            float resolve = ClientLiberationRules.ResolveBonus(desire);
+            float willingness = ClientLiberationRules.EffectiveWarWill(warWill, desire);
+            if (willingness < BellumCivileOptions.WarWillDeclareThreshold)
             {
-                report = $"war will is too low ({warWill:0.0})";
+                report = new TextObject("{=BC_ClientLiberation_WillingnessLow}Insufficient willingness for liberation ({CURRENT}/{REQUIRED}; War Will {WILL}, resolve +{RESOLVE}).")
+                    .SetTextVariable("CURRENT", willingness.ToString("0.#"))
+                    .SetTextVariable("REQUIRED", BellumCivileOptions.WarWillDeclareThreshold.ToString("0.#"))
+                    .SetTextVariable("WILL", warWill.ToString("0.#"))
+                    .SetTextVariable("RESOLVE", resolve.ToString("0.#"))
+                    .ToString();
                 return false;
             }
 
-            report = $"liberty desire={assessment.RealmLibertyDesire:0.0}; readiness={assessment.LiberationReadiness:0.0}%; war will={warWill:0.0}";
+            report = $"liberty desire={assessment.RealmLibertyDesire:0.0}; readiness={assessment.LiberationReadiness:0.0}%; war will={warWill:0.0}; resolve={resolve:0.0}; willingness={willingness:0.0}";
             return true;
+        }
+
+        internal float GetLiberationWarWill(Clan clan, Kingdom target, float warWill)
+        {
+            ClientKingdomRecord record = GetClientRecord(clan?.Kingdom);
+            if (target == null || record == null || record.SuzerainKingdomId != target.StringId
+                || !IsEligiblePoliticalClan(clan))
+                return warWill;
+
+            // Council votes need this clan's desire, without recalculating the whole opposing bloc.
+            float courtBonus = CourtAgendaBehavior.Current?.LiberationDesireBonus(clan.Kingdom, record) ?? 0f;
+            ClientClanLibertyAssessment assessment = CalculateClanLiberty(clan, target, record,
+                IsLawfulSuzerainty(clan.Kingdom, target), courtBonus);
+            return ClientLiberationRules.EffectiveWarWill(warWill, assessment.LibertyDesire);
         }
 
         public ClientLibertyAssessment BuildLibertyAssessment(Kingdom client)
@@ -468,21 +490,28 @@ namespace BellumCivile.Behaviors
             float courtBonus = hypotheticalBonus ?? (CourtAgendaBehavior.Current?.LiberationDesireBonus(client, record) ?? 0f);
             List<ClientClanLibertyAssessment> clans = client.Clans
                 .Where(IsEligiblePoliticalClan)
-                .Select(clan => CalculateClanLiberty(clan, suzerain, record, lawful, courtBonus))
+                .Select(clan =>
+                {
+                    var clanAssessment = CalculateClanLiberty(clan, suzerain, record, lawful, courtBonus);
+                    clanAssessment.Power = RebellionPowerHelper.CalculateClanPower(clan);
+                    return clanAssessment;
+                })
                 .ToList();
 
-            float totalWeight = clans.Sum(entry => Math.Max(1f, RebellionPowerHelper.CalculateClanPower(entry.Clan)));
+            float totalWeight = clans.Sum(entry => Math.Max(1f, entry.Power));
             float realmDesire = totalWeight > 0f
-                ? clans.Sum(entry => entry.LibertyDesire * Math.Max(1f, RebellionPowerHelper.CalculateClanPower(entry.Clan))) / totalWeight
+                ? clans.Sum(entry => entry.LibertyDesire * Math.Max(1f, entry.Power)) / totalWeight
                 : 0f;
 
             float effectiveClientPower = clans.Sum(entry =>
             {
                 float multiplier = ClientLiberationRules.EffectivePowerMultiplier(entry.LibertyDesire);
-                return RebellionPowerHelper.CalculateClanPower(entry.Clan) * multiplier;
+                return entry.Power * multiplier;
             });
 
-            float suzerainBlocPower = RebellionPowerHelper.CalculateFactionPower(suzerain.Clans.Where(IsEligiblePoliticalClan));
+            float suzerainPower = RebellionPowerHelper.CalculateFactionPower(suzerain.Clans.Where(IsEligiblePoliticalClan));
+            float otherClientsPower = 0f;
+            float alliesPower = 0f;
             IAllianceCampaignBehavior alliances = Campaign.Current?.GetCampaignBehavior<IAllianceCampaignBehavior>();
             var otherClients = new HashSet<Kingdom>(GetClients(suzerain).Where(kingdom => kingdom != client));
             foreach (Kingdom supporter in Kingdom.All.Where(kingdom => IsValidPermanentRealm(kingdom)
@@ -492,11 +521,14 @@ namespace BellumCivile.Behaviors
                 bool isClient = otherClients.Contains(supporter);
                 bool isAlly = alliances?.IsAllyWithKingdom(suzerain, supporter) == true;
                 if (!isClient && !isAlly) continue;
-                suzerainBlocPower += ClientLiberationRules.BlocContribution(
+                float contribution = ClientLiberationRules.BlocContribution(
                     RebellionPowerHelper.CalculateFactionPower(supporter.Clans.Where(IsEligiblePoliticalClan)),
                     isAlly, isClient, C.ClientSuzerainAllyPowerContribution, C.ClientOtherClientPowerContribution);
+                if (isClient) otherClientsPower += contribution;
+                else alliesPower += contribution;
             }
 
+            float suzerainBlocPower = suzerainPower + otherClientsPower + alliesPower;
             float requiredRatio = RebellionPowerHelper.CalculateRebellionPowerThreshold(client.RulingClan?.Leader);
             float readiness = ClientLiberationRules.Readiness(effectiveClientPower, suzerainBlocPower, requiredRatio);
             float cooldown = Math.Max(0f, record.LiberationCooldownUntilDay - CurrentDay);
@@ -510,6 +542,9 @@ namespace BellumCivile.Behaviors
                 RealmLibertyDesire = realmDesire,
                 EffectiveClientPower = effectiveClientPower,
                 SuzerainBlocPower = suzerainBlocPower,
+                SuzerainPower = suzerainPower,
+                OtherClientsPower = otherClientsPower,
+                AlliesPower = alliesPower,
                 RequiredPowerRatio = requiredRatio,
                 LiberationReadiness = readiness,
                 CooldownRemainingDays = cooldown,
@@ -545,9 +580,12 @@ namespace BellumCivile.Behaviors
             };
             foreach (ClientClanLibertyAssessment clan in assessment.Clans.OrderByDescending(entry => entry.LibertyDesire))
             {
+                float warWill = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>()?.GetWarWill(clan.Clan) ?? 0f;
                 string reasons = string.Join(", ", clan.Reasons.Where(reason => Math.Abs(reason.Amount) > 0.01f)
                     .Select(reason => $"{reason.Label} {reason.Amount:+0;-0;0}"));
-                lines.Add($"- {clan.Clan.Name}: desire={clan.LibertyDesire:0.0}; {reasons}");
+                lines.Add($"- {clan.Clan.Name}: desire={clan.LibertyDesire:0.0}; war_will={warWill:0.0}; "
+                    + $"resolve={ClientLiberationRules.ResolveBonus(clan.LibertyDesire):0.0}; "
+                    + $"willingness={ClientLiberationRules.EffectiveWarWill(warWill, clan.LibertyDesire):0.0}; {reasons}");
             }
             return string.Join(Environment.NewLine, lines);
         }
@@ -884,11 +922,6 @@ namespace BellumCivile.Behaviors
                     case FactionType.Nobility:
                         if (!lawful)
                             AddReason(reasons, ref desire, C.ClientAristocratUnlawfulLiberty, "aristocratic legality");
-                        break;
-                    case FactionType.Royalists:
-                        AddReason(reasons, ref desire,
-                            relation >= 25 ? C.ClientRoyalistFriendlyLiberty : relation <= -25 ? -C.ClientRoyalistFriendlyLiberty : 0f,
-                            "royalist loyalty");
                         break;
                 }
             }

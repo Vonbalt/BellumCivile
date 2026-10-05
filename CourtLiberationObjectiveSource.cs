@@ -29,7 +29,7 @@ namespace BellumCivile
             float boostedCrown = Boosted?.Clans.FirstOrDefault(c => c.Clan == realm.RulingClan)?.LibertyDesire ?? 0;
             Eligible = Boosted?.CanAttemptLiberation == true && boostedCrown >= BellumCivileConstants.ClientClanLiberationDesireThreshold;
             float will = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>()?.GetWarWill(realm.RulingClan) ?? 0;
-            Viable = Eligible && will >= BellumCivileOptions.WarWillDeclareThreshold;
+            Viable = Eligible && ClientLiberationRules.EffectiveWarWill(will, boostedCrown) >= BellumCivileOptions.WarWillDeclareThreshold;
             Weight = Eligible ? CourtLiberationRules.Weight(Boosted.LiberationReadiness, crown,
                 realm.RulingClan.Leader.GetTraitLevel(DefaultTraits.Valor), realm.RulingClan.Leader.GetTraitLevel(DefaultTraits.Calculating)) : 0;
         }

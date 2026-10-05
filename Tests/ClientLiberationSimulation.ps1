@@ -13,7 +13,8 @@ function Assess($powers, $desires, $bonus, $bloc, $ratio = 0.8, $will = 75, $coo
     }
     $desire = $weighted/$total
     $ready = [BellumCivile.ClientLiberationRules]::Readiness($effective,$bloc,$ratio)
-    [pscustomobject]@{ Desire=$desire; Crown=$crown; Readiness=$ready; Eligible=($desire -ge 60 -and $crown -ge 60 -and $ready -ge 100 -and $will -ge 75 -and $cooldown -le 0) }
+    $willingness = [BellumCivile.ClientLiberationRules]::EffectiveWarWill($will, $crown)
+    [pscustomobject]@{ Desire=$desire; Crown=$crown; Readiness=$ready; Eligible=($desire -ge 60 -and $crown -ge 60 -and $ready -ge 100 -and $willingness -ge 75 -and $cooldown -le 0) }
 }
 Check ([BellumCivile.ClientLiberationRules]::BlocContribution(1000,$true,$true,0.5,0.5) -eq 500) 'A client ally contributes once, not twice.'
 Check ([BellumCivile.ClientLiberationRules]::BlocContribution(1000,$true,$false,0.5,0.5) -eq 500) 'Ordinary ally still contributes half.'
@@ -47,8 +48,9 @@ foreach ($desire in 0..100) {
 Check ((Assess @(1000) @(40) 20 1000).Eligible) '+20 mobilizes a sufficient-power restless realm.'
 Check (!(Assess @(1000) @(40) 15 1000).Eligible) '+15 does not bridge 40 to 60.'
 Check (!(Assess @(600) @(50) 25 1000).Eligible) 'Desire cannot overcome inadequate full strength.'
-Check (!(Assess @(1000) @(45) 20 1000 0.8 74).Eligible) 'War will remains a separate gate.'
+Check ((Assess @(1000) @(45) 20 1000 0.8 74).Eligible) 'Personal desire of 65 supplies enough resolve to bridge 74 War Will.'
+Check (!(Assess @(1000) @(45) 20 1000 0.8 70).Eligible) 'Insufficient War Will plus resolve still blocks a proposal.'
 Check (!(Assess @(1000) @(45) 20 1000 0.8 75 1).Eligible) 'Binding settlement cooldown remains a separate gate.'
 'Suzerain1000 + client-ally1000: old bloc2000, corrected bloc1500. With effective client1200 / required0.8: readiness75% ->100%.'
 Check ([Math]::Abs([BellumCivile.ClientLiberationRules]::Readiness(1200,1500,0.8)-100) -lt 0.001) 'Corrected bloc readiness.'
-"PASS: $script:checks liberation simulation assertions. Hypothetical motion bonuses are not enabled in gameplay."
+"PASS: $script:checks liberation simulation assertions. Production preparations use +20 desire; alternative preparation bonuses are comparative fixtures."

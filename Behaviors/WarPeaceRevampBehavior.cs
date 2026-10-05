@@ -313,7 +313,8 @@ namespace BellumCivile.Behaviors
                     ? C.WarPeaceRevampExistingWarDeclarationThresholdPenalty
                     : 0f);
             float warWill = GetWarWill(clan);
-            if (warWill < requiredWarWill)
+            // Client eligibility above already checks War Will with liberation resolve.
+            if (!liberationProposal && warWill < requiredWarWill)
             {
                 report = $"war will too low ({warWill:0.0}/{requiredWarWill:0.0})";
                 return false;
@@ -487,6 +488,10 @@ namespace BellumCivile.Behaviors
             WarTargetScore targetScore = GetRankedTargets(voter, forceRefresh: true)
                 .FirstOrDefault(score => score.TargetKingdom == target);
             float warWill = GetWarWill(voter);
+            ClientKingdomBehavior clients = ClientKingdomBehavior.Instance;
+            bool liberationTarget = clients?.IsClientOf(source, target) == true;
+            if (liberationTarget)
+                warWill = clients.GetLiberationWarWill(voter, target, warWill);
             float targetValue = targetScore?.Score ?? 0f;
             float trait = (voter.Leader?.GetTraitLevel(DefaultTraits.Valor) ?? 0) * 6f
                 - (voter.Leader?.GetTraitLevel(DefaultTraits.Mercy) ?? 0) * 5f;
@@ -495,7 +500,7 @@ namespace BellumCivile.Behaviors
             raw += CourtAgendaBehavior.Current?.SubjugationWarBonus(source, target, voter) ?? 0;
             raw += CourtAgendaBehavior.Current?.ClaimWarBonus(source, target, voter) ?? 0;
             raw -= Campaign.Current?.GetCampaignBehavior<HostagePactBehavior>()?.WarDeterrence(voter, target, council: true) ?? 0;
-            if (targetScore?.IsLiberationTarget != true)
+            if (!liberationTarget)
             {
                 WarFrontReadinessAssessment frontReadiness = WarFrontReadinessService.Assess(source, target);
                 if (frontReadiness.IsAdditionalFront)

@@ -2914,13 +2914,48 @@
     <string id="BC_MapClientState_ReasonForeignCulture" text="Foreign culture" />
     <string id="BC_MapClientState_ReasonRelations" text="Relations with the suzerain" />
     <string id="BC_MapClientState_ReasonMarriage" text="Marriage ties" />
-    <string id="BC_MapClientState_ReasonMilitarists" text="Militarist independence" />
-    <string id="BC_MapClientState_ReasonPopulists" text="Populist self-rule" />
-    <string id="BC_MapClientState_ReasonAristocrats" text="Aristocratic legality" />
+    <string id="BC_MapClientState_ReasonMilitarists" text="Glory: independence ambitions" />
+    <string id="BC_MapClientState_ReasonPopulists" text="Liberty: opposition to foreign rule" />
+    <string id="BC_MapClientState_ReasonAristocrats" text="Nobility: unlawful suzerainty" />
     <string id="BC_MapClientState_ReasonRoyalists" text="Traditionalist respect for authority" />
     <string id="BC_MapClientState_ReasonValor" text="Valor" />
     <string id="BC_MapClientState_ReasonMercy" text="Mercy" />
     <string id="BC_MapClientState_ReasonHonor" text="Honor" />
+    <string id="BC_ClientLiberation_WillingnessLow" text="Insufficient willingness for liberation ({CURRENT}/{REQUIRED}; War Will {WILL}, resolve +{RESOLVE})." />
+    <string id="BC_ClientTooltip_Suzerain" text="Suzerain" />
+    <string id="BC_ClientTooltip_PowerReadiness" text="Power readiness" />
+    <string id="BC_ClientTooltip_ReadinessValue" text="{CURRENT}% / 100% required" />
+    <string id="BC_ClientTooltip_ClientPower" text="Effective client power" />
+    <string id="BC_ClientTooltip_BlocPower" text="Opposing bloc power" />
+    <string id="BC_ClientTooltip_SuzerainPower" text="Suzerain's contribution" />
+    <string id="BC_ClientTooltip_ClientsPower" text="Other clients' contribution" />
+    <string id="BC_ClientTooltip_AlliesPower" text="Allies' contribution" />
+    <string id="BC_ClientTooltip_RequiredRatio" text="Required power ratio" />
+    <string id="BC_ClientTooltip_PowerNeeded" text="Power needed" />
+    <string id="BC_ClientTooltip_PowerBasis" text="Power combines military strength and influence; client support depends on Liberty Desire." />
+    <string id="BC_ClientTooltip_Proposer" text="Leading prospective proposer" />
+    <string id="BC_ClientTooltip_PersonalDesire" text="Personal liberty desire" />
+    <string id="BC_ClientTooltip_WarWill" text="War Will" />
+    <string id="BC_ClientTooltip_Resolve" text="Liberation resolve" />
+    <string id="BC_ClientTooltip_Willingness" text="Willingness to propose" />
+    <string id="BC_ClientTooltip_Influence" text="Influence" />
+    <string id="BC_ClientTooltip_CostReserve" text="Proposal cost / reserve" />
+    <string id="BC_ClientTooltip_Council" text="A declaration still requires a war council decision." />
+    <string id="BC_ClientTooltip_AtWar" text="The liberation war is already underway." />
+    <string id="BC_ClientTooltip_Disabled" text="Liberation proposals are inactive while the War and Peace Revamp is disabled." />
+    <string id="BC_ClientTooltip_LowDesire" text="Liberation blocked: the realm's desire for independence is too low." />
+    <string id="BC_ClientTooltip_LowPower" text="Liberation blocked: insufficient power." />
+    <string id="BC_ClientTooltip_Unavailable" text="Liberation is not currently available." />
+    <string id="BC_ClientTooltip_Pending" text="Liberation blocked: a war decision is already pending." />
+    <string id="BC_ClientTooltip_NoProposer" text="No eligible clan is available to propose liberation." />
+    <string id="BC_ClientTooltip_NoPersonalDesire" text="Liberation blocked: no eligible clan has sufficient personal desire for independence." />
+    <string id="BC_ClientTooltip_NoWillingness" text="Liberation blocked: no eligible clan has sufficient willingness to propose it." />
+    <string id="BC_ClientTooltip_NoInfluence" text="Liberation blocked: willing clans lack the influence needed to propose it while keeping their reserve." />
+    <string id="BC_ClientTooltip_NoTarget" text="Liberation blocked: otherwise eligible clans are still deterred from targeting the suzerain." />
+    <string id="BC_ClientTooltip_Permission" text="Liberation blocked: {REASON}" />
+    <string id="BC_ClientTooltip_Ready" text="Ready to propose liberation." />
+    <string id="BC_ClientTooltip_DesireLimits" text="Individual desire limits (0-100)" />
+    <string id="BC_ClientTooltip_Required" text="{CURRENT} / {REQUIRED} required" />
     <string id="BC_ClientKingdom_FormerOverlord" text="its former overlord" />
     <string id="BC_ClientKingdom_SuzerainCollapsed" text="With the recent collapse of {SUZERAIN_REALM}, {CLIENT_REALM} has regained its political independence." />
     <string id="BC_Parley_Reason_WeAreBeaten" text="We are beaten and cannot refuse these terms." />

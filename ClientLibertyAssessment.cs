@@ -19,6 +19,7 @@ namespace BellumCivile
     {
         public Clan Clan { get; }
         public float LibertyDesire { get; }
+        public float Power { get; set; }
         public IReadOnlyList<ClientLibertyReason> Reasons { get; }
 
         public ClientClanLibertyAssessment(Clan clan, float libertyDesire, IReadOnlyList<ClientLibertyReason> reasons)
@@ -38,6 +39,9 @@ namespace BellumCivile
         public float RealmLibertyDesire { get; set; }
         public float EffectiveClientPower { get; set; }
         public float SuzerainBlocPower { get; set; }
+        public float SuzerainPower { get; set; }
+        public float OtherClientsPower { get; set; }
+        public float AlliesPower { get; set; }
         public float RequiredPowerRatio { get; set; }
         public float LiberationReadiness { get; set; }
         public float CooldownRemainingDays { get; set; }

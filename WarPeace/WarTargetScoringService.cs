@@ -72,7 +72,19 @@ namespace BellumCivile.WarPeace
             return scores;
         }
 
-        private WarTargetScore ScoreTarget(ScoringContext context, TargetContext target)
+        internal WarTargetScore ScoreLiberationTarget(Clan clan, ClientLibertyAssessment liberty)
+        {
+            if (!IsValidClan(clan) || !IsValidKingdom(liberty?.ClientKingdom)
+                || !IsValidKingdom(liberty.SuzerainKingdom) || clan.Kingdom != liberty.ClientKingdom)
+                return null;
+
+            // Hover previews share the existing assessment and never publish AI target preferences.
+            return ScoreTarget(BuildScoringContext(clan, liberty.ClientKingdom),
+                BuildTargetContext(liberty.SuzerainKingdom), liberty);
+        }
+
+        private WarTargetScore ScoreTarget(ScoringContext context, TargetContext target,
+            ClientLibertyAssessment liberationAssessment = null)
         {
             Clan clan = context.Clan;
             Kingdom sourceKingdom = context.SourceKingdom;
@@ -121,7 +133,7 @@ namespace BellumCivile.WarPeace
 
             if (liberationTarget)
             {
-                ClientLibertyAssessment liberty = clients.BuildLibertyAssessment(sourceKingdom);
+                ClientLibertyAssessment liberty = liberationAssessment ?? clients.BuildLibertyAssessment(sourceKingdom);
                 float clanDesire = liberty?.Clans.FirstOrDefault(entry => entry.Clan == clan)?.LibertyDesire ?? 0f;
                 float libertyScore = clanDesire * C.ClientLiberationTargetScoreScale;
                 result.Score += libertyScore;

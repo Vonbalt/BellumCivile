@@ -73,6 +73,14 @@ internal static class Program
                 CrownHouseholdRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} Crown household recovery checks passed.");
             }
+            else if (args.Contains("--client-liberation"))
+            {
+                ClientLiberationResolveTests.Run(Check);
+                ClientLiberationEngineTests.Run(Check);
+                CourtLiberationEngineTests.Run(Check);
+                DiplomacyOverviewTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} client liberation checks passed.");
+            }
             else if (args.Contains("--hostage-pacts"))
             {
                 HostagePactRulesTests.Run(Check);
@@ -609,6 +617,7 @@ internal static class Program
         CourtMandateEngineTests.Run(Check);
         RoyalPeaceEngineTests.Run(Check);
         CourtRoyalPeaceEngineTests.Run(Check);
+        ClientLiberationResolveTests.Run(Check);
         ClientLiberationEngineTests.Run(Check);
         EstateRecoveryTests.Run(Check);
         CourtLiberationEngineTests.Run(Check);

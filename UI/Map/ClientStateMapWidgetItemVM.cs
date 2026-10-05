@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
 using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
@@ -103,7 +104,11 @@ namespace BellumCivile.UI.Map
         }
 
         private List<TooltipProperty> BuildTooltipProperties()
-            => ClientLibertyTooltip.Build(_assessment);
+        {
+            var clients = Campaign.Current?.GetCampaignBehavior<ClientKingdomBehavior>();
+            return ClientLibertyTooltip.Build(clients != null
+                ? clients.BuildLibertyAssessment(_assessment?.ClientKingdom) : _assessment);
+        }
     }
 
     internal static class ClientLibertyTooltip
@@ -123,42 +128,59 @@ namespace BellumCivile.UI.Map
                 false,
                 TooltipProperty.TooltipPropertyFlags.Title));
 
-            AddValueRow(properties, new TextObject("{=BC_MapClientState_LibertyDesire}Liberty Desire"), assessment.RealmLibertyDesire.ToString("0"));
-            AddValueRow(properties, new TextObject("{=BC_MapClientState_LiberationReadiness}Liberation Readiness"), assessment.LiberationReadiness.ToString("0") + "%");
-
-            properties.Add(new TooltipProperty(
-                string.Empty,
-                GetStatus(assessment).ToString(),
-                0,
-                false,
-                TooltipProperty.TooltipPropertyFlags.MultiLine));
+            if (assessment.SuzerainKingdom != null)
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_Suzerain}Suzerain"), assessment.SuzerainKingdom.Name.ToString());
+            ClientLiberationProposalAssessment proposer = ClientLiberationProposalAssessment.FindBest(assessment);
+            AddParagraph(properties, GetStatus(assessment, proposer));
 
             AddSeparator(properties);
-            properties.Add(new TooltipProperty(
-                new TextObject("{=BC_MapClientState_PrincipalCauses}Principal causes").ToString(),
-                string.Empty,
-                0));
+            AddValueRow(properties, new TextObject("{=BC_MapClientState_LibertyDesire}Liberty Desire"),
+                Required(assessment.RealmLibertyDesire, C.ClientRealmLiberationDesireThreshold));
 
             foreach (KeyValuePair<string, float> reason in BuildRealmReasons(assessment))
                 AddValueRow(properties, ResolveReasonLabel(reason.Key), FormatSigned(reason.Value));
 
-            ClientClanLibertyAssessment mostDefiant = assessment.Clans?
-                .Where(entry => entry?.Clan != null)
-                .OrderByDescending(entry => entry.LibertyDesire)
-                .ThenByDescending(entry => RebellionPowerHelper.CalculateClanPower(entry.Clan))
-                .FirstOrDefault();
-            if (mostDefiant != null)
+            AddSeparator(properties);
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_PowerReadiness}Power readiness"),
+                new TextObject("{=BC_ClientTooltip_ReadinessValue}{CURRENT}% / 100% required")
+                    .SetTextVariable("CURRENT", assessment.LiberationReadiness.ToString("0.#")).ToString());
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_ClientPower}Effective client power"), assessment.EffectiveClientPower.ToString("0.#"));
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_BlocPower}Opposing bloc power"), assessment.SuzerainBlocPower.ToString("0.#"));
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_SuzerainPower}Suzerain's contribution"), assessment.SuzerainPower.ToString("0.#"));
+            if (assessment.OtherClientsPower > 0f)
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_ClientsPower}Other clients' contribution"), assessment.OtherClientsPower.ToString("0.#"));
+            if (assessment.AlliesPower > 0f)
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_AlliesPower}Allies' contribution"), assessment.AlliesPower.ToString("0.#"));
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_RequiredRatio}Required power ratio"), (assessment.RequiredPowerRatio * 100f).ToString("0.#") + "%");
+            AddValueRow(properties, new TextObject("{=BC_ClientTooltip_PowerNeeded}Power needed"), (assessment.SuzerainBlocPower * assessment.RequiredPowerRatio).ToString("0.#"));
+            AddParagraph(properties, new TextObject("{=BC_ClientTooltip_PowerBasis}Power combines military strength and influence; client support depends on Liberty Desire."));
+
+            if (proposer != null)
             {
                 AddSeparator(properties);
-                string value = $"{mostDefiant.Clan.Name} ({mostDefiant.LibertyDesire:0})";
-                AddValueRow(properties, new TextObject("{=BC_MapClientState_MostDefiantClan}Most defiant clan"), value);
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_Proposer}Leading prospective proposer"), proposer.Candidate.Clan.Name.ToString());
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_PersonalDesire}Personal liberty desire"),
+                    Required(proposer.Candidate.LibertyDesire, C.ClientClanLiberationDesireThreshold));
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_WarWill}War Will"), proposer.WarWill.ToString("0.#"));
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_Resolve}Liberation resolve"), FormatSigned(proposer.Resolve));
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_Willingness}Willingness to propose"),
+                    Required(proposer.Willingness, BellumCivileOptions.WarWillDeclareThreshold));
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_Influence}Influence"),
+                    Required(proposer.Budget.CurrentInfluence, proposer.Budget.RequiredInfluence));
+                AddValueRow(properties, new TextObject("{=BC_ClientTooltip_CostReserve}Proposal cost / reserve"),
+                    proposer.Budget.RequestedCost.ToString("0.#") + " / " + proposer.Budget.ProtectedReserve.ToString("0.#"));
             }
+            AddParagraph(properties, new TextObject("{=BC_ClientTooltip_Council}A declaration still requires a war council decision."));
 
             return properties;
         }
 
-        private static TextObject GetStatus(ClientLibertyAssessment assessment)
+        private static TextObject GetStatus(ClientLibertyAssessment assessment, ClientLiberationProposalAssessment proposer)
         {
+            if (assessment.SuzerainKingdom != null && assessment.ClientKingdom.IsAtWarWith(assessment.SuzerainKingdom))
+                return new TextObject("{=BC_ClientTooltip_AtWar}The liberation war is already underway.");
+            if (!WarPeaceRevampBehavior.IsRevampEnabled())
+                return new TextObject("{=BC_ClientTooltip_Disabled}Liberation proposals are inactive while the War and Peace Revamp is disabled.");
             if (assessment.CooldownRemainingDays > 0f)
             {
                 TextObject status = new TextObject("{=BC_MapClientState_StatusBound}The settlement remains binding for {DAYS} more days.");
@@ -167,20 +189,34 @@ namespace BellumCivile.UI.Map
             }
 
             if (assessment.RealmLibertyDesire < C.ClientRealmLiberationDesireThreshold)
-                return new TextObject("{=BC_MapClientState_StatusContent}The client realm remains broadly content with its present settlement.");
+                return new TextObject("{=BC_ClientTooltip_LowDesire}Liberation blocked: the realm's desire for independence is too low.");
 
             if (assessment.LiberationReadiness < 100f)
-                return new TextObject("{=BC_MapClientState_StatusWeak}The client realm desires independence but presently lacks the strength to revolt.");
+                return new TextObject("{=BC_ClientTooltip_LowPower}Liberation blocked: insufficient power.");
+            if (!assessment.CanAttemptLiberation)
+                return new TextObject("{=BC_ClientTooltip_Unavailable}Liberation is not currently available.");
+            if (assessment.ClientKingdom.UnresolvedDecisions.Any(decision => decision is DeclareWarDecision))
+                return new TextObject("{=BC_ClientTooltip_Pending}Liberation blocked: a war decision is already pending.");
+            if (proposer == null)
+                return new TextObject("{=BC_ClientTooltip_NoProposer}No eligible clan is available to propose liberation.");
 
-            WarPeaceRevampBehavior warWill = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>();
-            bool hasReadyAgitator = assessment.Clans != null && assessment.Clans.Any(entry =>
-                entry?.Clan != null
-                && entry.LibertyDesire >= C.ClientClanLiberationDesireThreshold
-                && (warWill?.GetWarWill(entry.Clan) ?? 0f) >= BellumCivileOptions.WarWillDeclareThreshold);
-
-            return hasReadyAgitator
-                ? new TextObject("{=BC_MapClientState_StatusReady}The client realm is ready to seek liberation.")
-                : new TextObject("{=BC_MapClientState_StatusNoAgitator}The client realm is defiant, but no leading clan currently has the will to begin a liberation war.");
+            switch (proposer.Blocker)
+            {
+                case ClientLiberationProposalBlocker.PersonalDesire:
+                    return new TextObject("{=BC_ClientTooltip_NoPersonalDesire}Liberation blocked: no eligible clan has sufficient personal desire for independence.");
+                case ClientLiberationProposalBlocker.Willingness:
+                    return new TextObject("{=BC_ClientTooltip_NoWillingness}Liberation blocked: no eligible clan has sufficient willingness to propose it.");
+                case ClientLiberationProposalBlocker.Influence:
+                    return new TextObject("{=BC_ClientTooltip_NoInfluence}Liberation blocked: willing clans lack the influence needed to propose it while keeping their reserve.");
+                case ClientLiberationProposalBlocker.StrategicTarget:
+                    return new TextObject("{=BC_ClientTooltip_NoTarget}Liberation blocked: otherwise eligible clans are still deterred from targeting the suzerain.");
+                case ClientLiberationProposalBlocker.Permission:
+                    return proposer.PermissionReason != null && !proposer.PermissionReason.IsEmpty()
+                        ? new TextObject("{=BC_ClientTooltip_Permission}Liberation blocked: {REASON}").SetTextVariable("REASON", proposer.PermissionReason)
+                        : new TextObject("{=BC_ClientTooltip_Unavailable}Liberation is not currently available.");
+                default:
+                    return new TextObject("{=BC_ClientTooltip_Ready}Ready to propose liberation.");
+            }
         }
 
         private static IEnumerable<KeyValuePair<string, float>> BuildRealmReasons(ClientLibertyAssessment assessment)
@@ -188,19 +224,22 @@ namespace BellumCivile.UI.Map
             Dictionary<string, float> weightedReasons = new Dictionary<string, float>();
             float totalWeight = assessment.Clans?
                 .Where(entry => entry?.Clan != null)
-                .Sum(entry => Math.Max(1f, RebellionPowerHelper.CalculateClanPower(entry.Clan))) ?? 0f;
+                .Sum(entry => Math.Max(1f, entry.Power)) ?? 0f;
             if (totalWeight <= 0f)
                 return Enumerable.Empty<KeyValuePair<string, float>>();
 
             foreach (ClientClanLibertyAssessment clanAssessment in assessment.Clans.Where(entry => entry?.Clan != null))
             {
-                float weight = Math.Max(1f, RebellionPowerHelper.CalculateClanPower(clanAssessment.Clan)) / totalWeight;
-                foreach (ClientLibertyReason reason in clanAssessment.Reasons.Where(reason => Math.Abs(reason.Amount) >= 0.01f))
+                float weight = Math.Max(1f, clanAssessment.Power) / totalWeight;
+                foreach (ClientLibertyReason reason in clanAssessment.Reasons)
                 {
                     if (!weightedReasons.ContainsKey(reason.Label))
                         weightedReasons[reason.Label] = 0f;
                     weightedReasons[reason.Label] += reason.Amount * weight;
                 }
+                float clamp = clanAssessment.LibertyDesire - clanAssessment.Reasons.Sum(reason => reason.Amount);
+                if (!weightedReasons.ContainsKey("desire limits")) weightedReasons["desire limits"] = 0f;
+                weightedReasons["desire limits"] += clamp * weight;
             }
 
             return weightedReasons
@@ -221,13 +260,13 @@ namespace BellumCivile.UI.Map
                 case "foreign culture": return new TextObject("{=BC_MapClientState_ReasonForeignCulture}Foreign culture");
                 case "relations with suzerain": return new TextObject("{=BC_MapClientState_ReasonRelations}Relations with the suzerain");
                 case "marriage tie to suzerain": return new TextObject("{=BC_MapClientState_ReasonMarriage}Marriage ties");
-                case "militarist independence": return new TextObject("{=BC_MapClientState_ReasonMilitarists}Militarist independence");
-                case "populist self-rule": return new TextObject("{=BC_MapClientState_ReasonPopulists}Populist self-rule");
-                case "aristocratic legality": return new TextObject("{=BC_MapClientState_ReasonAristocrats}Aristocratic legality");
-                case "royalist loyalty": return new TextObject("{=BC_MapClientState_ReasonRoyalists}Traditionalist respect for authority");
+                case "militarist independence": return new TextObject("{=BC_MapClientState_ReasonMilitarists}Glory: independence ambitions");
+                case "populist self-rule": return new TextObject("{=BC_MapClientState_ReasonPopulists}Liberty: opposition to foreign rule");
+                case "aristocratic legality": return new TextObject("{=BC_MapClientState_ReasonAristocrats}Nobility: unlawful suzerainty");
                 case "valor": return new TextObject("{=BC_MapClientState_ReasonValor}Valor");
                 case "mercy": return new TextObject("{=BC_MapClientState_ReasonMercy}Mercy");
                 case "honor": return new TextObject("{=BC_MapClientState_ReasonHonor}Honor");
+                case "desire limits": return new TextObject("{=BC_ClientTooltip_DesireLimits}Individual desire limits (0-100)");
                 default: return new TextObject(label ?? string.Empty);
             }
         }
@@ -236,6 +275,15 @@ namespace BellumCivile.UI.Map
         {
             properties.Add(new TooltipProperty(label.ToString(), value, 0));
         }
+
+        private static string Required(float current, float required)
+            => new TextObject("{=BC_ClientTooltip_Required}{CURRENT} / {REQUIRED} required")
+                .SetTextVariable("CURRENT", current.ToString("0.#"))
+                .SetTextVariable("REQUIRED", required.ToString("0.#")).ToString();
+
+        private static void AddParagraph(List<TooltipProperty> properties, TextObject text)
+            => properties.Add(new TooltipProperty(string.Empty, text.ToString(), 0, false,
+                TooltipProperty.TooltipPropertyFlags.MultiLine));
 
         private static void AddSeparator(List<TooltipProperty> properties)
         {
