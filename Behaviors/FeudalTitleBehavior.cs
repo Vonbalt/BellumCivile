@@ -4432,7 +4432,7 @@ namespace BellumCivile.Behaviors
             string holderClanId = kingdom.RulingClan?.StringId ?? string.Empty;
             string capitalSettlementId = SelectKingdomCapital(kingdom)?.StringId ?? string.Empty;
             string baseTitleName = ResolveConfiguredKingdomTitleRoot(kingdom)
-                ?? DynamicKingdomTitleNameHelper.GetNativeName(kingdom)
+                ?? DynamicKingdomTitleNameHelper.GetNativeTitleRoot(kingdom)
                 ?? kingdom.StringId;
             string titleName = ResolveEffectiveConfiguredTitleName(titleId, baseTitleName);
 

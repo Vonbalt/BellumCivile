@@ -36,6 +36,9 @@ internal static class RealmNameTests
     private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
     private static bool Banner(ref TaleWorlds.Core.Banner __result) { __result = null; return false; }
+    private static bool NoCapital(ref TaleWorlds.CampaignSystem.Settlements.Settlement __result)
+    { __result = null; return false; }
+    private static bool Day(ref float __result) { __result = 100; return false; }
     private static bool All(ref MBReadOnlyList<Kingdom> __result)
     { __result = new MBReadOnlyList<Kingdom>(new List<Kingdom> { _realm }); return false; }
     private static bool Sovereign(ref FeudalTitleRecord __result)
@@ -52,7 +55,9 @@ internal static class RealmNameTests
         {
             ["BC_Test_RealmRoot"] = "Valandie", ["BC_Test_NativeRealm"] = "Valandie",
             ["BC_Test_RealmRank"] = "Royaume", ["BC_Test_RealmFormat"] = "{TITLE_NAME} ({TITLE_NOUN})",
-            ["BC_Test_Territory"] = "Morcombie"
+            ["BC_Test_Territory"] = "Morcombie",
+            ["BC_Test_House"] = "Corenios traduits",
+            ["BC_Resolution_EmpireIndep"] = "{CLAN_NAME} : despotat"
         };
 
     internal static void Run(Action<bool, string> check)
@@ -277,6 +282,129 @@ internal static class RealmNameTests
             Call("DynamicKingdomTitleNameHelper", "BeginCampaign");
             SaveCheck(_realm, "My Realm", "My Realm", "Native encyclopedia");
             check(true, "Saving before any display read preserves collector/value identity for all three fields");
+
+            Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "SelectKingdomCapital"), nameof(NoCapital));
+            Patch(AccessTools.PropertyGetter(typeof(FeudalTitleBehavior), "CurrentDay"), nameof(Day));
+            var titles = (IDictionary)AccessTools.Field(typeof(FeudalTitleBehavior), "_titlesById").GetValue(FeudalTitleBehavior.Instance);
+            var overrides = (IDictionary)AccessTools.Field(typeof(FeudalTitleBehavior), "_playerTitleNameOverrides").GetValue(FeudalTitleBehavior.Instance);
+            var configuredNames = (IDictionary)AccessTools.Field(config.GetType(), "_titleNames").GetValue(config);
+            var ensure = AccessTools.Method(typeof(FeudalTitleBehavior), "EnsureKingdomTitle",
+                new[] { typeof(Kingdom), typeof(string), typeof(bool).MakeByRefType() });
+            bool Repair()
+            {
+                object[] args = { _realm, "realm naming regression test", false };
+                _title = (FeudalTitleRecord)ensure.Invoke(FeudalTitleBehavior.Instance, args);
+                Revise();
+                return (bool)args[2];
+            }
+            void LoadGeneratedRealm(string id, TextObject native)
+            {
+                _realm.StringId = id;
+                Rename(native, native.CopyTextObject());
+                foreach (string field in new[] { "_realmIdentityRoots", "_realmIdentityNativeNames" })
+                    ((IDictionary)AccessTools.Field(typeof(FeudalTitleBehavior), field).GetValue(FeudalTitleBehavior.Instance)).Clear();
+                Call("DynamicKingdomTitleNameHelper", "BeginCampaign");
+                AddRoot("unrelated_realm", "Unrelated", "Unrelated");
+                Call("DynamicKingdomTitleNameHelper", "RecordLoadedNativeNames", _realm, native, native,
+                    new TextObject("Native encyclopedia"));
+            }
+            TextObject Generated(string template, string root) => new TextObject(template)
+                .SetTextVariable("CLAN_NAME", new TextObject(root));
+            var examples = new[]
+            {
+                new[] { "corenios", "{=BC_Resolution_EmpireIndep}Despotate of {CLAN_NAME}", "Corenios", "Exarchate" },
+                new[] { "cortain", "{=BC_Resolution_VlandiaIndep}Duchy of {CLAN_NAME}", "dey Cortain", "Exarchate" },
+                new[] { "folcun", "{=BC_Resolution_VlandiaIndep}Duchy of {CLAN_NAME}", "dey Folcun", "Kingdom" }
+            };
+            foreach (var example in examples)
+            {
+                string id = "test_indep_" + example[0], root = example[2], rank = example[3];
+                var native = Generated(example[1], root);
+                LoadGeneratedRealm(id, native);
+                xml.LoadXml("<TitleStyle kingdom='" + id + "'><Rank tier='Kingdom' titleName='" + rank + "' /></TitleStyle>");
+                ((IList)AccessTools.Field(config.GetType(), "_styles").GetValue(config)).Add(
+                    AccessTools.Method(Type("FeudalTitleConfig"), "ReadTitleStyle").Invoke(null, new object[] { xml.DocumentElement }));
+                string titleId = "bc_title_kingdom_" + id;
+                var existing = new FeudalTitleRecord(titleId, native.ToString(), FeudalTitleType.Kingdom,
+                    _house.StringId, _house.StringId, "", "", id, 0, 0);
+                titles[titleId] = existing;
+                check(Repair() && ReferenceEquals(existing, _title) && _title.Name == root,
+                    "Existing generated Crown root repaired in place: " + root);
+                check(_title.TitleType == FeudalTitleType.Kingdom && _title.DeJureHolderClanId == _house.StringId
+                    && _title.DeFactoHolderClanId == _house.StringId && _title.AssociatedKingdomId == id,
+                    "Name repair leaves rank, holders and realm unchanged: " + root);
+                check(!Repair(), "Repeated generated-name repair is idempotent: " + root);
+                Mode(settings, 2);
+                AssertNames(rank + " of " + root, root, "Repaired Sovereign mode: " + root);
+                check((string)AccessTools.Method(Type("FeudalTitleDisplayHelper"), "FormatTitleName",
+                    new[] { typeof(FeudalTitleRecord), typeof(Clan) }).Invoke(null, new object[] { _title, _house }) == rank + " of " + root,
+                    "Hierarchy formatting agrees with realm name: " + root);
+                Mode(settings, 1);
+                AssertNames(rank + " of " + root, root, "Generated Realm Identity mode: " + root);
+                Mode(settings, 0);
+                check(Full.ToString() == native.ToString(), "Generated native name remains untouched: " + root);
+                SaveCheck(_realm, native.ToString(), native.ToString(), "Native encyclopedia");
+                Mode(settings, 2);
+                titles.Remove(titleId);
+                check(Repair() && _title.Name == root, "New generated Crown starts with a clean root: " + root);
+                overrides[titleId] = "Duchy of My Choice";
+                Repair();
+                check(_title.Name == "Duchy of My Choice", "Explicit title rename wins over generated root: " + root);
+                overrides.Remove(titleId);
+                configuredNames[titleId] = "{=BC_Test_Territory}Morcomb";
+                Repair();
+                check(_title.Name == "{=BC_Test_Territory}Morcomb", "Configured localized title name wins: " + root);
+                configuredNames.Remove(titleId);
+            }
+
+            foreach (string template in new[]
+            {
+                "{=BC_Resolution_BattaniaIndep}Chiefdom of {CLAN_NAME}",
+                "{=BC_Resolution_SturgiaIndep}Principality of {CLAN_NAME}",
+                "{=BC_Resolution_NordIndep}Jarldom of {CLAN_NAME}",
+                "{=BC_Resolution_AseraiIndep}Emirate of {CLAN_NAME}",
+                "{=BC_Resolution_KhuzaitIndep}{CLAN_NAME} Horde",
+                "{=BC_Resolution_DefaultIndep}{CLAN_NAME} Confederacy"
+            })
+            {
+                var root = (TextObject)Call("IndependentKingdomProfileHelper", "ResolveFallbackNameRoot",
+                    Generated(template, "{=BC_Test_House}Corenios"));
+                check(root?.Value == "{=BC_Test_House}Corenios", "Cultural fallback recovers only the localized house: " + template);
+            }
+            foreach (var invalid in new[] { null, new TextObject("Duchy of Custom Land"),
+                Generated("{=ThirdParty_Realm}Duchy of {CLAN_NAME}", "My House"),
+                new TextObject("{=BC_Resolution_EmpireIndep}Despotate of {CLAN_NAME}"),
+                Generated("{=BC_Resolution_EmpireIndep}Despotate of {CLAN_NAME}", "") })
+                check(Call("IndependentKingdomProfileHelper", "ResolveFallbackNameRoot", invalid) == null,
+                    "Unknown or incomplete native name is not guessed or stripped");
+
+            var translatedNative = Generated(examples[0][1], "{=BC_Test_House}Corenios");
+            LoadGeneratedRealm("vlandia", translatedNative);
+            check(Repair() && _title.Name == "{=BC_Test_House}Corenios", "Generated Crown retains the house translation token");
+            Mode(settings, 2);
+            AssertNames("Kingdom of Corenios", "Corenios", "Generated localized Crown in English");
+            languageField.SetValue(null, "BellumTestLanguage"); languageIndex.SetValue(null, 42);
+            check(Call("DynamicKingdomTitleNameHelper", "GetNativeName", _realm).ToString() == "Corenios traduits : despotat",
+                "Native generated template follows translated word order");
+            AssertNames("Corenios traduits (Royaume)", "Corenios traduits", "Generated sovereign translated without rank duplication");
+            check(!Repair(), "Language change does not rewrite generated title records");
+            Mode(settings, 1);
+            AssertNames("Corenios traduits (Royaume)", "Corenios traduits", "Generated identity translated without rank duplication");
+            languageField.SetValue(null, previousLanguage); languageIndex.SetValue(null, previousIndex);
+            _house.StringId = "a_different_ruling_house";
+            check((string)Call("DynamicKingdomTitleNameHelper", "GetNativeTitleRoot", _realm) == "{=BC_Test_House}Corenios",
+                "Root recovery uses the original house, not the current ruling dynasty");
+            _house.StringId = "test_house";
+            var dynamicHouse = new TextObject("{=!}{HOUSE}-{ESTATE}").SetTextVariable("HOUSE", "dey Folcun").SetTextVariable("ESTATE", "Meroc");
+            LoadGeneratedRealm("test_dynamic_house", new TextObject(examples[2][1]).SetTextVariable("CLAN_NAME", dynamicHouse));
+            Repair();
+            check(new TextObject(_title.Name).ToString() == "dey Folcun-Meroc" && !_title.Name.Contains("{HOUSE}"),
+                "Dynamic clan names become complete literal roots in string-backed title records");
+            Rename(new TextObject("{=!}My Chosen Realm"), new TextObject("My Chosen Realm"));
+            check(Call("DynamicKingdomTitleNameHelper", "GetGeneratedRealmRoot", _realm) == null,
+                "Explicit realm rename stops generated-root recovery");
+            Mode(settings, 1);
+            AssertNames("Kingdom of My Chosen Realm", "My Chosen Realm", "Explicit realm identity rename remains authoritative");
         }
         finally
         {

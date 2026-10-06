@@ -413,7 +413,8 @@ namespace BellumCivile
                     string nativeName = GetNativeName(kingdom);
                     string identity = titleBehavior.GetRealmIdentityRoot(kingdom, nativeName);
                     root = !string.IsNullOrWhiteSpace(identity) ? new TextObject(identity)
-                        : RealmNameConfig.ResolveRootText(kingdom.StringId, nativeName);
+                        : RealmNameConfig.ResolveRootText(kingdom.StringId, nativeName)
+                            ?? GetGeneratedRealmRoot(kingdom);
                 }
                 if (root == null || root.IsEmpty())
                     return false;
@@ -443,16 +444,38 @@ namespace BellumCivile
 
         public static string GetNativeName(Kingdom kingdom)
         {
+            return GetNativeNameText(kingdom)?.ToString();
+        }
+
+        internal static TextObject GetGeneratedRealmRoot(Kingdom kingdom)
+        {
+            return IndependentKingdomProfileHelper.ResolveFallbackNameRoot(GetNativeNameText(kingdom));
+        }
+
+        internal static string GetNativeTitleRoot(Kingdom kingdom)
+        {
+            TextObject root = GetGeneratedRealmRoot(kingdom);
+            if (root == null)
+                return GetNativeName(kingdom);
+
+            // Title records store strings. Keep translation tokens where possible,
+            // and snapshot dynamic clan names without leaving unbound variables.
+            return root.Attributes == null || root.Attributes.Count == 0
+                ? root.Value : "{=!}" + root.ToString();
+        }
+
+        private static TextObject GetNativeNameText(Kingdom kingdom)
+        {
             if (kingdom == null)
                 return null;
 
             TextObject recorded = ResolveRecordedNativeText(kingdom, KingdomDisplayNameField.Name);
             if (recorded != null)
-                return recorded.ToString();
+                return recorded;
 
             using (BeginNativeNameReadScope())
             {
-                return kingdom.Name?.ToString();
+                return kingdom.Name;
             }
         }
 

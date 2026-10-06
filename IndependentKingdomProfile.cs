@@ -38,6 +38,32 @@ namespace BellumCivile
 
     internal static class IndependentKingdomProfileHelper
     {
+        internal static TextObject ResolveFallbackNameRoot(TextObject name)
+        {
+            // Recover only our generated names, never infer a rank from a player's text.
+            switch (name?.GetID())
+            {
+                case "BC_Resolution_VlandiaIndep":
+                case "BC_Resolution_BattaniaIndep":
+                case "BC_Resolution_SturgiaIndep":
+                case "BC_Resolution_NordIndep":
+                case "BC_Resolution_EmpireIndep":
+                case "BC_Resolution_AseraiIndep":
+                case "BC_Resolution_KhuzaitIndep":
+                case "BC_Resolution_DefaultIndep":
+                    if (name.Attributes != null
+                        && name.Attributes.TryGetValue("CLAN_NAME", out object value)
+                        && value is TextObject root
+                        && !root.IsEmpty())
+                    {
+                        return root.CopyTextObject();
+                    }
+                    break;
+            }
+
+            return null;
+        }
+
         public static IndependentKingdomProfile Create(Clan leaderClan, Kingdom parentKingdom)
         {
             CultureObject culture = leaderClan?.Culture ?? parentKingdom?.Culture;
