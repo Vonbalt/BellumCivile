@@ -505,7 +505,7 @@ namespace BellumCivile.Behaviors
             {
                 if (enemy == null || !enemy.IsAlive || enemy == killer)
                     continue;
-                ApplyDirectMemory(enemy, killer, 5, RelationMemorySources.KilledEnemy, 5f,
+                ApplyDirectMemory(enemy, killer, 5, RelationMemorySources.KilledEnemy, 10f,
                     RelationMemoryScope.Personal, victim.Name?.ToString());
             }
         }

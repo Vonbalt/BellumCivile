@@ -467,7 +467,7 @@ namespace BellumCivile
         public const float FeudalClaimFabricationAiSadisticMultiplier = 1.20f;
         public const float FeudalClaimFabricationBaseDiscoveryChance = 0.10f;
         public const int PrisonerDonationRelationCap = 20;
-        public const float PrisonerDonationMemoryYears = 5f;
+        public const float PrisonerDonationMemoryYears = 2f;
         public const float FeudalClaimFabricationDiscoverySkillStep = 10f;
         public const float FeudalClaimFabricationDiscoveryChancePerSkillStep = 0.01f;
         public const float FeudalClaimFabricationMinimumDiscoveryChance = 0.02f;

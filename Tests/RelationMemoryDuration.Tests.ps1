@@ -1,10 +1,26 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $behavior = Get-Content (Join-Path $root 'Behaviors/DynamicRelationBehavior.cs') -Raw
+$constants = Get-Content (Join-Path $root 'BellumCivileConstants.cs') -Raw
+$donation = Get-Content (Join-Path $root 'Patches/PrisonerDonationRelationMemoryPatch.cs') -Raw
+if ($behavior -notmatch 'ApplyDirectMemory\(enemy, killer, 5, RelationMemorySources\.KilledEnemy, 10f,\s*RelationMemoryScope\.Personal') {
+    throw 'Killed-enemy memory must remain personal and grant +5 for ten years.'
+}
+if ($constants -notmatch 'const float PrisonerDonationMemoryYears = 2f;' -or
+    $constants -notmatch 'const int PrisonerDonationRelationCap = 20;') {
+    throw 'Prisoner donation memories must last two years with the existing +20 cap.'
+}
+if ($donation -notmatch 'RelationMemoryService\.Begin\(RelationMemorySources\.DeliveredNoblePrisoners,\s*BellumCivileConstants\.PrisonerDonationMemoryYears, RelationMemoryScope\.House\)') {
+    throw 'Prisoner donation must use the configured base duration and house scope.'
+}
 $start = $behavior.IndexOf('        private void RefreshMemoryDurationMultiplier()')
 $end = $behavior.IndexOf('        private void EnsureCollectionsInitialized()', $start)
 if ($start -lt 0 -or $end -le $start) { throw 'Duration refresh method missing.' }
 $refresh = $behavior.Substring($start, $end - $start)
+$start = $behavior.IndexOf('        private void ClearVisibleRelationCache()')
+$end = $behavior.IndexOf('        internal int LimitClientGrantGain(', $start)
+if ($start -lt 0 -or $end -le $start) { throw 'Visible cache reset method missing.' }
+$clear = $behavior.Substring($start, $end - $start)
 $harness = @'
 using System;
 using System.Collections.Generic;
@@ -22,6 +38,8 @@ namespace BellumCivile {
   private float CurrentDay = 25f;
   private List<RelationMemoryRecord> _relationMemories = new List<RelationMemoryRecord>();
   private Dictionary<int, int> _visibleRelationCache = new Dictionary<int, int>();
+  private Queue<int> _visiblePruneQueue = new Queue<int>();
+  private HashSet<int> _queuedVisibleKeys = new HashSet<int>();
   private static RelationMemoryRecord Make(float end = 100f, int value = 10, float decay = 0f) {
    return new RelationMemoryRecord(RelationMemoryScope.Personal, "a", "b", "test", "", value, 0f, end, decay);
   }
@@ -52,10 +70,12 @@ namespace BellumCivile {
    Near(RelationMemoryRecord.NormalizeDurationMultiplier(10), 5, "Upper clamp");
    Near(RelationMemoryRecord.NormalizeDurationMultiplier(0.1f), 0.25f, "Lower clamp");
    var test = new DurationTests(); test._relationMemories.Add(Make()); test._visibleRelationCache.Add(1, 1);
+   test._visiblePruneQueue.Enqueue(1); test._queuedVisibleKeys.Add(1);
    BellumCivileOptions.RelationMemoryDurationMultiplier = 2;
    test.RefreshMemoryDurationMultiplier();
    Near(test._relationMemories[0].ExpiryDay, 175, "Behavior failed to scale");
-   Check(test._memoryRevision == 1 && test._visibleRelationCache.Count == 0 && test._nextMemoryPruneDay == 0,
+   Check(test._memoryRevision == 1 && test._visibleRelationCache.Count == 0 && test._nextMemoryPruneDay == 0
+    && test._visiblePruneQueue.Count == 0 && test._queuedVisibleKeys.Count == 0,
     "Expiry and visible caches not invalidated");
    test.RefreshMemoryDurationMultiplier();
    Near(test._relationMemories[0].ExpiryDay, 175, "Repeated read scaled twice");
@@ -78,7 +98,7 @@ $temporary = Join-Path ([System.IO.Path]::GetTempPath()) ('BellumMemoryTests-' +
 try {
     $inputFile = Join-Path $temporary 'Tests.cs'
     $assembly = Join-Path $temporary 'Tests.dll'
-    [System.IO.File]::WriteAllText($inputFile, $harness + $refresh + '}}')
+    [System.IO.File]::WriteAllText($inputFile, $harness + $refresh + $clear + '}}')
     & dotnet $compiler /nologo /target:library "/out:$assembly" "/reference:$(Join-Path $framework 'mscorlib.dll')" "/reference:$(Join-Path $framework 'System.dll')" "/reference:$(Join-Path $framework 'System.Core.dll')" (Join-Path $root 'RelationMemoryRecord.cs') (Join-Path $root 'RelationMemoryScope.cs') $inputFile
     if ($LASTEXITCODE -ne 0) { throw 'Test compilation failed.' }
     [System.Reflection.Assembly]::Load([System.IO.File]::ReadAllBytes($assembly)) | Out-Null
@@ -98,4 +118,4 @@ if ($behavior -notmatch 'record.RescaleRemainingDuration\(CurrentDay, _appliedMe
 if ($behavior -notmatch 'remainingDays = Math.Max\(0f, memory.ExpiryDay - CurrentDay\)') {
     throw 'Tooltip no longer reads actual expiry.'
 }
-Write-Host 'PASS: memory scaling, legacy fading, cache refresh, reload idempotence, and tooltip/save wiring.'
+Write-Host 'PASS: killed-enemy/donation base durations, unchanged gains and scopes, memory scaling, legacy fading, cache refresh, reload idempotence, and tooltip/save wiring.'

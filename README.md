@@ -590,11 +590,13 @@ Noble relations combine a natural foundation, live political conditions, and mem
 
 Only one applicable family bond contributes: parent/child **+20**, siblings or spouses **+15**, close extended kin **+5**. Marriage's live bond is separate from the temporary native wedding reward. Charm affects applicable event gains through normal paths rather than a permanent baseline.
 
-Contested claims give one non-stacking pair penalty: **-10 weak** or **-20 strong**. De jure title-desire conditions can accumulate by title. Prisoner possession ends on release; donations use a separate memory capped at +20.
+Contested claims give one non-stacking pair penalty: **-10 weak** or **-20 strong**. De jure title-desire conditions can accumulate by title. Prisoner possession ends on release; noble-prisoner donations use separate memories lasting **2 years**, capped at +20 in total.
 
 ### Lifetime and Migration
 
 Ordinary timed memories retain full value until expiry. Named contexts cover quests, rescues, battles, losses, appointments, promises, and other recognized events. Unrecognized native/third-party changes use a generic timed fallback.
+
+**Killed my enemy** grants a +5 personal memory lasting **10 years**. These duration defaults apply to new memories; existing records retain their saved expiry dates.
 
 The duration multiplier is **0.25x-5x**, default 1x. New memories scale centrally. Changes rescale remaining duration, not elapsed history; permanent conditions and expired records are unaffected. The saved last-applied multiplier prevents double scaling. Durations use campaign years (`CampaignTime.DaysInYear`).
 
