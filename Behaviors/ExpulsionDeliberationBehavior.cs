@@ -650,20 +650,11 @@ namespace BellumCivile.Behaviors
                 100, null, null);
 
             starter.AddDialogLine(
-                "expulsion_deliberation_in_army",
-                "expulsion_deliberation_topic_response",
-                "hero_main_options",
-                "{=BC_Deliberation_ArmyRefusal}Let us discuss this when neither of us is serving in an army.",
-                ExpulsionConversationIsInArmy,
-                ClearExpulsionPendingSelection,
-                110, null);
-
-            starter.AddDialogLine(
                 "expulsion_deliberation_choose_accusation",
                 "expulsion_deliberation_topic_response",
                 "expulsion_deliberation_topic_choices",
                 "{=BC_Expul_ChooseAccusation}Which judgment did you wish to discuss?",
-                ExpulsionConversationCanDiscuss,
+                null,
                 null,
                 100, null);
 
@@ -924,11 +915,6 @@ namespace BellumCivile.Behaviors
             _conversationPendingPage = 0;
             _conversationPendingKeys.Clear();
         }
-
-        private bool ExpulsionConversationIsInArmy() =>
-            DeliberationDialogueHelper.IsConversationInArmy(Hero.OneToOneConversationHero);
-
-        private bool ExpulsionConversationCanDiscuss() => !ExpulsionConversationIsInArmy();
 
         private void RefreshExpulsionConversationPendingKeys()
         {

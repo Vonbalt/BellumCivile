@@ -62,8 +62,7 @@ namespace BellumCivile.Behaviors
             var a = MandateAgenda(id);
             return a != null && PendingMandate(a.Realm) == a && Eligible(Clan.PlayerClan, a.Realm)
                 && speaker != null && !speaker.IsDead && !speaker.IsPrisoner && speaker == speaker.Clan?.Leader
-                && speaker != Hero.MainHero && Eligible(speaker.Clan, a.Realm)
-                && !DeliberationDialogueHelper.IsConversationInArmy(speaker);
+                && speaker != Hero.MainHero && Eligible(speaker.Clan, a.Realm);
         }
         internal bool CommitMandate(string id, Hero speaker, bool reform, bool bribed, bool failed = false)
         {

@@ -66,7 +66,6 @@ namespace BellumCivile.Behaviors
         }
         private bool Ready() => _speaker == Hero.OneToOneConversationHero && _realm == Clan.PlayerClan?.Kingdom
             && !Clan.PlayerClan.IsUnderMercenaryService && _speaker?.IsAlive == true && !_speaker.IsPrisoner
-            && !DeliberationDialogueHelper.IsConversationInArmy(_speaker)
             && _until.ToDays > CampaignTime.Now.ToDays
             && Elections?.CanCommitPromise(_realm, _speaker, _candidate, out var until) == true && until == _until
             && _ballot != null && Elections.Get(_realm) == _ballot && _ballot.MandateNumber == _mandateNumber;

@@ -603,16 +603,6 @@ namespace BellumCivile.Behaviors
                 null);
 
             starter.AddDialogLine(
-                "council_appointment_in_army",
-                "council_appointment_deliberation_response",
-                "hero_main_options",
-                "{=BC_Deliberation_ArmyRefusal}Let us discuss this when neither of us is serving in an army.",
-                () => DeliberationDialogueHelper.IsConversationInArmy(Hero.OneToOneConversationHero),
-                ClearConversation,
-                200,
-                null);
-
-            starter.AddDialogLine(
                 "council_appointment_not_leader",
                 "council_appointment_deliberation_response",
                 "hero_main_options",
@@ -884,8 +874,7 @@ namespace BellumCivile.Behaviors
 
         private bool ConversationCanDiscuss()
         {
-            return !ConversationHeroIsNotClanLeader()
-                && !DeliberationDialogueHelper.IsConversationInArmy(Hero.OneToOneConversationHero);
+            return !ConversationHeroIsNotClanLeader();
         }
 
         private bool ConversationVoteIsCommitted()

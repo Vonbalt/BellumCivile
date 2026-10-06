@@ -903,20 +903,11 @@ namespace BellumCivile.Behaviors
                 100, null, null);
 
             starter.AddDialogLine(
-                "policy_deliberation_in_army",
-                "policy_deliberation_topic_response",
-                "hero_main_options",
-                "{=BC_Deliberation_ArmyRefusal}Let us discuss this when neither of us is serving in an army.",
-                PolicyConversationIsInArmy,
-                ClearPolicyPendingSelection,
-                110, null);
-
-            starter.AddDialogLine(
                 "policy_deliberation_choose_motion",
                 "policy_deliberation_topic_response",
                 "policy_deliberation_topic_choices",
                 "{=BC_PolicyDelib_ChooseMotion}Which motion did you wish to discuss?",
-                PolicyConversationCanDiscuss,
+                null,
                 null,
                 100, null);
 
@@ -1093,11 +1084,6 @@ namespace BellumCivile.Behaviors
             _conversationPendingPage = 0;
             _conversationPendingKeys.Clear();
         }
-
-        private bool PolicyConversationIsInArmy() =>
-            DeliberationDialogueHelper.IsConversationInArmy(Hero.OneToOneConversationHero);
-
-        private bool PolicyConversationCanDiscuss() => !PolicyConversationIsInArmy();
 
         private void RefreshPolicyConversationPendingKeys()
         {

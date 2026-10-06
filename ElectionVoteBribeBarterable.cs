@@ -37,7 +37,6 @@ namespace BellumCivile
             if (_secured || offerer != _proposer || other != _speaker || _proposer != Hero.MainHero
                 || Hero.OneToOneConversationHero != _speaker || _proposer.Clan.Kingdom != _realm
                 || _proposer.Clan.IsUnderMercenaryService || _speaker.IsPrisoner
-                || DeliberationDialogueHelper.IsConversationInArmy(_speaker)
                 || ElectionLobbyingBehavior.BribeOpenness(_speaker, _gap) < BellumCivileConstants.FiefBribeOpennessThreshold
                 || ElectiveSuccessionBehavior.Instance?.CanCommitPromise(_realm, _speaker, _candidate, out var until) != true
                 || until != _until || _ballot == null

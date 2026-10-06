@@ -252,6 +252,8 @@ Assignments normally have a **30-day change cooldown** and stop functioning duri
 
 The default **five-day** deliberation applies in the player's realm to fief grants, policies, expulsion/treason, and council appointments. Clan leaders explain their intentions through dialogue, with eligible persuasion/bribery. NPC-only proceedings use their immediate-resolution paths. Crown succession has a separate standing election/accession lifecycle.
 
+Vote persuasion and bribery remain available while either participant is serving in an army, including royal-election and mandate-reform lobbying. Normal eligibility, negotiation deadlines, and pledge/payment checks still apply.
+
 Successful persuasion and bribery in these four deliberations secure at least the minimum influence-funded vote for the promised choice. `VotePledgeService` lets that minimum cross the NPC's ordinary reserve; larger support tiers still obey the budget. New promises require enough actual influence for all outstanding promises, and barter confirmation rechecks affordability before payment. The reservation index is rebuilt from existing saved pledge records, without new save fields. Invalid ballot choices or subsequent loss of the required influence cause abstention with a notice at resolution. Native discounts and losing-vote exemptions remain intact. Crown elections and mandate-reform pledges retain their separate rules.
 
 Fief candidates are weighted by claims, need, title rank, proximity, clan tier, relations, and support. Anti-monopoly pressure limits repeated grants to overlanded houses. Treason confiscation returns fiefs to ordinary distribution. The direct high-treason decree retains its separate dialogue path.

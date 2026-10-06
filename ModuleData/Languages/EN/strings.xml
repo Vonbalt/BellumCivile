@@ -2990,7 +2990,6 @@
     <string id="BC_Parley_Reason_ClientLiberated" text="We will free a realm from foreign subordination." />
     <string id="BC_Parley_Reason_CrownSurrenderedToRebels" text="We will not surrender our crown to rebels." />
     <string id="BC_Parley_Reason_EnemyRebellionEnforced" text="Enforcing their rebellion will cripple our enemy." />
-    <string id="BC_Deliberation_ArmyRefusal" text="Let us discuss this when neither of us is serving in an army." />
     <string id="BC_Deliberation_MoreMatters" text="There are other matters I would like to discuss." />
     <string id="BC_Deliberation_Back" text="Never mind. Let us speak of something else." />
     <string id="BC_Fief_Delib_Topic" text="About the ongoing land grants..." />
@@ -4375,7 +4374,6 @@
     <string id="BC_EL_WhyPolitics" text="Their standing among the houses and the interests of my own family make them the sounder choice." />
     <string id="BC_EL_Entry" text="Whom will your house support to lead us?" />
     <string id="BC_EL_NotHead" text="You should speak to {EL_HEAD}. Our house's voice is theirs to pledge." />
-    <string id="BC_EL_Army" text="Let us speak of this when we are free of the army's business." />
     <string id="BC_EL_Why" text="What draws you to that choice?" />
     <string id="BC_EL_Propose" text="There is someone I would ask you to support." />
     <string id="BC_EL_Who" text="Whose cause would you have me consider?" />

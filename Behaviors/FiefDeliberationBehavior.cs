@@ -1609,20 +1609,11 @@ namespace BellumCivile.Behaviors
                 100, null, null);
 
             starter.AddDialogLine(
-                "fief_deliberation_in_army",
-                "fief_deliberation_topic_response",
-                "hero_main_options",
-                "{=BC_Deliberation_ArmyRefusal}Let us discuss this when neither of us is serving in an army.",
-                FiefConversationIsInArmy,
-                ClearFiefPendingSelection,
-                110, null);
-
-            starter.AddDialogLine(
                 "fief_deliberation_choose_grant",
                 "fief_deliberation_topic_response",
                 "fief_deliberation_topic_choices",
                 "{=BC_Fief_Delib_ChooseGrant}Which land grant did you wish to discuss?",
-                FiefConversationCanDiscuss,
+                null,
                 null,
                 100, null);
 
@@ -1961,11 +1952,6 @@ namespace BellumCivile.Behaviors
             _conversationPendingPage = 0;
             _conversationPendingKeys.Clear();
         }
-
-        private bool FiefConversationIsInArmy() =>
-            DeliberationDialogueHelper.IsConversationInArmy(Hero.OneToOneConversationHero);
-
-        private bool FiefConversationCanDiscuss() => !FiefConversationIsInArmy();
 
         private void RefreshFiefConversationPendingKeys()
         {

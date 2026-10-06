@@ -12,9 +12,6 @@ namespace BellumCivile.Behaviors
                 "{=BC_EL_Entry}Whom will your house support to lead us?", Entry, Begin);
             s.AddDialogLine("el_not_head", "el_response", "lord_pretalk",
                 "{=BC_EL_NotHead}You should speak to {EL_HEAD}. Our house's voice is theirs to pledge.", NotLeader, null, 120);
-            s.AddDialogLine("el_army", "el_response", "lord_pretalk",
-                "{=BC_EL_Army}Let us speak of this when we are free of the army's business.",
-                () => DeliberationDialogueHelper.IsConversationInArmy(_speaker), null, 110);
             s.AddDialogLine("el_stance", "el_response", "el_choices", "{EL_STANCE}", Stance, null);
             s.AddPlayerLine("el_why", "el_choices", "el_reason", "{=BC_EL_Why}What draws you to that choice?", null, null);
             s.AddDialogLine("el_reason", "el_reason", "el_choices", "{EL_REASON}", Explain, null);

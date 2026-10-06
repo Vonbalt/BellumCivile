@@ -17,7 +17,7 @@ internal static class CourtMandateEngineTests
     private static Kingdom _realm;
     private static Hero _leader;
     private static Clan _clan;
-    private static bool _valid, _future, _allowed;
+    private static bool _valid, _future, _allowed, _inArmy;
     private static int _resolved, _cancelled;
     private static bool Current(ref CourtAgendaBehavior __result) { __result = _court; return false; }
     private static bool Laws(ref RealmLawBehavior __result) { __result = _laws; return false; }
@@ -25,6 +25,7 @@ internal static class CourtMandateEngineTests
     private static bool Valid(ref bool __result) { __result = _valid; return false; }
     private static bool Allowed(ref bool __result) { __result = _allowed; return false; }
     private static bool Future(ref bool __result) { __result = _future; return false; }
+    private static bool InArmy(ref bool __result) { __result = _inArmy; return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
     private static bool Leader(ref Hero __result) { __result = _leader; return false; }
@@ -70,11 +71,16 @@ internal static class CourtMandateEngineTests
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsDead"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsPrisoner"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(KingdomDecision), "Kingdom"), nameof(Realm));
-            Patch(AccessTools.Method(type.Assembly.GetType("BellumCivile.Behaviors.DeliberationDialogueHelper"), "IsConversationInArmy"), nameof(No));
+            Patch(AccessTools.Method(type.Assembly.GetType("BellumCivile.Behaviors.DeliberationDialogueHelper"), "IsConversationInArmy"), nameof(InArmy));
             var a = new CourtAgendaRecord { Realm = _realm, State = CourtAgendaState.Deliberating,
                 ObjectiveData = new CourtObjectiveRecord { Kind = "mandate_reform" },
                 Mandate = new CourtMandateRecord { Id = "one", OldLaw = old, NewLaw = next, Direction = 1, Decision = Decision() } };
             ((List<CourtAgendaRecord>)AccessTools.Field(type, "_agendas").GetValue(_court)).Add(a);
+            foreach (bool inArmy in new[] { false, true })
+            {
+                _inArmy = inArmy;
+                check((bool)Call("CanLobbyMandate", "one", _leader), "Mandate lobbying remains available; in army=" + inArmy);
+            }
             check((bool)Call("CommitMandate", "one", _leader, true, false, true), "Failed persuasion recorded on named ballot");
             check(!(bool)Call("CommitMandate", "one", _leader, true, false, false), "Failed persuasion blocks repeat attempt");
             check((bool)Call("CommitMandate", "one", _leader, false, true, false), "Eligible bribery can follow failed persuasion");
