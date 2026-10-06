@@ -146,7 +146,7 @@ namespace BellumCivile.Behaviors
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"yearly NPC influence summary: campaign year {yearIndex + 1} ({daysPerYear} days/year)");
             sb.AppendLine($"budget_activity: actions={actions}; requested={totalRequested:0.0}; applied={totalApplied:0.0}; refunded={refunded:0.0}; reserve_blocks={blocked}; downgraded={downgraded}; prevented_losses={prevented:0.0}; hostile_loss_events={hostile}");
-            sb.AppendLine($"end_state: clans={clans.Count}; average={AverageInfluence(clans):0.0}; minimum={MinimumInfluence(clans):0.0}; negative={clans.Count(clan => clan.Influence < 0f)}; at_or_below_100={clans.Count(clan => clan.Influence <= 100f)}; below_clan_reserve={clans.Count(clan => clan.Influence < C.NpcInfluenceClanReserve)}; rulers_below_ruler_reserve={clans.Count(clan => clan.Kingdom?.RulingClan == clan && clan.Influence < C.NpcInfluenceRulerReserve)}");
+            sb.AppendLine($"end_state: clans={clans.Count}; average={AverageInfluence(clans):0.0}; minimum={MinimumInfluence(clans):0.0}; negative={clans.Count(clan => clan.Influence < 0f)}; at_or_below_100={clans.Count(clan => clan.Influence <= 100f)}; below_clan_reserve={clans.Count(clan => clan.Influence < C.NpcInfluenceClanReserve)}; below_role_reserve={clans.Count(clan => clan.Influence < NpcInfluenceBudgetService.GetRoleReserve(clan))}; rulers_below_ruler_reserve={clans.Count(clan => clan.Kingdom?.RulingClan == clan && clan.Influence < NpcInfluenceBudgetService.GetRoleReserve(clan))}");
 
             foreach (IGrouping<NpcInfluenceExpenseKind, InfluenceSourceTelemetry> kind in _sources.Values
                 .GroupBy(source => source.Kind)

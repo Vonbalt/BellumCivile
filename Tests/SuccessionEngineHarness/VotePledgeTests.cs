@@ -191,7 +191,7 @@ internal static class VotePledgeTests
             for (int i = 0; i < decisions.Length; i++)
             {
                 Clear(); promise[i](); _preferred = yes[i]; _merit = 500;
-                foreach (float influence in new[] { 20f, 199, 200, 210 })
+                foreach (float influence in new[] { 20f, 99, 100, 110 })
                 {
                     _balance = influence;
                     check(Vote(decisions[i], yes[i], no[i], out var w) == yes[i] && w == Supporter.SupportWeights.SlightlyFavor,
@@ -203,7 +203,7 @@ internal static class VotePledgeTests
                 _balance = 350;
                 check(Vote(decisions[i], yes[i], no[i], out var rich) == yes[i] && rich == Supporter.SupportWeights.FullyPush,
                     names[i] + " wealthy pledge keeps its normally affordable larger vote");
-                _balance = 210; _preferred = no[i];
+                _balance = 110; _preferred = no[i];
                 check(Vote(decisions[i], yes[i], no[i], out var redirected) == yes[i]
                     && redirected == Supporter.SupportWeights.SlightlyFavor, names[i] + " pledge wins over contrary natural preference");
                 _preferred = yes[i]; Clear();
@@ -322,7 +322,7 @@ internal static class VotePledgeTests
                 var another = Blank<PolicyObject>(); another.StringId = "policy_" + i;
                 policies.ClearBribedVotesForPolicy(_realm, another);
             }
-            check(Reserved() == 0 && Reserve("CouncilCommitment") == 200, "Normal role reserve returns after all promises clear");
+            check(Reserved() == 0 && Reserve("CouncilCommitment") == 100, "Normal role reserve returns after all promises clear");
 
             foreach (Action commit in promise) commit();
             fiefs.SetBribedVote(_realm, settlement, _voter, (int)FactionType.Glory);

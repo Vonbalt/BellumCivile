@@ -53,8 +53,8 @@ function OverrideChance([double]$score, [double]$influence, [double]$reserve,
 }
 function Check([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 
-# Cost/role reserves are read from the live constants; war supplement applies only
-# to rulers and army-leading clans, not every clan in a realm at war.
+# Cost/role reserves are read from the live constants; war, rulership, and army
+# leadership each add their bonus independently.
 $constants = Get-Content "$PSScriptRoot/../../BellumCivileConstants.cs" -Raw
 function Constant([string]$name) {
     $match = [regex]::Match($constants, "const float $name = ([0-9.]+)f;")
@@ -62,7 +62,8 @@ function Constant([string]$name) {
     return [double]::Parse($match.Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture)
 }
 $clanReserve = Constant 'NpcInfluenceClanReserve'
-$rulerReserve = Constant 'NpcInfluenceRulerReserve'
+$rulerReserve = $clanReserve + (Constant 'NpcInfluenceRulerReserveBonus')
+$armyExtra = Constant 'NpcInfluenceArmyLeaderReserveBonus'
 $warExtra = Constant 'NpcInfluenceForeignWarReserveBonus'
 Check ((Commitment 40 1000 200 0.5 0).cost -eq 60) 'Ordinary conviction commitment'
 Check ((Commitment 40 219 200 0.5 0).cost -eq 0) 'Reserve below boundary'
@@ -126,7 +127,8 @@ foreach ($score in @(30,60,80,100,125)) { foreach ($cost in @(0,50,100,200)) {
     $overrides += [pscustomobject]@{score=$score;cost=$cost;vanilla_pct=(OverrideChance $score 1000 $rulerReserve 60 $cost 300);candidate_pct=(OverrideChance $score 1000 $rulerReserve 60 $cost 60)}
 } }
 $war = @()
-foreach ($reserve in @($clanReserve, ($clanReserve+$warExtra), $rulerReserve, ($rulerReserve+$warExtra))) {
+foreach ($reserve in @($clanReserve, ($clanReserve+$warExtra), ($clanReserve+$warExtra+$armyExtra),
+        $rulerReserve, ($rulerReserve+$warExtra), ($rulerReserve+$warExtra+$armyExtra))) {
     $war += [pscustomobject]@{reserve=$reserve;influence=500;vote=(Commitment 60 500 $reserve 0.5 0)}
 }
 [pscustomobject]@{assertions='passed';sweep_cases=$total;examples=$rows;spending_sweep=$sweep;override_sensitivity=$overrides;role_reserve_examples=$war} | ConvertTo-Json -Depth 7

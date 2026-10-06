@@ -74,12 +74,16 @@ namespace BellumCivile
             if (!IsNpcClan(clan))
                 return 0f;
 
-            float reserve = clan.Kingdom?.RulingClan == clan
-                ? C.NpcInfluenceRulerReserve
-                : C.NpcInfluenceClanReserve;
+            Kingdom kingdom = clan.Kingdom;
+            float reserve = C.NpcInfluenceClanReserve;
+            if (kingdom?.RulingClan == clan)
+                reserve += C.NpcInfluenceRulerReserveBonus;
 
-            if (IsAtForeignWar(clan.Kingdom) && (clan.Kingdom?.RulingClan == clan || IsLeadingArmy(clan)))
+            if (IsAtForeignWar(kingdom))
                 reserve += C.NpcInfluenceForeignWarReserveBonus;
+
+            if (IsLeadingArmy(clan))
+                reserve += C.NpcInfluenceArmyLeaderReserveBonus;
 
             return reserve;
         }
@@ -246,10 +250,10 @@ namespace BellumCivile
 
         private static bool IsLeadingArmy(Clan clan)
         {
-            return clan?.WarPartyComponents.Any(component =>
+            return clan?.WarPartyComponents?.Any(component =>
             {
                 var party = component?.MobileParty;
-                return party?.Army?.LeaderParty == party;
+                return party != null && party.Army?.LeaderParty == party;
             }) == true;
         }
 

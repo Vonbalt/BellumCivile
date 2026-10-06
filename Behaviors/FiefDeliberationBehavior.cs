@@ -33,7 +33,7 @@ namespace BellumCivile.Behaviors
     /// SettlementClaimantDecision or SettlementClaimantPreliminaryDecision is already unresolved).
     /// AI kingdoms are unaffected; their fief redistribution still flows through the Fief Ambition system.
     /// </summary>
-    public class FiefDeliberationBehavior : CampaignBehaviorBase
+    public partial class FiefDeliberationBehavior : CampaignBehaviorBase
     {
         internal sealed class FiefNominationRankingEntry
         {
@@ -96,6 +96,7 @@ namespace BellumCivile.Behaviors
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, OnHourlyTick);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(this, OnMapEventEnded);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, OnSettlementOwnerChanged);
+            CampaignEvents.KingdomDecisionAdded.AddNonSerializedListener(this, OnAllocationDecisionAdded);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -109,6 +110,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_PendingFiefCreatedDay", ref _pendingFiefCreatedDay);
             dataStore.SyncData("BellumCivile_PendingFiefRetryCount", ref _pendingFiefRetryCount);
             dataStore.SyncData("BellumCivile_FiefStaleRepairCount", ref _fiefStaleRepairCount);
+            SyncAllocationRecovery(dataStore);
             dataStore.SyncData("BellumCivile_PendingFirstRightCapturer", ref _pendingFirstRightCapturer);
             dataStore.SyncData("BellumCivile_PendingFirstRightDate", ref _pendingFirstRightDate);
             dataStore.SyncData("BellumCivile_FiefBribedVotes",     ref _fiefBribedVotes);
@@ -718,6 +720,8 @@ namespace BellumCivile.Behaviors
             }
 
             string key = PendingKey(kingdom, settlement);
+            if (_openedFiefVoteDates.ContainsKey(key))
+                return ResumeOpenedAllocation(kingdom, settlement);
             if (_pendingFiefDate.ContainsKey(key))
             {
                 BellumCivileLogger.Log($"Fief deliberation duplicate ignored for {key}.");
@@ -831,12 +835,14 @@ namespace BellumCivile.Behaviors
             if (settlement == null) return;
 
             Kingdom newKingdom = newOwner?.Clan?.Kingdom;
+            if (detail == ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.BySiege)
+                ClearOpenedAllocations(settlement);
             // A completed clan-to-clan grant supersedes delayed allocation, but a
             // new ruler in the same house does not. Do not remove a resolving native decision.
             if (!openToClaim && newOwner?.Clan != oldOwner?.Clan)
             {
                 string suffix = "|" + settlement.StringId;
-                foreach (string pendingKey in _pendingFiefDate.Keys
+                foreach (string pendingKey in _pendingFiefDate.Keys.Union(_openedFiefVoteDates.Keys)
                     .Where(value => value.EndsWith(suffix, StringComparison.Ordinal)).ToList())
                 {
                     ClearBribedVotesForPendingKey(pendingKey);
@@ -948,6 +954,7 @@ namespace BellumCivile.Behaviors
         private void OnDailyTick()
         {
             CleanupOrphanedFiefDecisionsForAllKingdoms();
+            ReconcileOpenedAllocations();
             RecoverMissingUnassignedFiefVotes(Clan.PlayerClan?.Kingdom);
 
             var allKeys = _pendingFiefDate.Keys.ToList();
@@ -1063,6 +1070,7 @@ namespace BellumCivile.Behaviors
 
                 try
                 {
+                    RememberOpenedAllocation(decision);
                     IdeologyBehavior.AddDecisionAsModAction(kingdom, decision);
                 }
                 catch (Exception ex)
@@ -1075,7 +1083,7 @@ namespace BellumCivile.Behaviors
 
                 if (WasFiefDecisionQueued(kingdom, settlement, null))
                 {
-                    RemovePendingKey(pendingKey);
+                    FinishFiefHandoff(pendingKey);
                 }
                 else if (WasFiefDecisionResolvedImmediately(kingdom, settlement))
                 {
@@ -1118,6 +1126,7 @@ namespace BellumCivile.Behaviors
 
             try
             {
+                RememberOpenedAllocation(decision);
                 IdeologyBehavior.AddDecisionAsModAction(kingdom, decision);
             }
             catch (Exception ex)
@@ -1128,14 +1137,31 @@ namespace BellumCivile.Behaviors
 
             bool recovered = WasFiefDecisionQueued(kingdom, settlement, null)
                 || WasFiefDecisionResolvedImmediately(kingdom, settlement);
-            if (!recovered) CourtAgendaBehavior.Current?.CancelExecutiveMotion(kingdom, settlement?.StringId, decision.ProposerClan, reason);
+            if (!recovered)
+            {
+                CourtAgendaBehavior.Current?.CancelExecutiveMotion(kingdom, settlement?.StringId, decision.ProposerClan, reason);
+                // Agenda cancellation may clear its queue; retain the unassigned-land recovery receipt.
+                RememberOpenedAllocation(decision);
+            }
             BellumCivileLogger.Log(
                 recovered
                     ? $"Final recovery attempt restored fief vote {pendingKey}."
                     : $"Final recovery attempt could not restore fief vote {pendingKey}; stale pending state was cleared to release the kingdom decision queue.");
 
-            ClearBribedVotesForPendingKey(pendingKey);
-            RemovePendingKey(pendingKey);
+            if (WasFiefDecisionQueued(kingdom, settlement, null))
+                FinishFiefHandoff(pendingKey);
+            else if (_openedFiefVoteDates.ContainsKey(pendingKey) && settlement?.Town?.IsOwnerUnassigned == true)
+            {
+                // Keep the exhausted receipt so native recovery cannot restart a full deliberation.
+                _pendingFiefDate.Remove(pendingKey);
+                _pendingFiefRetryCount[pendingKey] = DelayedVoteReliability.MaxFailedAttempts;
+                ClearBribedVotesForPendingKey(pendingKey);
+            }
+            else
+            {
+                ClearBribedVotesForPendingKey(pendingKey);
+                RemovePendingKey(pendingKey);
+            }
         }
 
         private void CleanupOrphanedFiefDecisionsForAllKingdoms()
@@ -1171,7 +1197,7 @@ namespace BellumCivile.Behaviors
 
             int cleared = 0;
             string pendingSuffix = "|" + settlement.StringId;
-            foreach (string pendingKey in _pendingFiefDate.Keys
+            foreach (string pendingKey in _pendingFiefDate.Keys.Union(_openedFiefVoteDates.Keys)
                 .Where(key => key.EndsWith(pendingSuffix, StringComparison.Ordinal))
                 .ToList())
             {
@@ -1253,6 +1279,9 @@ namespace BellumCivile.Behaviors
                 .OfType<SettlementClaimantPreliminaryDecision>()
                 .ToList();
 
+            foreach (var decision in claimantDecisions)
+                RememberOpenedAllocation(decision);
+
             List<SettlementClaimantDecision> staleClaimantDecisions = claimantDecisions
                 .Where(DelayedVoteReliability.IsLiveDecisionStale)
                 .ToList();
@@ -1323,6 +1352,8 @@ namespace BellumCivile.Behaviors
                 int repairCount = _fiefStaleRepairCount.TryGetValue(key, out int stored) ? stored : 0;
                 if (repairCount >= 1)
                 {
+                    if (_openedFiefVoteDates.ContainsKey(key))
+                        _pendingFiefRetryCount[key] = DelayedVoteReliability.MaxFailedAttempts;
                     BellumCivileLogger.Log($"Stale live fief decision {key} already exhausted its one rebuild allowance; motion withdrawn.");
                     continue;
                 }
@@ -1335,7 +1366,7 @@ namespace BellumCivile.Behaviors
                     ResolveClaimantDecisionCapturer(staleDecision),
                     staleDecision.ClanToExclude,
                     isReliabilityRecovery: true);
-                BellumCivileLogger.Log($"Rebuilt stale live fief decision {key} as a fresh delayed vote.");
+                BellumCivileLogger.Log($"Requested recovery of stale live fief decision {key}; original_allocation_preserved={_openedFiefVoteDates.ContainsKey(key)}.");
             }
 
             foreach (SettlementClaimantPreliminaryDecision staleDecision in stalePreliminaryDecisions)
@@ -1584,6 +1615,7 @@ namespace BellumCivile.Behaviors
 
         private void RemovePendingKey(string key)
         {
+            _openedFiefVoteDates.Remove(key);
             _pendingFiefProposer.Remove(key);
             _pendingFiefCapturer.Remove(key);
             _pendingFiefParticipants.Remove(key);

@@ -28,10 +28,11 @@ namespace BellumCivile
         // Bellum political actions share these reserves so AI clans retain
         // enough influence to participate in votes and organize armies.
         // ------------------------------------------------------------
-        public const float NpcInfluenceClanReserve = 200f;
-        public const float NpcInfluenceRulerReserve = 500f;
-        public const float NpcInfluenceForeignWarReserveBonus = 200f;
-        public const float NpcInfluenceEmergencyFloor = 200f;
+        public const float NpcInfluenceClanReserve = 100f;
+        public const float NpcInfluenceRulerReserveBonus = 100f;
+        public const float NpcInfluenceArmyLeaderReserveBonus = 100f;
+        public const float NpcInfluenceForeignWarReserveBonus = 100f;
+        public const float NpcInfluenceEmergencyFloor = 100f;
         public const float NpcCourtScandalProtectedFloor = 200f;
         public const float NpcCourtScandalMinimumTargetInfluence = 500f;
         public const int NpcCourtScandalTargetCooldownDays = 90;

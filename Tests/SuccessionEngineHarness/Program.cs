@@ -51,6 +51,16 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--influence-budget"))
+            {
+                NpcInfluenceBudgetTests.Run(Check);
+                Console.WriteLine($"{_checks} influence budget checks passed.");
+            }
+            else if (args.Contains("--fief-allocation"))
+            {
+                FiefAllocationTests.Run(Check);
+                Console.WriteLine($"{_checks} fief allocation checks passed.");
+            }
             else if (args.Contains("--vote-lobbying"))
             {
                 VoteLobbyingArmyTests.Run(Check);

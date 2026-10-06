@@ -80,8 +80,9 @@ namespace BellumCivile.Patches
             if (deliberation.QueueBlockedClaimantDecision(claimantDecision))
                 return false;
 
-            BellumCivileLogger.Log(
-                $"Could not replace suppressed claimant decision for {claimantDecision.Settlement?.StringId ?? "null"}; allowing vanilla decision to avoid an unassigned fief.");
+            if (!deliberation.HasOpenedAllocation(decisionKingdom, claimantDecision.Settlement))
+                BellumCivileLogger.Log(
+                    $"Could not replace suppressed claimant decision for {claimantDecision.Settlement?.StringId ?? "null"}; allowing vanilla decision to avoid an unassigned fief.");
             return true;
         }
     }

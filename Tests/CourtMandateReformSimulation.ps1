@@ -96,7 +96,7 @@ Check (!(Qualifies 6 4 2 $false)) 'Unaffordable sponsor filed.'
 Check (!(Qualifies 6 4 2 $true $false)) 'Unwilling sponsor filed.'
 
 'Filing affordability:100 base,75 with maximum Chancellor discount; protected reserves remain untouched.'
-foreach ($reserve in @(0,200,400,500,700)) {
+foreach ($reserve in @(0,100,200,300,400)) {
     foreach ($cost in @(75,100)) {
         $required = $reserve + $cost
         Check (!($required - 1 + .001 -ge $required)) 'Below-reserve filing accepted.'

@@ -103,6 +103,8 @@ namespace BellumCivile.Patches
             Clan winner = settlement.OwnerClan;
             if (winner == null || (expectedWinner != null && winner != expectedWinner)) return;
 
+            FiefDeliberationBehavior.Current?.ClearOpenedAllocations(settlement);
+
             bool isPlayerKingdom = Clan.PlayerClan.Kingdom != null && Clan.PlayerClan.Kingdom == kingdom;
             Hero ruler = kingdom.RulingClan?.Leader;
             if (ruler == null) return;

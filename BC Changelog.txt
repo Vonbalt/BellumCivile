@@ -723,3 +723,6 @@ Improved Realm Name Display replacer with one consolidated logic and fixed compa
 Fixed duplicated ranks in generated realm names, including automatic correction for affected existing saves.
 Fixed bribed and persuaded lords abstaining due to influence reserves in fief, policy, expulsion, and council appointment votes.
 Fixed Crown and court-faction council nominees being omitted from appointment ballots.
+Removed army restrictions from vote persuasion and bribery dialogues.
+Fixed fief votes restarting deliberation, preserving nominations and voting promises when an allocation is interrupted.
+Reduced NPC influence reserves, with stacking bonuses for foreign wars, army leadership, and rulership, allowing more active political participation.

@@ -17,7 +17,7 @@ $constantNames = @(
     'RebellionPowerThresholdBase', 'TreatyCouncilMinimumVoteStep',
     'TreatyCouncilMildCommitment', 'TreatyCouncilStrongCommitment',
     'TreatyCouncilMinimumQuorum', 'TreatyCouncilQuorumShare',
-    'NpcInfluenceClanReserve', 'NpcInfluenceRulerReserve', 'NpcInfluenceForeignWarReserveBonus',
+    'NpcInfluenceClanReserve', 'NpcInfluenceRulerReserveBonus', 'NpcInfluenceForeignWarReserveBonus',
     'WarPeaceRevampUnaffiliatedOverflowRecoveryMultiplier', 'WarPeaceRevampPopulistOverflowRecoveryMultiplier'
 )
 $declarations = foreach ($name in $constantNames) {
@@ -104,9 +104,10 @@ function Measure-Scenario($scenario, [double]$cap) {
         [BellumCivile.BellumCivileConstants]::ClientOtherClientPowerContribution)
     $members = @(foreach ($clan in $scenario.Clans) {
         $desire = [Math]::Min(100.0, [Math]::Max(0.0, $clan.Desire + $scenario.CourtBonus))
-        $reserve = if ($clan.Crown) { [BellumCivile.BellumCivileConstants]::NpcInfluenceRulerReserve }
-            else { [BellumCivile.BellumCivileConstants]::NpcInfluenceClanReserve }
-        if ($scenario.ForeignWar -and $clan.Crown) {
+        # Scenarios here have no army-leading clans.
+        $reserve = [BellumCivile.BellumCivileConstants]::NpcInfluenceClanReserve
+        if ($clan.Crown) { $reserve += [BellumCivile.BellumCivileConstants]::NpcInfluenceRulerReserveBonus }
+        if ($scenario.ForeignWar) {
             $reserve += [BellumCivile.BellumCivileConstants]::NpcInfluenceForeignWarReserveBonus
         }
         [pscustomobject]@{ Clan=$clan; Desire=$desire; Power=($clan.Military + $clan.Influence);
@@ -183,6 +184,9 @@ $scenarios = @(
         (New-Clan 'Crown' 20 100 1200 1500 $true), (New-Clan 'Glory' 30 100),
         (New-Clan 'Nobility' 40 100), (New-Clan 'Liberty' 100 100))),
     (New-Scenario 'Insufficient proposal influence' @(
+        (New-Clan 'Crown' 100 100 399 1901 $true), (New-Clan 'Glory' 100 100 250 1000),
+        (New-Clan 'Nobility' 100 100 250 1000), (New-Clan 'Liberty' 100 100 250 1000))),
+    (New-Scenario 'Additive Crown reserve boundary' @(
         (New-Clan 'Crown' 100 100 400 1900 $true), (New-Clan 'Glory' 100 100 250 1000),
         (New-Clan 'Nobility' 100 100 250 1000), (New-Clan 'Liberty' 100 100 250 1000))),
     (New-Scenario 'Strategically deterred target' @(
@@ -225,6 +229,9 @@ foreach ($name in @('Maximum desire, severe exhaustion', 'Maximum desire, zero W
 }
 foreach ($row in @($results | Where-Object { $_.Name -eq 'Existing payment boundary' })) {
     Check ($row.CanPropose -and $row.AfterFiling -lt 100) 'Existing influence-payment readiness sensitivity is preserved.'
+}
+foreach ($row in @($results | Where-Object { $_.Name -eq 'Additive Crown reserve boundary' })) {
+    Check ($row.CanPropose) 'A peaceful Crown with 400 influence can fund a 200-influence proposal and retain 200.'
 }
 Check (($results | Where-Object { $_.Name -eq 'Preparation lifts 60 to 80' -and $_.Cap -eq 30 }).CanPropose) 'Preparations can help a tired sponsor through resolve.'
 

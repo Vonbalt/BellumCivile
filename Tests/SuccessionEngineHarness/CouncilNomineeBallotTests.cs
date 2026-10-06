@@ -208,10 +208,10 @@ internal static class CouncilNomineeBallotTests
                 "NPC Crown favors its filed nominee over its previous natural preference");
             check(restored.DetermineSupport(_b, namedOutcome) == 10, "Other clans retain independent appointment preferences");
             var outcomes = new MBList<DecisionOutcome> { namedOutcome, otherOutcome };
-            _influence = 500;
+            _influence = 200;
             check(restored.DetermineSupportOption(new Supporter(_crown), outcomes, out _, false) == null,
                 "Crown sponsorship cannot spend a free vote from its protected reserve");
-            _influence = 520;
+            _influence = 220;
             check(restored.DetermineSupportOption(new Supporter(_crown), outcomes, out var weight, false) == namedOutcome
                 && weight == Supporter.SupportWeights.SlightlyFavor
                 && restored.GetInfluenceCostOfSupport(_crown, weight) == 20,

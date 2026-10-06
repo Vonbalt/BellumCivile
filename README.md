@@ -258,6 +258,8 @@ Successful persuasion and bribery in these four deliberations secure at least th
 
 Fief candidates are weighted by claims, need, title rank, proximity, clan tier, relations, and support. Anti-monopoly pressure limits repeated grants to overlanded houses. Treason confiscation returns fiefs to ordinary distribution. The direct high-treason decree retains its separate dialogue path.
 
+Unassigned-fief ballots remain open when their proposer abstains, including abstention caused by the influence reserve. Genuine permission, realm, and sponsor failures still cancel them. `FiefAllocationRecovery.cs` retains the original deadline, capture context, exclusions, and nominations through ballot handoff and saving. An interrupted allocation resumes without another full deliberation or announcement. Recovery is bounded; an exhausted record allows native allocation instead of restarting Bellum's delay. Awards, new captures, and invalid ownership clear obsolete records. Removal diagnostics include the ballot deadline and the ruler's siege status. Vanilla's 48-hour participation deadline is separate from Bellum's deliberation: a player ruler still resolves an overdue ballot, while a vassal's participation can expire.
+
 When changing votes, check both deliberation and the final decision. `DelayedVoteReliability.cs` validates pending records, duplicate decisions, retries, and orphaned unassigned fiefs.
 
 ## Rebellions and Claim Feuds
@@ -607,7 +609,9 @@ Two migration concepts must remain distinct:
 
 Player rulers can send companions on clandestine missions. NPC subterfuge uses staggered checks. Operations affect court mood, rebels, money, troops, and exposure. The Spymaster is the intrigue proxy when available; otherwise the ruler is. Captured/disabled agents and ended conflicts require cleanup.
 
-`NpcInfluenceBudgetService` centralizes voluntary AI spending. Base reserves are **200 for clans** and **500 for rulers**, plus 200 during foreign war for rulers/army leaders. Discretionary actions retain the larger of the role reserve or action cost; council commitments retain the role reserve; Crown emergencies use a smaller floor. Involuntary losses and player spending do not use this policy.
+`NpcInfluenceBudgetService` centralizes voluntary AI spending. Every NPC clan has a **100-influence base reserve**, with independent **+100** bonuses for being at foreign war, leading an army, and being the ruling clan. Each bonus applies once per clan, regardless of enemy or army count. The role reserve therefore ranges from **100 to 400**; a ruler leading an army during a foreign war retains 400. Temporary civil-war and feud opponents do not count as foreign wars. Discretionary actions retain the larger of the role reserve or action cost; council commitments retain the role reserve; Crown emergencies use a **100** floor. Outstanding voting promises can raise the protected amount above the role reserve. Involuntary losses and player spending do not use this policy.
+
+These are Bellum spending floors, not native vote prices. Native fief support costs 20/60/100 influence before discounts and is scaled by preference and available influence without a fixed leftover reserve. Native random proposals have separate eligibility thresholds (including the general 100-influence gate). Without an army-leadership bonus, an ordinary Bellum minimum fief vote requires 120 influence for a non-ruling clan or 220 for a ruler in peacetime, before discounts and other commitments. Secured minimum voting pledges use the exception described above. Influence telemetry reports both the base-reserve and current role-reserve shortfalls.
 
 ## Interfaces and Localization
 
