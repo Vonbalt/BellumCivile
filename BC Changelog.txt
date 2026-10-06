@@ -720,3 +720,5 @@ Added missing localization strings from VVL99 report.
 Added MCM slider for non-aggression pacts ranging 0-1000, default 100 days.
 Improved client-state liberation logic and it's tooltip presentation to be more informative.
 Improved Realm Name Display replacer with one consolidated logic and fixed compatibility with Artem's Better UI Visuals mod.
+Fixed duplicated ranks in generated realm names, including automatic correction for affected existing saves.
+Fixed bribed and persuaded lords abstaining due to influence reserves in fief, policy, expulsion, and council appointment votes.

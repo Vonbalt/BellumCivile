@@ -153,6 +153,16 @@ namespace BellumCivile
             return amount;
         }
 
+        internal static float SpendPledgedVote(Clan clan, float cost, string pledgeKey)
+        {
+            float reserve = VotePledgeService.ReservedInfluence(clan, pledgeKey);
+            float amount = Math.Min(Math.Max(0f, cost), Math.Max(0f, (clan?.Influence ?? 0f) - reserve));
+            if (amount > 0f) ChangeClanInfluenceAction.Apply(clan, -amount);
+            GetTelemetry()?.RecordSpend(clan, "kingdom_decision_pledged_vote", NpcInfluenceExpenseKind.CouncilCommitment,
+                cost, amount, blocked: cost > 0f && amount <= 0f, reserve);
+            return amount;
+        }
+
         public static float ApplyClampedLoss(
             Clan clan,
             float requestedLoss,
@@ -198,17 +208,18 @@ namespace BellumCivile
 
         private static float GetProtectedReserve(Clan clan, float cost, NpcInfluenceExpenseKind kind)
         {
-            if (!IsNpcClan(clan))
+            if (!IsNpcClan(clan) || kind == NpcInfluenceExpenseKind.InvoluntaryLoss)
                 return 0f;
 
+            float promised = VotePledgeService.ReservedInfluence(clan);
             switch (kind)
             {
                 case NpcInfluenceExpenseKind.Discretionary:
-                    return Math.Max(GetRoleReserve(clan), cost);
+                    return Math.Max(promised, Math.Max(GetRoleReserve(clan), cost));
                 case NpcInfluenceExpenseKind.CouncilCommitment:
-                    return GetRoleReserve(clan);
+                    return Math.Max(promised, GetRoleReserve(clan));
                 case NpcInfluenceExpenseKind.CrownEmergency:
-                    return C.NpcInfluenceEmergencyFloor;
+                    return Math.Max(promised, C.NpcInfluenceEmergencyFloor);
                 case NpcInfluenceExpenseKind.InvoluntaryLoss:
                 default:
                     return 0f;

@@ -5386,5 +5386,9 @@
     <!-- Miscellaneous notification and intrigue fallbacks -->
     <string id="BC_Notification_Unknown" text="Unknown" />
     <string id="BC_Proxy_AbortReason_ScandalSpent" text="the target court was no longer vulnerable to another scandal" />
+    <string id="BC_VotePledge_Unavailable" text="This lord can no longer vote in this realm." />
+    <string id="BC_VotePledge_NoInfluence" text="They lack the influence to promise another vote. At least {COST} influence must remain available after their existing promises." />
+    <string id="BC_VotePledge_InvalidCandidate" text="{LORD} could not fulfill a voting promise: the promised choice was no longer available on the ballot for {MATTER}." />
+    <string id="BC_VotePledge_BalanceLost" text="{LORD} could not fulfill a voting promise on {MATTER}: their remaining influence could no longer cover the vote and other promises." />
   </strings>
 </base>

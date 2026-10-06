@@ -80,6 +80,7 @@ namespace BellumCivile.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
+            VotePledgeService.Invalidate();
             dataStore.SyncData("BellumCivile_PendingPolicyAbolish",     ref _pendingPolicyAbolish);
             dataStore.SyncData("BellumCivile_PendingFactionLeaderClan", ref _pendingFactionLeaderClan);
             dataStore.SyncData("BellumCivile_PendingVoteDate",          ref _pendingVoteDate);
@@ -261,7 +262,11 @@ namespace BellumCivile.Behaviors
         {
             if (kingdom == null || policy == null || clan == null) return;
             _bribedVoteOverrides[BribeKey(kingdom, policy, clan)] = score;
+            VotePledgeService.Invalidate();
         }
+
+        internal IEnumerable<string> GetVotePledgeKeys(Clan voter) => VotePledgeService.KeysFor(voter, "policy",
+            _bribedVoteOverrides.Where(entry => entry.Value != 0).Select(entry => entry.Key));
 
         // What does this method do?
         // Called by BlockVanillaPolicyPatch when the player proposes a vote through the Kingdom UI.
@@ -419,6 +424,7 @@ namespace BellumCivile.Behaviors
 
         public void ClearBribedVotesForPolicy(Kingdom kingdom, PolicyObject policy)
         {
+            VotePledgeService.Invalidate();
             if (kingdom == null || policy == null) return;
             string prefix = kingdom.StringId + "|" + policy.StringId + "|";
             var toRemove = _bribedVoteOverrides.Keys.Where(k => k.StartsWith(prefix)).ToList();
@@ -429,6 +435,7 @@ namespace BellumCivile.Behaviors
 
         private void ClearBribedVotesForPendingKey(string pendingKey)
         {
+            VotePledgeService.Invalidate();
             if (string.IsNullOrEmpty(pendingKey)) return;
             string prefix = pendingKey + "|";
             var toRemove = _bribedVoteOverrides.Keys.Where(k => k.StartsWith(prefix)).ToList();
@@ -1224,6 +1231,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (!VotePledgeService.CanPromise(npc.Clan, kingdom, VotePledgeService.PolicyKey(kingdom, _currentQueryPolicy, npc.Clan), out explanation))
+                return false;
+
             string key = BribeKey(kingdom, _currentQueryPolicy, npc.Clan);
             if (_policyPersuasionFailed.ContainsKey(key))
             {
@@ -1252,6 +1262,9 @@ namespace BellumCivile.Behaviors
                 explanation = new TextObject("{=BC_PolicyDelib_BribeUnavailable}This matter is no longer available.");
                 return false;
             }
+
+            if (!VotePledgeService.CanPromise(npc.Clan, kingdom, VotePledgeService.PolicyKey(kingdom, _currentQueryPolicy, npc.Clan), out explanation))
+                return false;
 
             if (_currentQueryAlreadyBribed)
             {
@@ -1511,7 +1524,8 @@ namespace BellumCivile.Behaviors
             if (npc?.Clan != null && kingdom != null && _currentQueryPolicy != null)
             {
                 int forcedScore = _swayToSupport ? C.PolicyBribeForcedSupportScore : -C.PolicyBribeForcedSupportScore;
-                SetBribedVote(kingdom, _currentQueryPolicy, npc.Clan, forcedScore);
+                VotePledgeService.TryCommit(npc.Clan, kingdom, VotePledgeService.PolicyKey(kingdom, _currentQueryPolicy, npc.Clan),
+                    () => SetBribedVote(kingdom, _currentQueryPolicy, npc.Clan, forcedScore));
             }
 
             ConversationManager.EndPersuasion();

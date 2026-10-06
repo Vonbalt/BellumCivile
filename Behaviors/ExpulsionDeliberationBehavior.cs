@@ -77,6 +77,7 @@ namespace BellumCivile.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
+            VotePledgeService.Invalidate();
             dataStore.SyncData("BellumCivile_PendingExpelProposer", ref _pendingExpelProposer);
             dataStore.SyncData("BellumCivile_PendingExpelDate",     ref _pendingExpelDate);
             dataStore.SyncData("BellumCivile_PendingExpelCreatedDay", ref _pendingExpelCreatedDay);
@@ -162,10 +163,15 @@ namespace BellumCivile.Behaviors
         {
             if (kingdom == null || targetClan == null || voterClan == null) return;
             _expelBribedOverrides[BribeKey(kingdom, targetClan, voterClan)] = score;
+            VotePledgeService.Invalidate();
         }
+
+        internal IEnumerable<string> GetVotePledgeKeys(Clan voter) => VotePledgeService.KeysFor(voter, "expulsion",
+            _expelBribedOverrides.Where(entry => entry.Value != 0).Select(entry => entry.Key));
 
         public void ClearBribedVotesForTarget(Kingdom kingdom, Clan targetClan)
         {
+            VotePledgeService.Invalidate();
             if (kingdom == null || targetClan == null) return;
             string prefix = kingdom.StringId + "|" + targetClan.StringId + "|";
             var toRemove = _expelBribedOverrides.Keys.Where(k => k.StartsWith(prefix)).ToList();
@@ -176,6 +182,7 @@ namespace BellumCivile.Behaviors
 
         private void ClearBribedVotesForPendingKey(string pendingKey)
         {
+            VotePledgeService.Invalidate();
             if (string.IsNullOrEmpty(pendingKey)) return;
             string prefix = pendingKey + "|";
             var toRemove = _expelBribedOverrides.Keys.Where(k => k.StartsWith(prefix)).ToList();
@@ -1042,6 +1049,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (!VotePledgeService.CanPromise(npc.Clan, kingdom,
+                VotePledgeService.ExpulsionKey(kingdom, _currentQueryTargetClan, npc.Clan), out explanation)) return false;
+
             string key = BribeKey(kingdom, _currentQueryTargetClan, npc.Clan);
             if (_expelPersuasionFailed.ContainsKey(key))
             {
@@ -1070,6 +1080,9 @@ namespace BellumCivile.Behaviors
                 explanation = new TextObject("{=BC_Expul_BribeUnavailable}This matter is no longer available.");
                 return false;
             }
+
+            if (!VotePledgeService.CanPromise(npc.Clan, kingdom,
+                VotePledgeService.ExpulsionKey(kingdom, _currentQueryTargetClan, npc.Clan), out explanation)) return false;
 
             if (_currentQueryAlreadyBribed)
             {
@@ -1367,7 +1380,8 @@ namespace BellumCivile.Behaviors
             if (npc?.Clan != null && kingdom != null && _currentQueryTargetClan != null)
             {
                 int forcedScore = _swayToExpel ? C.ExpulsionBribeForcedSupportScore : -C.ExpulsionBribeForcedSupportScore;
-                SetBribedVote(kingdom, _currentQueryTargetClan, npc.Clan, forcedScore);
+                VotePledgeService.TryCommit(npc.Clan, kingdom, VotePledgeService.ExpulsionKey(kingdom, _currentQueryTargetClan, npc.Clan),
+                    () => SetBribedVote(kingdom, _currentQueryTargetClan, npc.Clan, forcedScore));
             }
 
             ConversationManager.EndPersuasion();

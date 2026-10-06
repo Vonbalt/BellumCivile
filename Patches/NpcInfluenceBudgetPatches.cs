@@ -46,6 +46,7 @@ namespace BellumCivile.Patches
         private static void Postfix(
             KingdomDecision __instance,
             Supporter supporter,
+            MBReadOnlyList<DecisionOutcome> possibleOutcomes,
             ref Supporter.SupportWeights supportWeightOfSelectedOutcome,
             ref DecisionOutcome __result)
         {
@@ -54,6 +55,12 @@ namespace BellumCivile.Patches
                 || clan == Clan.PlayerClan
                 || (WarPeaceRevampBehavior.IsRevampEnabled() && __instance is DeclareWarDecision))
             {
+                return;
+            }
+
+            if (VotePledgeService.TryGetPledge(__instance, clan, possibleOutcomes, out string key, out var pledged))
+            {
+                VotePledgeService.ApplySupport(__instance, clan, key, pledged, ref supportWeightOfSelectedOutcome, ref __result);
                 return;
             }
 
@@ -134,6 +141,7 @@ namespace BellumCivile.Patches
     {
         [HarmonyPrefix]
         private static bool Prefix(
+            KingdomElection __instance,
             KingdomDecision ____decision,
             MBList<DecisionOutcome> ____possibleOutcomes,
             List<Supporter> ____supporters,
@@ -174,7 +182,10 @@ namespace BellumCivile.Patches
                     }
                     else
                     {
-                        NpcInfluenceBudgetService.SpendUpToReserve(
+                        string pledgeKey = VotePledgePaymentPatch.GetPaymentKey(__instance, clan);
+                        if (pledgeKey != null)
+                            NpcInfluenceBudgetService.SpendPledgedVote(clan, cost, pledgeKey);
+                        else NpcInfluenceBudgetService.SpendUpToReserve(
                             clan,
                             cost,
                             NpcInfluenceExpenseKind.CouncilCommitment,

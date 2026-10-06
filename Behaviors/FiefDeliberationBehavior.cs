@@ -100,6 +100,7 @@ namespace BellumCivile.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
+            VotePledgeService.Invalidate();
             dataStore.SyncData("BellumCivile_PendingFiefProposer", ref _pendingFiefProposer);
             dataStore.SyncData("BellumCivile_PendingFiefCapturer", ref _pendingFiefCapturer);
             dataStore.SyncData("BellumCivile_PendingFiefParticipants", ref _pendingFiefParticipants);
@@ -148,6 +149,9 @@ namespace BellumCivile.Behaviors
             return null;
         }
 
+        internal IEnumerable<string> GetVotePledgeKeys(Clan voter) => VotePledgeService.KeysFor(voter, "fief",
+            _fiefBribedCandidateVotes.Keys.Concat(_fiefBribedVotes.Keys));
+
         public string GetBribedCandidateVote(Kingdom kingdom, Settlement settlement, Clan voterClan)
         {
             if (kingdom == null || settlement == null || voterClan == null) return null;
@@ -160,6 +164,7 @@ namespace BellumCivile.Behaviors
         {
             if (kingdom == null || settlement == null || voterClan == null) return;
             _fiefBribedVotes[BribeKey(kingdom, settlement, voterClan)] = factionType;
+            VotePledgeService.Invalidate();
         }
 
         public void SetBribedCandidateVote(Kingdom kingdom, Settlement settlement, Clan voterClan, Clan candidateClan)
@@ -172,6 +177,7 @@ namespace BellumCivile.Behaviors
             _fiefNominationReasons[key] = "bribed";
             _fiefNominationScores[key] = float.MaxValue / 4f;
             _fiefCommittedNominationKeys[key] = true;
+            VotePledgeService.Invalidate();
         }
 
         public void ClearBribedVotesForSettlement(Kingdom kingdom, Settlement settlement)
@@ -182,6 +188,7 @@ namespace BellumCivile.Behaviors
 
         private void ClearBribedVotesForPendingKey(string pendingKey)
         {
+            VotePledgeService.Invalidate();
             if (string.IsNullOrEmpty(pendingKey)) return;
             string prefix = pendingKey + "|";
             var toRemove = _fiefBribedVotes.Keys.Where(k => k.StartsWith(prefix)).ToList();
@@ -2227,6 +2234,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (!VotePledgeService.CanPromise(voter, kingdom, VotePledgeService.FiefKey(kingdom, settlement, voter), out explanation))
+                return false;
+
             string key = BribeKey(kingdom, settlement, voter);
             if (_fiefPersuasionFailed.ContainsKey(key))
             {
@@ -2257,6 +2267,9 @@ namespace BellumCivile.Behaviors
                 explanation = new TextObject("{=BC_Fief_Delib_BribeUnavailable}This matter is no longer available.");
                 return false;
             }
+
+            if (!VotePledgeService.CanPromise(voter, kingdom, VotePledgeService.FiefKey(kingdom, settlement, voter), out explanation))
+                return false;
 
             if (_currentQueryAlreadyBribed)
             {
@@ -2556,7 +2569,8 @@ namespace BellumCivile.Behaviors
             Clan candidate = ResolveClan(_selectedBribeCandidateClanId);
 
             if (kingdom != null && settlement != null && voter != null && candidate != null)
-                SetBribedCandidateVote(kingdom, settlement, voter, candidate);
+                VotePledgeService.TryCommit(voter, kingdom, VotePledgeService.FiefKey(kingdom, settlement, voter),
+                    () => SetBribedCandidateVote(kingdom, settlement, voter, candidate));
 
             ConversationManager.EndPersuasion();
             _fiefPersuasionOptions.Clear();

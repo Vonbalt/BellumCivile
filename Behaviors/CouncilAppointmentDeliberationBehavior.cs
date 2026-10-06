@@ -53,6 +53,7 @@ namespace BellumCivile.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
+            VotePledgeService.Invalidate();
             dataStore.SyncData("BellumCivile_CouncilDelib_Proposer", ref _pendingProposerClan);
             dataStore.SyncData("BC_CouncilDelib_AgendaIds", ref _pendingCourtAgendaIds);
             _pendingCourtAgendaIds = _pendingCourtAgendaIds ?? new Dictionary<string, string>();
@@ -170,6 +171,15 @@ namespace BellumCivile.Behaviors
                     : null;
         }
 
+        internal string GetRecordedCandidatePledge(Kingdom kingdom, PrivyCouncilOffice office, Clan voter)
+        {
+            string key = BuildVoterKey(kingdom, office, voter);
+            return !string.IsNullOrEmpty(key) && _committedVotes.ContainsKey(key)
+                && _nomineeByVoter.TryGetValue(key, out string candidate) ? candidate : null;
+        }
+
+        internal IEnumerable<string> GetVotePledgeKeys(Clan voter) => VotePledgeService.KeysFor(voter, "council", _committedVotes.Keys);
+
         public void SetCommittedCandidateVote(
             Kingdom kingdom,
             PrivyCouncilOffice office,
@@ -188,6 +198,7 @@ namespace BellumCivile.Behaviors
             _nominationReasons[key] = reason ?? string.Join("|", result.Reasons);
             _nominationScores[key] = result.Score;
             _committedVotes[key] = true;
+            VotePledgeService.Invalidate();
             if (_conversationVoter == voter)
             {
                 _conversationNominee = candidate;
@@ -555,6 +566,7 @@ namespace BellumCivile.Behaviors
 
         private void ClearNominationState(string prefix, bool keepCommitted)
         {
+            VotePledgeService.Invalidate();
             foreach (string key in _nomineeByVoter.Keys.Where(key => key.StartsWith(prefix)).ToList())
             {
                 if (keepCommitted && _committedVotes.ContainsKey(key))
@@ -832,6 +844,7 @@ namespace BellumCivile.Behaviors
                     _conversationVoter, _conversationNominee, kingdom, office, council) == null)
             {
                 _committedVotes.Remove(voterKey);
+                VotePledgeService.Invalidate();
                 CouncilAppointmentNominationResult replacement = CouncilAppointmentNominationHelper.ChooseNominee(
                     _conversationVoter, kingdom, office, council);
                 _conversationNominee = replacement?.Candidate;
@@ -959,6 +972,8 @@ namespace BellumCivile.Behaviors
         private bool PersuasionClickable(out TextObject explanation)
         {
             explanation = TextObject.GetEmpty();
+            if (!VotePledgeService.CanPromise(_conversationVoter, _conversationKingdom,
+                VotePledgeService.CouncilKey(_conversationKingdom, _conversationOffice, _conversationVoter), out explanation)) return false;
             string voterKey = BuildVoterKey(_conversationKingdom, _conversationOffice, _conversationVoter);
             if (_committedVotes.ContainsKey(voterKey))
             {
@@ -1004,12 +1019,13 @@ namespace BellumCivile.Behaviors
 
         private void ApplyPersuasionSuccess()
         {
-            SetCommittedCandidateVote(
+            VotePledgeService.TryCommit(_conversationVoter, _conversationKingdom,
+                VotePledgeService.CouncilKey(_conversationKingdom, _conversationOffice, _conversationVoter), () => SetCommittedCandidateVote(
                 _conversationKingdom,
                 _conversationOffice,
                 _conversationVoter,
                 _selectedCandidate,
-                "persuaded");
+                "persuaded"));
             ClearConversation();
         }
 
@@ -1024,6 +1040,8 @@ namespace BellumCivile.Behaviors
         private bool BribeClickable(out TextObject explanation)
         {
             explanation = TextObject.GetEmpty();
+            if (!VotePledgeService.CanPromise(_conversationVoter, _conversationKingdom,
+                VotePledgeService.CouncilKey(_conversationKingdom, _conversationOffice, _conversationVoter), out explanation)) return false;
             string voterKey = BuildVoterKey(_conversationKingdom, _conversationOffice, _conversationVoter);
             if (_committedVotes.ContainsKey(voterKey))
             {

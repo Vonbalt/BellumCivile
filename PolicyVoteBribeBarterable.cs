@@ -19,13 +19,14 @@ namespace BellumCivile
     /// the standard barter screen. On apply, it locks in a forced support score, scoped to the specific
     /// policy being voted on, that overrides PolicyVoteAIPatch.DetermineSupport for that lord.
     /// </summary>
-    public class PolicyVoteBribeBarterable : Barterable
+    public class PolicyVoteBribeBarterable : Barterable, IInfluenceVotePledgeBarterable
     {
         private readonly Clan         _targetClan;
         private readonly Kingdom      _kingdom;
         private readonly PolicyObject _policy;
         private readonly bool         _swayToSupport;
         private readonly float        _currentScore;   // lord's raw DetermineSupport score at dialogue time
+        private bool _secured;
 
         public PolicyVoteBribeBarterable(Clan targetClan, Kingdom kingdom, PolicyObject policy, bool swayToSupport, float currentScore, Hero proposer)
             : base(proposer, proposer.PartyBelongedTo?.Party)
@@ -83,10 +84,18 @@ public override TextObject Name  => new TextObject("{=BC_Barter_PolicyBribe}Infl
             return 0;
         }
 
-        public override void Apply()
+        bool IInfluenceVotePledgeBarterable.TrySecure(Hero offerer, Hero other)
         {
+            var deliberation = PolicyDeliberationBehavior.Current;
+            if (_secured || !VotePledgeService.IsBarterParticipant(offerer, other, _targetClan, _kingdom)
+                || deliberation?.HasPendingVoteForPolicy(_kingdom, _policy) != true) return false;
             int forcedScore = _swayToSupport ? C.PolicyBribeForcedSupportScore : -C.PolicyBribeForcedSupportScore;
-            PolicyDeliberationBehavior.Current?.SetBribedVote(_kingdom, _policy, _targetClan, forcedScore);
+            return _secured = VotePledgeService.TryCommit(_targetClan, _kingdom,
+                VotePledgeService.PolicyKey(_kingdom, _policy, _targetClan),
+                () => deliberation.SetBribedVote(_kingdom, _policy, _targetClan, forcedScore));
         }
+
+        // The finalization prefix secures the promise before any payment items apply.
+        public override void Apply() { }
     }
 }

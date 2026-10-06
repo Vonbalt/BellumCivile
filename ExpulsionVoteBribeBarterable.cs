@@ -19,13 +19,14 @@ namespace BellumCivile
     /// score, scoped to the specific expulsion target, that overrides ExpulsionVoteAIPatch for
     /// that lord when the vote fires.
     /// </summary>
-    public class ExpulsionVoteBribeBarterable : Barterable
+    public class ExpulsionVoteBribeBarterable : Barterable, IInfluenceVotePledgeBarterable
     {
         private readonly Clan    _voterClan;
         private readonly Kingdom _kingdom;
         private readonly Clan    _targetClan;
         private readonly bool    _swayToExpel;
         private readonly float   _currentScore;
+        private bool _secured;
 
         public ExpulsionVoteBribeBarterable(
             Clan voterClan, Kingdom kingdom, Clan targetClan,
@@ -83,10 +84,19 @@ public override TextObject Name     => new TextObject("{=BC_Barter_ExpulsionBrib
             return 0;
         }
 
-        public override void Apply()
+        bool IInfluenceVotePledgeBarterable.TrySecure(Hero offerer, Hero other)
         {
+            var deliberation = ExpulsionDeliberationBehavior.Current;
+            if (_secured || !VotePledgeService.IsBarterParticipant(offerer, other, _voterClan, _kingdom)
+                || deliberation?.HasPendingExpulsionForTarget(_kingdom, _targetClan) != true
+                || _targetClan?.Kingdom != _kingdom) return false;
             int forcedScore = _swayToExpel ? C.ExpulsionBribeForcedSupportScore : -C.ExpulsionBribeForcedSupportScore;
-            ExpulsionDeliberationBehavior.Current?.SetBribedVote(_kingdom, _targetClan, _voterClan, forcedScore);
+            return _secured = VotePledgeService.TryCommit(_voterClan, _kingdom,
+                VotePledgeService.ExpulsionKey(_kingdom, _targetClan, _voterClan),
+                () => deliberation.SetBribedVote(_kingdom, _targetClan, _voterClan, forcedScore));
         }
+
+        // The finalization prefix secures the promise before any payment items apply.
+        public override void Apply() { }
     }
 }

@@ -10,13 +10,14 @@ using O = BellumCivile.BellumCivileOptions;
 
 namespace BellumCivile
 {
-    public sealed class CouncilAppointmentVoteBribeBarterable : Barterable
+    public sealed class CouncilAppointmentVoteBribeBarterable : Barterable, IInfluenceVotePledgeBarterable
     {
         private readonly Clan _voter;
         private readonly Kingdom _kingdom;
         private readonly PrivyCouncilOffice _office;
         private readonly Clan _candidate;
         private readonly float _resistance;
+        private bool _secured;
 
         public CouncilAppointmentVoteBribeBarterable(
             Clan voter,
@@ -63,10 +64,19 @@ namespace BellumCivile
             return -O.ApplyBribeCostMultiplier((int)(baseCost * MathF.Clamp(multiplier, 0.25f, 2f)));
         }
 
-        public override void Apply()
+        bool IInfluenceVotePledgeBarterable.TrySecure(Hero offerer, Hero other)
         {
-            CouncilAppointmentDeliberationBehavior.Current?
-                .SetCommittedCandidateVote(_kingdom, _office, _voter, _candidate, "bribed");
+            var deliberation = CouncilAppointmentDeliberationBehavior.Current;
+            if (_secured || !VotePledgeService.IsBarterParticipant(offerer, other, _voter, _kingdom)
+                || deliberation?.HasPendingAppointment(_kingdom, _office) != true
+                || CouncilAppointmentNominationHelper.ScoreCandidate(_voter, _candidate, _kingdom, _office,
+                    Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>()) == null) return false;
+            return _secured = VotePledgeService.TryCommit(_voter, _kingdom,
+                VotePledgeService.CouncilKey(_kingdom, _office, _voter),
+                () => deliberation.SetCommittedCandidateVote(_kingdom, _office, _voter, _candidate, "bribed"));
         }
+
+        // The finalization prefix secures the promise before any payment items apply.
+        public override void Apply() { }
     }
 }

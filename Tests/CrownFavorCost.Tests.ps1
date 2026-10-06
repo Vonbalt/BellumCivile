@@ -13,7 +13,7 @@ Check ($player.IndexOf('Contains(faction) != true') -lt $player.IndexOf('TrySpen
     $player.IndexOf('TrySpend') -lt $player.IndexOf('_crownFavor[realm.StringId] =')) 'Stale selection is rejected before payment; failed payment cannot commit favor.'
 Check ($player.Contains('!CanSelectCrownFavor(realm)') -and $player.Contains('GetCrownFavorExpiry(realm) != expectedExpiry')) 'Repeated and stale-term clicks cannot charge again.'
 Check ($flow.Contains('BC_CrownFavorUnaffordable') -and $flow.Contains('if (CrownFavorChoiceOpen(realm))')) 'Low funds are distinguished from the cooldown in hints.'
-Check ($budget.Contains('case NpcInfluenceExpenseKind.Discretionary:') -and $budget.Contains('return Math.Max(GetRoleReserve(clan), cost);')) 'NPC sponsorship protects the existing discretionary reserve.'
+Check ($budget.Contains('case NpcInfluenceExpenseKind.Discretionary:') -and $budget.Contains('return Math.Max(promised, Math.Max(GetRoleReserve(clan), cost));')) 'NPC sponsorship protects the existing discretionary reserve and outstanding vote promises.'
 [xml]$panel = Read 'GUI/Prefabs/KingdomManagement/Factions/BellumFactionsPanel.xml'
 $banner = $panel.SelectSingleNode('//ListPanel[@DataSource="{FavorBanners}"]/ItemTemplate/ListPanel/Children')
 $cost = $banner.SelectSingleNode('ListPanel/Children/TextWidget[@Text="@InfluenceCostText"]')

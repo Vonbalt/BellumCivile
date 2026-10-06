@@ -19,13 +19,14 @@ namespace BellumCivile
     /// their natural nomination. On apply, it locks in a candidate preference stored for that lord
     /// and settlement, which FiefVoteAIPatch then applies when the SettlementClaimantDecision fires.
     /// </summary>
-    public class FiefVoteBribeBarterable : Barterable
+    public class FiefVoteBribeBarterable : Barterable, IInfluenceVotePledgeBarterable
     {
         private readonly Clan       _voterClan;
         private readonly Kingdom    _kingdom;
         private readonly Settlement _settlement;
         private readonly Clan       _preferredCandidate;
         private readonly float      _resistanceScore;
+        private bool _secured;
 
         public FiefVoteBribeBarterable(
             Clan voterClan, Kingdom kingdom, Settlement settlement,
@@ -83,9 +84,18 @@ public override TextObject Name     => new TextObject("{=BC_Barter_FiefVoteBribe
             return 0;
         }
 
-        public override void Apply()
+        bool IInfluenceVotePledgeBarterable.TrySecure(Hero offerer, Hero other)
         {
-            FiefDeliberationBehavior.Current?.SetBribedCandidateVote(_kingdom, _settlement, _voterClan, _preferredCandidate);
+            var deliberation = FiefDeliberationBehavior.Current;
+            if (_secured || !VotePledgeService.IsBarterParticipant(offerer, other, _voterClan, _kingdom)
+                || deliberation?.HasPendingFiefVoteForSettlement(_kingdom, _settlement) != true
+                || _settlement.MapFaction != _kingdom || !VotePledgeService.IsEligible(_preferredCandidate, _kingdom)) return false;
+            return _secured = VotePledgeService.TryCommit(_voterClan, _kingdom,
+                VotePledgeService.FiefKey(_kingdom, _settlement, _voterClan),
+                () => deliberation.SetBribedCandidateVote(_kingdom, _settlement, _voterClan, _preferredCandidate));
         }
+
+        // The finalization prefix secures the promise before any payment items apply.
+        public override void Apply() { }
     }
 }
