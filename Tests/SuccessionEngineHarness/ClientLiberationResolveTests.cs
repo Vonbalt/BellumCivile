@@ -198,6 +198,10 @@ internal static class ClientLiberationResolveTests
             _desire = 80;
             harmony.Unpatch(AccessTools.PropertyGetter(typeof(Kingdom), "UnresolvedDecisions"),
                 HarmonyPatchType.Prefix, harmony.Id);
+            harmony.Unpatch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"),
+                HarmonyPatchType.Prefix, harmony.Id);
+            harmony.Unpatch(AccessTools.Method(warType, "IsRevampEnabled"),
+                HarmonyPatchType.Prefix, harmony.Id);
             ClientLibertyTooltipTests.Run(check, war, _client, _suzerain, _clan, wills);
         }
         finally

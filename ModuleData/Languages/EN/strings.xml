@@ -2928,8 +2928,14 @@
     <string id="BC_MapClientState_ReasonHonor" text="Honor" />
     <string id="BC_ClientLiberation_WillingnessLow" text="Insufficient willingness for liberation ({CURRENT}/{REQUIRED}; War Will {WILL}, resolve +{RESOLVE})." />
     <string id="BC_ClientTooltip_Suzerain" text="Suzerain" />
+    <string id="BC_ClientTooltip_DesireValue" text="{CURRENT} ({STATE})" />
+    <string id="BC_ClientTooltip_Content" text="Content" />
+    <string id="BC_ClientTooltip_Restless" text="Restless" />
+    <string id="BC_ClientTooltip_Defiant" text="Defiant, {THRESHOLD}+" />
+    <string id="BC_ClientTooltip_ClanDesire" text="{CLAN_NAME} ({DESIRE})" />
+    <string id="BC_ClientTooltip_BoundPower" text="The realm seeks independence and has the power to challenge its suzerain." />
     <string id="BC_ClientTooltip_PowerReadiness" text="Power readiness" />
-    <string id="BC_ClientTooltip_ReadinessValue" text="{CURRENT}% / 100% required" />
+    <string id="BC_ClientTooltip_ReadinessValue" text="{CURRENT}% / 100%" />
     <string id="BC_ClientTooltip_ClientPower" text="Effective client power" />
     <string id="BC_ClientTooltip_BlocPower" text="Opposing bloc power" />
     <string id="BC_ClientTooltip_SuzerainPower" text="Suzerain's contribution" />
@@ -2948,17 +2954,17 @@
     <string id="BC_ClientTooltip_Council" text="A declaration still requires a war council decision." />
     <string id="BC_ClientTooltip_AtWar" text="The liberation war is already underway." />
     <string id="BC_ClientTooltip_Disabled" text="Liberation proposals are inactive while the War and Peace Revamp is disabled." />
-    <string id="BC_ClientTooltip_LowDesire" text="Liberation blocked: the realm's desire for independence is too low." />
-    <string id="BC_ClientTooltip_LowPower" text="Liberation blocked: insufficient power." />
+    <string id="BC_ClientTooltip_LowDesire" text="Discontent is growing, but the realm is not yet prepared to seek independence." />
+    <string id="BC_ClientTooltip_LowPower" text="The realm seeks independence, but lacks the power to challenge its suzerain." />
     <string id="BC_ClientTooltip_Unavailable" text="Liberation is not currently available." />
-    <string id="BC_ClientTooltip_Pending" text="Liberation blocked: a war decision is already pending." />
+    <string id="BC_ClientTooltip_Pending" text="The realm awaits the outcome of a pending war decision." />
     <string id="BC_ClientTooltip_NoProposer" text="No eligible clan is available to propose liberation." />
-    <string id="BC_ClientTooltip_NoPersonalDesire" text="Liberation blocked: no eligible clan has sufficient personal desire for independence." />
-    <string id="BC_ClientTooltip_NoWillingness" text="Liberation blocked: no eligible clan has sufficient willingness to propose it." />
-    <string id="BC_ClientTooltip_NoInfluence" text="Liberation blocked: willing clans lack the influence needed to propose it while keeping their reserve." />
-    <string id="BC_ClientTooltip_NoTarget" text="Liberation blocked: otherwise eligible clans are still deterred from targeting the suzerain." />
+    <string id="BC_ClientTooltip_NoPersonalDesire" text="No leading clan is determined enough to propose independence." />
+    <string id="BC_ClientTooltip_NoWillingness" text="The realm has sufficient power, but its leading clans remain reluctant to act." />
+    <string id="BC_ClientTooltip_NoInfluence" text="Willing clans lack the influence they can spare to propose liberation." />
+    <string id="BC_ClientTooltip_NoTarget" text="The realm has sufficient power, but its leading clans still judge war with the suzerain unwise." />
     <string id="BC_ClientTooltip_Permission" text="Liberation blocked: {REASON}" />
-    <string id="BC_ClientTooltip_Ready" text="Ready to propose liberation." />
+    <string id="BC_ClientTooltip_Ready" text="Support and resources are sufficient to propose liberation. A declaration requires council approval." />
     <string id="BC_ClientTooltip_DesireLimits" text="Individual desire limits (0-100)" />
     <string id="BC_ClientTooltip_Required" text="{CURRENT} / {REQUIRED} required" />
     <string id="BC_ClientKingdom_FormerOverlord" text="its former overlord" />
