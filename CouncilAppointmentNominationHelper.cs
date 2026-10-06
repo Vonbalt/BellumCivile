@@ -47,6 +47,23 @@ namespace BellumCivile
                 && clan.Leader != null;
         }
 
+        internal static List<Clan> BuildShortlist(IEnumerable<Clan> rankedCandidates,
+            IReadOnlyList<Clan> eligibleCandidates, Clan formalNominee = null)
+        {
+            var eligible = new HashSet<Clan>(eligibleCandidates ?? new List<Clan>());
+            var ranked = (rankedCandidates ?? Enumerable.Empty<Clan>())
+                .Where(candidate => candidate != null && eligible.Contains(candidate))
+                .Distinct().Take(3).ToList();
+            if (ranked.Count == 0)
+                ranked = (eligibleCandidates ?? new List<Clan>()).Where(candidate => candidate != null)
+                    .Distinct().Take(3).ToList();
+
+            // Filing a named motion secures ballot access, not extra votes or an appointment.
+            return formalNominee != null && eligible.Contains(formalNominee)
+                ? new[] { formalNominee }.Concat(ranked.Where(candidate => candidate != formalNominee)).Take(3).ToList()
+                : ranked;
+        }
+
         internal static CouncilAppointmentNominationResult ChooseNominee(
             Clan voter,
             Kingdom kingdom,

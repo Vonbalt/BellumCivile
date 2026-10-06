@@ -188,6 +188,8 @@ Sustainable core offices are limited by eligible council clans, up to four. Unsu
 
 Tooltips show competence, contributing skills, controversy, support, and assignment effects. Candidate competence appears in appointment voting. A nomination ballot produces three candidates for the kingdom decision. The player's realm receives deliberation and persuasion/bribery dialogue; NPC-only appointments can resolve synchronously at their scheduled session.
 
+Named Crown and court-faction appointment motions reserve one ballot place for their eligible nominee; the other places follow the nobles' nomination ranking. The same shortlist rule is used for AI forecasts and restored decisions. NPC sponsors favor their own nominee unless they have an explicit voting pledge, while ordinary influence costs and reserves still apply. Sponsorship guarantees consideration, not victory. Existing nominee eligibility and NPC vacancy-recovery rules remain in force.
+
 **Appoint** costs 100 influence before applicable Chancellor discounts. A faction leader needs an active mandate; a player ruler can file directly. **Dismiss** is ruler-only, costs 100 influence, applies grievances/mood effects, and leaves a vacancy. Overrides have their own influence and relation costs.
 
 NPC rulers dismiss councillors in any captivity, with a lesser grievance than scandal dismissal. Eligible vacancies enter a serialized Crown crisis queue; subsequent appointments wait for the current proceeding. Player rulers manage captured councillors manually. A new appointment resets office controversy and assignment state.

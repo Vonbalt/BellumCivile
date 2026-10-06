@@ -375,24 +375,32 @@ namespace BellumCivile.Behaviors
             if (council == null || kingdom == null || proposer == null)
                 return false;
 
+            string pendingKey = BuildPendingKey(kingdom, office);
+            _pendingCourtAgendaIds.TryGetValue(pendingKey, out var agendaId);
+            Clan formalNominee = null;
+            if (!string.IsNullOrEmpty(agendaId))
+            {
+                if (CourtAgendaBehavior.Current?.ValidateCouncilProceeding(agendaId, kingdom, office, proposer) != true)
+                    return false;
+                formalNominee = CourtAgendaBehavior.Current.GetCouncilProceedingNominee(agendaId, kingdom, office, proposer);
+                if (formalNominee == null) return false;
+            }
+
             if (buildStoredNominations)
                 BuildPreliminaryNominations(kingdom, office, preserveCommitted: true);
 
-            List<Clan> shortlist = buildStoredNominations
-                ? BuildStoredRanking(kingdom, office).Take(3).Select(entry => entry.Candidate).ToList()
+            var ranking = buildStoredNominations
+                ? BuildStoredRanking(kingdom, office)
                 : CouncilAppointmentNominationHelper.BuildRanking(kingdom, office, council)
-                    .Take(3)
-                    .Select(entry => entry.Candidate)
                     .ToList();
+            List<Clan> shortlist = CouncilAppointmentNominationHelper.BuildShortlist(
+                ranking.Select(entry => entry.Candidate), council.GetAppointmentCandidatesForVote(kingdom, office), formalNominee);
 
-            if (shortlist.Count == 0)
-                shortlist = council.GetAppointmentCandidatesForVote(kingdom, office).Take(3).ToList();
             if (shortlist.Count == 0)
                 return false;
 
-            string pendingKey = BuildPendingKey(kingdom, office);
             PrivyCouncilAppointmentDecision decision = new PrivyCouncilAppointmentDecision(proposer, office, shortlist);
-            if (_pendingCourtAgendaIds.TryGetValue(pendingKey, out var agendaId)) decision.CourtAgendaId = agendaId;
+            decision.CourtAgendaId = agendaId;
             if (!decision.IsAllowed())
                 return false;
 
@@ -416,7 +424,7 @@ namespace BellumCivile.Behaviors
                 else ClearAppointmentState(pendingKey);
             }
 
-            BellumCivileLogger.Log($"Council appointment ballot opened; kingdom={kingdom.StringId}; office={office}; proposer={proposer.StringId}; faction={faction?.Type.ToString() ?? "none"}; source={source}; candidates={string.Join(",", shortlist.Select(clan => clan.StringId))}.");
+            BellumCivileLogger.Log($"Council appointment ballot opened; kingdom={kingdom.StringId}; office={office}; proposer={proposer.StringId}; faction={faction?.Type.ToString() ?? "none"}; source={source}; nominee={formalNominee?.StringId ?? "none"}; candidates={string.Join(",", shortlist.Select(clan => clan.StringId))}.");
             return true;
         }
 
@@ -491,6 +499,8 @@ namespace BellumCivile.Behaviors
                     && validCandidates.Contains(entry.Candidate))
                 .OrderByDescending(entry => entry.Count)
                 .ThenByDescending(entry => entry.Score)
+                .ThenByDescending(entry => FeudalPoliticalWeightHelper.GetHighestHeldTitleRank(entry.Candidate).HasValue
+                    ? (int)FeudalPoliticalWeightHelper.GetHighestHeldTitleRank(entry.Candidate).Value : -1)
                 .ThenBy(entry => entry.Candidate.StringId)
                 .ToList();
         }

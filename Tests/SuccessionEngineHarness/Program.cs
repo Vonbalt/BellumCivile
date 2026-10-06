@@ -51,6 +51,13 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--council-nominations"))
+            {
+                CouncilNomineeBallotTests.Run(Check);
+                CouncilRecoveryTests.Run(Check);
+                CouncilSchedulingCleanupTests.Run(Check);
+                Console.WriteLine($"{_checks} council nomination checks passed.");
+            }
             else if (args.Contains("--vote-pledges"))
             {
                 VotePledgeTests.Run(Check);

@@ -78,6 +78,14 @@ namespace BellumCivile.Behaviors
         internal bool ValidateCouncilProceeding(string motionId, Kingdom realm, PrivyCouncilOffice office, Clan sponsor)
             => CouncilProceedingReason(motionId, realm, office, sponsor) == null;
 
+        internal Clan GetCouncilProceedingNominee(string motionId, Kingdom realm, PrivyCouncilOffice office, Clan sponsor)
+        {
+            if (string.IsNullOrEmpty(motionId)) return null;
+            return _agendas.FirstOrDefault(a => IsCouncil(a) && a.IsFiled && a.CouncilMotionId == motionId
+                && a.Realm == realm && a.Sponsor == sponsor && CouncilOffice(a, out var target) && target == office)
+                ?.PreferredCouncilCandidate;
+        }
+
         internal string CouncilProceedingReason(string motionId, Kingdom realm, PrivyCouncilOffice office, Clan sponsor)
         {
             var agenda = _agendas.FirstOrDefault(a => IsCouncil(a) && a.CouncilMotionId == motionId && a.Realm == realm && a.IsFiled);

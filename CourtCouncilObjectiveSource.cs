@@ -41,7 +41,10 @@ namespace BellumCivile
                 _merit[key] = value = Council.CalculateAppointmentMerit(Realm, candidate, office);
             return value;
         }
-        internal List<Clan> Shortlist(PrivyCouncilOffice office)
+        internal List<Clan> Shortlist(PrivyCouncilOffice office, Clan formalNominee = null) =>
+            CouncilAppointmentNominationHelper.BuildShortlist(RankedCandidates(office), Candidates(office), formalNominee);
+
+        private List<Clan> RankedCandidates(PrivyCouncilOffice office)
         {
             if (_shortlists.TryGetValue(office, out var result)) return result;
             var counts = new Dictionary<Clan, int>();
@@ -65,7 +68,6 @@ namespace BellumCivile
                 .ThenByDescending(c => FeudalPoliticalWeightHelper.GetHighestHeldTitleRank(c).HasValue
                     ? (int)FeudalPoliticalWeightHelper.GetHighestHeldTitleRank(c).Value : -1)
                 .ThenBy(c => c.StringId).Take(3).ToList();
-            if (result.Count == 0) result = Candidates(office).Take(3).ToList();
             return _shortlists[office] = result;
         }
     }
@@ -158,7 +160,8 @@ namespace BellumCivile
             float preference = members.Average(v => facts.Support(office, v, nominee));
             float meritGap = facts.Merit(office, nominee) - facts.Merit(office, incumbent);
             var record = facts.Council.GetOfficeRecord(context.Realm, office);
-            bool credible = facts.Shortlist(office).Contains(nominee) && preference > 0
+            bool shortlisted = facts.Shortlist(office, nominee).Contains(nominee);
+            bool credible = shortlisted && preference > 0
                 && (incumbent == null || preference > members.Average(v => facts.Support(office, v, incumbent)))
                 && (incumbent == null || meritGap >= 8 || record.Controversy >= 60);
             bool affordable = NpcInfluenceBudgetService.CanAfford(owner.Sponsor, Cost(owner.Sponsor), NpcInfluenceExpenseKind.Discretionary);
@@ -168,7 +171,7 @@ namespace BellumCivile
             var weight = CourtCouncilWeights.Calculate(incumbent == null, facts.Council.GetVacancyDays(record),
                 record.Controversy, meritGap, favored);
             return new CourtObjectiveEvaluation(true, credible && affordable, weight,
-                $"preferred={nominee.StringId}; preference={preference}; merit_gap={meritGap}; shortlisted={facts.Shortlist(office).Contains(nominee)}; affordable={affordable}");
+                $"preferred={nominee.StringId}; preference={preference}; merit_gap={meritGap}; shortlisted={shortlisted}; affordable={affordable}");
         }
         private static CourtObjectiveEvaluation Reject(string reason) => new CourtObjectiveEvaluation(false, false, new CourtObjectiveWeight(0), reason);
 

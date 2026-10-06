@@ -100,8 +100,6 @@ namespace BellumCivile
             return behavior != null
                 && Kingdom != null
                 && Kingdom.RulingClan != null
-                && (string.IsNullOrEmpty(CourtAgendaId) || CourtAgendaBehavior.Current?
-                    .ValidateCouncilProceeding(CourtAgendaId, Kingdom, _office, ProposerClan) == true)
                 && behavior.IsOfficeUnlocked(Kingdom, _office)
                 && GetValidShortlist(behavior).Count > 0;
         }
@@ -172,6 +170,13 @@ namespace BellumCivile
             string committedCandidate = deliberation?.GetCommittedCandidateVote(Kingdom, _office, clan);
             if (!string.IsNullOrEmpty(committedCandidate))
                 return outcome?.CandidateClan?.StringId == committedCandidate ? 10000f : -100f;
+
+            if (clan != Clan.PlayerClan && clan == ProposerClan)
+            {
+                Clan nominee = CourtAgendaBehavior.Current?.GetCouncilProceedingNominee(CourtAgendaId, Kingdom, _office, ProposerClan);
+                if (nominee != null)
+                    return outcome?.CandidateClan == nominee ? 100f : -100f;
+            }
 
             return GetBehavior()?.CalculateAppointmentSupport(Kingdom, clan, outcome?.CandidateClan, _office) ?? -100f;
         }
@@ -301,17 +306,21 @@ namespace BellumCivile
             if (behavior == null || Kingdom == null)
                 return new List<Clan>();
 
-            IReadOnlyList<Clan> validCandidates = behavior.GetAppointmentCandidatesForVote(Kingdom, _office);
+            // Native election setup asks for candidates before IsAllowed. Validate first so
+            // vacancy recovery and saved ballots use the same current, authorized nominee.
+            bool validAgenda = string.IsNullOrEmpty(CourtAgendaId) || CourtAgendaBehavior.Current?
+                .ValidateCouncilProceeding(CourtAgendaId, Kingdom, _office, ProposerClan) == true;
+            if (!validAgenda) return new List<Clan>();
+            Clan nominee = CourtAgendaBehavior.Current?.GetCouncilProceedingNominee(CourtAgendaId, Kingdom, _office, ProposerClan);
+            if (!string.IsNullOrEmpty(CourtAgendaId) && nominee == null) return new List<Clan>();
+
+            IReadOnlyList<Clan> validCandidates = behavior.GetAppointmentCandidatesForVote(Kingdom, _office)
+                .Where(candidate => candidate != Kingdom.RulingClan).ToList();
             IEnumerable<Clan> source = _shortlistedClans != null && _shortlistedClans.Count > 0
                 ? _shortlistedClans
                 : validCandidates;
-            return source
-                .Where(candidate => candidate != null
-                    && candidate != Kingdom.RulingClan
-                    && validCandidates.Contains(candidate))
-                .Distinct()
-                .Take(3)
-                .ToList();
+            if (nominee == null && !source.Any(validCandidates.Contains)) return new List<Clan>();
+            return CouncilAppointmentNominationHelper.BuildShortlist(source, validCandidates, nominee);
         }
 
         private void ApplyPersonalAftermath(
