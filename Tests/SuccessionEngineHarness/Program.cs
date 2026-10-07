@@ -51,6 +51,12 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--relation-thread-safety"))
+            {
+                // Real Harmony entrypoints need a fresh process, before other fixtures patch raw getters.
+                RelationThreadSafetyTests.Run(Check);
+                Console.WriteLine($"{_checks} relation thread-safety checks passed.");
+            }
             else if (args.Contains("--civil-war-identity"))
             {
                 CivilWarRealmIdentityTests.Run(Check);

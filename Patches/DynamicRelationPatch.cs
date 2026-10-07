@@ -32,11 +32,13 @@ namespace BellumCivile.Patches
 
         [HarmonyPatch(nameof(CharacterRelationManager.SetHeroRelation))]
         [HarmonyPrefix]
-        public static bool SetHeroRelationPrefix(Hero hero1, Hero hero2, out DynamicRelationSetState __state)
+        public static bool SetHeroRelationPrefix(Hero hero1, Hero hero2, int value, out DynamicRelationSetState __state)
         {
             __state = default;
             if (hero1 != null && hero2 != null)
             {
+                if (DynamicRelationBehavior.Instance?.DeferBackgroundRelationSet(hero1, hero2, value) == true)
+                    return false;
                 __state = DynamicRelationBehavior.Instance?.PrepareRelationSet(hero1, hero2) ?? default;
                 return true;
             }

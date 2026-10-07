@@ -265,6 +265,7 @@ internal static class GameplayRelationMemoryTests
         var allowed = new HashSet<string> {
             "BellumCivile.RelationMemoryService.ApplyChangeWithDescriptor",
             "BellumCivile.Behaviors.DynamicRelationBehavior.SetRawRelation",
+            "BellumCivile.Behaviors.DynamicRelationBehavior.ReplayDeferredRelationSet",
             "BellumCivile.CheatCommands.SetRulerRelationPlayer", "BellumCivile.CheatCommands.SetRulerRelationAI",
             "BellumCivile.Patches.MarriageRelationMemoryPatch.ApplyMarriageRelation",
             "BellumCivile.Patches.SettlementDailyRelationMemoryPatch.ApplySettlementRelation",
@@ -292,6 +293,6 @@ internal static class GameplayRelationMemoryTests
         }
         string[] unexpected = found.Where(name => !allowed.Contains(name)).ToArray();
         check(unexpected.Length == 0, "No unlabelled direct gameplay relation writes: " + string.Join(", ", unexpected));
-        check(found.Count == allowed.Count && allowed.SetEquals(found), "Raw-write exceptions are limited to the eight intentional engine/debug/native-wrapper calls");
+        check(found.Count == allowed.Count && allowed.SetEquals(found), "Raw-write exceptions are limited to the nine intentional engine/debug/native-wrapper calls");
     }
 }

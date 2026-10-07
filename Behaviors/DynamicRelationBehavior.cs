@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
@@ -87,7 +89,14 @@ namespace BellumCivile.Behaviors
         private Dictionary<string, int> _openingRelationAdjustments = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly Dictionary<DynamicRelationPairKey, int> _runtimeOpeningAdjustments = new Dictionary<DynamicRelationPairKey, int>();
 
-        private readonly Dictionary<DynamicRelationPairKey, int> _runtimeMaterializedPairValues = new Dictionary<DynamicRelationPairKey, int>();
+        // Only scalar, already-materialized values are published to background readers.
+        // All other relation state remains owned by the campaign thread.
+        private readonly ConcurrentDictionary<DynamicRelationPairKey, int> _runtimeMaterializedPairValues = new ConcurrentDictionary<DynamicRelationPairKey, int>();
+        private volatile int _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
+        private readonly ConcurrentQueue<Action> _pendingRelationWork = new ConcurrentQueue<Action>();
+        private int _pendingBaselineInvalidation;
+        private int _reportedBackgroundRead, _reportedBackgroundWrite;
+        private bool _processingPendingRelationWork;
         private readonly Dictionary<DynamicRelationPairKey, List<RelationMemoryRecord>> _personalMemoriesByPair = new Dictionary<DynamicRelationPairKey, List<RelationMemoryRecord>>();
         private readonly Dictionary<ClanPairKey, List<RelationMemoryRecord>> _houseMemoriesByPair = new Dictionary<ClanPairKey, List<RelationMemoryRecord>>();
         private readonly Dictionary<ClanPairKey, int> _houseMemoryRevisions = new Dictionary<ClanPairKey, int>();
@@ -124,7 +133,9 @@ namespace BellumCivile.Behaviors
 #endif
 
         public static DynamicRelationBehavior Instance { get; private set; }
-        internal static bool SuppressRelationPatch { get; private set; }
+        [ThreadStatic] private static bool _suppressRelationPatch;
+        internal static bool SuppressRelationPatch { get => _suppressRelationPatch; private set => _suppressRelationPatch = value; }
+        internal bool IsCampaignThread => Thread.CurrentThread.ManagedThreadId == _campaignThreadId;
 
         public DynamicRelationBehavior()
         {
@@ -134,6 +145,7 @@ namespace BellumCivile.Behaviors
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+            CampaignEvents.TickEvent.AddNonSerializedListener(this, _ => ProcessPendingRelationWork());
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.HeroGainedSkill.AddNonSerializedListener(this, OnHeroGainedSkill);
             CampaignEvents.PlayerTraitChangedEvent.AddNonSerializedListener(this, OnPlayerTraitChanged);
@@ -148,6 +160,7 @@ namespace BellumCivile.Behaviors
             EnsureCollectionsInitialized();
             if (dataStore.IsSaving)
             {
+                ProcessPendingRelationWork();
                 MigrateBloodKinshipBaseline();
                 RefreshMemoryDurationMultiplier();
                 if (_memorySchemaVersion < CurrentMemorySchemaVersion)
@@ -182,12 +195,18 @@ namespace BellumCivile.Behaviors
 
         public int GetRelationForRead(Hero firstHero, Hero secondHero, int vanillaStoredValue)
         {
+            if (!BellumCivileOptions.EnableDynamicRelationDrift || SuppressRelationPatch)
+                return vanillaStoredValue;
+            if (!IsCampaignThread)
+            {
+                ReportBackgroundRelationAccess(false);
+                return TryGetPublishedRelation(firstHero, secondHero, out int published) ? published : vanillaStoredValue;
+            }
+            ApplyPendingBaselineInvalidation();
             RefreshMemoryDurationMultiplier();
 #if DEBUG
             _diagnosticRelationReads++;
 #endif
-            if (!BellumCivileOptions.EnableDynamicRelationDrift || SuppressRelationPatch)
-                return vanillaStoredValue;
             if (!ShouldAffectPair(firstHero, secondHero))
                 return vanillaStoredValue;
 
@@ -234,7 +253,7 @@ namespace BellumCivile.Behaviors
 
         public DynamicRelationSetState PrepareRelationSet(Hero firstHero, Hero secondHero)
         {
-            if (!BellumCivileOptions.EnableDynamicRelationDrift || SuppressRelationPatch || !ShouldAffectPair(firstHero, secondHero))
+            if (!IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift || SuppressRelationPatch || !ShouldAffectPair(firstHero, secondHero))
                 return default;
             int raw = GetRawRelation(firstHero, secondHero);
             return new DynamicRelationSetState(true, GetRelationForRead(firstHero, secondHero, raw));
@@ -242,6 +261,13 @@ namespace BellumCivile.Behaviors
 
         public void CaptureRelationSet(Hero firstHero, Hero secondHero, int value, DynamicRelationSetState state)
         {
+            if (!IsCampaignThread)
+            {
+                if (state.IsTracked)
+                    _pendingRelationWork.Enqueue(RelationMemoryService.CaptureContext(
+                        () => CaptureRelationSet(firstHero, secondHero, value, state)));
+                return;
+            }
             if (!state.IsTracked || !BellumCivileOptions.EnableDynamicRelationDrift || SuppressRelationPatch || !ShouldAffectPair(firstHero, secondHero))
                 return;
 
@@ -264,6 +290,11 @@ namespace BellumCivile.Behaviors
 
         public void InvalidateBaselineCache()
         {
+            if (!IsCampaignThread)
+            {
+                Interlocked.Exchange(ref _pendingBaselineInvalidation, 1);
+                return;
+            }
 #if DEBUG
             _diagnosticPoliticalInvalidations++;
 #endif
@@ -275,6 +306,7 @@ namespace BellumCivile.Behaviors
 
         public string BuildDebugBreakdown(Hero firstHero, Hero secondHero)
         {
+            if (!IsCampaignThread) return "Relation breakdown is only available on the campaign thread.";
             if (firstHero == null || secondHero == null)
                 return "Error: both heroes must be valid.";
 
@@ -295,6 +327,7 @@ namespace BellumCivile.Behaviors
         {
             baseline = 0;
             tooltip = string.Empty;
+            if (!IsCampaignThread) return false;
             Hero playerHero = Hero.MainHero;
             if (!CanBuildPlayerRelationTooltip(playerHero, viewedHero))
                 return false;
@@ -325,9 +358,10 @@ namespace BellumCivile.Behaviors
 
         public bool TryBuildEncyclopediaThresholdTooltip(Hero viewedHero, out int currentRelation, out List<TooltipProperty> properties)
         {
-            RefreshMemoryDurationMultiplier();
             currentRelation = 0;
             properties = null;
+            if (!IsCampaignThread) return false;
+            RefreshMemoryDurationMultiplier();
             Hero playerHero = Hero.MainHero;
             if (!CanBuildPlayerRelationTooltip(playerHero, viewedHero))
                 return false;
@@ -380,6 +414,7 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
+            _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
             EnsureCollectionsInitialized();
             Instance = this;
             RebuildObjectResolutionCaches();
@@ -400,6 +435,8 @@ namespace BellumCivile.Behaviors
 
         private void OnDailyTick()
         {
+            if (!IsCampaignThread) return;
+            ProcessPendingRelationWork();
             RefreshMemoryDurationMultiplier();
             PruneExpiredCaches();
             PruneExpiredMemories(false);
@@ -579,6 +616,7 @@ namespace BellumCivile.Behaviors
 
         internal bool RefreshSuccessionConcession(Hero heir, Hero ruler)
         {
+            if (!IsCampaignThread) return false;
             if (!ShouldAffectPair(heir, ruler)) return false;
             EnsureCollectionsInitialized();
             RefreshMemoryDurationMultiplier();
@@ -860,7 +898,7 @@ namespace BellumCivile.Behaviors
 
         internal int LimitClientGrantGain(Hero firstHero, Hero secondHero)
         {
-            if (!BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero))
+            if (!IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero))
                 return CourtClientGrantRules.Gratitude;
             GetRelationForRead(firstHero, secondHero, GetRawRelation(firstHero, secondHero));
             return CourtClientGrantRules.Reward(GetActiveMemories(firstHero, secondHero)
@@ -870,7 +908,7 @@ namespace BellumCivile.Behaviors
 
         internal int LimitPrisonerDonationGain(Hero firstHero, Hero secondHero, int proposedGain)
         {
-            if (!BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero))
+            if (!IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero))
                 return proposedGain;
 
             GetRelationForRead(firstHero, secondHero, GetRawRelation(firstHero, secondHero));
@@ -972,6 +1010,11 @@ namespace BellumCivile.Behaviors
 
         private void InvalidateFoundationForHero(Hero hero)
         {
+            if (!IsCampaignThread)
+            {
+                _pendingRelationWork.Enqueue(() => InvalidateFoundationForHero(hero));
+                return;
+            }
             if (hero == null || _foundationCache.Count == 0)
                 return;
             _cacheRemovalBuffer.Clear();
@@ -1218,6 +1261,7 @@ namespace BellumCivile.Behaviors
 
         public string BuildPerformanceDiagnostics(bool reset)
         {
+            if (!IsCampaignThread) return "Relation diagnostics are only available on the campaign thread.";
             string result = $"{BuildCacheDiagnosticText()}; visible_cache={_visibleRelationCache.Count}/{MaximumVisibleCacheEntries}; visible_queue={_visiblePruneQueue.Count}; materialized_pairs={_runtimeMaterializedPairValues.Count}; opening_balances={_runtimeOpeningAdjustments.Count}";
 #if DEBUG
             string interval = _diagnosticStartDay.HasValue ? (CurrentDay - _diagnosticStartDay.Value).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "since_load";
@@ -1536,6 +1580,7 @@ namespace BellumCivile.Behaviors
 
         private static int GetRawRelation(Hero firstHero, Hero secondHero)
         {
+            bool previous = SuppressRelationPatch;
             SuppressRelationPatch = true;
             try
             {
@@ -1543,12 +1588,13 @@ namespace BellumCivile.Behaviors
             }
             finally
             {
-                SuppressRelationPatch = false;
+                SuppressRelationPatch = previous;
             }
         }
 
         private static void SetRawRelation(Hero firstHero, Hero secondHero, int value)
         {
+            bool previous = SuppressRelationPatch;
             SuppressRelationPatch = true;
             try
             {
@@ -1556,8 +1602,59 @@ namespace BellumCivile.Behaviors
             }
             finally
             {
-                SuppressRelationPatch = false;
+                SuppressRelationPatch = previous;
             }
+        }
+
+        internal bool TryGetPublishedRelation(Hero first, Hero second, out int value)
+        {
+            value = 0;
+            return first != null && second != null && first != second
+                && _runtimeMaterializedPairValues.TryGetValue(new DynamicRelationPairKey(first, second), out value);
+        }
+
+        internal bool DeferBackgroundRelationSet(Hero first, Hero second, int value)
+        {
+            if (IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift) return false;
+            ReportBackgroundRelationAccess(true);
+            _pendingRelationWork.Enqueue(RelationMemoryService.CaptureContext(() =>
+                ReplayDeferredRelationSet(first, second, value)));
+            return true;
+        }
+
+        private static void ReplayDeferredRelationSet(Hero first, Hero second, int value)
+        {
+            // CaptureContext restores the original event labels before this re-enters our setter patch.
+            CharacterRelationManager.SetHeroRelation(first, second, value);
+        }
+
+        private void ProcessPendingRelationWork()
+        {
+            if (!IsCampaignThread || _processingPendingRelationWork) return;
+            _processingPendingRelationWork = true;
+            try
+            {
+                ApplyPendingBaselineInvalidation();
+                // Drain only the work already queued, not an unbounded stream of producers.
+                int remaining = _pendingRelationWork.Count;
+                while (remaining-- > 0 && _pendingRelationWork.TryDequeue(out Action work)) work();
+            }
+            finally { _processingPendingRelationWork = false; }
+        }
+
+        private void ReportBackgroundRelationAccess(bool write)
+        {
+            if (write ? Volatile.Read(ref _reportedBackgroundWrite) != 0
+                : Volatile.Read(ref _reportedBackgroundRead) != 0) return;
+            if (write ? Interlocked.Exchange(ref _reportedBackgroundWrite, 1) != 0
+                : Interlocked.Exchange(ref _reportedBackgroundRead, 1) != 0) return;
+            BellumCivileLogger.Log($"Guarded off-thread relation {(write ? "write" : "read")}; campaign_thread={_campaignThreadId}; caller_thread={Thread.CurrentThread.ManagedThreadId}; action={(write ? "deferred to campaign thread" : "read published or native value")}; caller={new System.Diagnostics.StackTrace(2, false)}");
+        }
+
+        private void ApplyPendingBaselineInvalidation()
+        {
+            if (Interlocked.Exchange(ref _pendingBaselineInvalidation, 0) != 0)
+                InvalidateBaselineCache();
         }
 
         private void RefreshMemoryDurationMultiplier()

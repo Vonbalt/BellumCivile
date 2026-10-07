@@ -463,6 +463,19 @@ namespace BellumCivile
 
         internal static RelationMemoryDescriptor CurrentDescriptor => _currentDescriptor;
 
+        internal static Action CaptureContext(Action action)
+        {
+            var descriptor = _currentDescriptor;
+            string positive = _nativeLabels?.Positive;
+            string negative = _nativeLabels?.Negative;
+            return () =>
+            {
+                using (Push(descriptor))
+                using (BeginNativeLabels(positive, negative))
+                    action();
+            };
+        }
+
         internal static IDisposable BeginNativeLabels(string positive, string negative)
         {
             var scope = new NativeLabelScope(positive, negative, _nativeLabels);
