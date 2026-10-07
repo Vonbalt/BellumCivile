@@ -6,8 +6,8 @@ This repository contains the source for the released **Bellum Civile 1.4.0**. Th
 
 | Item | Current state |
 | --- | --- |
-| Documentation revision | October 3, 2026 |
-| Release version | Bellum Civile 1.4.0 |
+| Documentation revision | October 6, 2026 |
+| Release version | Bellum Civile 1.4.1 |
 | Target game version | Bannerlord 1.4.8 |
 | Core runtime | .NET Framework 4.7.2 (`net472`) |
 | Required mod dependencies | Harmony, UIExtenderEx, Mod Configuration Menu v5 |
