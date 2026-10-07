@@ -573,6 +573,11 @@ namespace BellumCivile.Behaviors
             foreach (FactionObject faction in _activeFactions.Where(f => !f.IsIdeology).ToList())
             {
                 if (faction.IsChallengeStartupPending || CivilWarConflictBehavior.IsFactionTransferPending(faction)) continue;
+                if (faction.DiscardInvalidRebelKingdomReference())
+                {
+                    if (faction.Leader?.Kingdom != faction.ParentKingdom) RemoveFaction(faction);
+                    continue;
+                }
                 if (faction.TryValidateActiveRebellion(out _, out _))
                     continue;
 
@@ -608,6 +613,17 @@ namespace BellumCivile.Behaviors
                 || CivilWarConflictBehavior.IsFactionTransferPending(faction))
                 return false;
 
+            if (faction.DiscardInvalidRebelKingdomReference()) return false;
+            Kingdom trackedKingdom = faction.GetTrackedRebelKingdomIncludingEliminated();
+            // Terminal cleanup owns eliminated shells. Do not replace their identity
+            // with a newer rebellion found through the current leader.
+            if (trackedKingdom?.IsEliminated == true) return false;
+            if (IsRebelKingdomClaimedByAnotherFaction(faction, trackedKingdom))
+            {
+                failureReason = "the rebel kingdom is already tracked by another faction";
+                return false;
+            }
+
             if (faction.TryValidateActiveRebellion(out rebelKingdom, out _))
                 return true;
 
@@ -632,10 +648,10 @@ namespace BellumCivile.Behaviors
                 return false;
 
             Kingdom candidate = faction.GetRebelKingdom();
-            if (!IsMatchingActiveRebelShell(candidate, faction.ParentKingdom, deterministicPrefix))
+            if (!IsMatchingActiveRebelShell(candidate, faction))
             {
                 candidate = Kingdom.All
-                    .Where(kingdom => IsMatchingActiveRebelShell(kingdom, faction.ParentKingdom, deterministicPrefix))
+                    .Where(kingdom => IsMatchingActiveRebelShell(kingdom, faction))
                     .OrderBy(kingdom => kingdom.StringId == deterministicPrefix ? 0 : 1)
                     .ThenBy(kingdom => kingdom.StringId)
                     .FirstOrDefault();
@@ -645,10 +661,7 @@ namespace BellumCivile.Behaviors
                 return false;
 
             rebelKingdom = candidate;
-            bool claimedByAnotherFaction = _activeFactions.Any(other =>
-                other != faction
-                && !other.IsIdeology
-                && other.IsTrackedRebelKingdom(candidate));
+            bool claimedByAnotherFaction = IsRebelKingdomClaimedByAnotherFaction(faction, candidate);
             if (claimedByAnotherFaction)
             {
                 failureReason = "the deterministic rebel kingdom is already tracked by another faction";
@@ -663,20 +676,23 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
-        private static bool IsMatchingActiveRebelShell(Kingdom candidate, Kingdom parentKingdom, string deterministicPrefix)
+        internal bool IsRebelKingdomClaimedByAnotherFaction(FactionObject faction, Kingdom kingdom)
+        {
+            return kingdom != null && _activeFactions.Any(other =>
+                other != faction && other.IsTrackedRebelKingdom(kingdom));
+        }
+
+        private static bool IsMatchingActiveRebelShell(Kingdom candidate, FactionObject faction)
         {
             if (candidate == null
                 || candidate.IsEliminated
-                || parentKingdom == null
-                || candidate == parentKingdom
-                || string.IsNullOrEmpty(deterministicPrefix))
+                || faction.ParentKingdom == null
+                || candidate == faction.ParentKingdom)
             {
                 return false;
             }
 
-            bool idMatches = candidate.StringId == deterministicPrefix
-                || candidate.StringId.StartsWith(deterministicPrefix + "_", StringComparison.Ordinal);
-            return idMatches && candidate.IsAtWarWith(parentKingdom);
+            return faction.MatchesRebelKingdomId(candidate.StringId) && candidate.IsAtWarWith(faction.ParentKingdom);
         }
 
         private void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, ChangeKingdomAction.ChangeKingdomActionDetail detail, bool showNotification)
@@ -715,16 +731,9 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
 
-                bool movingToRebel = newKingdom != null && faction.ParentKingdom != null &&
-                                    (faction.IsTrackedRebelKingdom(newKingdom)
-                                     || newKingdom.StringId.StartsWith(faction.ParentKingdom.StringId + "_rebels")
-                                     || newKingdom.StringId.StartsWith(faction.ParentKingdom.StringId + "_indep"));
-
-                bool returningFromRebel = oldKingdom != null && faction.ParentKingdom != null &&
-                                          (faction.IsTrackedRebelKingdom(oldKingdom)
-                                           || oldKingdom.StringId.StartsWith(faction.ParentKingdom.StringId + "_rebels")
-                                           || oldKingdom.StringId.StartsWith(faction.ParentKingdom.StringId + "_indep")) &&
-                                          newKingdom == faction.ParentKingdom;
+                bool movingToRebel = faction.IsTrackedRebelKingdom(newKingdom);
+                bool returningFromRebel = faction.IsTrackedRebelKingdom(oldKingdom)
+                    && newKingdom == faction.ParentKingdom;
 
                 if (movingToRebel || returningFromRebel)
                 {
@@ -1308,14 +1317,7 @@ namespace BellumCivile.Behaviors
 
             if (trackedMatch != null) return trackedMatch;
 
-            return _activeFactions.FirstOrDefault(f =>
-                !f.IsIdeology
-                && !f.HasTrackedRebelKingdom
-                && f.Leader != null
-                && f.ParentKingdom != null
-                && f.ParentKingdom != rebelKingdom
-                && f.Leader.Kingdom == rebelKingdom
-                && rebelKingdom.IsAtWarWith(f.ParentKingdom));
+            return _activeFactions.FirstOrDefault(f => f.CanBackfillRebelKingdom(rebelKingdom));
         }
 
         public FactionObject GetFactionByTrackedRebelKingdomId(string rebelKingdomId)

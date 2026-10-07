@@ -435,12 +435,12 @@ namespace BellumCivile.Behaviors
         private static Kingdom ResolveTrackedRebelKingdom(FactionObject faction, Kingdom preferredKingdom = null, bool allowEliminated = false)
         {
             if (faction == null || faction.IsIdeology) return null;
+            if (faction.DiscardInvalidRebelKingdomReference()) return null;
 
             if (preferredKingdom != null
                 && preferredKingdom != faction.ParentKingdom
                 && (allowEliminated || !preferredKingdom.IsEliminated)
-                && (faction.IsTrackedRebelKingdom(preferredKingdom)
-                    || (!faction.HasTrackedRebelKingdom && faction.Leader?.Kingdom == preferredKingdom)))
+                && faction.IsTrackedRebelKingdom(preferredKingdom))
             {
                 return preferredKingdom;
             }
@@ -1438,7 +1438,7 @@ namespace BellumCivile.Behaviors
         private void CleanupExternallyResolvedFaction(FactionObject faction)
         {
             if (CivilWarConflictBehavior.IsFactionTransferPending(faction)) return;
-            if (faction == null) return;
+            if (faction == null || !faction.HasTrackedRebelKingdom) return;
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(faction, SuccessionChallengeOutcome.WhitePeace, faction.ParentKingdom) == false) return;
 
             CompleteCivilWarTracker(faction, null, "civil-war faction lost its rebel realm state");

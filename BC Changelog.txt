@@ -728,3 +728,4 @@ Fixed fief votes restarting deliberation, preserving nominations and voting prom
 Reduced NPC influence reserves, with stacking bonuses for foreign wars, army leadership, and rulership, allowing more active political participation.
 Expanded the relation memory system with more named memories and adjusted durations of a few existing ones.
 Improved exile and asylum logic: clans remember former allegiances, seek suitable new homes, and require the receiving ruler’s approval, remaining in exile and retrying later if refused.
+Fixed stale rebel-faction references causing duplicate civil-war resolutions, tribunals, and influence rewards.

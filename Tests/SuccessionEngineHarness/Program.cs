@@ -51,6 +51,14 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--civil-war-identity"))
+            {
+                CivilWarRealmIdentityTests.Run(Check);
+                TestCivilWarContinuation();
+                TestCivilWarConflictJournal();
+                TestCivilWarCrownTransfer();
+                Console.WriteLine($"{_checks} civil-war identity and continuation checks passed.");
+            }
             else if (args.Contains("--influence-budget"))
             {
                 NpcInfluenceBudgetTests.Run(Check);
@@ -739,6 +747,7 @@ internal static class Program
         TestElectiveContestFoundation();
         TestElectiveContestPledges();
         TestCivilWarContinuation();
+        CivilWarRealmIdentityTests.Run(Check);
         TestCivilWarConflictJournal();
         TestCivilWarCrownTransfer();
         TestCivilWarRivalry();

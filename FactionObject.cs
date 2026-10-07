@@ -238,44 +238,26 @@ namespace BellumCivile
 
         public Kingdom GetRebelKingdom()
         {
-            if (IsIdeology) return null;
-
-            if (_rebelKingdom != null && !_rebelKingdom.IsEliminated)
-                return _rebelKingdom;
-
-            if (!string.IsNullOrEmpty(_rebelKingdomStringId))
-            {
-                Kingdom tracked = Kingdom.All.FirstOrDefault(k => k.StringId == _rebelKingdomStringId);
-                if (tracked != null && !tracked.IsEliminated)
-                {
-                    _rebelKingdom = tracked;
-                    return tracked;
-                }
-            }
-
-            Kingdom legacyKingdom = Leader?.Kingdom;
-            if (legacyKingdom != null && legacyKingdom != ParentKingdom)
-                return legacyKingdom;
-
-            return null;
+            Kingdom tracked = GetTrackedRebelKingdomIncludingEliminated();
+            return tracked != null && !tracked.IsEliminated ? tracked : null;
         }
 
         public Kingdom GetTrackedRebelKingdomIncludingEliminated()
         {
-            if (IsIdeology) return null;
+            if (IsIdeology || HasInvalidRebelKingdomReference) return null;
 
             if (_rebelKingdom != null)
                 return _rebelKingdom;
 
             if (!string.IsNullOrEmpty(_rebelKingdomStringId))
-                return Kingdom.All.FirstOrDefault(k => k.StringId == _rebelKingdomStringId);
+                return _rebelKingdom = Kingdom.All.FirstOrDefault(k => k.StringId == _rebelKingdomStringId);
 
             return null;
         }
 
         public bool IsTrackedRebelKingdom(Kingdom kingdom)
         {
-            if (kingdom == null || IsIdeology) return false;
+            if (kingdom == null || IsIdeology || HasInvalidRebelKingdomReference) return false;
 
             if (_rebelKingdom != null && _rebelKingdom == kingdom)
                 return true;
@@ -285,7 +267,7 @@ namespace BellumCivile
 
         public bool IsTrackedRebelKingdomId(string kingdomId)
         {
-            if (string.IsNullOrEmpty(kingdomId) || IsIdeology) return false;
+            if (string.IsNullOrEmpty(kingdomId) || IsIdeology || HasInvalidRebelKingdomReference) return false;
 
             return (_rebelKingdom != null && _rebelKingdom.StringId == kingdomId)
                 || (!string.IsNullOrEmpty(_rebelKingdomStringId) && _rebelKingdomStringId == kingdomId);
@@ -295,6 +277,8 @@ namespace BellumCivile
         {
             _rebelKingdom = kingdom;
             _rebelKingdomStringId = kingdom?.StringId ?? string.Empty;
+            if (kingdom != null && string.IsNullOrEmpty(_civilWarOriginShellPrefix))
+                _civilWarOriginShellPrefix = kingdom.StringId;
             InvalidatePowerProjection();
             Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.InvalidateFactionLookupCache();
         }
@@ -309,14 +293,65 @@ namespace BellumCivile
 
         public bool TryBackfillRebelKingdomFromLeaderKingdom()
         {
-            if (IsIdeology || HasTrackedRebelKingdom) return false;
-
             Kingdom legacyKingdom = Leader?.Kingdom;
-            if (legacyKingdom == null || legacyKingdom == ParentKingdom)
+            if (!CanBackfillRebelKingdom(legacyKingdom))
                 return false;
 
             SetRebelKingdom(legacyKingdom);
             return true;
+        }
+
+        internal bool CanBackfillRebelKingdom(Kingdom kingdom)
+        {
+            return !IsIdeology && !HasTrackedRebelKingdom
+                && kingdom != null && !kingdom.IsEliminated && kingdom != ParentKingdom
+                && ParentKingdom != null && !ParentKingdom.IsEliminated
+                && Leader != null && !Leader.IsEliminated
+                && Leader.Kingdom == kingdom && kingdom.RulingClan == Leader
+                && MatchesRebelKingdomId(kingdom.StringId) && kingdom.IsAtWarWith(ParentKingdom)
+                && Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()
+                    ?.IsRebelKingdomClaimedByAnotherFaction(this, kingdom) != true;
+        }
+
+        internal bool HasInvalidRebelKingdomReference
+        {
+            get
+            {
+                if (IsIdeology || !HasTrackedRebelKingdom) return false;
+                string id = _rebelKingdom?.StringId ?? _rebelKingdomStringId;
+                if (string.IsNullOrEmpty(id) || id == ParentKingdom?.StringId
+                    || (_rebelKingdom != null && !string.IsNullOrEmpty(_rebelKingdomStringId)
+                        && id != _rebelKingdomStringId)) return true;
+                if (!string.IsNullOrEmpty(_civilWarOriginShellPrefix))
+                    return id != _civilWarOriginShellPrefix;
+
+                // Old automatic backfills had no creation receipt. Real wars keep their
+                // saved shell even if their founding clan has since been replaced.
+                return !_rebellionCreationStarted && !_rebellionCreationCompleted
+                    && !MatchesRebelKingdomId(id);
+            }
+        }
+
+        internal bool DiscardInvalidRebelKingdomReference()
+        {
+            if (!HasInvalidRebelKingdomReference) return false;
+            BellumCivileLogger.Log($"Discarded invalid rebel kingdom reference without war consequences; faction={Name}; leader={Leader?.StringId ?? "none"}; rebel={_rebelKingdom?.StringId ?? _rebelKingdomStringId}; parent={ParentKingdom?.StringId ?? "none"}.");
+            ClearRebelKingdom();
+            return true;
+        }
+
+        internal bool MatchesRebelKingdomId(string kingdomId)
+        {
+            if (IsIdeology || string.IsNullOrEmpty(kingdomId)) return false;
+            if (!string.IsNullOrEmpty(_civilWarOriginShellPrefix))
+                return kingdomId == _civilWarOriginShellPrefix;
+            string prefix = GetDeterministicRebelKingdomIdPrefix();
+            if (string.IsNullOrEmpty(prefix)) return false;
+            if (kingdomId == prefix) return true;
+            // Creation appends only a numeric collision suffix, never another clan id.
+            if (!kingdomId.StartsWith(prefix + "_", StringComparison.Ordinal)) return false;
+            string suffix = kingdomId.Substring(prefix.Length + 1);
+            return suffix.Length > 0 && suffix.All(c => c >= '0' && c <= '9');
         }
 
         internal string GetDeterministicRebelKingdomIdPrefix()
@@ -325,7 +360,9 @@ namespace BellumCivile
             if (IsIdeology || ParentKingdom == null || Leader == null)
                 return string.Empty;
 
-            return ParentKingdom.StringId + "_rebels_" + Leader.StringId;
+            return !string.IsNullOrEmpty(_successionChallengeId)
+                ? ParentKingdom.StringId + "_rebels_challenge_" + _successionChallengeId
+                : ParentKingdom.StringId + "_rebels_" + Leader.StringId;
         }
 
         internal bool RetargetCivilWarParent(Kingdom expectedParent, Kingdom successor)
@@ -336,7 +373,8 @@ namespace BellumCivile
             if (ParentKingdom == successor) return true;
             if (ParentKingdom != expectedParent) return false;
             // Shell identity belongs to the rebellion, not to its replaceable opponent.
-            _civilWarOriginShellPrefix = _civilWarOriginShellPrefix ?? shell.StringId;
+            if (string.IsNullOrEmpty(_civilWarOriginShellPrefix))
+                _civilWarOriginShellPrefix = shell.StringId;
             ParentKingdom = successor;
             InvalidatePowerProjection();
             Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.InvalidateFactionLookupCache();
@@ -370,12 +408,16 @@ namespace BellumCivile
                 return false;
             }
 
-            string expectedPrefix = GetDeterministicRebelKingdomIdPrefix();
-            if (string.IsNullOrEmpty(expectedPrefix)
-                || (rebelKingdom.StringId != expectedPrefix
-                    && !rebelKingdom.StringId.StartsWith(expectedPrefix + "_", StringComparison.Ordinal)))
+            if (!MatchesRebelKingdomId(rebelKingdom.StringId))
             {
                 failureReason = "the candidate kingdom does not match the faction's deterministic rebel-shell id";
+                return false;
+            }
+
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()
+                ?.IsRebelKingdomClaimedByAnotherFaction(this, rebelKingdom) == true)
+            {
+                failureReason = "the candidate rebel kingdom is already tracked by another faction";
                 return false;
             }
 
