@@ -613,6 +613,16 @@ Mod-owned gameplay changes should use an explicit, localized memory source rathe
 
 Player and AI title usurpation share a **-30 house memory lasting 20 years**. Manual and court title grants use a **10-year personal memory**. Title revocation and cadet founding use house scope; their existing amounts and default lifetimes are preserved. Sovereign-departure penalties apply to former realm clan leaders excluding serving mercenaries. The `--gameplay-relation-memories` harness checks effect contexts, duration preservation and a method-level allowlist of intentional raw relation writes.
 
+### Exile and Asylum
+
+`ExiledClanRecoveryBehavior` preserves eligible landless NPC noble houses and owns their automatic search for a new realm. Ordinary departure and kingdom-destruction events record the origin immediately; legal expulsion records its forced cause. Failed searches retry no sooner than **seven days**, checked daily. Weekly backfill catches otherwise untracked independent houses. Child-only surviving families remain protected from discontinuation but wait for an eligible adult representative before relocation.
+
+Departure history persists separately from a current asylum request. Automatic return to the realm that expelled a house is blocked while the **expelling ruling house** remains in power. Voluntary departures have a **30-day** return cooldown; rebellious departures and direct defections use **90 days**, followed by distrust fading over one campaign year. Realm destruction is not betrayal. Temporary civil-war/feud movements and protected inheritance transfers do not create departure penalties. An explicit invitation from the player ruler can pardon that realm's recorded restriction.
+
+`RefugeSelectionHelper` compares eligible permanent, landed realms in one pool. The exile weighs ruler/court relations, culture, family ties, enemies of the origin, return distrust and capped desperation. NPC rulers separately weigh relations, court support, culture, family ties, strategic usefulness, clan tier, room for another house, Mercy and Generosity. **Ruler relation <= -60 always refuses admission**, regardless of other benefits or the exile's lack of alternatives. Automatic petitioners also avoid rulers they hate at that threshold. Desperation affects only the exile's preference, never the receiving ruler's acceptance.
+
+Players retain the asylum inquiry and may refuse. A refusal excludes their realm for the current exile episode. Native automatic recruitment delegates eligible exiles to the same scheduler; recruitment dialogue and barter check NPC admission again before transfer or payment. Scripted transfers continue to use native actions directly. New history uses existing registered dictionary types; older saves retain current exile exclusions without inventing a historical expelling dynasty. The `--exile-recovery` harness covers boundaries, history persistence, retries, admission and recruitment guards; an in-game save/load remains part of release validation.
+
 ### Intrigue and Influence
 
 Player rulers can send companions on clandestine missions. NPC subterfuge uses staggered checks. Operations affect court mood, rebels, money, troops, and exposure. The Spymaster is the intrigue proxy when available; otherwise the ruler is. Captured/disabled agents and ended conflicts require cleanup.

@@ -1210,6 +1210,11 @@
     <string id="BC_ExileRecovered" text="After a long exile, the {CLAN_NAME} have found refuge in {KINGDOM_NAME}." />
     <string id="BC_Asylum_Title" text="Request for Asylum" />
     <string id="BC_Asylum_Desc" text="An envoy from {CLAN_LEADER} of the {CLAN_NAME} has arrived, presenting a formal request of asylum for their family as they flee persecution in their homeland.{EXILE_CONTEXT}{COURT_CONTEXT}&#xA;&#xA;Will you take them under your protection?" />
+    <string id="BC_Asylum_RequestDesc" text="An envoy from {CLAN_LEADER} of the {CLAN_NAME} has arrived, seeking a new home and protection for their landless family.{EXILE_CONTEXT}{COURT_CONTEXT}&#xA;&#xA;Will you accept their allegiance?" />
+    <string id="BC_Asylum_Cause_RealmDestroyed" text="&#xA;&#xA;Their former realm, {OLD_KINGDOM}, has fallen, leaving their house without a liege." />
+    <string id="BC_Asylum_Cause_Departure" text="&#xA;&#xA;Their house has left the service of {OLD_KINGDOM} and is seeking a new allegiance." />
+    <string id="BC_Asylum_RecruitmentRefused" text="{RULER} will not accept the {CLAN} into {REALM} under the present circumstances." />
+    <string id="BC_Asylum_RecruitmentDialogueRefused" text="Your ruler will not receive my house. Until that changes, there is no oath I can offer you." />
     <string id="BC_Asylum_Accept" text="Accept Exiles" />
     <string id="BC_Asylum_Deny" text="Deny Their Request" />
     <string id="BC_Asylum_AcceptedMsg" text="You have granted asylum to the {CLAN_NAME}. They have joined {KINGDOM_NAME} under your protection." />

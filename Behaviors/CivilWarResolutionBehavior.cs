@@ -3427,7 +3427,7 @@ namespace BellumCivile.Behaviors
 
                 ExiledClanRecoveryBehavior exileRecovery = Campaign.Current.GetCampaignBehavior<ExiledClanRecoveryBehavior>();
                 if (exileRecovery != null)
-                    exileRecovery.ResolveClanExile(clan, collapsedParent);
+                    exileRecovery.ResolveClanExile(clan, collapsedParent, cause: ExileCause.KingdomDestroyed);
                 else
                 {
                     Kingdom refuge = RefugeSelectionHelper.FindBestRefuge(clan, collapsedParent);

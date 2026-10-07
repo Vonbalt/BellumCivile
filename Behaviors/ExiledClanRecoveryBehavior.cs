@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
@@ -24,7 +25,11 @@ namespace BellumCivile.Behaviors
         Treason = 5,
         LoyalistIndependence = 6,
         LoyalistAbdication = 7,
-        LoyalistInstallRuler = 8
+        LoyalistInstallRuler = 8,
+        // Values 4 and 9 belonged to retired redistribution causes and remain reserved.
+        Expulsion = 10,
+        KingdomDestroyed = 11,
+        VoluntaryDeparture = 12
     }
 
     /// <summary>
@@ -32,7 +37,7 @@ namespace BellumCivile.Behaviors
     /// To preserve landless noble clans who are exiled by Bellum Civile and keep trying to place
     /// them in a valid refuge kingdom instead of letting vanilla quietly discontinue them.
     /// </summary>
-    public class ExiledClanRecoveryBehavior : CampaignBehaviorBase
+    public partial class ExiledClanRecoveryBehavior : CampaignBehaviorBase
     {
         private const int RefugeRetryDays = 7;
 
@@ -72,6 +77,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_PendingAsylumTargetKingdomIds", ref _pendingAsylumTargetKingdomIds);
             dataStore.SyncData("BellumCivile_PendingAsylumRequestDates", ref _pendingAsylumRequestDates);
             dataStore.SyncData("BellumCivile_LegacyExileBackfillDone", ref _legacyExileBackfillDone);
+            SyncAdmissionData(dataStore);
             EnsureCollectionsInitialized();
         }
 
@@ -85,8 +91,11 @@ namespace BellumCivile.Behaviors
                 && !clan.IsUnderMercenaryService
                 && clan.Kingdom == null
                 && IsLandlessForExile(clan)
-                && CanClanBeRelocated(clan);
+                && HasSurvivingFamily(clan);
         }
+
+        private static bool HasSurvivingFamily(Clan clan) => clan != null && !clan.IsEliminated
+            && clan.Heroes.Any(hero => hero != null && hero.IsAlive && (!hero.IsDisabled || hero.IsChild));
 
         internal static bool IsLandlessForExile(Clan clan)
         {
@@ -120,12 +129,13 @@ namespace BellumCivile.Behaviors
         internal ExileResolutionResult ResolveClanExileWithResult(Clan clan, Kingdom originKingdom, Kingdom excludedKingdom = null, ExileCause cause = ExileCause.Unknown)
         {
             EnsureCollectionsInitialized();
-            if (!CanClanBeRelocated(clan) || !IsLandlessForExile(clan)) return ExileResolutionResult.Failed;
+            if (!HasSurvivingFamily(clan) || !IsLandlessForExile(clan)) return ExileResolutionResult.Failed;
 
             (FeudalTitleBehavior.Instance ?? Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>())
                 ?.ConfiscateNonBaronyTitlesForExile(clan, originKingdom?.RulingClan, originKingdom, $"exile recovery {cause}");
 
             RecordExileContext(clan, originKingdom, cause);
+            RecordDeparture(clan, originKingdom, cause);
 
             ExileResolutionResult refugeResult = TryMoveClanToRefuge(clan, originKingdom, new[] { excludedKingdom }, showRecoveryMessage: false);
             if (refugeResult != ExileResolutionResult.Failed)
@@ -172,33 +182,33 @@ namespace BellumCivile.Behaviors
             if (_pendingAsylumExcludedKingdomIds == null) _pendingAsylumExcludedKingdomIds = new Dictionary<string, string>();
             if (_pendingAsylumTargetKingdomIds == null) _pendingAsylumTargetKingdomIds = new Dictionary<string, string>();
             if (_pendingAsylumRequestDates == null) _pendingAsylumRequestDates = new Dictionary<string, CampaignTime>();
+            EnsureAdmissionCollections();
         }
 
         private void OnDailyTick()
         {
             EnsureCollectionsInitialized();
-            TryShowNextPendingAsylumRequest();
-
-            if (_legacyExileBackfillDone) return;
-
-            _legacyExileBackfillDone = true;
-
-            foreach (Clan clan in Clan.All.ToList())
+            if (!_legacyExileBackfillDone || !_admissionHistoryReconciled)
             {
-                if (!IsRecoverableExileCandidate(clan)) continue;
-
-                if (TryMoveClanToRefuge(clan, null, null, showRecoveryMessage: false) != ExileResolutionResult.Failed) continue;
-
-                TrackExiledClan(clan, null, new Kingdom[0], CampaignTime.Now + CampaignTime.Days(RefugeRetryDays));
+                ReconcileAdmissionHistory();
+                BackfillUntrackedExiles();
+                _legacyExileBackfillDone = true;
             }
+            RecoverDueExiles();
+            TryShowNextPendingAsylumRequest();
         }
 
         private void OnWeeklyTick()
         {
             EnsureCollectionsInitialized();
+            BackfillUntrackedExiles();
+        }
 
+        private void RecoverDueExiles()
+        {
             foreach (string clanId in _trackedExiledClanIds.ToList())
             {
+                if (!ShouldAttemptRetry(clanId)) continue;
                 Clan clan = ResolveClanById(clanId);
                 if (!IsRecoverableExileCandidate(clan))
                 {
@@ -206,18 +216,59 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
 
-                if (!ShouldAttemptRetry(clanId)) continue;
-
-                TryRecoverTrackedExile(clan, showRecoveryMessage: true);
+                try
+                {
+                    TryRecoverTrackedExile(clan, showRecoveryMessage: true);
+                }
+                catch (Exception ex)
+                {
+                    _nextRefugeRetryDates[clanId] = CampaignTime.Now + CampaignTime.Days(RefugeRetryDays);
+                    BellumCivileLogger.Log($"Exile recovery deferred; clan={clanId}; error={ex}");
+                }
             }
-
-            TryShowNextPendingAsylumRequest();
         }
 
         private void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, ChangeKingdomAction.ChangeKingdomActionDetail detail, bool showNotification)
         {
             if (clan == null || string.IsNullOrEmpty(clan.StringId)) return;
-            if (newKingdom == null && !clan.IsEliminated) return;
+            EnsureCollectionsInitialized();
+            if (newKingdom == null && !clan.IsEliminated)
+            {
+                if (!IsHistoryEligibleClan(clan) || IsScriptedDeparture(oldKingdom)) return;
+                ExileCause cause;
+                switch (detail)
+                {
+                    case ChangeKingdomAction.ChangeKingdomActionDetail.LeaveByKingdomDestruction:
+                        cause = ExileCause.KingdomDestroyed;
+                        break;
+                    case ChangeKingdomAction.ChangeKingdomActionDetail.LeaveKingdom:
+                    case ChangeKingdomAction.ChangeKingdomActionDetail.LeaveWithRebellion:
+                        cause = oldKingdom?.IsEliminated == true ? ExileCause.KingdomDestroyed : ExileCause.VoluntaryDeparture;
+                        break;
+                    default:
+                        return;
+                }
+                // Explicit exile records are written before the native leave callback.
+                if (!_trackedExileCauseIds.TryGetValue(clan.StringId, out int recordedCause)
+                    || (ExileCause)recordedCause == ExileCause.Unknown)
+                {
+                    RecordExileContext(clan, oldKingdom, cause);
+                    RecordDeparture(clan, oldKingdom, cause,
+                        rebelled: detail == ChangeKingdomAction.ChangeKingdomActionDetail.LeaveWithRebellion);
+                }
+                if (IsRecoverableExileCandidate(clan))
+                    TrackExiledClan(clan, oldKingdom, (IEnumerable<Kingdom>)null, CampaignTime.Now + CampaignTime.Days(1));
+                return;
+            }
+
+            // Native defection can move directly between realms without a leave event.
+            // Ordinary JoinKingdom actions also serve scripted transfers, so do not infer betrayal from them.
+            if (newKingdom != null && oldKingdom != newKingdom
+                && detail == ChangeKingdomAction.ChangeKingdomActionDetail.JoinKingdomByDefection
+                && IsHistoryEligibleClan(clan) && !IsScriptedDeparture(oldKingdom) && !IsScriptedDeparture(newKingdom)
+                && !_trackedExileCauseIds.ContainsKey(clan.StringId))
+                RecordDeparture(clan, oldKingdom,
+                    oldKingdom.IsEliminated ? ExileCause.KingdomDestroyed : ExileCause.VoluntaryDeparture, rebelled: true);
 
             RemoveTrackedExile(clan.StringId);
         }
@@ -226,6 +277,7 @@ namespace BellumCivile.Behaviors
         {
             if (clan == null || string.IsNullOrEmpty(clan.StringId)) return;
             RemoveTrackedExile(clan.StringId);
+            RemoveDepartureHistory(clan.StringId);
         }
 
         private bool TryRecoverTrackedExile(Clan clan, bool showRecoveryMessage)
@@ -236,10 +288,10 @@ namespace BellumCivile.Behaviors
             Kingdom originKingdom = ResolveKingdomById(GetDictionaryValue(_trackedOriginKingdomIds, clanId));
             Kingdom[] excludedKingdoms = ResolveKingdomsByDelimitedIds(GetDictionaryValue(_trackedExcludedKingdomIds, clanId));
 
+            _nextRefugeRetryDates[clanId] = CampaignTime.Now + CampaignTime.Days(RefugeRetryDays);
             if (TryMoveClanToRefuge(clan, originKingdom, excludedKingdoms, showRecoveryMessage) != ExileResolutionResult.Failed)
                 return true;
 
-            _nextRefugeRetryDates[clanId] = CampaignTime.Now + CampaignTime.Days(RefugeRetryDays);
             return false;
         }
 
@@ -249,6 +301,9 @@ namespace BellumCivile.Behaviors
                 return ExileResolutionResult.Failed;
             if (!IsLandlessForExile(clan))
                 return ExileResolutionResult.Failed;
+            if (clan.Leader == null || !clan.Leader.IsAlive || clan.Leader.IsDisabled || clan.Leader.IsChild
+                || clan.WarPartyComponents.Any(p => p.MobileParty?.MapEvent != null || p.MobileParty?.SiegeEvent != null))
+                return ExileResolutionResult.Failed;
 
             Kingdom refuge = RefugeSelectionHelper.FindBestRefuge(clan, originKingdom, excludedKingdoms);
             if (refuge == null) return ExileResolutionResult.Failed;
@@ -257,7 +312,9 @@ namespace BellumCivile.Behaviors
                 return QueuePlayerAsylumRequest(clan, originKingdom, excludedKingdoms, refuge);
 
             ChangeKingdomAction.ApplyByJoinToKingdom(clan, refuge);
+            if (clan.Kingdom != refuge) return ExileResolutionResult.Failed;
             RemoveTrackedExile(clan.StringId);
+            BellumCivileLogger.Log($"Exile admitted; clan={clan.StringId}; realm={refuge.StringId}; ruler={refuge.RulingClan?.StringId}.");
 
             if (showRecoveryMessage)
             {
@@ -282,6 +339,7 @@ namespace BellumCivile.Behaviors
             string clanId = clan.StringId;
             if (!_trackedExiledClanIds.Contains(clanId))
                 _trackedExiledClanIds.Add(clanId);
+            if (!_exileStartDates.ContainsKey(clanId)) _exileStartDates[clanId] = CampaignTime.Now;
 
             if (originKingdom != null || !_trackedOriginKingdomIds.ContainsKey(clanId))
                 _trackedOriginKingdomIds[clanId] = originKingdom?.StringId ?? string.Empty;
@@ -302,6 +360,7 @@ namespace BellumCivile.Behaviors
             _trackedExileCauseIds.Remove(clanId);
             _trackedExileCourtFactionIds.Remove(clanId);
             _nextRefugeRetryDates.Remove(clanId);
+            _exileStartDates.Remove(clanId);
             RemovePendingAsylum(clanId);
         }
 
@@ -354,6 +413,12 @@ namespace BellumCivile.Behaviors
                     RemovePendingAsylum(clanId);
                     continue;
                 }
+                if (!CanClanBeRelocated(clan) || clan.Leader?.IsAlive != true || clan.Leader.IsDisabled || clan.Leader.IsChild)
+                {
+                    RemovePendingAsylum(clanId);
+                    _nextRefugeRetryDates[clanId] = CampaignTime.Now + CampaignTime.Days(RefugeRetryDays);
+                    continue;
+                }
 
                 if (!IsPlayerRuledValidRefuge(targetKingdom))
                 {
@@ -375,7 +440,7 @@ namespace BellumCivile.Behaviors
             string clanId = clan.StringId;
 
             TextObject title = new TextObject("{=BC_Asylum_Title}Request for Asylum");
-            TextObject desc = new TextObject("{=BC_Asylum_Desc}An envoy from {CLAN_LEADER} of the {CLAN_NAME} has arrived, presenting a formal request of asylum for their family as they flee persecution in their homeland.{EXILE_CONTEXT}{COURT_CONTEXT}\n\nWill you take them under your protection?");
+            TextObject desc = new TextObject("{=BC_Asylum_RequestDesc}An envoy from {CLAN_LEADER} of the {CLAN_NAME} has arrived, seeking a new home and protection for their landless family.{EXILE_CONTEXT}{COURT_CONTEXT}\n\nWill you accept their allegiance?");
             desc.SetTextVariable("CLAN_LEADER", clan.Leader?.Name ?? clan.Name);
             desc.SetTextVariable("CLAN_NAME", clan.Name);
             desc.SetTextVariable("EXILE_CONTEXT", BuildExileCauseContext(clanId, clan));
@@ -409,13 +474,21 @@ namespace BellumCivile.Behaviors
             Clan clan = ResolveClanById(clanId);
             Kingdom targetKingdom = ResolveKingdomById(GetDictionaryValue(_pendingAsylumTargetKingdomIds, clanId));
 
-            if (!IsRecoverableExileCandidate(clan) || !IsPlayerRuledValidRefuge(targetKingdom))
+            if (!IsRecoverableExileCandidate(clan) || !CanClanBeRelocated(clan)
+                || clan.Leader?.IsAlive != true || clan.Leader.IsDisabled || clan.Leader.IsChild
+                || !IsPlayerRuledValidRefuge(targetKingdom))
             {
                 DenyPlayerAsylum(clanId, silent: true);
                 return;
             }
 
             ChangeKingdomAction.ApplyByJoinToKingdom(clan, targetKingdom);
+            if (clan.Kingdom != targetKingdom)
+            {
+                DenyPlayerAsylum(clanId, silent: true);
+                return;
+            }
+            RecordPlayerInvitation(clan, targetKingdom);
             RemoveTrackedExile(clanId);
 
             TextObject text = new TextObject("{=BC_Asylum_AcceptedMsg}You have granted asylum to the {CLAN_NAME}. They have joined {KINGDOM_NAME} under your protection.");
@@ -477,10 +550,7 @@ namespace BellumCivile.Behaviors
 
         private static bool IsPlayerRuledValidRefuge(Kingdom kingdom)
         {
-            return kingdom != null
-                && !kingdom.IsEliminated
-                && kingdom.RulingClan == Clan.PlayerClan
-                && kingdom.Settlements.Any(s => s.IsTown || s.IsCastle);
+            return RefugeSelectionHelper.IsValidRefuge(kingdom) && kingdom.RulingClan == Clan.PlayerClan;
         }
 
         private static string GetDictionaryValue(Dictionary<string, string> dictionary, string key)
@@ -579,6 +649,12 @@ namespace BellumCivile.Behaviors
                     break;
                 case ExileCause.LoyalistInstallRuler:
                     text = new TextObject("{=BC_Asylum_Cause_LoyalistInstallRuler}\n\nReports say the {CLAN_NAME} were exiled after opposing the new claimant in {OLD_KINGDOM}.");
+                    break;
+                case ExileCause.KingdomDestroyed:
+                    text = new TextObject("{=BC_Asylum_Cause_RealmDestroyed}\n\nTheir former realm, {OLD_KINGDOM}, has fallen, leaving their house without a liege.");
+                    break;
+                case ExileCause.VoluntaryDeparture:
+                    text = new TextObject("{=BC_Asylum_Cause_Departure}\n\nTheir house has left the service of {OLD_KINGDOM} and is seeking a new allegiance.");
                     break;
                 default:
                     text = new TextObject("{=BC_Asylum_Cause_Unknown}\n\nReports say the {CLAN_NAME} were exiled from {OLD_KINGDOM}.");

@@ -126,6 +126,7 @@ namespace BellumCivile.Patches
 
         private static void ApplyExpulsionAftermath(Clan targetClan, Clan sponsorClan, Kingdom decisionKingdom)
         {
+            Campaign.Current?.GetCampaignBehavior<ExiledClanRecoveryBehavior>()?.RegisterExpulsion(targetClan, decisionKingdom);
             if (targetClan == null || sponsorClan == null || targetClan.Leader == null || sponsorClan.Leader == null)
                 return;
 

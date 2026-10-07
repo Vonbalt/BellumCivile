@@ -116,6 +116,12 @@ internal static class Program
                 ExpulsionRelationTests.Run(Check);
                 Console.WriteLine($"{_checks} gameplay relation memory checks passed.");
             }
+            else if (args.Contains("--exile-recovery"))
+            {
+                ExileRecoveryTests.Run(Check);
+                FeudRecruitmentTests.Run(Check);
+                Console.WriteLine($"{_checks} exile recovery and recruitment checks passed.");
+            }
             else if (args.Contains("--expulsion-relations"))
             {
                 ExpulsionRelationTests.Run(Check);
@@ -745,6 +751,9 @@ internal static class Program
         Check(!Enum.IsDefined(typeof(ExileCause), 4) && !Enum.IsDefined(typeof(ExileCause), 9)
             && (int)ExileCause.Treason == 5 && (int)ExileCause.LoyalistInstallRuler == 8,
             "Retired exile causes leave remaining identities unchanged");
+        Check((int)ExileCause.Expulsion == 10 && (int)ExileCause.KingdomDestroyed == 11
+            && (int)ExileCause.VoluntaryDeparture == 12,
+            "New exile causes use fresh values without reusing retired save identities");
         var parseFaction = AccessTools.Method(typeof(CheatCommands), "TryParseCourtFaction");
         foreach (string invalid in new[] { "FiefRedistribution", "3", "999", "-1" })
             Check(!(bool)parseFaction.Invoke(null, new object[] { invalid, default(FactionType) }),

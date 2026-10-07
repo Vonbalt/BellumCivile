@@ -527,7 +527,7 @@ namespace BellumCivile.Behaviors
                     }
                     else if (clan.Settlements.Count == 0 && exileRecovery != null)
                     {
-                        exileRecovery.ResolveClanExile(clan, eliminatedKingdom, eliminatedKingdom);
+                        exileRecovery.ResolveClanExile(clan, eliminatedKingdom, eliminatedKingdom, ExileCause.KingdomDestroyed);
                     }
                     else
                     {
