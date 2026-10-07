@@ -2640,7 +2640,8 @@ namespace BellumCivile.Behaviors
             if (_fiefSelfEncouragementUsed.ContainsKey(pendingKey))
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(Hero.MainHero, voter.Leader, 1, false);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(Hero.MainHero, voter.Leader, 1, false,
+                RelationMemorySources.EncouragedFiefNomination, RelationMemoryScope.Personal);
             _fiefSelfEncouragementUsed[pendingKey] = true;
 
             string key = BribeKey(kingdom, settlement, voter);

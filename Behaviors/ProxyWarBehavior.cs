@@ -713,7 +713,8 @@ namespace BellumCivile.Behaviors
                                 successMsg.SetTextVariable("AGENT_NAME", companion.Name);
                                 BellumCivileNotifications.ShowPersonal(successMsg, BellumNotificationColors.Success);
                                 if (action >= ACTION_FOREIGN_ADVISORS && outcome.SpecificTarget != null && !outcome.SpecificTarget.IsDead && !outcome.SpecificTarget.IsDisabled)
-                                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(Hero.MainHero, outcome.SpecificTarget, REBEL_ASSIST_RELATION_BONUS, true);
+                                    RelationMemoryService.ApplyChangeWithDefaultDuration(Hero.MainHero, outcome.SpecificTarget, REBEL_ASSIST_RELATION_BONUS, true,
+                                        RelationMemorySources.SupportedMyRebellion, RelationMemoryScope.Personal);
                             }
 
                             if (companion.HeroState == Hero.CharacterStates.Disabled) companion.ChangeState(Hero.CharacterStates.Active);
@@ -927,7 +928,8 @@ namespace BellumCivile.Behaviors
                     {
                         _aiCooldowns[actingKingdom.StringId] = CampaignTime.Now + CampaignTime.Days(GetCooldownForAction(rolledAction));
                         if (rolledAction >= ACTION_FOREIGN_ADVISORS && outcome.SpecificTarget != null && !outcome.SpecificTarget.IsDead && !outcome.SpecificTarget.IsDisabled)
-                            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(actingRuler, outcome.SpecificTarget, REBEL_ASSIST_RELATION_BONUS, false);
+                            RelationMemoryService.ApplyChangeWithDefaultDuration(actingRuler, outcome.SpecificTarget, REBEL_ASSIST_RELATION_BONUS, false,
+                                RelationMemorySources.SupportedMyRebellion, RelationMemoryScope.Personal);
 
                         TryShowUndetectedImpactToPlayer(targetKingdom, rolledAction, outcome);
                     }
@@ -1323,11 +1325,13 @@ namespace BellumCivile.Behaviors
             int relationPenalty   = tier == 1 ? DISCOVERY_RELATION_PENALTY_T1 : tier == 2 ? DISCOVERY_RELATION_PENALTY_T2 : DISCOVERY_RELATION_PENALTY_T3;
             float influenceReward = tier == 1 ? DISCOVERY_INFLUENCE_REWARD_T1  : tier == 2 ? DISCOVERY_INFLUENCE_REWARD_T2  : DISCOVERY_INFLUENCE_REWARD_T3;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(actingRuler, targetRuler, relationPenalty, true);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(actingRuler, targetRuler, relationPenalty, true,
+                RelationMemorySources.ExposedForeignInterference, RelationMemoryScope.Personal);
             if (targetRuler.Clan != null) targetRuler.Clan.Influence += influenceReward;
 
             if (specificTarget != null && !specificTarget.IsDead && !specificTarget.IsDisabled && specificTarget != targetRuler)
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(targetRuler, specificTarget, DISCOVERY_SPECIFIC_TARGET_BONUS, false);
+                RelationMemoryService.ApplyChangeWithDefaultDuration(targetRuler, specificTarget, DISCOVERY_SPECIFIC_TARGET_BONUS, false,
+                    RelationMemorySources.SolidarityAgainstInterference, RelationMemoryScope.Personal);
 
             NotificationHelper.ShowProxyWarDiscovered(actingKingdom, targetKingdom, actingRuler, targetRuler, actionType);
         }

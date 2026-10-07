@@ -1439,7 +1439,9 @@ namespace BellumCivile.Behaviors
 
                         if (relationChange != 0)
                         {
-                            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(clan.Leader, ruler, relationChange, false);
+                            RelationMemoryService.ApplyChangeWithDefaultDuration(clan.Leader, ruler, relationChange, false,
+                                relationChange > 0 ? RelationMemorySources.CivilWarLoyalty : RelationMemorySources.CivilWarApathy,
+                                RelationMemoryScope.Personal);
 
                             if (clan == Clan.PlayerClan)
                             {

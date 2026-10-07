@@ -1335,11 +1335,14 @@ namespace BellumCivile.Behaviors
             if (relationGain <= 0)
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+            RelationMemoryService.ApplyChangeWithDefaultDuration(
                 source,
                 target,
                 relationGain,
-                showQuickNotification: source == Hero.MainHero || target == Hero.MainHero);
+                source == Hero.MainHero || target == Hero.MainHero,
+                assignmentId == "chancellor_appease_nobles"
+                    ? RelationMemorySources.ChancellorAppeasement : RelationMemorySources.ChancellorDiplomacy,
+                RelationMemoryScope.Personal);
         }
 
         private void ApplyAssignmentUpkeepControversy(Kingdom kingdom)
@@ -1461,11 +1464,12 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
 
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+                RelationMemoryService.ApplyChangeWithDefaultDuration(
                     ruler,
                     holder.Leader,
                     -1,
-                    showQuickNotification: ruler == Hero.MainHero || holder.Leader == Hero.MainHero);
+                    ruler == Hero.MainHero || holder.Leader == Hero.MainHero,
+                    RelationMemorySources.SidelinedFromCouncil, RelationMemoryScope.Personal);
             }
         }
 

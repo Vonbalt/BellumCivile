@@ -5394,5 +5394,39 @@
     <string id="BC_VotePledge_NoInfluence" text="They lack the influence to promise another vote. At least {COST} influence must remain available after their existing promises." />
     <string id="BC_VotePledge_InvalidCandidate" text="{LORD} could not fulfill a voting promise: the promised choice was no longer available on the ballot for {MATTER}." />
     <string id="BC_VotePledge_BalanceLost" text="{LORD} could not fulfill a voting promise on {MATTER}: their remaining influence could no longer cover the vote and other promises." />
+    <string id="BC_RelationMemory_RevokedMyTitle" text="Revoked my title" />
+    <string id="BC_RelationMemory_SupportedCouncilAdvice" text="Supported my council advice" />
+    <string id="BC_RelationMemory_RejectedCouncilAdvice" text="Rejected my council advice" />
+    <string id="BC_RelationMemory_ChancellorAppeasement" text="Appeased by the Chancellor" />
+    <string id="BC_RelationMemory_ChancellorDiplomacy" text="Goodwill fostered by the Chancellor" />
+    <string id="BC_RelationMemory_SidelinedFromCouncil" text="Left me without council duties" />
+    <string id="BC_RelationMemory_CivilWarLoyalty" text="Recognized loyalty during the civil war" />
+    <string id="BC_RelationMemory_CivilWarApathy" text="Resented apathy during the civil war" />
+    <string id="BC_RelationMemory_CourtNeutrality" text="Distrusted my neutrality at court" />
+    <string id="BC_RelationMemory_EncouragedFiefNomination" text="Encouraged my nomination for a fief" />
+    <string id="BC_RelationMemory_CadetHouseFounded" text="Founding of our cadet house" />
+    <string id="BC_RelationMemory_SovereignDeparture" text="Left our realm to establish a separate crown" />
+    <string id="BC_RelationMemory_FeudHarassment" text="Harassment over a disputed title" />
+    <string id="BC_RelationMemory_FeudEscalation" text="Escalated our feud" />
+    <string id="BC_RelationMemory_UpheldMyTitleRights" text="Upheld my rights in a title dispute" />
+    <string id="BC_RelationMemory_RejectedMyTitleRights" text="Ruled against me in a title dispute" />
+    <string id="BC_RelationMemory_SuppressedMyClaim" text="Suppressed my claim" />
+    <string id="BC_RelationMemory_WithheldFeudJudgment" text="Refused to judge our title dispute" />
+    <string id="BC_RelationMemory_DefiedFeudJudgment" text="Defied the Crown's judgment" />
+    <string id="BC_RelationMemory_ForgedMyTitleClaim" text="Fabricated a claim against my title" />
+    <string id="BC_RelationMemory_ClaimForgeryScandal" text="Exposed claim forgery" />
+    <string id="BC_RelationMemory_TreatyRoyalMarriage" text="Sealed our peace with a royal marriage" />
+    <string id="BC_RelationMemory_HumiliatedMe" text="Humiliated me by treaty" />
+    <string id="BC_RelationMemory_DiscreditedMe" text="Discredited me by treaty" />
+    <string id="BC_RelationMemory_HumiliatedOurRealm" text="Our ruler accepted a humiliating peace" />
+    <string id="BC_RelationMemory_DiscreditedOurRealm" text="Our ruler was discredited by the peace treaty" />
+    <string id="BC_RelationMemory_FreedMySubject" text="Freed a realm from our suzerainty" />
+    <string id="BC_RelationMemory_TreatySeparation" text="Separation from our former liege by treaty" />
+    <string id="BC_RelationMemory_ForcedVassalization" text="Forced our realm into vassalage" />
+    <string id="BC_RelationMemory_VoluntaryClientage" text="Accepted our voluntary clientage" />
+    <string id="BC_RelationMemory_ForcedClientage" text="Forced our realm into clientage" />
+    <string id="BC_RelationMemory_SupportedMyRebellion" text="Supported my rebellion" />
+    <string id="BC_RelationMemory_ExposedForeignInterference" text="Discovered foreign interference in our realm" />
+    <string id="BC_RelationMemory_SolidarityAgainstInterference" text="Solidarity after foreign interference was exposed" />
   </strings>
 </base>

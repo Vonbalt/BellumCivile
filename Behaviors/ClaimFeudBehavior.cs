@@ -1045,7 +1045,8 @@ namespace BellumCivile.Behaviors
             {
                 record.MarkMilestonePassed(33f);
                 _yearlyPassed33++;
-                ChangeRelation(claimant.Leader, holder.Leader, C.ClaimFeudHarassmentRelationPenalty);
+                ChangeRelation(claimant.Leader, holder.Leader, C.ClaimFeudHarassmentRelationPenalty,
+                    RelationMemorySources.FeudHarassment);
                 NotificationHelper.ShowClaimFeudTensionsMount(claimant, holder, title);
                 BellumCivileDebug.Trace(
                     "claim feud",
@@ -1079,7 +1080,8 @@ namespace BellumCivile.Behaviors
                         requestInGameDisplay: true);
                 }
 
-                ChangeRelation(claimant.Leader, holder.Leader, C.ClaimFeudCallToArmsRelationPenalty);
+                ChangeRelation(claimant.Leader, holder.Leader, C.ClaimFeudCallToArmsRelationPenalty,
+                    RelationMemorySources.FeudEscalation);
                 record.RecordSupporters(
                     claimantPower,
                     holderPower,
@@ -2244,34 +2246,35 @@ namespace BellumCivile.Behaviors
             switch (judgment)
             {
                 case ClaimFeudJudgment.UpholdClaimant:
-                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationBonus);
-                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty);
+                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationBonus, RelationMemorySources.UpheldMyTitleRights);
+                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty, RelationMemorySources.RejectedMyTitleRights);
                     break;
                 case ClaimFeudJudgment.UpholdHolder:
-                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationBonus);
-                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty);
+                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationBonus, RelationMemorySources.UpheldMyTitleRights);
+                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty, RelationMemorySources.RejectedMyTitleRights);
                     break;
                 case ClaimFeudJudgment.Suppress:
-                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerSuppressClaimantPenalty);
+                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerSuppressClaimantPenalty, RelationMemorySources.SuppressedMyClaim);
                     break;
                 case ClaimFeudJudgment.Abstain:
-                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerAbstainRelationPenalty);
-                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerAbstainRelationPenalty);
+                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerAbstainRelationPenalty, RelationMemorySources.WithheldFeudJudgment);
+                    ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerAbstainRelationPenalty, RelationMemorySources.WithheldFeudJudgment);
                     break;
             }
 
             if (claimantResponse == ClaimFeudResponse.Defy)
-                ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty);
+                ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty, RelationMemorySources.DefiedFeudJudgment);
             if (holderResponse == ClaimFeudResponse.Defy)
-                ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty);
+                ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty, RelationMemorySources.DefiedFeudJudgment);
         }
 
-        private static void ChangeRelation(Hero first, Hero second, int amount)
+        private static void ChangeRelation(Hero first, Hero second, int amount, string sourceId)
         {
             if (first == null || second == null || first == second || amount == 0)
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(first, second, amount, false);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(first, second, amount, false,
+                sourceId, RelationMemoryScope.Personal);
         }
 
         private List<Clan> BuildFeudSide(

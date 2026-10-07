@@ -1013,26 +1013,26 @@ namespace BellumCivile.Behaviors
 
             if (foreignTarget)
             {
-                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationForeignHolderScandalPenalty, tier));
-                ApplyRelation(plotterKingdom?.Leader, targetKingdom?.Leader, ScaleScandalPenalty(C.FeudalClaimFabricationForeignRulerScandalPenalty, tier));
+                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationForeignHolderScandalPenalty, tier), RelationMemorySources.ForgedMyTitleClaim);
+                ApplyRelation(plotterKingdom?.Leader, targetKingdom?.Leader, ScaleScandalPenalty(C.FeudalClaimFabricationForeignRulerScandalPenalty, tier), RelationMemorySources.ClaimForgeryScandal);
             }
             else if (sovereignPlotter)
             {
-                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationSovereignHolderScandalPenalty, tier));
+                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationSovereignHolderScandalPenalty, tier), RelationMemorySources.ForgedMyTitleClaim);
                 if (tier >= 2)
                 {
                     foreach (Clan domesticClan in plotterKingdom.Clans)
                     {
                         Hero lord = domesticClan?.Leader;
                         if (lord != null && lord != fabricator && lord.GetTraitLevel(DefaultTraits.Honor) > 0)
-                            ApplyRelation(lord, fabricator, ScaleScandalPenalty(C.FeudalClaimFabricationSovereignHonorScandalPenalty, tier));
+                            ApplyRelation(lord, fabricator, ScaleScandalPenalty(C.FeudalClaimFabricationSovereignHonorScandalPenalty, tier), RelationMemorySources.ClaimForgeryScandal);
                     }
                 }
             }
             else
             {
-                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationDomesticHolderScandalPenalty, tier));
-                ApplyRelation(fabricator, plotterKingdom?.Leader, ScaleScandalPenalty(C.FeudalClaimFabricationDomesticRulerScandalPenalty, tier));
+                ApplyRelation(fabricator, titleHolder, ScaleScandalPenalty(C.FeudalClaimFabricationDomesticHolderScandalPenalty, tier), RelationMemorySources.ForgedMyTitleClaim);
+                ApplyRelation(fabricator, plotterKingdom?.Leader, ScaleScandalPenalty(C.FeudalClaimFabricationDomesticRulerScandalPenalty, tier), RelationMemorySources.ClaimForgeryScandal);
             }
 
             BellumCivileDebug.Trace("fabrication", $"scandal exposed; clan={clan?.StringId ?? record.FabricatorClanId}; hero={fabricator?.StringId ?? record.FabricatorHeroId}; title={title?.TitleId ?? record.TargetTitleId}; tier={tier}; foreign={foreignTarget}; sovereign={sovereignPlotter}.", requestInGameDisplay: true);
@@ -1062,12 +1062,13 @@ namespace BellumCivile.Behaviors
             return Math.Min(C.FeudalClaimFabricationMinimumScandalPenalty, scaled);
         }
 
-        private static void ApplyRelation(Hero first, Hero second, int change)
+        private static void ApplyRelation(Hero first, Hero second, int change, string sourceId)
         {
             if (first == null || second == null || first == second || change == 0)
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(first, second, change, false);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(first, second, change, false,
+                sourceId, RelationMemoryScope.Personal);
         }
 
         internal static float CalculateFabricationDiscoveryChance(Hero fabricator, Hero detector, int stage, out int plotterScore, out int detectorScore)

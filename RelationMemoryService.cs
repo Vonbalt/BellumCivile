@@ -8,6 +8,40 @@ namespace BellumCivile
     public static class RelationMemorySources
     {
         public const string PriorHistory = "prior_history";
+        public const string RevokedMyTitle = "revoked_my_title";
+        public const string SupportedCouncilAdvice = "supported_council_advice";
+        public const string RejectedCouncilAdvice = "rejected_council_advice";
+        public const string ChancellorAppeasement = "chancellor_appeasement";
+        public const string ChancellorDiplomacy = "chancellor_diplomacy";
+        public const string SidelinedFromCouncil = "sidelined_from_council";
+        public const string CivilWarLoyalty = "civil_war_loyalty";
+        public const string CivilWarApathy = "civil_war_apathy";
+        public const string CourtNeutrality = "court_neutrality";
+        public const string EncouragedFiefNomination = "encouraged_fief_nomination";
+        public const string CadetHouseFounded = "cadet_house_founded";
+        public const string SovereignDeparture = "sovereign_departure";
+        public const string FeudHarassment = "feud_harassment";
+        public const string FeudEscalation = "feud_escalation";
+        public const string UpheldMyTitleRights = "upheld_my_title_rights";
+        public const string RejectedMyTitleRights = "rejected_my_title_rights";
+        public const string SuppressedMyClaim = "suppressed_my_claim";
+        public const string WithheldFeudJudgment = "withheld_feud_judgment";
+        public const string DefiedFeudJudgment = "defied_feud_judgment";
+        public const string ForgedMyTitleClaim = "forged_my_title_claim";
+        public const string ClaimForgeryScandal = "claim_forgery_scandal";
+        public const string TreatyRoyalMarriage = "treaty_royal_marriage";
+        public const string HumiliatedMe = "humiliated_me";
+        public const string DiscreditedMe = "discredited_me";
+        public const string HumiliatedOurRealm = "humiliated_our_realm";
+        public const string DiscreditedOurRealm = "discredited_our_realm";
+        public const string FreedMySubject = "freed_my_subject";
+        public const string TreatySeparation = "treaty_separation";
+        public const string ForcedVassalization = "forced_vassalization";
+        public const string VoluntaryClientage = "voluntary_clientage";
+        public const string ForcedClientage = "forced_clientage";
+        public const string SupportedMyRebellion = "supported_my_rebellion";
+        public const string ExposedForeignInterference = "exposed_foreign_interference";
+        public const string SolidarityAgainstInterference = "solidarity_against_interference";
         public const string BrokeHostagePeace = "broke_hostage_peace";
         public const string BetrayedHostagePledge = "betrayed_hostage_pledge";
         public const string SparedTreatyHostage = "spared_treaty_hostage";
@@ -110,6 +144,40 @@ namespace BellumCivile
             TextObject text;
             switch (sourceId ?? string.Empty)
             {
+                case RevokedMyTitle: text = new TextObject("{=BC_RelationMemory_RevokedMyTitle}Revoked my title"); break;
+                case SupportedCouncilAdvice: text = new TextObject("{=BC_RelationMemory_SupportedCouncilAdvice}Supported my council advice"); break;
+                case RejectedCouncilAdvice: text = new TextObject("{=BC_RelationMemory_RejectedCouncilAdvice}Rejected my council advice"); break;
+                case ChancellorAppeasement: text = new TextObject("{=BC_RelationMemory_ChancellorAppeasement}Appeased by the Chancellor"); break;
+                case ChancellorDiplomacy: text = new TextObject("{=BC_RelationMemory_ChancellorDiplomacy}Goodwill fostered by the Chancellor"); break;
+                case SidelinedFromCouncil: text = new TextObject("{=BC_RelationMemory_SidelinedFromCouncil}Left me without council duties"); break;
+                case CivilWarLoyalty: text = new TextObject("{=BC_RelationMemory_CivilWarLoyalty}Recognized loyalty during the civil war"); break;
+                case CivilWarApathy: text = new TextObject("{=BC_RelationMemory_CivilWarApathy}Resented apathy during the civil war"); break;
+                case CourtNeutrality: text = new TextObject("{=BC_RelationMemory_CourtNeutrality}Distrusted my neutrality at court"); break;
+                case EncouragedFiefNomination: text = new TextObject("{=BC_RelationMemory_EncouragedFiefNomination}Encouraged my nomination for a fief"); break;
+                case CadetHouseFounded: text = new TextObject("{=BC_RelationMemory_CadetHouseFounded}Founding of our cadet house"); break;
+                case SovereignDeparture: text = new TextObject("{=BC_RelationMemory_SovereignDeparture}Left our realm to establish a separate crown"); break;
+                case FeudHarassment: text = new TextObject("{=BC_RelationMemory_FeudHarassment}Harassment over a disputed title"); break;
+                case FeudEscalation: text = new TextObject("{=BC_RelationMemory_FeudEscalation}Escalated our feud"); break;
+                case UpheldMyTitleRights: text = new TextObject("{=BC_RelationMemory_UpheldMyTitleRights}Upheld my rights in a title dispute"); break;
+                case RejectedMyTitleRights: text = new TextObject("{=BC_RelationMemory_RejectedMyTitleRights}Ruled against me in a title dispute"); break;
+                case SuppressedMyClaim: text = new TextObject("{=BC_RelationMemory_SuppressedMyClaim}Suppressed my claim"); break;
+                case WithheldFeudJudgment: text = new TextObject("{=BC_RelationMemory_WithheldFeudJudgment}Refused to judge our title dispute"); break;
+                case DefiedFeudJudgment: text = new TextObject("{=BC_RelationMemory_DefiedFeudJudgment}Defied the Crown's judgment"); break;
+                case ForgedMyTitleClaim: text = new TextObject("{=BC_RelationMemory_ForgedMyTitleClaim}Fabricated a claim against my title"); break;
+                case ClaimForgeryScandal: text = new TextObject("{=BC_RelationMemory_ClaimForgeryScandal}Exposed claim forgery"); break;
+                case TreatyRoyalMarriage: text = new TextObject("{=BC_RelationMemory_TreatyRoyalMarriage}Sealed our peace with a royal marriage"); break;
+                case HumiliatedMe: text = new TextObject("{=BC_RelationMemory_HumiliatedMe}Humiliated me by treaty"); break;
+                case DiscreditedMe: text = new TextObject("{=BC_RelationMemory_DiscreditedMe}Discredited me by treaty"); break;
+                case HumiliatedOurRealm: text = new TextObject("{=BC_RelationMemory_HumiliatedOurRealm}Our ruler accepted a humiliating peace"); break;
+                case DiscreditedOurRealm: text = new TextObject("{=BC_RelationMemory_DiscreditedOurRealm}Our ruler was discredited by the peace treaty"); break;
+                case FreedMySubject: text = new TextObject("{=BC_RelationMemory_FreedMySubject}Freed a realm from our suzerainty"); break;
+                case TreatySeparation: text = new TextObject("{=BC_RelationMemory_TreatySeparation}Separation from our former liege by treaty"); break;
+                case ForcedVassalization: text = new TextObject("{=BC_RelationMemory_ForcedVassalization}Forced our realm into vassalage"); break;
+                case VoluntaryClientage: text = new TextObject("{=BC_RelationMemory_VoluntaryClientage}Accepted our voluntary clientage"); break;
+                case ForcedClientage: text = new TextObject("{=BC_RelationMemory_ForcedClientage}Forced our realm into clientage"); break;
+                case SupportedMyRebellion: text = new TextObject("{=BC_RelationMemory_SupportedMyRebellion}Supported my rebellion"); break;
+                case ExposedForeignInterference: text = new TextObject("{=BC_RelationMemory_ExposedForeignInterference}Discovered foreign interference in our realm"); break;
+                case SolidarityAgainstInterference: text = new TextObject("{=BC_RelationMemory_SolidarityAgainstInterference}Solidarity after foreign interference was exposed"); break;
                 case BrokeHostagePeace: text = new TextObject("{=BC_RelationMemory_BrokeHostagePeace}Broke our pledge of peace"); break;
                 case BetrayedHostagePledge: text = new TextObject("{=BC_RelationMemory_BetrayedHostagePledge}Betrayed the pledge and executed our hostage"); break;
                 case ReleasedTreatyHostageEarly: text = new TextObject("{=BC_RelationMemory_ReleasedTreatyHostageEarly}Honorably returned our hostage before the pledge expired"); break;
@@ -369,14 +437,16 @@ namespace BellumCivile
         public float DurationDays { get; }
         public RelationMemoryScope Scope { get; }
         public string EventId { get; }
+        public bool UsesDefaultDuration { get; }
 
-        public RelationMemoryDescriptor(string sourceId, string contextText, float durationDays, RelationMemoryScope scope, string eventId = null)
+        public RelationMemoryDescriptor(string sourceId, string contextText, float durationDays, RelationMemoryScope scope, string eventId = null, bool usesDefaultDuration = false)
         {
             SourceId = sourceId ?? string.Empty;
             ContextText = contextText ?? string.Empty;
             DurationDays = Math.Max(1f, durationDays);
             Scope = scope;
             EventId = eventId ?? string.Empty;
+            UsesDefaultDuration = usesDefaultDuration;
         }
     }
 
@@ -402,7 +472,14 @@ namespace BellumCivile
 
         internal static RelationMemoryDescriptor ResolveCapturedDescriptor(int change)
         {
-            if (_currentDescriptor != null) return _currentDescriptor;
+            if (_currentDescriptor != null)
+            {
+                // Native modifiers and relation caps can change the amount actually applied.
+                return _currentDescriptor.UsesDefaultDuration
+                    ? new RelationMemoryDescriptor(_currentDescriptor.SourceId, _currentDescriptor.ContextText,
+                        BuildFallbackDescriptor(change).DurationDays, _currentDescriptor.Scope, _currentDescriptor.EventId)
+                    : _currentDescriptor;
+            }
             var fallback = BuildFallbackDescriptor(change);
             string source = change > 0 ? _nativeLabels?.Positive : change < 0 ? _nativeLabels?.Negative : null;
             return string.IsNullOrEmpty(source) ? fallback : new RelationMemoryDescriptor(
@@ -435,6 +512,14 @@ namespace BellumCivile
             RelationMemoryScope scope = RelationMemoryScope.Personal,
             string contextText = null)
         {
+            ApplyChangeWithDescriptor(firstHero, secondHero, relationChange, showNotification,
+                new RelationMemoryDescriptor(sourceId, contextText,
+                    Math.Max(0.01f, durationYears) * Math.Max(1, CampaignTime.DaysInYear), scope));
+        }
+
+        private static void ApplyChangeWithDescriptor(Hero firstHero, Hero secondHero, int relationChange,
+            bool showNotification, RelationMemoryDescriptor descriptor)
+        {
             if (firstHero == null || secondHero == null || relationChange == 0)
                 return;
 
@@ -442,9 +527,9 @@ namespace BellumCivile
             Hero previousSecond = _personalChangeSecond;
             try
             {
-                _personalChangeFirst = scope == RelationMemoryScope.Personal ? firstHero : null;
-                _personalChangeSecond = scope == RelationMemoryScope.Personal ? secondHero : null;
-                using (Begin(sourceId, durationYears, scope, contextText))
+                _personalChangeFirst = descriptor.Scope == RelationMemoryScope.Personal ? firstHero : null;
+                _personalChangeSecond = descriptor.Scope == RelationMemoryScope.Personal ? secondHero : null;
+                using (Push(descriptor))
                     ChangeRelationAction.ApplyRelationChangeBetweenHeroes(firstHero, secondHero, relationChange, showNotification);
             }
             finally
@@ -471,10 +556,25 @@ namespace BellumCivile
             return new ContextScope(previous);
         }
 
+        // Naming a legacy effect must not silently lengthen its decay, especially for weekly ticks.
+        internal static void ApplyChangeWithDefaultDuration(
+            Hero firstHero, Hero secondHero, int relationChange, bool showNotification,
+            string sourceId, RelationMemoryScope scope, string contextText = null)
+        {
+            ApplyChangeWithDescriptor(firstHero, secondHero, relationChange, showNotification,
+                new RelationMemoryDescriptor(sourceId, contextText, BuildFallbackDescriptor(relationChange).DurationDays,
+                    scope, usesDefaultDuration: true));
+        }
+
+        private static float GetDefaultDurationYears(int relationChange)
+        {
+            return Math.Max(0.25f, Math.Min(10f, Math.Abs(relationChange) / 3f));
+        }
+
         internal static RelationMemoryDescriptor BuildFallbackDescriptor(int relationChange)
         {
             int daysInYear = Math.Max(1, CampaignTime.DaysInYear);
-            float years = Math.Max(0.25f, Math.Min(10f, Math.Abs(relationChange) / 3f));
+            float years = GetDefaultDurationYears(relationChange);
             return new RelationMemoryDescriptor(
                 relationChange >= 0 ? RelationMemorySources.RecentFavor : RelationMemorySources.RecentGrievance,
                 null,

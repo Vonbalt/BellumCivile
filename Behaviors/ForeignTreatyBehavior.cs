@@ -1922,7 +1922,8 @@ namespace BellumCivile.Behaviors
                     term.HeroId, term.SecondaryHeroId, out TreatyRoyalMarriageCandidate candidate)
                     && TreatyRoyalMarriageService.TryApply(candidate, out marriageReason))
                 {
-                    ApplyTreatyRelationChange(concedingRealm?.RulingClan?.Leader, receivingRealm?.RulingClan?.Leader, 15);
+                    ApplyTreatyRelationChange(concedingRealm?.RulingClan?.Leader, receivingRealm?.RulingClan?.Leader, 15,
+                        RelationMemorySources.TreatyRoyalMarriage);
                     TextObject message = new TextObject("{=BC_Treaty_RoyalMarriageConcluded}To seal the peace between {CONCEDING_REALM} and {RECEIVING_REALM}, {FIRST_NAME} has married {SECOND_NAME} and joined the {RECEIVING_CLAN}.")
                         .SetTextVariable("CONCEDING_REALM", concedingRealm?.Name ?? TextObject.GetEmpty())
                         .SetTextVariable("RECEIVING_REALM", receivingRealm?.Name ?? TextObject.GetEmpty())
@@ -2391,10 +2392,12 @@ namespace BellumCivile.Behaviors
 
             int vassalPenalty = severe ? C.TreatyHumiliateVassalRelationLoss : C.TreatyDiscreditVassalRelationLoss;
             foreach (Clan vassal in GetEligibleClans(targetRealm).Where(clan => clan != targetClan))
-                ApplyTreatyRelationChange(vassal.Leader, targetRuler, -vassalPenalty);
+                ApplyTreatyRelationChange(vassal.Leader, targetRuler, -vassalPenalty,
+                    severe ? RelationMemorySources.HumiliatedOurRealm : RelationMemorySources.DiscreditedOurRealm);
 
             int rulerPenalty = severe ? C.TreatyHumiliateRulerRelationLoss : C.TreatyDiscreditRulerRelationLoss;
-            ApplyTreatyRelationChange(targetRuler, imposingRuler, -rulerPenalty);
+            ApplyTreatyRelationChange(targetRuler, imposingRuler, -rulerPenalty,
+                severe ? RelationMemorySources.HumiliatedMe : RelationMemorySources.DiscreditedMe);
         }
 
         private static void ApplyPrestigeTransfer(
@@ -2523,7 +2526,8 @@ namespace BellumCivile.Behaviors
                             ApplyNamedTreatyRelationChange(clan.Leader, liberator, C.TreatyClientReleaseLordRelationGain,
                                 RelationMemorySources.LiberatedMyRealm, 20f, RelationMemoryScope.House, clientRealm?.Name?.ToString());
                         }
-                        ApplyTreatyRelationChange(formerSuzerain?.RulingClan?.Leader, liberator, -C.TreatyClientReleaseFormerSuzerainRelationLoss);
+                        ApplyTreatyRelationChange(formerSuzerain?.RulingClan?.Leader, liberator, -C.TreatyClientReleaseFormerSuzerainRelationLoss,
+                            RelationMemorySources.FreedMySubject);
                         TextObject message = new TextObject("{=BC_Treaty_ClientReleased}{CLIENT_REALM} has been released from the clientage of {FORMER_SUZERAIN}. Its ruler hails {LIBERATOR_REALM} as the realm's liberator.")
                             .SetTextVariable("CLIENT_REALM", clientRealm?.Name ?? TextObject.GetEmpty())
                             .SetTextVariable("FORMER_SUZERAIN", formerSuzerain?.Name ?? TextObject.GetEmpty())
@@ -2545,7 +2549,8 @@ namespace BellumCivile.Behaviors
                         delivered?.Add(term);
                         ApplyNamedTreatyRelationChange(releasedClan?.Leader, imposingRealm?.RulingClan?.Leader, 20,
                             RelationMemorySources.LiberatedMyRealm, 20f, RelationMemoryScope.House, independentRealm?.Name?.ToString());
-                        ApplyTreatyRelationChange(releasedClan?.Leader, sourceRealm?.RulingClan?.Leader, -20);
+                        ApplyTreatyRelationChange(releasedClan?.Leader, sourceRealm?.RulingClan?.Leader, -20,
+                            RelationMemorySources.TreatySeparation);
                         TextObject message = new TextObject("{=BC_Treaty_VassalReleased}{SOURCE_REALM} has released the {CLAN_NAME}. By treaty, {NEW_REALM} now stands as an independent realm.")
                             .SetTextVariable("SOURCE_REALM", sourceRealm?.Name ?? TextObject.GetEmpty())
                             .SetTextVariable("CLAN_NAME", releasedClan?.Name ?? TextObject.GetEmpty())
@@ -2569,7 +2574,8 @@ namespace BellumCivile.Behaviors
                     if (TreatyRealmTransitionService.TryForceVassalize(victorRealm, defeatedRealm, out string forceReason))
                     {
                         delivered?.Add(term);
-                        ApplyTreatyRelationChange(defeatedRuler, victorRuler, -30);
+                        ApplyTreatyRelationChange(defeatedRuler, victorRuler, -30,
+                            RelationMemorySources.ForcedVassalization);
                         TextObject message = new TextObject("{=BC_Treaty_RealmVassalized}{DEFEATED_REALM} has surrendered its sovereignty. Its ruler and vassals now owe allegiance to {VICTOR_REALM}.")
                             .SetTextVariable("DEFEATED_REALM", defeatedName)
                             .SetTextVariable("VICTOR_REALM", victorName);
@@ -2596,7 +2602,8 @@ namespace BellumCivile.Behaviors
                         out clientReason))
                     {
                         delivered?.Add(term);
-                        ApplyTreatyRelationChange(clientRuler, suzerainRuler, term.WasVoluntaryOffering ? 5 : -30);
+                        ApplyTreatyRelationChange(clientRuler, suzerainRuler, term.WasVoluntaryOffering ? 5 : -30,
+                            term.WasVoluntaryOffering ? RelationMemorySources.VoluntaryClientage : RelationMemorySources.ForcedClientage);
                         if (!term.WasVoluntaryOffering)
                         {
                             foreach (Clan clan in clientRealm.Clans.Where(candidate => candidate != null
@@ -2604,7 +2611,8 @@ namespace BellumCivile.Behaviors
                                 && candidate != clientRealm.RulingClan
                                 && !candidate.IsUnderMercenaryService))
                             {
-                                ApplyTreatyRelationChange(clan.Leader, suzerainRuler, -10);
+                                ApplyTreatyRelationChange(clan.Leader, suzerainRuler, -10,
+                                    RelationMemorySources.ForcedClientage);
                             }
                         }
 
@@ -2617,20 +2625,21 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private static void ApplyTreatyRelationChange(Hero first, Hero second, int change)
+        private static void ApplyTreatyRelationChange(Hero first, Hero second, int change, string sourceId)
         {
             if (first == null || second == null || first == second || change == 0)
                 return;
 
             bool notifyPlayer = first == Hero.MainHero || second == Hero.MainHero;
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(first, second, change, notifyPlayer);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(first, second, change, notifyPlayer,
+                sourceId, RelationMemoryScope.Personal);
         }
 
         private static void ApplyNamedTreatyRelationChange(
             Hero first,
             Hero second,
             int change,
-            string sourceId = null,
+            string sourceId,
             float durationYears = 5f,
             RelationMemoryScope scope = RelationMemoryScope.Personal,
             string contextText = null)
@@ -2638,12 +2647,6 @@ namespace BellumCivile.Behaviors
             if (first == null || second == null || first == second || change == 0)
                 return;
             bool notifyPlayer = first == Hero.MainHero || second == Hero.MainHero;
-            if (string.IsNullOrEmpty(sourceId))
-            {
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(first, second, change, notifyPlayer);
-                return;
-            }
-
             RelationMemoryService.ApplyChange(first, second, change, notifyPlayer,
                 sourceId, durationYears, scope, contextText);
         }

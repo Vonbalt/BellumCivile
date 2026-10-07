@@ -106,6 +106,24 @@ internal static class Program
                 CrownHouseholdRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} Crown household recovery checks passed.");
             }
+            else if (args.Contains("--gameplay-relation-memories"))
+            {
+                GameplayRelationMemoryTests.Run(Check);
+                RelationCauseLabelTests.Run(Check);
+                RelationExpansionTests.Run(Check);
+                RelationIdentityCacheTests.Run(Check);
+                TreatyRelationOutcomeTests.Run(Check);
+                ExpulsionRelationTests.Run(Check);
+                Console.WriteLine($"{_checks} gameplay relation memory checks passed.");
+            }
+            else if (args.Contains("--expulsion-relations"))
+            {
+                ExpulsionRelationTests.Run(Check);
+                PersonalBereavementTests.Run(Check);
+                CourtReactionCompletionTests.Run(Check);
+                RelationCauseLabelTests.Run(Check);
+                Console.WriteLine($"{_checks} expulsion and relation checks passed.");
+            }
             else if (args.Contains("--client-liberation"))
             {
                 ClientLiberationResolveTests.Run(Check);
@@ -686,7 +704,9 @@ internal static class Program
         RelationIdentityCacheTests.Run(Check);
         RelationExpansionTests.Run(Check);
         RelationCauseLabelTests.Run(Check);
+        ExpulsionRelationTests.Run(Check);
         PersonalKinshipTests.Run(Check);
+        GameplayRelationMemoryTests.Run(Check);
         PersonalBereavementTests.Run(Check);
         SettlementCauseLabelTests.Run(Check);
         RelationPerformanceTests.Run(Check);

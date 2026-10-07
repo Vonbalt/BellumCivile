@@ -6,7 +6,6 @@ using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
-using System.Linq;
 using System.Reflection;
 using C = BellumCivile.BellumCivileConstants;
 
@@ -147,20 +146,7 @@ namespace BellumCivile.Patches
                 }
 
                 Kingdom relationKingdom = decisionKingdom ?? sponsorClan.Kingdom;
-                if (relationKingdom != null)
-                {
-                    foreach (Clan otherClan in relationKingdom.Clans.ToList())
-                    {
-                        if (otherClan != sponsorClan && otherClan != targetClan && otherClan.Leader != null && !otherClan.Leader.IsDead)
-                        {
-                            if (otherClan.Leader.GetRelation(targetLeader) > C.ExpelResolveFriendRelThreshold)
-                            {
-                                RelationMemoryService.ApplyChange(otherClan.Leader, king, C.ExpelResolveFriendDragged, true,
-                                    RelationMemorySources.ExpelledMyFriend, 10f, RelationMemoryScope.Personal, targetLeader.Name?.ToString());
-                            }
-                        }
-                    }
-                }
+                ExpulsionRelationHelper.ApplyFriendMemories(relationKingdom, sponsorClan, king, targetClan);
             }
         }
 

@@ -327,7 +327,7 @@ namespace BellumCivile.Behaviors
                 && !clan.Leader.IsDead;
         }
 
-        private static void ApplyUsurpationRelations(Clan usurper, Clan oldHolder, FeudalTitleRecord title)
+        internal static void ApplyUsurpationRelations(Clan usurper, Clan oldHolder, FeudalTitleRecord title)
         {
             if (usurper?.Leader == null || oldHolder?.Leader == null || usurper == oldHolder)
                 return;

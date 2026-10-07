@@ -10,7 +10,6 @@ namespace BellumCivile
 {
     public static class FeudalTitlePlayerActionService
     {
-        private const int UsurpationRelationPenalty = -30;
         public const float GrantInfluenceCost = 100f;
 
         public static TextObject GetRenunciationBlock(FeudalTitleRecord selectedTitle, out bool visible)
@@ -462,8 +461,7 @@ namespace BellumCivile
                 return false;
             }
 
-            if (oldHolder?.Leader != null && clan.Leader != null && oldHolder != clan)
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(oldHolder.Leader, clan.Leader, UsurpationRelationPenalty, false);
+            FeudalTitleUsurpationBehavior.ApplyUsurpationRelations(clan, oldHolder, title);
 
             NotificationHelper.ShowFeudalTitleUsurped(clan, oldHolder, title);
             if (independentKingdom != null)
@@ -550,7 +548,9 @@ namespace BellumCivile
             }
 
             if (grantorClan.Leader != null && recipientClan.Leader != null && recipientPreview.RelationGain > 0)
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(grantorClan.Leader, recipientClan.Leader, recipientPreview.RelationGain, true);
+                RelationMemoryService.ApplyChange(grantorClan.Leader, recipientClan.Leader, recipientPreview.RelationGain, true,
+                    RelationMemorySources.CourtTitleGrant, 10f, RelationMemoryScope.Personal,
+                    FeudalTitleDisplayHelper.FormatTitleName(title, recipientClan));
 
             ApplyGrantMoodFallout(oldKingdom, recipientClan, recipientPreview.RelationGain);
             NotificationHelper.ShowFeudalTitleGranted(grantorClan, recipientClan, title, recipientPreview.CreatesIndependentRealm, recipientPreview.RelationGain);
@@ -708,7 +708,8 @@ namespace BellumCivile
             int penalty = strength == FeudalClaimStrength.Strong
                 ? BellumCivileConstants.FeudalTitleRevocationStrongRelationPenalty
                 : BellumCivileConstants.FeudalTitleRevocationWeakRelationPenalty;
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(revokerClan.Leader, holderClan.Leader, penalty, false);
+            RelationMemoryService.ApplyChangeWithDefaultDuration(revokerClan.Leader, holderClan.Leader, penalty, false,
+                RelationMemorySources.RevokedMyTitle, RelationMemoryScope.House);
         }
 
         private static FeudalGrantRecipientPreview BuildGrantRecipientPreview(FeudalTitleBehavior titleBehavior, Clan grantorClan, Clan recipientClan, FeudalTitleRecord title)

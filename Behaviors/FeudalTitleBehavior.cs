@@ -5262,6 +5262,7 @@ namespace BellumCivile.Behaviors
                 if (formerRealmClan == null
                     || formerRealmClan == departingClan
                     || formerRealmClan.IsEliminated
+                    || formerRealmClan.IsUnderMercenaryService
                     || otherLeader == null
                     || otherLeader.IsDead
                     || otherLeader == departingLeader)
@@ -5269,11 +5270,12 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
 
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+                RelationMemoryService.ApplyChangeWithDefaultDuration(
                     departingLeader,
                     otherLeader,
                     relationPenalty,
-                    false);
+                    false,
+                    RelationMemorySources.SovereignDeparture, RelationMemoryScope.Personal);
             }
         }
 

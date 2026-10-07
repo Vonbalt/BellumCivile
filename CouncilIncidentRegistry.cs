@@ -131,11 +131,13 @@ namespace BellumCivile
             if (ruler == null || councilor == null || ruler == councilor || amount == 0)
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+            RelationMemoryService.ApplyChangeWithDefaultDuration(
                 ruler,
                 councilor,
                 amount,
-                showQuickNotification: ruler == Hero.MainHero || councilor == Hero.MainHero);
+                ruler == Hero.MainHero || councilor == Hero.MainHero,
+                amount > 0 ? RelationMemorySources.SupportedCouncilAdvice : RelationMemorySources.RejectedCouncilAdvice,
+                RelationMemoryScope.Personal);
         }
 
         public TextObject ApplyInstitutionName(TextObject text)

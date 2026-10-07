@@ -663,11 +663,12 @@ namespace BellumCivile.Behaviors
             if (cadetLeader == null || parentLeader == null || cadetLeader == parentLeader)
                 return;
 
-            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+            RelationMemoryService.ApplyChangeWithDefaultDuration(
                 cadetLeader,
                 parentLeader,
                 C.CadetBranchParentRelationBonus,
-                false);
+                false,
+                RelationMemorySources.CadetHouseFounded, RelationMemoryScope.House);
         }
 
         private static void TransferHouseholdToCadet(Clan parentClan, Clan cadetClan, Hero heir)

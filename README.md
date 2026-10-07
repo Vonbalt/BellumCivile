@@ -598,6 +598,8 @@ Ordinary timed memories retain full value until expiry. Named contexts cover que
 
 **Killed my enemy** grants a +5 personal memory lasting **10 years**. These duration defaults apply to new memories; existing records retain their saved expiry dates.
 
+Normal expulsion and non-execution treason judgments share the same friendship reaction: other clan leaders serving the realm who have more than +10 relations with the expelled leader receive a **-5 personal memory for 10 years**, labelled **Expelled my friend from the realm** with the expelled leader's name. This includes mercenary leaders with qualifying friendships. Execution reactions and the expelled house's own grievances remain separate.
+
 The duration multiplier is **0.25x-5x**, default 1x. New memories scale centrally. Changes rescale remaining duration, not elapsed history; permanent conditions and expired records are unaffected. The saved last-applied multiplier prevents double scaling. Durations use campaign years (`CampaignTime.DaysInYear`).
 
 Two migration concepts must remain distinct:
@@ -606,6 +608,10 @@ Two migration concepts must remain distinct:
 - Legacy **Prior history** from the drifting model retains migration-only fading so loading does not abruptly change visible relation.
 
 `RelationMemoryService` owns contexts/durations. `DynamicRelationBehavior` owns records/integration; `DynamicRelationBaselineHelper` owns natural/political calculations. Foundation and political caches are bounded and separate from durable memories. Expiry uses indexed pairs and lazy checks.
+
+Mod-owned gameplay changes should use an explicit, localized memory source rather than a raw `ChangeRelationAction` call. This includes treaty consequences, feud judgments, forgery scandals, council work, intrigue, cadet founding and political reactions. `ApplyChangeWithDefaultDuration` adds context while retaining the generic fallback lifetime based on the actual applied delta (including native modifiers and clamping); use it for recurring effects unless a distinct lifetime is intended. These labels apply to new events, without rewriting existing generic memories.
+
+Player and AI title usurpation share a **-30 house memory lasting 20 years**. Manual and court title grants use a **10-year personal memory**. Title revocation and cadet founding use house scope; their existing amounts and default lifetimes are preserved. Sovereign-departure penalties apply to former realm clan leaders excluding serving mercenaries. The `--gameplay-relation-memories` harness checks effect contexts, duration preservation and a method-level allowlist of intentional raw relation writes.
 
 ### Intrigue and Influence
 

@@ -1088,7 +1088,8 @@ namespace BellumCivile.Behaviors
                     Clan randomClan = otherClans[MBRandom.RandomInt(otherClans.Count)];
                     if (randomClan.Leader != null)
                     {
-                        ChangeRelationAction.ApplyPlayerRelation(randomClan.Leader, -1, false, false);
+                        RelationMemoryService.ApplyChangeWithDefaultDuration(Hero.MainHero, randomClan.Leader, -1, false,
+                            RelationMemorySources.CourtNeutrality, RelationMemoryScope.Personal);
                         TextObject text = new TextObject("{=BC_Ideology_NeutralityPenalty}The lords of the realm wonder where your loyalty lies. You lost relation with {CLAN_LEADER} (-1).");
                         text.SetTextVariable("CLAN_LEADER", randomClan.Leader.Name);
                         Msg(text.ToString(), Colors.Yellow);
@@ -2190,16 +2191,7 @@ namespace BellumCivile.Behaviors
                 ?.ConfiscateNonBaronyTitlesForExile(targetClan, rulingClan, kingdom, "player treason judgment submitted");
 
             if (targetLeader != null && !execute)
-            {
-                foreach (Clan otherClan in kingdom.Clans.ToList())
-                {
-                    if (otherClan == rulingClan || otherClan == targetClan || otherClan.Leader == null)
-                        continue;
-
-                    if (otherClan.Leader.GetRelation(targetLeader) > 10)
-                        ChangeRelationAction.ApplyRelationChangeBetweenHeroes(otherClan.Leader, ruler, -20, true);
-                }
-            }
+                ExpulsionRelationHelper.ApplyFriendMemories(kingdom, rulingClan, ruler, targetClan);
 
             if (targetClan.Kingdom == kingdom)
                 ChangeKingdomAction.ApplyByLeaveKingdom(targetClan, false);
@@ -2284,18 +2276,7 @@ namespace BellumCivile.Behaviors
             bool execute = RollTreasonExecution(ruler);
 
             if (!execute)
-            {
-                foreach (Clan otherClan in kingdom.Clans.ToList())
-                {
-                    if (otherClan != rulingClan && otherClan != targetClan && otherClan.Leader != null)
-                    {
-                        if (otherClan.Leader.GetRelation(targetLeader) > 10)
-                        {
-                            ChangeRelationAction.ApplyRelationChangeBetweenHeroes(otherClan.Leader, ruler, -20, true);
-                        }
-                    }
-                }
-            }
+                ExpulsionRelationHelper.ApplyFriendMemories(kingdom, rulingClan, ruler, targetClan);
 
             if (execute)
                 ExecuteTreasonSentence(kingdom, targetLeader, ruler);
