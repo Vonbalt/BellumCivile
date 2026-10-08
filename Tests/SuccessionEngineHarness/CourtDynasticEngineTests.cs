@@ -54,6 +54,7 @@ internal static class CourtDynasticEngineTests
             Patch(AccessTools.PropertyGetter(typeof(CampaignTime), "ToDays"), nameof(Days));
             Patch(AccessTools.Method(type, "DynasticOwnerValid"), nameof(Valid));
             Patch(AccessTools.Method(type, "DynasticIdentity"), nameof(Identity));
+            Patch(AccessTools.Method(type.Assembly.GetType("BellumCivile.MarriageHouseholdPolicy"), "Matches"), nameof(Identity));
             Patch(AccessTools.Method(type, "DynasticMarried"), nameof(Married));
             Patch(AccessTools.Method(type, "ReceivesPoliticalSupport"), nameof(Support));
             Patch(AccessTools.Method(type, "ReportDynastic"), nameof(Skip));

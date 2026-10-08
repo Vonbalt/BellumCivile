@@ -15,7 +15,7 @@
 * civilwars.force_faction_meeting [FactionType]
 * civilwars.trigger_council_incident
 * civilwars.marry [Hero One] | [Hero Two]
-* civilwars.force_marriage_offer
+* civilwars.force_marriage_offer [matrilineal/patrilineal]
 * civilwars.fund_highwaymen [Kingdom Name]
 * civilwars.trigger_coalition [Kingdom Name] [IdeologyType]
 * * --- TREASON & LOYALTY TESTING ---
@@ -1720,37 +1720,39 @@ namespace BellumCivile
         [CommandLineFunctionality.CommandLineArgumentFunction("force_marriage_offer", "civilwars")]
         public static string ForceMarriageOffer(List<string> args)
         {
-            if (Clan.PlayerClan == null)
-                return "Error: Player clan is not available.";
+            bool? matrilineal = null;
+            if (args?.Count > 0)
+            {
+                if (args.Count != 1)
+                    return "Usage: civilwars.force_marriage_offer [matrilineal/patrilineal]. Omit the mode to allow either arrangement. Only one offer can be active at a time.";
+                if (string.Equals(args[0], "matrilineal", StringComparison.OrdinalIgnoreCase)) matrilineal = true;
+                else if (string.Equals(args[0], "patrilineal", StringComparison.OrdinalIgnoreCase)) matrilineal = false;
+                else return "Usage: civilwars.force_marriage_offer [matrilineal/patrilineal]. Omit the mode to allow either arrangement.";
+            }
+            if (Campaign.Current == null || Clan.PlayerClan == null)
+                return "Error: Load a campaign with a player clan first.";
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+                return "Error: Enable Bellum's strategic marriage logic before testing household offers.";
 
             MarriageOfferCampaignBehavior offerBehavior = Campaign.Current?.CampaignBehaviorManager?.GetBehavior<MarriageOfferCampaignBehavior>();
-            if (offerBehavior == null)
-                return "Error: Could not find vanilla MarriageOfferCampaignBehavior.";
+            var agreements = PlayerMarriageAgreementBehavior.Instance;
+            if (offerBehavior == null || agreements == null)
+                return "Error: Marriage offer services are not available in this campaign.";
+            if (PlayerMarriageAgreementBehavior.ActivePlayer != null || PlayerMarriageAgreementBehavior.ActiveOther != null)
+                return "Error: A marriage offer is already active. Accept or decline it before requesting another.";
+            if (Clan.PlayerClan.Kingdom == null || Clan.PlayerClan.Kingdom.IsEliminated)
+                return "Error: The player clan must belong to an active kingdom to qualify for strategic marriage offers.";
 
             FactionManagerBehavior factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
-            DynasticHeirBehavior heirBehavior = Campaign.Current.GetCampaignBehavior<DynasticHeirBehavior>();
-            List<BellumMarriageMatch> matches = new List<BellumMarriageMatch>();
-
-            foreach (Clan clan in Clan.All)
-            {
-                if (clan == null || clan == Clan.PlayerClan)
-                    continue;
-
-                BellumMarriageMatch match = BellumMarriageStrategyHelper.FindBestPlayerClanOffer(clan, factionManager, heirBehavior);
-                if (match != null)
-                    matches.Add(match);
-            }
+            List<BellumMarriageMatch> matches = BellumMarriageStrategyHelper.FindPlayerClanTestOffers(
+                factionManager, matrilineal, out string diagnostics);
 
             if (matches.Count == 0)
-                return "Error: No eligible marriage offer could be found for the player clan. Diagnostics: "
-                    + BellumMarriageStrategyHelper.BuildPlayerClanOfferDiagnostics(factionManager);
-
-            float threshold = C.MarriageStrategyMinimumScore;
-            List<BellumMarriageMatch> strongMatches = matches
-                .Where(m => m.Score >= threshold)
-                .ToList();
-
-            List<BellumMarriageMatch> pool = strongMatches.Count > 0 ? strongMatches : matches;
+                return $"Error: No eligible {(matrilineal.HasValue ? matrilineal.Value ? "matrilineal" : "patrilineal" : "marriage")} offer found. "
+                    + $"Age, availability, reservations, NPC acceptance and household protections remain in effect. Diagnostics: {diagnostics}.";
+            // Give each eligible offering house an equal chance, then choose a pair within that house.
+            var houses = matches.GroupBy(m => m.Suitor.Clan).Select(g => g.ToList()).ToList();
+            List<BellumMarriageMatch> pool = houses[MBRandom.RandomInt(houses.Count)];
             BellumMarriageMatch selected = pool[MBRandom.RandomInt(pool.Count)];
 
             Hero playerClanHero = selected.Suitor.Clan == Clan.PlayerClan ? selected.Suitor : selected.Candidate;
@@ -1758,14 +1760,19 @@ namespace BellumCivile
             if (playerClanHero?.Clan != Clan.PlayerClan || otherClanHero?.Clan == Clan.PlayerClan)
                 return "Error: Selected match did not resolve to one player-clan hero and one outside hero.";
 
-            if (!Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(playerClanHero, otherClanHero))
-                return $"Error: Selected match failed final vanilla suitability check: {playerClanHero.Name} + {otherClanHero.Name}.";
+            if (selected.Outcome?.StillMatches() != true
+                || StrategicMarriageBehavior.HasMarriageOfferFor(playerClanHero) || StrategicMarriageBehavior.HasMarriageOfferFor(otherClanHero)
+                || !Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(playerClanHero, otherClanHero))
+                return $"Error: Selected match no longer meets the agreed household or eligibility requirements: {playerClanHero.Name} + {otherClanHero.Name}.";
 
             offerBehavior.CreateMarriageOffer(playerClanHero, otherClanHero);
-
-            string strengthNote = selected.Score >= threshold ? "strategic-threshold match" : "fallback eligible match";
-            string reasons = selected.Reasons.Count > 0 ? string.Join(", ", selected.Reasons) : "none";
-            return $"Success! Forced marriage offer popup for {playerClanHero.Name} of {playerClanHero.Clan.Name} and {otherClanHero.Name} of {otherClanHero.Clan.Name}. Score={selected.Score:0} ({strengthNote}); reasons={reasons}.";
+            var agreement = agreements.Active;
+            if (agreement == null || !agreement.Matches(playerClanHero, otherClanHero))
+                return "Error: The marriage offer was not registered. No wedding has been performed.";
+            return $"Success! {agreement.FormText()} offer sent: {playerClanHero.Name} ({playerClanHero.StringId}) of {playerClanHero.Clan.Name} "
+                + $"and {otherClanHero.Name} ({otherClanHero.StringId}) of {otherClanHero.Clan.Name}. "
+                + $"{agreement.HouseholdText()} NPC acceptance={selected.Score:0}. "
+                + "Close the console and open the marriage-offer notification. Accepting performs a real marriage; use a test save.";
         }
 
         private static FactionObject CreateFactionFromArgs(List<string> args, out string errorMessage)

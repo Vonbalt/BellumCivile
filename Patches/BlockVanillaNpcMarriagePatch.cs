@@ -18,10 +18,15 @@ namespace BellumCivile.Patches
             return AccessTools.Method(typeof(RomanceCampaignBehavior), "CheckNpcMarriages", new[] { typeof(Clan) });
         }
 
-        private static bool Prefix()
+        private static bool Prefix(out NativeNpcMarriageHouseholdScope __state)
         {
-            return !BellumCivileOptions.EnableBellumStrategicMarriageLogic
-                || !BellumCivileOptions.UseBellumStrategicNpcMarriagesOnly;
+            __state = null;
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic) return true;
+            if (BellumCivileOptions.UseBellumStrategicNpcMarriagesOnly) return false;
+            __state = new NativeNpcMarriageHouseholdScope();
+            return true;
         }
+
+        private static void Finalizer(NativeNpcMarriageHouseholdScope __state) => __state?.Dispose();
     }
 }

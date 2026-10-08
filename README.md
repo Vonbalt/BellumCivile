@@ -1,12 +1,12 @@
-# Bellum Civile 1.4.0 - Maintainer Guide
+# Bellum Civile - Maintainer Guide
 
 Bellum Civile extends Mount & Blade II: Bannerlord with a connected political simulation: court factions, feudal titles, dynastic succession, internal wars, and negotiated foreign affairs. Relationships, personality, legal rights, wealth, influence, and military strength feed into these systems through shared services.
 
-This repository contains the source for the released **Bellum Civile 1.4.0**. This README provides a technical orientation and maintenance reference for contributors. Players can find the gameplay guide in **Encyclopedia > Concepts > Bellum Civile**.
+This README provides a technical orientation and maintenance reference for contributors. Players can find the gameplay guide in **Encyclopedia > Concepts > Bellum Civile**.
 
 | Item | Current state |
 | --- | --- |
-| Documentation revision | October 6, 2026 |
+| Documentation revision | October 7, 2026 |
 | Release version | Bellum Civile 1.4.1 |
 | Target game version | Bannerlord 1.4.8 |
 | Core runtime | .NET Framework 4.7.2 (`net472`) |
@@ -407,7 +407,17 @@ Matching runs a staggered annual house search. **Both houses evaluate the actual
 
 A reproductive marriage sending a blood relative to another house adds up to 30 acceptance points for the outgoing kinship tie. This benefit scales down to zero at maximum household risk; it does not waive departure penalties or the other house's consent. It is shared by ordinary and royal matchmaking.
 
-Ordinary household rules and special Crown/treaty outcomes determine who moves. A favorable match does not promise an automatic realm alliance or an unearned inheritance package. Player-house proposals still require the player's offer decision. Specific-marriage dialogue supports selecting both candidates and paginated large households.
+NPC matchmaking protects the first lawful Crown heiress in hereditary realms and the first lawful clan heiress under the house's succession laws. These women require a matrilineal household: the husband joins their clan. Elective realms protect the clan successor, without presuming inheritance of the elected Crown. A prospective husband who must remain as a leader or first lawful successor cannot be moved instead. Other marriages retain ordinary household placement, and both houses still need at least 95 acceptance; there is no extra matrilineal bonus.
+
+Voluntary NPC marriages also cannot remove the house's last realistic bloodline-continuation option. Remaining blood children, viable unmarried relatives, and existing reproductive households preserve that option; army duty and captivity do not erase them. Household health remains a weighted consideration when alternatives exist. `MarriageHouseholdPolicy` caches heir and continuity lookups per evaluation, and `NpcMarriageClanContext` preserves the accepted destination through native wedding callbacks. The optional native NPC marriage path uses the same household protections when Bellum's strategic marriage logic is enabled.
+
+New offers to the player preserve the NPC house's first lawful heir and last viable continuation. The native offer popup identifies patrilineal or matrilineal placement, the departing spouse, destination house, future children's household, and any departing Crown heir's retained rights. Sending the player's own nonleader heir away requires an additional confirmation. Existing marriages and pre-update pending offers are not migrated to new household terms.
+
+Specific-marriage dialogue supports selecting both candidates, paginated large households, and choosing the husband's or wife's house. **Deliberate player negotiations can purchase an NPC first-heir departure exception**, but cannot move a current/legal clan head, the main character, a pending accession household, or the NPC house's last viable continuation. Personal courtship uses the same pricing and final legality checks. Explicit treaty marriage placement retains precedence and its own eligibility restrictions. A favorable match does not promise an automatic realm alliance or an unearned inheritance package.
+
+`PlayerMarriagePricing` normalizes the native NPC-side valuation regardless of barter constructor order. The nonnegative native compensation is multiplied by `1 + 0.5 * min(4, max(0, NPC tier - player tier))`. An outgoing first clan heir adds **50,000 denars**, or **100,000** for a first hereditary Crown heir instead. Sending a viable bloodline member away adds up to **50,000** according to house-health risk. A reproductively useful spouse joining the NPC house instead discounts the base cost by up to **50%** at maximum risk. Fixed heir premiums are not tier-multiplied; matrilineality itself has no fee. Quotes cache their snapshot per barter item, use bounded arithmetic, and do not change NPC-to-NPC scoring.
+
+`PlayerMarriageAgreementBehavior` saves each new offer's original houses and exact destination beside the native offer/waiting-list state. Temporary unavailability can postpone an accepted wedding; changed eligibility cancels it rather than switching houses. The queued pair's own engagement is ignored only during its validation/wedding. Barter preflight checks all offered marriage items before payment; the wedding also pins the agreed household through native callbacks. Save definition 128 and its list container are appended without renumbering existing types.
 
 A mutually acceptable ordinary match blocked by army duty or temporary unavailability can become a **30-day saved prospect**. Its first retry is scheduled for the following day, then every three days. Bellum reserves the pair against its other matches and rechecks legality, consent, and destination before execution. Invalid/expired prospects cancel. Court dynastic accords use their named couple and term deadline instead.
 
@@ -845,6 +855,8 @@ Mount and Blade II Bannerlord/Configs/ModLogs/
 Treaty openings are counted by creation date; applied, rejected, and cancelled outcomes by their saved resolution date. Pending parleys are a current snapshot, and average war score spent includes applied treaties only. Older resolved proposals without a resolution timestamp are not assigned an invented year. Crown-heir regency creation and replacement contribute to the same succession counters as ordinary regencies.
 
 [CheatCommands.cs](CheatCommands.cs) contains diagnostics. Useful entries include `civilwars.make_me_king`, `civilwars.pending_votes`, `civilwars.repair_pending_votes`, `civilwars.relation_breakdown`, `civilwars.relation_stats [reset]`, and `civilwars.title_name_stats [reset]`, plus title, marriage, succession, treaty, client, and tribunal tools. Prefer commands exercising production services and reporting failed preconditions over direct record mutation.
+
+`civilwars.force_marriage_offer matrilineal` and `civilwars.force_marriage_offer patrilineal` send a normal marriage-offer notification for a random eligible house and player-clan pairing of that arrangement. Omit the argument to allow either type. The command bypasses scheduling/cooldown, not age, availability, reservations, NPC acceptance or household protections, and will not replace an active offer. Bellum strategic marriage must be enabled and the player clan must belong to an active kingdom. The console identifies the spouses and departing member; open the notification to inspect the popup. Accepting completes a real marriage, so use a disposable test save.
 
 `Patches/KingdomManagementTabDiagnosticsPatch.cs` emits `KTAB-*` only with debug notifications enabled and a settled UI failing to bind. It reports relevant mixin/provider/command and optional Diplomacy state while remaining silent when healthy.
 

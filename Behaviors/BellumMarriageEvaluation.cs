@@ -15,6 +15,7 @@ namespace BellumCivile.Behaviors
             public readonly Dictionary<Clan, Kingdom> Realms = new Dictionary<Clan, Kingdom>();
             private readonly Dictionary<Clan, HouseHealth> _health = new Dictionary<Clan, HouseHealth>();
             public readonly HashSet<Hero> CrownHeirs = new HashSet<Hero>();
+            private readonly MarriageHouseholdPolicy _households = new MarriageHouseholdPolicy();
             private readonly Dictionary<Hero, List<Hero>> _parentalEstates = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, List<Hero>> _parentHeirs = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, bool> _bloodMembers = new Dictionary<Hero, bool>();
@@ -36,14 +37,11 @@ namespace BellumCivile.Behaviors
                 Factions = factions;
                 _titles = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>();
                 _day = (int)CampaignTime.Now.ToDays;
+                // An heir may belong to either candidate house while inheriting a third realm.
+                CrownHeirs.UnionWith(_households.CrownHeirs);
                 foreach (Kingdom realm in Kingdom.All)
                 {
                     if (realm == null || realm.IsEliminated || houses != null && !houses.Any(c => c.Kingdom == realm)) continue;
-                    if (MarriagePoliticalRealm(realm.RulingClan) == realm && CrownAccessionBehavior.IsHereditaryRealm(realm))
-                    {
-                        Hero heir = HereditaryRealmSuccession.GetLine(realm).FirstOrDefault();
-                        if (heir != null) CrownHeirs.Add(heir);
-                    }
                     foreach (Clan clan in realm.Clans)
                     {
                         if (houses != null && !houses.Contains(clan) || !IsStrategicMarriageClanAllowed(clan, includePlayer)) continue;
@@ -59,6 +57,12 @@ namespace BellumCivile.Behaviors
                         }
                     }
                 }
+            }
+
+            public Clan HouseholdDestination(Hero first, Hero second)
+            {
+                Clan ordinary = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second);
+                return _households.TryChoose(first, second, ordinary, out Clan destination) ? destination : null;
             }
 
             public float PoliticalValue(Clan house, Clan other)
@@ -190,6 +194,45 @@ namespace BellumCivile.Behaviors
             || Campaign.Current?.GetCampaignBehavior<StrategicMarriageBehavior>()?.HasPendingProspect(hero) == true
             || CourtAgendaBehavior.Current?.HasDynasticReservation(hero, hero) == true;
 
+        // Console-only search: retain normal acceptance and household rules, skipping only scheduling.
+        internal static List<BellumMarriageMatch> FindPlayerClanTestOffers(FactionManagerBehavior factions,
+            bool? matrilineal, out string diagnostics)
+        {
+            var matches = new List<BellumMarriageMatch>();
+            var context = new EvaluationContext(factions, true);
+            if (!context.Participants.TryGetValue(Clan.PlayerClan, out var members))
+            {
+                diagnostics = "player clan is not eligible for strategic offers (it must belong to an active kingdom)";
+                return matches;
+            }
+            var availableMembers = members.Where(h => !MarriageReserved(h)).ToList();
+            int pairs = 0, householdRejected = 0, acceptanceRejected = 0, maternal = 0, paternal = 0;
+            foreach (var entry in context.Participants)
+            {
+                if (entry.Key == Clan.PlayerClan
+                    || !Campaign.Current.Models.MarriageModel.ShouldNpcMarriageBetweenClansBeAllowed(Clan.PlayerClan, entry.Key)) continue;
+                foreach (Hero other in entry.Value)
+                {
+                    if (MarriageReserved(other)) continue;
+                    foreach (Hero player in availableMembers)
+                    {
+                        if (GetPairRejectionReason(other, player, factions, true) != BellumMarriageRejectionReason.None) continue;
+                        pairs++;
+                        var match = EvaluateOutcome(other, player, context, false);
+                        if (match == null) { householdRejected++; continue; }
+                        if (match.Score < C.MarriageStrategyMinimumScore) { acceptanceRejected++; continue; }
+                        bool isMatrilineal = match.Outcome.Destination == (other.IsFemale ? other.Clan : player.Clan);
+                        if (isMatrilineal) maternal++; else paternal++;
+                        if (!matrilineal.HasValue || matrilineal.Value == isMatrilineal) matches.Add(match);
+                    }
+                }
+            }
+            diagnostics = $"available_player_members={availableMembers.Count}; suitable_pairs={pairs}; "
+                + $"household_rejected={householdRejected}; acceptance_rejected={acceptanceRejected}; "
+                + $"eligible_matrilineal={maternal}; eligible_patrilineal={paternal}";
+            return matches;
+        }
+
         internal static BellumMarriageMatch ReevaluateProspect(Hero first, Hero second)
         {
             if (!MarriageProspectEligible(first) || !MarriageProspectEligible(second)) return null;
@@ -201,7 +244,7 @@ namespace BellumCivile.Behaviors
 
         private static BellumMarriageMatch EvaluateOutcome(Hero first, Hero second, EvaluationContext context, bool requireAcceptance = true)
         {
-            Clan destination = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second);
+            Clan destination = context.HouseholdDestination(first, second);
             if (destination == null || destination.IsEliminated) return null;
             var outcome = new MarriageOutcome(first, second, destination,
                 context.CrownHeirs.Contains(first), context.CrownHeirs.Contains(second));
@@ -224,6 +267,8 @@ namespace BellumCivile.Behaviors
             if (match.IsDomestic) match.Reasons.Add("same realm");
             if (match.HasRoyalPolitics) match.Reasons.Add("royal pacification");
             if (match.HasForeignPolitics) match.Reasons.Add("foreign royal alliance");
+            Hero bride = first.IsFemale ? first : second;
+            if (destination == bride.Clan) match.Reasons.Add("matrilineal household: husband joins bride's house");
             match.Reasons.Add($"acceptance: {first.Clan.StringId}={match.SuitorAcceptance:0}; {second.Clan.StringId}={match.CandidateAcceptance:0}; household={destination.StringId}");
             return match;
         }

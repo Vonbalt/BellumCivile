@@ -167,7 +167,7 @@ namespace BellumCivile.Behaviors
                 _yearlySummary.VanillaModelRejectedBellumMatch++;
                 _yearlySummary.RecordRejectedScore(match.Score);
                 _yearlySummary.RecordEndangeredUnmatched(hero.Clan, dynasticNeed);
-                TraceMarriage($"skipped {HeroLabel(hero)} + {HeroLabel(match.Candidate)}: vanilla marriage model rejected the couple.");
+                TraceMarriage($"skipped {HeroLabel(hero)} + {HeroLabel(match.Candidate)}: household terms or marriage eligibility changed before execution.");
                 return;
             }
 
@@ -180,7 +180,8 @@ namespace BellumCivile.Behaviors
             CloseMarriageSearch(clan);
             try
             {
-                MarriageAction.Apply(match.Suitor, match.Candidate);
+                using (new NpcMarriageClanContext(match.Suitor, match.Candidate, match.Outcome.Destination))
+                    MarriageAction.Apply(match.Suitor, match.Candidate);
             }
             catch (Exception ex)
             {
@@ -244,13 +245,15 @@ namespace BellumCivile.Behaviors
                 return true;
             }
 
+            offerBehavior.CreateMarriageOffer(playerClanHero, otherClanHero);
+            if (OfferedPlayer.GetValue(offerBehavior) != playerClanHero || OfferedOther.GetValue(offerBehavior) != otherClanHero)
+                return true;
             _lastPlayerOfferDay = CurrentDay;
             _yearlySummary.RecordPlayerOffer(match);
             BellumCivileLogger.Log(
                 $"Strategic player marriage offer: player={playerClanHero.StringId} ({playerClanHero.Clan?.StringId}) other={otherClanHero.StringId} ({otherClanHero.Clan?.StringId}); score={match.Score:0}; reasons={string.Join(", ", match.Reasons)}.");
             TraceMarriage($"sending player offer: {HeroLabel(playerClanHero)} + {HeroLabel(otherClanHero)}; score={match.Score:0}; threshold={threshold:0}; reasons={FormatReasons(match)}.");
 
-            offerBehavior.CreateMarriageOffer(playerClanHero, otherClanHero);
             return true;
         }
 

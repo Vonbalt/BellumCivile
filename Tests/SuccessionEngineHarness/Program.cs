@@ -51,6 +51,25 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--marriage-dowry-simulation"))
+            {
+                MarriageDowrySimulation.Run(Check);
+                Console.WriteLine($"{_checks} marriage dowry simulation checks passed.");
+            }
+            else if (args.Contains("--marriage-households"))
+            {
+                MarriageHouseholdTests.Run(Check);
+                MarriageProspectTests.Run(Check);
+                CourtDynasticEngineTests.Run(Check);
+                CourtDynasticPursuitTests.Run(Check);
+                Console.WriteLine($"{_checks} marriage household checks passed.");
+            }
+            else if (args.Contains("--marriage-heiress-simulation"))
+            {
+                MarriageHeiressSimulation.Run(Check);
+                MarriageCombinedScoreTests.Run(Check);
+                Console.WriteLine($"{_checks} marriage heiress simulation checks passed.");
+            }
             else if (args.Contains("--player-court-affiliation"))
             {
                 PlayerCourtAffiliationTests.Run(Check);

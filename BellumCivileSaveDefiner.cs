@@ -16,6 +16,7 @@ namespace BellumCivile
 
         protected override void DefineClassTypes()
         {
+            AddClassDefinition(typeof(PlayerMarriageAgreement), 128);
             AddClassDefinition(typeof(CrownEstateDeliveryRecord), 126);
             AddClassDefinition(typeof(CrownPartitionBatchRecord), 127);
             AddClassDefinition(typeof(CrownPartitionPromotionRecord), 124);
@@ -153,6 +154,7 @@ namespace BellumCivile
 
         protected override void DefineContainerDefinitions()
         {
+            ConstructContainerDefinition(typeof(List<PlayerMarriageAgreement>));
             ConstructContainerDefinition(typeof(Dictionary<FactionType, Clan>));
             ConstructContainerDefinition(typeof(List<CourtTribunalReactionRecord>));
             ConstructContainerDefinition(typeof(List<CourtTribunalMemberReaction>));

@@ -51,6 +51,8 @@ namespace BellumCivile.Behaviors
                 }
                 if (!BellumMarriageStrategyHelper.CourtMarriageExecutionReady(match))
                 { DynasticBlocked(a, "native_couple_unavailable"); return true; }
+                if (match.Outcome.Destination != p.Destination)
+                { FinishDynastic(a, CourtObjectiveState.Cancelled, "household_terms_changed"); return true; }
                 p.MarriageTechnicalAttempts++;
                 if (player)
                 {
@@ -69,7 +71,8 @@ namespace BellumCivile.Behaviors
                 {
                     // Seal before native callbacks; a partial failure must not repeat a completed wedding.
                     p.NpcAttempted = true;
-                    MarriageAction.Apply(match.Suitor, match.Candidate);
+                    using (new NpcMarriageClanContext(match.Suitor, match.Candidate, p.Destination))
+                        MarriageAction.Apply(match.Suitor, match.Candidate);
                     if (!DynasticMarried(p))
                     {
                         p.NpcAttempted = !DynasticIdentity(p);

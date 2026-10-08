@@ -6,7 +6,7 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 namespace BellumCivile
 {
     /// <summary>
-    /// Uses consistent native household placement, with an explicit treaty exception.
+    /// Uses the agreed household during weddings, with an explicit treaty exception.
     /// </summary>
     public class BellumMarriageModel : DefaultMarriageModel
     {
@@ -37,15 +37,26 @@ namespace BellumCivile
                 return false;
             }
 
-            return base.IsCoupleSuitableForMarriage(firstHero, secondHero);
+            var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
+            using (agreement == null && PlayerMarriageValidationScope.Current == null
+                ? null : new PlayerMarriageValidationScope(agreement))
+                if (!base.IsCoupleSuitableForMarriage(firstHero, secondHero)) return false;
+            var native = NativeNpcMarriageHouseholdScope.Current;
+            return native == null || TreatyMarriageClanContext.TryResolve(firstHero, secondHero, out _)
+                || native.Policy.TryChoose(firstHero, secondHero, base.GetClanAfterMarriage(firstHero, secondHero), out _);
         }
 
         public override Clan GetClanAfterMarriage(Hero firstHero, Hero secondHero)
         {
             if (TreatyMarriageClanContext.TryResolve(firstHero, secondHero, out Clan treatyClan))
                 return treatyClan;
-
-            return base.GetClanAfterMarriage(firstHero, secondHero);
+            if (NpcMarriageClanContext.TryResolve(firstHero, secondHero, out Clan agreedClan)) return agreedClan;
+            var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
+            if (agreement != null) return agreement.Destination;
+            Clan ordinary = base.GetClanAfterMarriage(firstHero, secondHero);
+            var native = NativeNpcMarriageHouseholdScope.Current;
+            return native != null && native.Policy.TryChoose(firstHero, secondHero, ordinary, out Clan chosen)
+                ? chosen : ordinary;
         }
     }
 }

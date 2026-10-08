@@ -8,7 +8,9 @@ function Check([bool] $condition, [string] $label) {
     Write-Output "PASS: $label"
 }
 Check ($marriage -notmatch 'QueuePendingCadetMarriage|ProcessPendingCadetMarriages|TryResolvePendingCadetMarriage|new PendingCadetMarriageRecord\(') 'No marriage cadet producer or executor remains.'
-Check ($marriage -notmatch 'HourlyTickEvent|OnBarterAcceptedEvent|capturedMarriageGold|ApplyCadetMarriageDowry|GiveGoldAction|ChangeOwnerOfSettlementAction|Clan.CreateClan') 'Marriage cadet scheduler and special estate/payment actions are removed.'
+Check ($marriage -notmatch 'OnBarterAcceptedEvent|capturedMarriageGold|ApplyCadetMarriageDowry|GiveGoldAction|ChangeOwnerOfSettlementAction|Clan.CreateClan') 'Marriage cadet estate/payment actions are removed.'
+$hourly = @([regex]::Matches($marriage, 'CampaignEvents\.HourlyTickEvent\.AddNonSerializedListener\(this, ([A-Za-z0-9_]+)\)'))
+Check ($hourly.Count -eq 1 -and $hourly[0].Groups[1].Value -eq 'RefreshChangedHouseholds') 'The hourly listener refreshes household caches, not retired marriage cadet jobs.'
 Check ($marriage.Contains('_pendingCadetMarriages.Clear();') -and $marriage.Contains('BellumCivile_PendingCadetMarriages')) 'Legacy queued endowments are read and discarded, not executed.'
 Check ($marriage.Contains('BellumCivile_CadetBranchOrigins') -and $marriage.Contains('BuildRoyalHeiressCadetName')) 'Existing branch origins and shared accession naming remain available.'
 Check ($marriage.Contains('TrackMarriageRights(firstHero, secondHero, destination);') -and $marriage.Contains('TrackMarriageRights(secondHero, firstHero, destination);')) 'Marriage rights are checked for both spouses.'

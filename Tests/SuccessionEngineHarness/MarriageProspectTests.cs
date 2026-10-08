@@ -105,6 +105,10 @@ internal static class MarriageProspectTests
             check(Process() && records.Count == 0 && _completed == 1,
                 "Accepted recovered pair proceeds to the guarded completion path exactly once");
             check(!Process() && _completed == 1, "Subsequent tick cannot repeat a resumed wedding");
+            Add();
+            AccessTools.Field(outcomeType, "<Destination>k__BackingField").SetValue(outcome, b);
+            check(Process() && records.Count == 0 && _completed == 1,
+                "Reevaluated household change cancels saved terms instead of silently reversing a delayed wedding");
             _acceptedMatch = null;
             var fields = typeof(PendingMarriageProspect).GetFields();
             var ids = new HashSet<int>();

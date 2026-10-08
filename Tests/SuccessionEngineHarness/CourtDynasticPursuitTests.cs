@@ -90,6 +90,11 @@ internal static class CourtDynasticPursuitTests
             _match = Activator.CreateInstance(matchType, true);
             matchType.GetProperty("Suitor").SetValue(_match, a.Dynastic.First);
             matchType.GetProperty("Candidate").SetValue(_match, a.Dynastic.Second);
+            var outcomeType = type.Assembly.GetType("BellumCivile.Behaviors.MarriageOutcome");
+            var outcome = FormatterServices.GetUninitializedObject(outcomeType);
+            AccessTools.Field(outcomeType, "<Destination>k__BackingField").SetValue(outcome, _sponsor);
+            matchType.GetProperty("Outcome").SetValue(_match, outcome);
+            a.Dynastic.Destination = _sponsor;
             agendas.Clear(); agendas.Add(a);
             return a;
         }
@@ -115,6 +120,7 @@ internal static class CourtDynasticPursuitTests
             Patch(AccessTools.Method(helper, "CourtMarriageExecutionReady"), nameof(Yes));
             Patch(AccessTools.Method(typeof(MarriageAction), "Apply"), nameof(Wedding));
             Patch(AccessTools.Method(type, "OnCourtMarriageCompleted"), nameof(Skip));
+            Patch(AccessTools.Method(type, "ReportDynastic"), nameof(Skip));
             Patch(AccessTools.Method(typeof(StrategicMarriageBehavior), "RecordCourtMarriageOpportunity"), nameof(Skip));
             Patch(AccessTools.PropertyGetter(typeof(StrategicMarriageBehavior), "CanSendCourtMarriageOffer"), nameof(OfferReady));
             Patch(AccessTools.Method(typeof(StrategicMarriageBehavior), "TrySendCourtMarriageOffer"), nameof(SendOffer));
@@ -177,6 +183,13 @@ internal static class CourtDynasticPursuitTests
             Marry(); _day = 44; Marry();
             check(_weddings == 1 && a.Dynastic.NpcAttempted && a.Dynastic.MarriageOutcome == "married",
                 "Naturally willing unaligned NPC houses complete exactly one wedding without an annual random roll");
+            a = Agenda(); a.State = CourtAgendaState.PursuingObjective; _married = false;
+            _match.GetType().GetProperty("SuitorAcceptance").SetValue(_match, 100f);
+            _match.GetType().GetProperty("CandidateAcceptance").SetValue(_match, 100f);
+            a.Dynastic.Destination = Blank<Clan>();
+            Marry();
+            check(_weddings == 0 && a.State == CourtAgendaState.Cancelled && a.ResultApplied,
+                "Court pursuit cancels changed household terms before any wedding rather than rewriting the agreement");
             a = Agenda(); a.State = CourtAgendaState.PursuingObjective; _married = false; _player = Blank<Clan>(); _offerReady = false;
             _match.GetType().GetProperty("SuitorAcceptance").SetValue(_match, 100f);
             Marry();

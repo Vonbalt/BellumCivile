@@ -5,6 +5,8 @@ namespace BellumCivile.Behaviors
 {
     internal static partial class BellumMarriageStrategyHelper
     {
+        internal static float PlayerMarriageHouseRisk(Clan clan) => AssessHouseHealth(clan).Risk;
+
         private sealed class HouseHealth
         {
             public int Adults, Children;

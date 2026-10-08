@@ -70,7 +70,7 @@ namespace BellumCivile
                     CourtAgendaRules.NominationDays(agenda.TermDays), CampaignTime.Now.ToDays, agenda.SessionDate.ToDays));
             }
             agenda.Dynastic = new CourtDynasticRecord { Target = second?.Clan?.Kingdom, OurHouse = first?.Clan, TheirHouse = second?.Clan,
-                First = first, Second = second, Destination = first == null || second == null ? null : Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second) };
+                First = first, Second = second, Destination = MarriageHouseholdPolicy.Resolve(first, second) };
             agenda.PolicyId = null;
         }
     }

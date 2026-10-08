@@ -79,7 +79,7 @@ internal static class MarriageMatchmakingTests
         {
             check(Cost(false, fertile, remaining, royal) == 0, "A receiving house never pays a departure or reserve penalty");
             check(Cost(true, fertile, remaining, royal) >= 0 && Cost(true, fertile, remaining, royal) <= 45,
-                "Household loss remains a bounded strategic consideration, never an absolute veto");
+                "Departure score remains bounded; household retention and survival eligibility are checked separately");
             if (remaining > 0) check(Cost(true, fertile, remaining, royal) <= Cost(true, fertile, remaining - 1, royal),
                 "Additional household prospects never increase departure reluctance");
         }

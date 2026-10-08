@@ -331,6 +331,7 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new DynamicMercenaryBandBehavior());
                 campaignStarter.AddBehavior(new SuccessionYearlySummaryBehavior());
                 campaignStarter.AddBehavior(new StrategicMarriageBehavior());
+                campaignStarter.AddBehavior(new PlayerMarriageAgreementBehavior());
                 campaignStarter.AddBehavior(new SpecificMarriageProposalBehavior());
                 campaignStarter.AddModel(new DynamicArmyManagementModel());
                 if (BellumCivileOptions.EnableCustomAdulthoodAge)

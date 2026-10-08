@@ -22,7 +22,7 @@ namespace BellumCivile.Behaviors
             && p.First.Spouse == p.Second && p.Second.Spouse == p.First && p.First.Clan == p.Destination && p.Second.Clan == p.Destination;
         private static bool DynasticIdentity(CourtDynasticRecord p) => p.First?.IsAlive == true && p.Second?.IsAlive == true
             && p.First.Clan == p.OurHouse && p.Second.Clan == p.TheirHouse && p.First.Spouse == null && p.Second.Spouse == null
-            && Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(p.First, p.Second) == p.Destination;
+            && (p.Destination == p.OurHouse || p.Destination == p.TheirHouse);
 
         internal bool HasDynasticReservation(Hero first, Hero second, CourtAgendaRecord excluded = null) => _agendas.Any(a => a != excluded && IsDynastic(a) && !a.ResultApplied
             && (a.IsUnopened || a.IsOngoingObjective) && a.Dynastic != null && a.ObjectiveData.HasTermSnapshot
@@ -87,7 +87,7 @@ namespace BellumCivile.Behaviors
                 }
                 if (now > a.ObjectiveData.DeadlineDay)
                 { FinishDynastic(a, CourtObjectiveState.Expired, "term_expired"); continue; }
-                if (!DynasticIdentity(p))
+                if (!DynasticIdentity(p) || !MarriageHouseholdPolicy.Matches(p.First, p.Second, p.Destination))
                 { FinishDynastic(a, CourtObjectiveState.Cancelled, "couple_or_household_changed"); continue; }
                 p.Members.RemoveAll(c => !Eligible(c, a.Realm) || !a.Faction.Members.Contains(c));
                 if (p.Response == CourtDynasticResponse.Approaching && now >= p.ReplyDay)

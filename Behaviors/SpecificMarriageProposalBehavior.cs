@@ -22,6 +22,7 @@ namespace BellumCivile.Behaviors
         private Hero _selectedOtherHero;
         private bool _playerCandidateListInitialized;
         private bool _otherCandidateListInitialized;
+        private PlayerMarriageAgreement _agreement;
 
         public override void RegisterEvents()
         {
@@ -90,7 +91,7 @@ namespace BellumCivile.Behaviors
             starter.AddRepeatablePlayerLine(
                 "bc_specific_marriage_choose_other_relative",
                 "bc_specific_marriage_choose_other",
-                "bc_specific_marriage_confirm_prompt",
+                "bc_specific_marriage_household_prompt",
                 "{=BC_Marriage_OtherRelative}I seek the hand of {BC_OTHER_CANDIDATE.NAME}.",
                 "{=BC_Marriage_OtherRelativeOther}I was thinking of someone else.",
                 "bc_specific_marriage_choose_other_prompt",
@@ -116,11 +117,29 @@ namespace BellumCivile.Behaviors
                 ClearSelection,
                 90);
 
+            starter.AddDialogLine("bc_specific_marriage_household_prompt", "bc_specific_marriage_household_prompt",
+                "bc_specific_marriage_household", "{=BC_Marriage_HouseholdQuestion}Which house would the couple belong to?", null, SetHouseholdNames);
+            foreach (bool matrilineal in new[] { false, true })
+            {
+                bool choice = matrilineal;
+                starter.AddPlayerLine("bc_specific_marriage_household_" + choice, "bc_specific_marriage_household",
+                    "bc_specific_marriage_confirm_prompt", choice
+                        ? "{=BC_Marriage_ChooseMatrilineal}A matrilineal marriage. {BC_GROOM} would join {BC_BRIDE_HOUSE}."
+                        : "{=BC_Marriage_ChoosePatrilineal}A patrilineal marriage. {BC_BRIDE} would join {BC_GROOM_HOUSE}.",
+                    HasSelectedMarriagePair, () => SelectHousehold(choice), 120,
+                    (out TextObject reason) => CanChooseHousehold(choice, out reason), null);
+            }
+            starter.AddPlayerLine("bc_specific_marriage_household_cancel", "bc_specific_marriage_household", "lord_pretalk",
+                "{=BC_Marriage_NeverMind}Actually, never mind.", null, ClearSelection);
+            starter.AddDialogLine("bc_specific_marriage_stale", "bc_specific_marriage_confirm_prompt", "lord_pretalk",
+                "{=BC_Marriage_AgreementChanged}This marriage can no longer proceed on the agreed terms.",
+                () => !HasSelectedMarriagePair() || _agreement == null, ClearSelection, 200);
+
             starter.AddDialogLine(
                 "bc_specific_marriage_confirm_prompt",
                 "bc_specific_marriage_confirm_prompt",
                 "bc_specific_marriage_confirm",
-                "{=BC_Marriage_ConfirmPrompt}A specific match, then. Let us speak of the terms.",
+                "{=BC_Marriage_ConfirmHousehold}{BC_MARRIAGE_TERMS} Let us speak of the terms.",
                 HasSelectedMarriagePair,
                 null);
 
@@ -251,16 +270,27 @@ namespace BellumCivile.Behaviors
         private void StartSpecificMarriageBarter()
         {
             Hero target = Hero.OneToOneConversationHero;
-            if (target == null || !HasSelectedMarriagePair())
+            var agreement = _agreement;
+            if (target == null || agreement == null || !HasSelectedMarriagePair())
             {
                 ClearSelection();
                 return;
             }
 
-            Hero playerHero = _selectedPlayerHero;
-            Hero otherHero = _selectedOtherHero;
-            MarriageBarterable marriageBarterable = new MarriageBarterable(Hero.MainHero, PartyBase.MainParty, playerHero, otherHero);
+            PlayerMarriageAgreementBehavior.ConfirmDeparture(agreement, () => OpenBarter(target, agreement), ClearSelection);
+        }
 
+        private void OpenBarter(Hero target, PlayerMarriageAgreement agreement)
+        {
+            if (!PlayerMarriageAgreementBehavior.Ready(agreement, out TextObject reason))
+            { PlayerMarriageAgreementBehavior.Notify(reason); ClearSelection(); return; }
+
+            Hero playerHero = agreement.Player;
+            Hero otherHero = agreement.Other;
+            MarriageBarterable marriageBarterable = new MarriageBarterable(Hero.MainHero, PartyBase.MainParty, playerHero, otherHero);
+            PlayerMarriagePricing.Bind(marriageBarterable, agreement, out _);
+
+            using (new NpcMarriageClanContext(playerHero, otherHero, agreement.Destination))
             BarterManager.Instance.StartBarterOffer(
                 Hero.MainHero,
                 target,
@@ -274,6 +304,37 @@ namespace BellumCivile.Behaviors
                 new Barterable[] { marriageBarterable });
 
             ClearSelection();
+        }
+
+        private Clan Household(bool matrilineal)
+            => (_selectedPlayerHero.IsFemale == matrilineal ? _selectedPlayerHero : _selectedOtherHero).Clan;
+
+        private bool CanChooseHousehold(bool matrilineal, out TextObject reason)
+            => PlayerMarriageAgreement.CanChoose(_selectedPlayerHero, _selectedOtherHero,
+                _selectedPlayerHero == null || _selectedOtherHero == null ? null : Household(matrilineal),
+                true, new MarriageHouseholdPolicy(), out reason);
+
+        private void SetHouseholdNames()
+        {
+            if (_selectedPlayerHero == null || _selectedOtherHero == null) return;
+            Hero bride = _selectedPlayerHero.IsFemale ? _selectedPlayerHero : _selectedOtherHero;
+            Hero groom = bride == _selectedPlayerHero ? _selectedOtherHero : _selectedPlayerHero;
+            MBTextManager.SetTextVariable("BC_BRIDE", bride.Name);
+            MBTextManager.SetTextVariable("BC_GROOM", groom.Name);
+            MBTextManager.SetTextVariable("BC_BRIDE_HOUSE", bride.Clan.Name);
+            MBTextManager.SetTextVariable("BC_GROOM_HOUSE", groom.Clan.Name);
+        }
+
+        private void SelectHousehold(bool matrilineal)
+        {
+            if (!CanChooseHousehold(matrilineal, out TextObject reason))
+            { PlayerMarriageAgreementBehavior.Notify(reason); _agreement = null; return; }
+            _agreement = PlayerMarriageAgreement.Create(_selectedPlayerHero, _selectedOtherHero, Household(matrilineal), true);
+            TextObject terms = _agreement.HouseholdText();
+            if (new MarriageHouseholdPolicy().CrownHeirs.Contains(_agreement.Departing))
+                terms = new TextObject("{=BC_Marriage_TermsWithCrown}{TERMS} {CROWN}")
+                    .SetTextVariable("TERMS", terms).SetTextVariable("CROWN", _agreement.CrownWarning());
+            MBTextManager.SetTextVariable("BC_MARRIAGE_TERMS", terms);
         }
 
         private List<Hero> GetPlayerCandidates(Clan otherClan)
@@ -310,6 +371,7 @@ namespace BellumCivile.Behaviors
 
         private void ClearSelection()
         {
+            _agreement = null;
             _selectedPlayerHero = null;
             _selectedOtherHero = null;
             _playerCandidateListInitialized = false;

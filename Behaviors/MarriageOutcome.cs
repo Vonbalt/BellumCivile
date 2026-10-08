@@ -41,7 +41,7 @@ namespace BellumCivile.Behaviors
 
         public bool StillMatches() => First.Clan == FirstHouse && Second.Clan == SecondHouse
             && First.Spouse == null && Second.Spouse == null
-            && Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(First, Second) == Destination;
+            && MarriageHouseholdPolicy.Matches(First, Second, Destination);
 
         internal static bool BothAccept(float first, float second, bool firstPlayer, bool secondPlayer, float floor) =>
             (firstPlayer || first >= floor) && (secondPlayer || second >= floor);

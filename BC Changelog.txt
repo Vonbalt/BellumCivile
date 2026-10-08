@@ -734,4 +734,5 @@ Fixed stale rebel-faction references causing duplicate civil-war resolutions, tr
 
 Fixed a potential relationship-memory crash caused by concurrent relation lookups.
 Fixed title-grant agendas displaying only the territory name instead of the full rank and title shown in the hierarchy.
-Fixed neutrality penalties during internal wars and restored the player’s previous court affiliation afterward
+Fixed neutrality penalties during internal wars and restored the player’s previous court affiliation afterward.
+Improved marriage logic with matrilineal arrangements to protect clan and crown heiresses, explicit household choices and clearer offers for the player, and rebalanced costs based on heir status and family health.
