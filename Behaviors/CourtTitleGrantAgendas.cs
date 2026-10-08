@@ -33,9 +33,14 @@ namespace BellumCivile.Behaviors
             return title?.DeJureHolderClanId == p.OldLegal && title.DeFactoHolderClanId == p.OldPractical
                 && CourtTitleGrantObjectiveSource.Eligible(p.Realm, title, p.Recipient);
         }
+        private static TextObject TitleGrantName(string titleId)
+        {
+            var title = CourtTitleGrantObjectiveSource.Title(titleId);
+            return new TextObject("{=!}" + (title == null ? titleId : FeudalTitleDisplayHelper.FormatTitleName(title)));
+        }
         private static TextObject TitleGrantLabel(string titleId, Clan recipient, bool petition) => new TextObject(petition
             ? "{=BC_TitleGrantPetitionLabel}Petition for {TITLE} for {RECIPIENT}" : "{=BC_TitleGrantLabel}Bestow {TITLE} on {RECIPIENT}")
-            .SetTextVariable("TITLE", CourtTitleGrantObjectiveSource.Title(titleId)?.Name ?? titleId)
+            .SetTextVariable("TITLE", TitleGrantName(titleId))
             .SetTextVariable("RECIPIENT", recipient?.Name ?? TextObject.GetEmpty());
 
         private void AdvanceTitleGrant(CourtAgendaRecord a)
@@ -122,7 +127,7 @@ namespace BellumCivile.Behaviors
                 {
                     p.RelationApplied = true;
                     RelationMemoryService.ApplyChange(p.Ruler, p.Beneficiary, p.RelationGain, true, RelationMemorySources.CourtTitleGrant, 10,
-                        RelationMemoryScope.Personal, CourtTitleGrantObjectiveSource.Title(p.TitleId).Name);
+                        RelationMemoryScope.Personal, TitleGrantName(p.TitleId).ToString());
                 }
                 if (!p.MoodApplied)
                 {
@@ -202,7 +207,7 @@ namespace BellumCivile.Behaviors
             BellumCivileLogger.Log($"Court title agenda concluded; title={a.TitleGrant?.TitleId}; state={state}; reason={reason}.");
         }
         private static TextObject TitleText(CourtTitleGrantRecord p, TextObject text) => text
-            .SetTextVariable("TITLE", CourtTitleGrantObjectiveSource.Title(p.TitleId)?.Name ?? p.TitleId)
+            .SetTextVariable("TITLE", TitleGrantName(p.TitleId))
             .SetTextVariable("RECIPIENT", p.Recipient?.Name ?? TextObject.GetEmpty()).SetTextVariable("RULER", p.Ruler?.Name ?? TextObject.GetEmpty())
             .SetTextVariable("REALM", p.Realm?.Name ?? TextObject.GetEmpty()).SetTextVariable("DATE", CampaignTime.Days((float)p.Deadline).ToString());
         private static void ReportTitle(CourtTitleGrantRecord p, string text) => BellumCivileNotifications.Show(TitleText(p, new TextObject(text)), BellumNotificationColors.Politics, primaryKingdom: p.Realm);

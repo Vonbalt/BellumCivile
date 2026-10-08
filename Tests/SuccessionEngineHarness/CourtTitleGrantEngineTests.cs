@@ -6,6 +6,7 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 internal static class CourtTitleGrantEngineTests
 {
@@ -14,6 +15,14 @@ internal static class CourtTitleGrantEngineTests
     private static int _spends, _transfers, _refunds;
     private static FeudalTitleRecord _title;
     private static FeudalTitleBehavior _titles;
+    private static string _formattedTitle;
+    private static bool TitleName(FeudalTitleRecord title, ref string __result)
+    {
+        if (title != _title) throw new InvalidOperationException("Unexpected title formatted for court grant");
+        __result = _formattedTitle; return false;
+    }
+    private static bool ClanName(ref TextObject __result) { __result = new TextObject("fen Penraic"); return false; }
+    private static bool DateText(ref string __result) { __result = "Spring 1"; return false; }
     private static bool Now(ref CampaignTime __result) { __result=CampaignTime.Days((float)_day); return false; }
     private static bool Days(ref double __result) { __result=_day; return false; }
     private static bool Identity(ref bool __result) { __result=_identity; return false; }
@@ -105,6 +114,29 @@ internal static class CourtTitleGrantEngineTests
             AccessTools.Method(typeof(CourtObjectiveRecord),"Activate").Invoke(petition.ObjectiveData,null);
             Agendas(b).Add(petition); Tick(b);
             check(a.ResultApplied && petition.ResultApplied && _spends==1 && petition.Faction.Mood==0,"One grant satisfies both motions without a second petition approval reward");
+            Patch(AccessTools.Method(type.Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper"), "FormatTitleName",
+                new[] { typeof(FeudalTitleRecord) }), nameof(TitleName));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "Name"), nameof(ClanName));
+            Patch(AccessTools.Method(typeof(CampaignTime), "ToString", Type.EmptyTypes), nameof(DateText));
+            _title = new FeudalTitleRecord("uchalion", "Uchalion", FeudalTitleType.Duchy, "crown", "crown", "", "", "", 0, 0);
+            _formattedTitle = "Petty Kingdom of Uchalion";
+            a.TitleGrant.TitleId = _title.TitleId;
+            string Label(bool isPetition) => ((TextObject)AccessTools.Method(type, "TitleGrantLabel")
+                .Invoke(null, new object[] { _title?.TitleId ?? "missing_title", a.TitleGrant.Recipient, isPetition })).ToString();
+            check(Label(false) == "Bestow Petty Kingdom of Uchalion on fen Penraic",
+                "Crown grant uses the full hierarchy title name rather than its bare territorial root");
+            check(Label(true) == "Petition for Petty Kingdom of Uchalion for fen Penraic",
+                "Nobility title petitions use the same full title name");
+            check(((TextObject)AccessTools.Method(type, "ExecutiveObjectiveText").Invoke(null, new object[] { a }))
+                .ToString().Contains(_formattedTitle), "Completed title agendas resolve their full names when displayed");
+            var text = (TextObject)AccessTools.Method(type, "TitleText").Invoke(null, new object[] {
+                new CourtTitleGrantRecord { TitleId = _title.TitleId, Recipient = a.TitleGrant.Recipient }, new TextObject("{TITLE}") });
+            check(text.ToString() == _formattedTitle, "Title-grant reports and inquiry details use the hierarchy name");
+            _formattedTitle = "Royaume d'Uchalion";
+            check(Label(false) == "Bestow Royaume d'Uchalion on fen Penraic",
+                "Grant labels preserve the formatter's localized style instead of hardcoding an English rank");
+            _title = null;
+            check(Label(false) == "Bestow missing_title on fen Penraic", "Missing title retains the existing ID fallback");
             check(h.CreateClassProcessor(type.Assembly.GetType("BellumCivile.Patches.CourtTitleGrantReceiptPatch")).Patch()?.Count>0,"Ordinary hierarchy grant observer binds to installed method");
         }
         finally {h.UnpatchAll(h.Id);}

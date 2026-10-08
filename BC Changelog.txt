@@ -729,3 +729,8 @@ Reduced NPC influence reserves, with stacking bonuses for foreign wars, army lea
 Expanded the relation memory system with more named memories and adjusted durations of a few existing ones.
 Improved exile and asylum logic: clans remember former allegiances, seek suitable new homes, and require the receiving ruler’s approval, remaining in exile and retrying later if refused.
 Fixed stale rebel-faction references causing duplicate civil-war resolutions, tribunals, and influence rewards.
+
+1.4.2 CHANGELOG
+
+Fixed a potential relationship-memory crash caused by concurrent relation lookups.
+Fixed title-grant agendas displaying only the territory name instead of the full rank and title shown in the hierarchy.
