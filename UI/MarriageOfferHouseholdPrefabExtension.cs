@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace BellumCivile.ViewModelMixin
 {
-    // Bound the expanded terms so translations and long house names cannot cover the skills/buttons.
+    // Keep vanilla's 250-wide gap between the skill panels; scroll longer terms inside it.
     [PrefabExtension("MarriageOfferPopup", "descendant::ListPanel[@DataSource='{ConsequencesList}']")]
     [UsedImplicitly]
     internal sealed class MarriageOfferHouseholdPrefabExtension : PrefabExtensionInsertPatch
@@ -15,7 +15,7 @@ namespace BellumCivile.ViewModelMixin
         public XmlDocument GetPrefabExtension()
         {
             var xml = new XmlDocument();
-            xml.LoadXml(@"<ScrollablePanel WidthSizePolicy='Fixed' HeightSizePolicy='Fixed' SuggestedWidth='380' SuggestedHeight='180'
+            xml.LoadXml(@"<ScrollablePanel WidthSizePolicy='Fixed' HeightSizePolicy='Fixed' SuggestedWidth='250' SuggestedHeight='180'
                 HorizontalAlignment='Center' MarginTop='6' ClipContents='true' AutoHideScrollBars='true'
                 InnerPanel='Clip\Terms' ClipRect='Clip' VerticalScrollbar='Scrollbar'>
               <Children>
