@@ -292,6 +292,7 @@ namespace BellumCivile.Behaviors
                 _expulsionOutcomeLocks.Remove(expiredKey);
             }
 
+            factionManager.RestorePlayerCourtAffiliation();
             if (_nextNeutralityPenaltyDate == CampaignTime.Zero || _nextNeutralityPenaltyDate.IsPast)
             {
                 ApplyPlayerNeutralityPenalty(factionManager);
@@ -335,6 +336,8 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
+            if (kingdom == Clan.PlayerClan?.Kingdom)
+                factionManager.RestorePlayerCourtAffiliation();
             List<FactionObject> kingdomFactions = factionManager.GetFactionsInKingdom(kingdom);
             List<Clan> eligibleClans = kingdom.Clans.Where(c => CourtMembershipEligibility.CanBelong(c, kingdom) && c != Clan.PlayerClan).ToList();
 
@@ -430,7 +433,7 @@ namespace BellumCivile.Behaviors
         }
 
 
-        private static bool CanRunCourtPolitics(Kingdom kingdom)
+        internal static bool CanRunCourtPolitics(Kingdom kingdom)
         {
             return kingdom != null
                 && !kingdom.IsEliminated
@@ -1077,12 +1080,14 @@ namespace BellumCivile.Behaviors
         private void ApplyPlayerNeutralityPenalty(FactionManagerBehavior factionManager)
         {
             Clan playerClan = Clan.PlayerClan;
-            if (playerClan.Kingdom == null || playerClan.Kingdom.RulingClan == playerClan) return;
-            if (playerClan.IsUnderMercenaryService) return;
+            Kingdom realm = playerClan?.Kingdom;
+            if (!CanRunCourtPolitics(realm) || !CourtMembershipEligibility.CanBelong(playerClan, realm)
+                || factionManager.GetFactionByRebelKingdom(realm) != null) return;
 
             if (factionManager.GetIdeologicalFaction(playerClan) == null)
             {
-                List<Clan> otherClans = playerClan.Kingdom.Clans.Where(c => c != playerClan && c != playerClan.Kingdom.RulingClan && !c.IsUnderMercenaryService).ToList();
+                List<Clan> otherClans = realm.Clans.Where(c => c != playerClan && CourtMembershipEligibility.CanBelong(c, realm)
+                    && c.Leader?.IsAlive == true).ToList();
                 if (otherClans.Count > 0)
                 {
                     Clan randomClan = otherClans[MBRandom.RandomInt(otherClans.Count)];

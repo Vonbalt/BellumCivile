@@ -16,7 +16,7 @@ namespace BellumCivile.Behaviors
     /// Why did I do this file?
     /// To serve as the central hub tracking every active faction in every kingdom. It handles daily cleanup, synchronizes vanilla defections with mod rosters, processes succession crises, and executes the King's weekly loyalty audit.
     /// </summary>
-    public class FactionManagerBehavior : CampaignBehaviorBase
+    public partial class FactionManagerBehavior : CampaignBehaviorBase
     {
         public static FactionManagerBehavior Instance { get; private set; }
 
@@ -70,6 +70,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_TemporaryKingdomRepairExpirations", ref _temporaryKingdomRepairExpirations);
             dataStore.SyncData("BellumCivile_TemporaryKingdomExpectedRulerIds", ref _temporaryKingdomExpectedRulerIds);
             dataStore.SyncData("BellumCivile_TemporaryKingdomRepairReasons", ref _temporaryKingdomRepairReasons);
+            SyncPlayerCourtAffiliation(dataStore);
             EnsureCollectionsInitialized();
             if (dataStore.IsLoading)
             {
@@ -110,6 +111,7 @@ namespace BellumCivile.Behaviors
         private void OnDailyTick()
         {
             InvalidateFactionLookupCache(invalidateRelationBaseline: false);
+            RestorePlayerCourtAffiliation();
             AuditRulingClanTransitions("daily tick pre-repair audit");
             ReconcileTrackedRebelKingdoms();
             RepairLeaderlessBellumKingdoms();
@@ -697,6 +699,7 @@ namespace BellumCivile.Behaviors
 
         private void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, ChangeKingdomAction.ChangeKingdomActionDetail detail, bool showNotification)
         {
+            TrackPlayerCourtTransfer(clan, oldKingdom, newKingdom);
             foreach (FactionObject faction in _activeFactions.ToList())
             {
                 if (!faction.Members.Contains(clan)) continue;

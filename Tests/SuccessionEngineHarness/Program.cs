@@ -51,6 +51,11 @@ internal static class Program
         try
         {
             if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--player-court-affiliation"))
+            {
+                PlayerCourtAffiliationTests.Run(Check);
+                Console.WriteLine($"{_checks} player court affiliation checks passed.");
+            }
             else if (args.Contains("--relation-thread-safety"))
             {
                 // Real Harmony entrypoints need a fresh process, before other fixtures patch raw getters.
@@ -707,6 +712,7 @@ internal static class Program
         InternalPeaceTests.Run(Check);
         FeudRecruitmentTests.Run(Check);
         CourtMembershipRelationTests.Run(Check);
+        PlayerCourtAffiliationTests.Run(Check);
         ClaimRenunciationTests.Run(Check);
         FeudWithdrawalTests.Run(Check);
         CouncilCaptivityTests.Run(Check);

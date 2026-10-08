@@ -1117,6 +1117,8 @@ namespace BellumCivile.UI
                     return;
 
                 ApplyLeaveRelations(selectedBackendFaction);
+                if (selectedBackendFaction.IsIdeology)
+                    Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.ForgetPlayerCourtAffiliation();
                 selectedBackendFaction.RemoveMember(Clan.PlayerClan);
                 TextObject leftMsg = new TextObject("{=BC_UI_Msg_Left}You have left {FACTION_NAME}.");
                 leftMsg.SetTextVariable("FACTION_NAME", GetDynamicFactionName(selectedBackendFaction));
