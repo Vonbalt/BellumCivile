@@ -403,8 +403,8 @@ namespace BellumCivile.Behaviors
                 && memories.Count == 0 && opening == 0)
             {
                 properties.Add(new TooltipProperty(
-                    new TextObject("{=BC_RelationMemory_NoMotives}No particular motives or memories.").ToString(),
                     string.Empty,
+                    new TextObject("{=BC_RelationMemory_NoMotives}No particular motives or memories.").ToString(),
                     0,
                     false,
                     TooltipProperty.TooltipPropertyFlags.MultiLine));
@@ -1702,13 +1702,14 @@ namespace BellumCivile.Behaviors
         {
             if (string.IsNullOrWhiteSpace(line))
                 return;
-            int split = line.LastIndexOf(':');
+            // Translations may use the full-width colon; MultiLine rows display only the value column.
+            int split = line.LastIndexOfAny(new[] { ':', '\uFF1A' });
             if (split > 0 && split < line.Length - 1)
             {
                 properties.Add(new TooltipProperty(line.Substring(0, split).Trim(), line.Substring(split + 1).Trim(), 0));
                 return;
             }
-            properties.Add(new TooltipProperty(line, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
+            properties.Add(new TooltipProperty(string.Empty, line, 0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
         }
 
         private static float CurrentDay => (float)CampaignTime.Now.ToDays;

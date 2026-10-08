@@ -1617,14 +1617,15 @@ namespace BellumCivile.UI
 
         private static void AddTooltipBreakdownLine(List<TooltipProperty> properties, string line)
         {
-            int split = line.LastIndexOf(':');
+            // Translations may use the full-width colon; MultiLine rows display only the value column.
+            int split = line.LastIndexOfAny(new[] { ':', '\uFF1A' });
             if (split > 0 && split < line.Length - 1)
             {
                 AddTooltipRow(properties, line.Substring(0, split).Trim(), line.Substring(split + 1).Trim());
                 return;
             }
 
-            properties.Add(new TooltipProperty(line, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
+            properties.Add(new TooltipProperty(string.Empty, line, 0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
         }
 
         private static void AddTooltipRow(List<TooltipProperty> properties, TextObject label, string value)
