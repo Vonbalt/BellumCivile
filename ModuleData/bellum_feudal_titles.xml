@@ -111,249 +111,249 @@
   -->
   
   <!-- Vlandia peerage-->
-  <Title id="duchy_ebor" type="Duchy" deJureClan="dey Molarn" kingdom="Vlandia">
+  <Title id="duchy_ebor" type="Duchy" deJureClan="clan_vlandia_8" kingdom="Vlandia">
     <Child id="county_n_rhennod" />
     <Child id="county_morcomb" />
   </Title>
-  <Title id="duchy_svadia" type="Duchy" deJureClan="dey Tihr" kingdom="Vlandia">
+  <Title id="duchy_svadia" type="Duchy" deJureClan="clan_vlandia_2" kingdom="Vlandia">
     <Child id="county_trand" />
     <Child id="county_ocspool" />
   </Title>
-  <Title id="duchy_walhdok" type="Duchy" deJureClan="dey Meroc" kingdom="Vlandia">
+  <Title id="duchy_walhdok" type="Duchy" deJureClan="clan_vlandia_1" kingdom="Vlandia">
     <Child id="county_neurval" />
     <Child id="county_epiris" />
     <Child id="county_biscan" />
   </Title>
 
-  <Title id="county_neurval" type="County" capital="Sargot" deJureClan="dey Meroc" kingdom="Vlandia">
+  <Title id="county_neurval" type="County" capital="town_V1" deJureClan="clan_vlandia_1" kingdom="Vlandia">
     <Child settlement="town_V1" />
     <Child settlement="castle_V7" />
   </Title>
-  <Title id="county_epiris" type="County" capital="Charas" deJureClan="dey Cortain" kingdom="Vlandia">
+  <Title id="county_epiris" type="County" capital="town_V7" deJureClan="clan_vlandia_4" kingdom="Vlandia">
     <Child settlement="town_V7" />
     <Child settlement="castle_V1" />
   </Title>
-  <Title id="county_biscan" type="County" capital="Jaculan" deJureClan="dey Arromanc" kingdom="Vlandia">
+  <Title id="county_biscan" type="County" capital="town_V6" deJureClan="clan_vlandia_3" kingdom="Vlandia">
     <Child settlement="town_V6" />
     <Child settlement="town_V5" />
     <Child settlement="castle_V2" />
   </Title>
 
-  <Title id="county_trand" type="County" capital="Pravend" deJureClan="dey Tihr" kingdom="Vlandia">
+  <Title id="county_trand" type="County" capital="town_V3" deJureClan="clan_vlandia_2" kingdom="Vlandia">
     <Child settlement="town_V3" />
     <Child settlement="castle_V3" />
     <Child settlement="castle_V6" />
   </Title>
-  <Title id="county_ocspool" type="County" capital="Ocs Hall" deJureClan="dey Fortes" kingdom="Vlandia">
+  <Title id="county_ocspool" type="County" capital="town_V2" deJureClan="clan_vlandia_7" kingdom="Vlandia">
     <Child settlement="town_V2" />
     <Child settlement="castle_V8" />
   </Title>
 
-  <Title id="county_n_rhennod" type="County" capital="Ostican" deJureClan="dey Molarn" kingdom="Vlandia">
+  <Title id="county_n_rhennod" type="County" capital="town_V8" deJureClan="clan_vlandia_8" kingdom="Vlandia">
     <Child settlement="town_V8" />
     <Child settlement="castle_V5" />
   </Title>
-  <Title id="county_morcomb" type="County" capital="Rovalt" deJureClan="dey Valant" kingdom="Vlandia">
+  <Title id="county_morcomb" type="County" capital="town_V9" deJureClan="clan_vlandia_6" kingdom="Vlandia">
     <Child settlement="town_V9" />
     <Child settlement="castle_V4" />
   </Title>
 
   <!-- Battania peerage-->
-  <Title id="duchy_uchalion" type="Duchy" deJureClan="fen Gruffendoc" kingdom="Battania">
+  <Title id="duchy_uchalion" type="Duchy" deJureClan="clan_battania_1" kingdom="Battania">
     <Child id="county_cafalcombe" />
     <Child id="county_fiur" />
   </Title>
-  <Title id="duchy_llyntywal" type="Duchy" deJureClan="fen Derngil" kingdom="Battania">
+  <Title id="duchy_llyntywal" type="Duchy" deJureClan="clan_battania_2" kingdom="Battania">
     <Child id="county_glanys" />
     <Child id="county_rhennod" />
     <Child id="county_ailtadruin" />
   </Title>
 
-  <Title id="county_glanys" type="County" capital="Dunglanys" deJureClan="fen Derngil" kingdom="Battania">
+  <Title id="county_glanys" type="County" capital="town_B2" deJureClan="clan_battania_2" kingdom="Battania">
     <Child settlement="town_B2" />
     <Child settlement="castle_B3" />
     <Child settlement="castle_B6" />
   </Title>
-  <Title id="county_rhennod" type="County" capital="Pen Canoc" deJureClan="fen Giall" kingdom="Battania">
+  <Title id="county_rhennod" type="County" capital="town_B5" deJureClan="clan_battania_5" kingdom="Battania">
     <Child settlement="town_B5" />
     <Child settlement="castle_B1" />
   </Title>
-  <Title id="county_ailtadruin" type="County" capital="Car Banseth" deJureClan="fen Uvain" kingdom="Battania">
+  <Title id="county_ailtadruin" type="County" capital="town_B3" deJureClan="clan_battania_3" kingdom="Battania">
     <Child settlement="town_B3" />
     <Child settlement="castle_B7" />
   </Title>
 
-  <Title id="county_cafalcombe" type="County" capital="Marunath" deJureClan="fen Gruffendoc" kingdom="Battania">
+  <Title id="county_cafalcombe" type="County" capital="town_B1" deJureClan="clan_battania_1" kingdom="Battania">
     <Child settlement="town_B1" />
     <Child settlement="castle_B2" />
     <Child settlement="castle_B5" />
   </Title>
-  <Title id="county_fiur" type="County" capital="Seonon" deJureClan="fen Penraic" kingdom="Battania">
+  <Title id="county_fiur" type="County" capital="town_B4" deJureClan="clan_battania_4" kingdom="Battania">
     <Child settlement="town_B4" />
     <Child settlement="castle_B4" />
     <Child settlement="castle_B8" />
   </Title>
 
   <!-- Sturgia peerage-->
-  <Title id="duchy_zapadu" type="Duchy" deJureClan="Gundaroving" kingdom="Sturgia">
+  <Title id="duchy_zapadu" type="Duchy" deJureClan="clan_sturgia_1" kingdom="Sturgia">
     <Child id="county_mazopor" />
     <Child id="county_kachyar" />
     <Child id="county_icara" />
   </Title>
-  <Title id="duchy_vostoku" type="Duchy" deJureClan="Ormidoving" kingdom="Sturgia">
+  <Title id="duchy_vostoku" type="Duchy" deJureClan="clan_sturgia_4" kingdom="Sturgia">
     <Child id="county_minador" />
     <Child id="county_chertyg" />
     <Child id="county_iltan" />
   </Title>
 
-  <Title id="county_mazopor" type="County" capital="Varcheg" deJureClan="Gundaroving" kingdom="Sturgia">
+  <Title id="county_mazopor" type="County" capital="town_S1" deJureClan="clan_sturgia_1" kingdom="Sturgia">
     <Child settlement="town_S1" />
     <Child settlement="castle_S4" />
     <Child settlement="castle_S3" />
   </Title>
-  <Title id="county_kachyar" type="County" capital="Revyl" deJureClan="Togaroving" kingdom="Sturgia">
+  <Title id="county_kachyar" type="County" capital="town_S7" deJureClan="clan_sturgia_5" kingdom="Sturgia">
     <Child settlement="town_S7" />
     <Child settlement="castle_S1" />
   </Title>
-  <Title id="county_icara" type="County" capital="Omor" deJureClan="Kuloving" kingdom="Sturgia">
+  <Title id="county_icara" type="County" capital="town_S3" deJureClan="clan_sturgia_2" kingdom="Sturgia">
     <Child settlement="town_S3" />
     <Child settlement="castle_S2" />
   </Title>
 
-  <Title id="county_minador" type="County" capital="Varnovapol" deJureClan="Ormidoving" kingdom="Sturgia">
+  <Title id="county_minador" type="County" capital="town_S4" deJureClan="clan_sturgia_4" kingdom="Sturgia">
     <Child settlement="town_S4" />
     <Child settlement="town_S6" />
     <Child settlement="castle_S5" />
   </Title>
-  <Title id="county_chertyg" type="County" capital="Balgard" deJureClan="Gundaroving" kingdom="Sturgia">
+  <Title id="county_chertyg" type="County" capital="town_S2" deJureClan="clan_sturgia_1" kingdom="Sturgia">
     <Child settlement="town_S2" />
     <Child settlement="castle_S6" />
   </Title>
-  <Title id="county_iltan" type="County" capital="Tyal" deJureClan="Vagiroving" kingdom="Sturgia">
+  <Title id="county_iltan" type="County" capital="town_S5" deJureClan="clan_sturgia_3" kingdom="Sturgia">
     <Child settlement="town_S5" />
     <Child settlement="castle_S8" />
     <Child settlement="castle_S7" />
   </Title>
 
   <!-- Nord peerage-->
-  <Title id="duchy_nordvyg" type="Duchy" deJureClan="Throsniring" kingdom="Nord">
+  <Title id="duchy_nordvyg" type="Duchy" deJureClan="clan_nord_1" kingdom="Nord">
     <Child id="county_beinland" />
     <Child id="county_vestroenn" />
     <Child id="county_kjolfjallen" />
   </Title>
-  <Title id="duchy_jumne" type="Duchy" deJureClan="Skylfing" kingdom="Nord">
+  <Title id="duchy_jumne" type="Duchy" deJureClan="clan_nord_4" kingdom="Nord">
     <Child id="county_byal" />
     <Child id="county_iltanhindrun" />
   </Title>
 
-  <Title id="county_beinland" type="County" capital="Hvalvik" deJureClan="Orthling" kingdom="Nord">
+  <Title id="county_beinland" type="County" capital="town_N1" deJureClan="clan_nord_3" kingdom="Nord">
     <Child settlement="town_N1" />
     <Child settlement="castle_N7" />
   </Title>
-  <Title id="county_vestroenn" type="County" capital="Gretysfjord" deJureClan="Kjolding" kingdom="Nord">
+  <Title id="county_vestroenn" type="County" capital="town_N2" deJureClan="clan_nord_2" kingdom="Nord">
     <Child settlement="town_N2" />
     <Child settlement="castle_N2" />
     <Child settlement="castle_N3" />
   </Title>
-  <Title id="county_kjolfjallen" type="County" capital="Thronderlag" deJureClan="Throsniring" kingdom="Nord">
+  <Title id="county_kjolfjallen" type="County" capital="town_N3" deJureClan="clan_nord_1" kingdom="Nord">
     <Child settlement="town_N3" />
     <Child settlement="castle_N5" />
     <Child settlement="castle_N4" />
   </Title>
-  <Title id="county_byal" type="County" capital="Skarthness Castle" deJureClan="Throsniring" kingdom="Nord">
+  <Title id="county_byal" type="County" capital="castle_N8" deJureClan="clan_nord_1" kingdom="Nord">
     <Child settlement="castle_N8" />
     <Child settlement="castle_N1" />
   </Title>
-  <Title id="county_iltanhindrun" type="County" capital="Hargard" deJureClan="Skylfing" kingdom="Nord">
+  <Title id="county_iltanhindrun" type="County" capital="town_N4" deJureClan="clan_nord_4" kingdom="Nord">
     <Child settlement="town_N4" />
     <Child settlement="castle_N6" />
     <Child settlement="castle_N9" />
   </Title>
 
   <!-- Aserai peerage-->
-  <Title id="duchy_jarjara" type="Duchy" deJureClan="Banu Hulyan" kingdom="Aserai">
+  <Title id="duchy_jarjara" type="Duchy" deJureClan="clan_aserai_1" kingdom="Aserai">
     <Child id="county_jabaltamar" />
     <Child id="county_bahralyeshm" />
     <Child id="county_damar" />
   </Title>
-  <Title id="duchy_nahasa" type="Duchy" deJureClan="Banu Atij" kingdom="Aserai">
+  <Title id="duchy_nahasa" type="Duchy" deJureClan="clan_aserai_6" kingdom="Aserai">
     <Child id="county_alyachiyya" />
     <Child id="county_aleshoriyya" />
   </Title>
-  <Title id="duchy_alkinaniyya" type="Duchy" deJureClan="Banu Sarran" kingdom="Aserai">
+  <Title id="duchy_alkinaniyya" type="Duchy" deJureClan="clan_aserai_2" kingdom="Aserai">
     <Child id="county_jabalashab" />
     <Child id="county_nahralkals" />
   </Title>
 
-  <Title id="county_jabaltamar" type="County" capital="Quyaz" deJureClan="Banu Hulyan" kingdom="Aserai">
+  <Title id="county_jabaltamar" type="County" capital="town_A1" deJureClan="clan_aserai_1" kingdom="Aserai">
     <Child settlement="town_A1" />
     <Child settlement="castle_A1" />
   </Title>
-  <Title id="county_bahralyeshm" type="County" capital="Sanala" deJureClan="Banu Hulyan" kingdom="Aserai">
+  <Title id="county_bahralyeshm" type="County" capital="town_A6" deJureClan="clan_aserai_1" kingdom="Aserai">
     <Child settlement="town_A6" />
     <Child settlement="castle_A7" />
   </Title>
-  <Title id="county_damar" type="County" capital="Askar" deJureClan="Banu Arbas" kingdom="Aserai">
+  <Title id="county_damar" type="County" capital="town_A7" deJureClan="clan_aserai_5" kingdom="Aserai">
     <Child settlement="town_A7" />
     <Child settlement="castle_A3" />
     <Child settlement="castle_A9" />
   </Title>
 
-  <Title id="county_alyachiyya" type="County" capital="Iyakis" deJureClan="Banu Qaraz" kingdom="Aserai">
+  <Title id="county_alyachiyya" type="County" capital="town_A3" deJureClan="clan_aserai_4" kingdom="Aserai">
     <Child settlement="town_A3" />
     <Child settlement="castle_A4" />
   </Title>
-  <Title id="county_aleshoriyya" type="County" capital="Qasira" deJureClan="Banu Atij" kingdom="Aserai">
+  <Title id="county_aleshoriyya" type="County" capital="town_A8" deJureClan="clan_aserai_6" kingdom="Aserai">
     <Child settlement="town_A8" />
     <Child settlement="town_A5" />
     <Child settlement="castle_A5" />
   </Title>
 
-  <Title id="county_jabalashab" type="County" capital="Razih" deJureClan="Banu Sarran" kingdom="Aserai">
+  <Title id="county_jabalashab" type="County" capital="town_A4" deJureClan="clan_aserai_2" kingdom="Aserai">
     <Child settlement="town_A4" />
     <Child settlement="castle_A8" />
     <Child settlement="castle_A2" />
   </Title>
-  <Title id="county_nahralkals" type="County" capital="Husn Fulq" deJureClan="Banu Sarran" kingdom="Aserai">
+  <Title id="county_nahralkals" type="County" capital="town_A2" deJureClan="clan_aserai_2" kingdom="Aserai">
     <Child settlement="town_A2" />
     <Child settlement="castle_A6" />
   </Title>
 
   <!-- Khuzait peerage-->
-  <Title id="duchy_tarantanya" type="Duchy" deJureClan="Urkhunait" kingdom="Khuzait">
+  <Title id="duchy_tarantanya" type="Duchy" deJureClan="clan_khuzait_1" kingdom="Khuzait">
     <Child id="county_akkan" />
     <Child id="county_zakhan" />
     <Child id="county_kohirohini" />
   </Title>
-  <Title id="duchy_devseg" type="Duchy" deJureClan="Arkit" kingdom="Khuzait">
+  <Title id="duchy_devseg" type="Duchy" deJureClan="clan_khuzait_3" kingdom="Khuzait">
     <Child id="county_karakaz" />
     <Child id="county_barsdag" />
     <Child id="county_sulundag" />
   </Title>
 
-  <Title id="county_akkan" type="County" capital="Chaikand" deJureClan="Urkhunait" kingdom="Khuzait">
+  <Title id="county_akkan" type="County" capital="town_K5" deJureClan="clan_khuzait_1" kingdom="Khuzait">
     <Child settlement="town_K5" />
     <Child settlement="castle_K7" />
   </Title>
-  <Title id="county_zakhan" type="County" capital="Makeb" deJureClan="Urkhunait" kingdom="Khuzait">
+  <Title id="county_zakhan" type="County" capital="town_K3" deJureClan="clan_khuzait_1" kingdom="Khuzait">
     <Child settlement="town_K3" />
     <Child settlement="castle_K4" />
   </Title>
-  <Title id="county_karakaz" type="County" capital="Baltakhand" deJureClan="Khergit" kingdom="Khuzait">
+  <Title id="county_karakaz" type="County" capital="town_K1" deJureClan="clan_khuzait_2" kingdom="Khuzait">
     <Child settlement="town_K1" />
     <Child settlement="castle_K9" />
     <Child settlement="castle_K6" />
   </Title>
-  <Title id="county_barsdag" type="County" capital="Ortongard" deJureClan="Arkit" kingdom="Khuzait">
+  <Title id="county_barsdag" type="County" capital="town_K4" deJureClan="clan_khuzait_3" kingdom="Khuzait">
     <Child settlement="town_K4" />
     <Child settlement="castle_K5" />
     <Child settlement="castle_K1" />
   </Title>
-  <Title id="county_sulundag" type="County" capital="Akkalat" deJureClan="Tigrit" kingdom="Khuzait">
+  <Title id="county_sulundag" type="County" capital="town_K2" deJureClan="clan_khuzait_4" kingdom="Khuzait">
     <Child settlement="town_K2" />
     <Child settlement="castle_K3" />
   </Title>
-  <Title id="county_kohirohini" type="County" capital="Odokh" deJureClan="Harfit" kingdom="Khuzait">
+  <Title id="county_kohirohini" type="County" capital="town_K6" deJureClan="clan_khuzait_5" kingdom="Khuzait">
     <Child settlement="town_K6" />
     <Child settlement="castle_K8" />
     <Child settlement="castle_K2" />
@@ -367,133 +367,133 @@
   </Title>
 
   <!-- N Empire peerage-->
-  <Title id="bc_title_kingdom_empire_n" type="Kingdom" deJureClan="Osticos" kingdom="empire">
+  <Title id="bc_title_kingdom_empire_n" type="Kingdom" deJureClan="clan_empire_north_1" kingdom="empire">
   </Title>
 
-  <Title id="duchy_dryatica" type="Duchy" deJureClan="Neretzes" kingdom="empire">
+  <Title id="duchy_dryatica" type="Duchy" deJureClan="clan_empire_north_3" kingdom="empire">
     <Child id="county_galchas" />
     <Child id="county_diatagmatia" />
     <Child id="county_ophthys" />
   </Title>
-  <Title id="duchy_laconia" type="Duchy" deJureClan="Osticos" kingdom="empire">
+  <Title id="duchy_laconia" type="Duchy" deJureClan="clan_empire_north_1" kingdom="empire">
     <Child id="county_nevis" />
     <Child id="county_myzead" />
     <Child id="county_portatia" />
   </Title>
 
-  <Title id="county_galchas" type="County" capital="Epicrotea" deJureClan="Argoros" kingdom="empire">
+  <Title id="county_galchas" type="County" capital="town_EN1" deJureClan="clan_empire_north_2" kingdom="empire">
     <Child settlement="town_EN1" />
     <Child settlement="castle_EN9" />
   </Title>
-  <Title id="county_diatagmatia" type="County" capital="Diathma" deJureClan="Osticos" kingdom="empire">
+  <Title id="county_diatagmatia" type="County" capital="town_EN2" deJureClan="clan_empire_north_1" kingdom="empire">
     <Child settlement="town_EN2" />
     <Child settlement="castle_EN3" />
     <Child settlement="castle_EN6" />
   </Title>
-  <Title id="county_ophthys" type="County" capital="Saneopa" deJureClan="Neretzes" kingdom="empire">
+  <Title id="county_ophthys" type="County" capital="town_EN3" deJureClan="clan_empire_north_3" kingdom="empire">
     <Child settlement="town_EN3" />
     <Child settlement="castle_EN1" />
     <Child settlement="castle_EN8" />
   </Title>
-  <Title id="county_nevis" type="County" capital="Argoron" deJureClan="Osticos" kingdom="empire">
+  <Title id="county_nevis" type="County" capital="town_EN4" deJureClan="clan_empire_north_1" kingdom="empire">
     <Child settlement="town_EN4" />
     <Child settlement="castle_EN5" />
   </Title>
-  <Title id="county_myzead" type="County" capital="Myzea" deJureClan="Dolentos" kingdom="empire">
+  <Title id="county_myzead" type="County" capital="town_EN5" deJureClan="clan_empire_north_5" kingdom="empire">
     <Child settlement="town_EN5" />
     <Child settlement="castle_EN4" />
     <Child settlement="castle_ES3" />
   </Title>
-  <Title id="county_portatia" type="County" capital="Amprela" deJureClan="Impestores" kingdom="empire">
+  <Title id="county_portatia" type="County" capital="town_EN6" deJureClan="clan_empire_north_4" kingdom="empire">
     <Child settlement="town_EN6" />
     <Child settlement="castle_EN2" />
     <Child settlement="castle_EN7" />
   </Title>
 
   <!-- S Empire peerage-->
-  <Title id="bc_title_kingdom_empire_s" type="Kingdom" deJureClan="Pethros" kingdom="empire_s">
+  <Title id="bc_title_kingdom_empire_s" type="Kingdom" deJureClan="clan_empire_south_1" kingdom="empire_s">
   </Title>
 
-  <Title id="duchy_lycarea" type="Duchy" deJureClan="Pethros" kingdom="empire_s">
+  <Title id="duchy_lycarea" type="Duchy" deJureClan="clan_empire_south_1" kingdom="empire_s">
     <Child id="county_ornia" />
     <Child id="county_sethys" />
   </Title>
-  <Title id="duchy_tanaesia" type="Duchy" deJureClan="Julios" kingdom="empire_s">
+  <Title id="duchy_tanaesia" type="Duchy" deJureClan="clan_empire_south_5" kingdom="empire_s">
     <Child id="county_sarpene" />
     <Child id="county_sericea" />
   </Title>
-  <Title id="duchy_tripotamia" type="Duchy" deJureClan="Mestricaros" kingdom="empire_s">
+  <Title id="duchy_tripotamia" type="Duchy" deJureClan="clan_empire_south_3" kingdom="empire_s">
     <Child id="county_gorea" />
     <Child id="county_calsa" />
   </Title>
 
-  <Title id="county_ornia" type="County" capital="Lycaron" deJureClan="Pethros" kingdom="empire_s">
+  <Title id="county_ornia" type="County" capital="town_ES4" deJureClan="clan_empire_south_1" kingdom="empire_s">
     <Child settlement="town_ES4" />
     <Child settlement="town_ES3" />
     <Child settlement="castle_ES6" />
   </Title>
-  <Title id="county_sethys" type="County" capital="Phycaon" deJureClan="Vizartos" kingdom="empire_s">
+  <Title id="county_sethys" type="County" capital="town_ES6" deJureClan="clan_empire_south_6" kingdom="empire_s">
     <Child settlement="town_ES6" />
     <Child settlement="castle_ES8" />
   </Title>
-  <Title id="county_sarpene" type="County" capital="Onira" deJureClan="Pethros" kingdom="empire_s">
+  <Title id="county_sarpene" type="County" capital="town_ES5" deJureClan="clan_empire_south_1" kingdom="empire_s">
     <Child settlement="town_ES5" />
     <Child settlement="castle_ES2" />
   </Title>
-  <Title id="county_sericea" type="County" capital="Syronea" deJureClan="Julios" kingdom="empire_s">
+  <Title id="county_sericea" type="County" capital="town_ES7" deJureClan="clan_empire_south_5" kingdom="empire_s">
     <Child settlement="town_ES7" />
     <Child settlement="castle_ES7" />
   </Title>
-  <Title id="county_gorea" type="County" capital="Vostrum" deJureClan="Hongeros" kingdom="empire_s">
+  <Title id="county_gorea" type="County" capital="town_ES2" deJureClan="clan_empire_south_4" kingdom="empire_s">
     <Child settlement="town_ES2" />
     <Child settlement="castle_ES5" />
   </Title>
-  <Title id="county_calsa" type="County" capital="Danustica" deJureClan="Mestricaros" kingdom="empire_s">
+  <Title id="county_calsa" type="County" capital="town_ES1" deJureClan="clan_empire_south_3" kingdom="empire_s">
     <Child settlement="town_ES1" />
     <Child settlement="castle_ES4" />
     <Child settlement="castle_ES1" />
   </Title>
 
   <!-- W Empire peerage-->
-  <Title id="bc_title_kingdom_empire_w" type="Kingdom" deJureClan="Comnos" kingdom="empire_w">
+  <Title id="bc_title_kingdom_empire_w" type="Kingdom" deJureClan="clan_empire_west_1" kingdom="empire_w">
   </Title>
 
-  <Title id="duchy_ilatarea" type="Duchy" deJureClan="Comnos" kingdom="empire_w">
+  <Title id="duchy_ilatarea" type="Duchy" deJureClan="clan_empire_west_1" kingdom="empire_w">
     <Child id="county_temea" />
     <Child id="county_aris" />
   </Title>
-  <Title id="duchy_aminys" type="Duchy" deJureClan="Varros" kingdom="empire_w">
+  <Title id="duchy_aminys" type="Duchy" deJureClan="clan_empire_west_2" kingdom="empire_w">
     <Child id="county_mesogea" />
     <Child id="county_gavys" />
   </Title>
-  <Title id="duchy_erithrys" type="Duchy" deJureClan="Dionicos" kingdom="empire_w">
+  <Title id="duchy_erithrys" type="Duchy" deJureClan="clan_empire_west_3" kingdom="empire_w">
     <Child id="county_sarapia" />
     <Child id="county_zeos" />
   </Title>
 
-  <Title id="county_temea" type="County" capital="Zeonica" deJureClan="Comnos" kingdom="empire_w">
+  <Title id="county_temea" type="County" capital="town_EW2" deJureClan="clan_empire_west_1" kingdom="empire_w">
     <Child settlement="town_EW2" />
     <Child settlement="castle_EW3" />
   </Title>
-  <Title id="county_aris" type="County" capital="Amitatys" deJureClan="Elaches" kingdom="empire_w">
+  <Title id="county_aris" type="County" capital="town_EW5" deJureClan="clan_empire_west_4" kingdom="empire_w">
     <Child settlement="town_EW5" />
     <Child settlement="castle_EW2" />
   </Title>
-  <Title id="county_mesogea" type="County" capital="Jalmarys" deJureClan="Comnos" kingdom="empire_w">
+  <Title id="county_mesogea" type="County" capital="town_EW3" deJureClan="clan_empire_west_1" kingdom="empire_w">
     <Child settlement="town_EW3" />
     <Child settlement="castle_EW7" />
   </Title>
-  <Title id="county_gavys" type="County" capital="Ortysia" deJureClan="Varros" kingdom="empire_w">
+  <Title id="county_gavys" type="County" capital="town_EW4" deJureClan="clan_empire_west_2" kingdom="empire_w">
     <Child settlement="town_EW4" />
     <Child settlement="castle_EW1" />
     <Child settlement="castle_EW4" />
   </Title>
-  <Title id="county_sarapia" type="County" capital="Rhotae" deJureClan="Lonalion" kingdom="empire_w">
+  <Title id="county_sarapia" type="County" capital="town_EW6" deJureClan="clan_empire_west_5" kingdom="empire_w">
     <Child settlement="town_EW6" />
     <Child settlement="castle_EW8" />
     <Child settlement="castle_EW6" />
   </Title>
-  <Title id="county_zeos" type="County" capital="Lageta" deJureClan="Dionicos" kingdom="empire_w">
+  <Title id="county_zeos" type="County" capital="town_EW1" deJureClan="clan_empire_west_3" kingdom="empire_w">
     <Child settlement="town_EW1" />
     <Child settlement="castle_EW5" />
   </Title>
