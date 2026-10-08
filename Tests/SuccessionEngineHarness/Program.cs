@@ -105,6 +105,14 @@ internal static class Program
                 CourtMandateEngineTests.Run(Check);
                 Console.WriteLine($"{_checks} vote lobbying checks passed.");
             }
+            else if (args.Contains("--council-captivity"))
+            {
+                CouncilCaptivityTests.Run(Check);
+                CouncilPayrollTests.Run(Check);
+                CouncilRecoveryTests.Run(Check);
+                CouncilSchedulingCleanupTests.Run(Check);
+                Console.WriteLine($"{_checks} council captivity checks passed.");
+            }
             else if (args.Contains("--council-nominations"))
             {
                 CouncilNomineeBallotTests.Run(Check);

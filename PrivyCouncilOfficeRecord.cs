@@ -20,15 +20,10 @@ namespace BellumCivile
         [SaveableField(14)] private string _assignmentId;
         [SaveableField(15)] private float _lastAssignmentChangedDay;
         [SaveableField(16)] private float _nextAssignmentReviewDay;
+        // Retained for saves made before captivity stopped vacating offices.
         [SaveableField(17)] private bool _captivityVacancy;
 
         public bool IsCaptivityVacancy => _captivityVacancy && string.IsNullOrEmpty(_holderClanId);
-
-        internal void VacateForCaptivity(float currentDay)
-        {
-            Vacate(currentDay);
-            _captivityVacancy = true;
-        }
 
         public string RecordId => _recordId;
         public string KingdomId => _kingdomId;

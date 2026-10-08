@@ -93,7 +93,8 @@ namespace BellumCivile
                 return true;
 
             PrivyCouncilBehavior council = Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>();
-            return council?.GetOfficeHolder(kingdom, PrivyCouncilOffice.Marshal) == clan;
+            return council?.GetOfficeHolder(kingdom, PrivyCouncilOffice.Marshal) == clan
+                && PrivyCouncilBehavior.CanPerformCouncilDuties(clan);
         }
 
         internal static bool CanAnswerAsPersonalFriend(

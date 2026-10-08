@@ -54,6 +54,7 @@ internal static class CouncilRecoveryTests
         var original = Blank<Clan>(); original.StringId = "original";
         var replacement = Blank<Clan>(); replacement.StringId = "replacement";
         _seat = new PrivyCouncilOfficeRecord(realm.StringId, PrivyCouncilOffice.Marshal, 0);
+        AccessTools.Field(typeof(PrivyCouncilOfficeRecord), "_captivityVacancy").SetValue(_seat, true);
         _candidates = new List<Clan> { replacement };
         var agenda = new CourtAgendaRecord { Realm = realm, Sponsor = _crown, State = CourtAgendaState.Deliberating,
             CouncilMotionId = "recovery", PreferredCouncilCandidate = original, PaidInfluence = 100,
@@ -81,6 +82,8 @@ internal static class CouncilRecoveryTests
             Patch(AccessTools.Method(typeof(PrivyCouncilBehavior), "CalculateAppointmentMerit"), nameof(Merit));
             check(Reason() == null && agenda.PreferredCouncilCandidate == replacement && agenda.PaidInfluence == 100,
                 "NPC Crown vacancy refreshes lost nominee without another payment");
+            var legacyExpense = AccessTools.Method(type, "LegacyCouncilExpense").Invoke(null, new object[] { agenda });
+            check(legacyExpense.ToString() == "CrownEmergency", "Old paid captivity vacancy retains refund budget category");
             _candidates.Clear();
             check(Reason() == "council_waiting_for_candidates" && agenda.IsFiled,
                 "Empty Crown shortlist retains paid proceeding for bounded waiting");
@@ -89,7 +92,11 @@ internal static class CouncilRecoveryTests
                 "Player Crown nominee is never silently replaced");
             _player = Blank<Clan>(); _holder = replacement;
             check(Reason() == "council_holder_changed", "Changed incumbent invalidates old vacancy authorization");
-            _holder = null;
+            _holder = original; agenda.OriginalHolder = original; agenda.PreferredCouncilCandidate = replacement;
+            _candidates.Add(original);
+            check(Reason() == null && agenda.IsFiled && agenda.PaidInfluence == 100,
+                "Existing replacement motion remains valid with its original incumbent and payment");
+            _holder = null; agenda.OriginalHolder = null;
             var until = (Dictionary<string, CampaignTime>)AccessTools.Field(type, "_councilSettledUntil").GetValue(calendar);
             var days = (Dictionary<string, float>)AccessTools.Field(type, "_councilContestedDay").GetValue(calendar);
             string key = realm.StringId + "|Marshal";

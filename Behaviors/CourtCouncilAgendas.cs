@@ -16,14 +16,16 @@ namespace BellumCivile.Behaviors
         private static bool CouncilOffice(CourtAgendaRecord agenda, out PrivyCouncilOffice office) =>
             Enum.TryParse(agenda?.ObjectiveData?.TargetId, out office) && Enum.IsDefined(typeof(PrivyCouncilOffice), office);
 
-        internal bool HasCouncilReservation(Kingdom realm, CourtAgendaRecord except = null) => _agendas.Any(a =>
-            a != except && a.Realm == realm && IsCouncil(a) && (a.IsFiled || !IsDirectCrownBusiness(except) && !IsCaptivityAppointment(except) && a.IsUnopened)
-            && a.State != CourtAgendaState.Crisis && a.State != CourtAgendaState.AwaitingNomination);
+        // Refund old paid motions in their original budget category; never create new emergencies.
+        private static NpcInfluenceExpenseKind LegacyCouncilExpense(CourtAgendaRecord agenda) =>
+            IsCouncil(agenda) && agenda.Faction == null && agenda.Sponsor != Clan.PlayerClan
+            && agenda.Sponsor == agenda.Realm?.RulingClan && CouncilOffice(agenda, out var office)
+            && Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>()?.GetOfficeRecord(agenda.Realm, office)?.IsCaptivityVacancy == true
+                ? NpcInfluenceExpenseKind.CrownEmergency : NpcInfluenceExpenseKind.Discretionary;
 
-        private static bool IsCaptivityAppointment(CourtAgendaRecord agenda) => IsCouncil(agenda) && agenda.Faction == null
-            && agenda.Sponsor != Clan.PlayerClan && agenda.Sponsor == agenda.Realm?.RulingClan
-            && CouncilOffice(agenda, out var office)
-            && Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>()?.GetOfficeRecord(agenda.Realm, office)?.IsCaptivityVacancy == true;
+        internal bool HasCouncilReservation(Kingdom realm, CourtAgendaRecord except = null) => _agendas.Any(a =>
+            a != except && a.Realm == realm && IsCouncil(a) && (a.IsFiled || !IsDirectCrownBusiness(except) && a.IsUnopened)
+            && a.State != CourtAgendaState.Crisis && a.State != CourtAgendaState.AwaitingNomination);
 
         internal bool IsCouncilOfficeSettled(Kingdom realm, PrivyCouncilOffice office)
         {
@@ -148,8 +150,7 @@ namespace BellumCivile.Behaviors
                         agenda.ObjectiveData.TargetId, agenda.ObjectiveData.ActionId, agenda.PreferredCouncilCandidate.StringId));
                 if (!evaluation.Eligible || agenda.Sponsor != Clan.PlayerClan && !evaluation.Viable)
                 { FinishExecutive(agenda, CourtAgendaState.NotProposed, evaluation.Reason); return; }
-                if (deliberation == null || !TryPay(agenda, CourtCouncilObjectiveSource.Cost(agenda.Sponsor),
-                    IsCaptivityAppointment(agenda) ? NpcInfluenceExpenseKind.CrownEmergency : NpcInfluenceExpenseKind.Discretionary))
+                if (deliberation == null || !TryPay(agenda, CourtCouncilObjectiveSource.Cost(agenda.Sponsor)))
                 { FinishExecutive(agenda, CourtAgendaState.NotProposed, "council_unaffordable_or_unavailable"); return; }
                 agenda.State = CourtAgendaState.Deliberating;
                 agenda.ObjectiveData.Activate();
@@ -192,7 +193,6 @@ namespace BellumCivile.Behaviors
         internal void MaintainCouncilVacancyPriority(Kingdom realm)
         {
             if (realm?.RulingClan == Clan.PlayerClan) return;
-            if (MaintainCaptivityVacancyPriority(realm)) return;
             if (!ValidRealm(realm) || ElectiveSuccessionBehavior.Instance?.PendingDeposition(realm) != null
                 || HasCouncilReservation(realm) || CouncilAppointmentDeliberationBehavior.Current?.HasPendingAppointment(realm) == true) return;
             var agenda = GetAgenda(realm, null);
@@ -221,106 +221,5 @@ namespace BellumCivile.Behaviors
                 break;
             }
         }
-
-        internal void MarkCouncilCaptivityVacancy(Kingdom realm, PrivyCouncilOffice office)
-        {
-            // Losing an incumbent is new business, even on the day of their appointment.
-            string key = CouncilKey(realm, office);
-            _councilSettledUntil.Remove(key);
-            _councilContestedDay.Remove(key);
-        }
-
-        private readonly Dictionary<string, string> _captivityWaitReasons = new Dictionary<string, string>();
-
-        internal static List<PrivyCouncilOfficeRecord> OrderCaptivityVacancies(IEnumerable<PrivyCouncilOfficeRecord> records) =>
-            records.Where(r => r.IsCaptivityVacancy).OrderBy(r => r.Office == PrivyCouncilOffice.Marshal ? 0 : 1)
-                .ThenBy(r => r.VacancyStartedDay).ThenBy(r => r.Office).ToList();
-
-        private bool CaptivityWaiting(Kingdom realm, string reason, string offices)
-        {
-            string signature = reason + "|" + offices;
-            if (!_captivityWaitReasons.TryGetValue(realm.StringId, out var previous) || previous != signature)
-            {
-                _captivityWaitReasons[realm.StringId] = signature;
-                var budget = NpcInfluenceBudgetService.Assess(realm.RulingClan, CourtCouncilObjectiveSource.Cost(realm.RulingClan), NpcInfluenceExpenseKind.CrownEmergency);
-                BellumCivileLogger.Log($"Captivity replacement waiting; realm={realm.StringId}; offices={offices}; reason={reason}; influence={budget.CurrentInfluence:0.0}; cost={budget.RequestedCost:0.0}; reserve={budget.ProtectedReserve:0.0}.");
-            }
-            return true;
-        }
-
-        private bool MaintainCaptivityVacancyPriority(Kingdom realm)
-        {
-            if (!ValidRealm(realm) || realm.RulingClan == Clan.PlayerClan) return false;
-            var council = Campaign.Current.GetCampaignBehavior<PrivyCouncilBehavior>();
-            var urgent = council == null ? null : OrderCaptivityVacancies(council.GetOfficeRecords(realm)
-                .Where(r => council.IsOfficeUnlocked(realm, r.Office)));
-            if (urgent == null || urgent.Count == 0) { _captivityWaitReasons.Remove(realm.StringId); return false; }
-            string offices = string.Join(",", urgent.Select(r => r.Office));
-            if (ElectiveSuccessionBehavior.Instance?.PendingDeposition(realm) != null
-                || CrownAccessionBehavior.Instance?.IsPending(realm) == true)
-                return CaptivityWaiting(realm, "succession_pending", offices);
-            if (CouncilAppointmentDeliberationBehavior.Current?.HasPendingAppointment(realm) == true
-                || realm.UnresolvedDecisions.OfType<PrivyCouncilAppointmentDecision>().Any()
-                || _agendas.Any(a => a.Realm == realm && IsCouncil(a) && a.IsFiled))
-                return CaptivityWaiting(realm, "council_proceeding_active", offices);
-
-            // Only reuse the Crown's matching vacancy motion. Future faction reservations do not own the crisis.
-            var previous = GetAgenda(realm, null);
-            var reservation = previous != null && IsCouncil(previous) && previous.IsUnopened ? previous : null;
-            if (reservation != null)
-            {
-                if (reservation.State == CourtAgendaState.Announced && CouncilOffice(reservation, out var office)
-                    && urgent.Any(r => r.Office == office) && CouncilTargetValid(reservation, out _))
-                {
-                    if (reservation.SessionDate.ToDays > CampaignTime.Now.ToDays + 1)
-                    {
-                        reservation.SessionDate = CampaignTime.Now + CampaignTime.Days(1);
-                        reservation.VoteDate = reservation.SessionDate + CampaignTime.Days(BellumCivileOptions.PoliticalDeliberationDays);
-                        NotifyAgenda(reservation);
-                    }
-                    return CaptivityWaiting(realm, "replacement_session_scheduled", offices);
-                }
-            }
-            if (!CanReplaceForCaptivity(previous)) return CaptivityWaiting(realm, "protected_crown_business", offices);
-            if (_agendas.Any(a => a.Realm == realm && a.Sponsor == realm.RulingClan && a.IsFiled)
-                || _decreeCases.Any(c => c.Realm == realm && !c.Closed && !c.Assigned))
-                return CaptivityWaiting(realm, "crown_proceeding_or_decree_pending", offices);
-
-            if (!NpcInfluenceBudgetService.CanAfford(realm.RulingClan, CourtCouncilObjectiveSource.Cost(realm.RulingClan), NpcInfluenceExpenseKind.CrownEmergency))
-                return CaptivityWaiting(realm, "emergency_influence_unavailable", offices);
-
-            var context = new CourtTermContext(realm, _ => false);
-            var source = new CourtCouncilObjectiveSource();
-            var owner = new CourtObjectiveOwner(null, realm.RulingClan);
-            foreach (var vacancy in urgent)
-            {
-                var nominee = context.Council.Candidates(vacancy.Office)
-                    .OrderByDescending(c => context.Council.Support(vacancy.Office, realm.RulingClan, c))
-                    .ThenByDescending(c => context.Council.Merit(vacancy.Office, c)).ThenBy(c => c.StringId).FirstOrDefault();
-                if (nominee == null) continue;
-                var candidate = new CourtObjectiveCandidate(vacancy.Office.ToString(), "fill", nominee.StringId);
-                var evaluation = source.EvaluateCandidate(context, owner, candidate);
-                if (!evaluation.Selectable) continue;
-                if (previous != null && !previous.ResultApplied && !previous.PaymentSettled)
-                    Cancel(previous, "captive_councillor_requires_replacement");
-                var agenda = new CourtAgendaRecord { Realm = realm, Sponsor = realm.RulingClan,
-                    State = CourtAgendaState.Announced, SessionDate = CampaignTime.Now + CampaignTime.Days(1) };
-                agenda.FreezeSchedule(BellumCivileOptions.CourtTermDays, BellumCivileOptions.PoliticalDeliberationDays);
-                agenda.GetObjective().FreezeTerm(CampaignTime.Now.ToDays, agenda.VoteDate.ToDays);
-                source.ApplySelection(agenda, new CourtObjectiveChoice(source.Kind, candidate, evaluation));
-                _agendas.Add(agenda);
-                _captivityWaitReasons.Remove(realm.StringId);
-                NotifyAgenda(agenda);
-                BellumCivileLogger.Log($"Captivity replacement agenda scheduled; realm={realm.StringId}; office={vacancy.Office}; nominee={candidate.BeneficiaryId}; session={agenda.SessionDate.ToDays}; vote={agenda.VoteDate.ToDays}.");
-                return true;
-            }
-            return CaptivityWaiting(realm, "no_eligible_vacancy_candidate", offices);
-        }
-
-        internal static bool CanReplaceForCaptivity(CourtAgendaRecord agenda) => agenda == null
-            || !(agenda.IsFiled || agenda.IsOngoingObjective
-                || agenda.IsUnopened && (IsRoyalPeace(agenda) || agenda.ObjectiveData?.Kind == CourtExecutiveRules.Decree
-                    || agenda.CrisisInterventionPending || agenda.State == CourtAgendaState.Crisis
-                    || agenda.PaidInfluence > 0 || agenda.SubstitutionInfluencePaid > 0));
     }
 }

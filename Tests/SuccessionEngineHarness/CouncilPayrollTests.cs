@@ -12,17 +12,19 @@ using TaleWorlds.Localization;
 internal static class CouncilPayrollTests
 {
     private static Kingdom _realm;
-    private static Clan _crown, _first, _second;
+    private static Clan _crown, _first, _second, _player;
     private static Hero _hero;
     private static int _gold;
     private static float _day;
-    private static bool _self, _vacant;
+    private static bool _self, _vacant, _captive;
     private static List<PrivyCouncilOfficeRecord> _seats;
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days(_day); return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
     private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
     private static bool Crown(ref Clan __result) { __result = _crown; return false; }
+    private static bool Player(ref Clan __result) { __result = _player; return false; }
+    private static bool Captive(ref bool __result) { __result = _captive; return false; }
     private static bool Leader(ref Hero __result) { __result = _hero; return false; }
     private static bool Gold(Clan __instance, ref int __result) { __result = __instance == _crown ? _gold : 0; return false; }
     private static bool Seats(ref IReadOnlyList<PrivyCouncilOfficeRecord> __result) { __result = _seats; return false; }
@@ -43,6 +45,7 @@ internal static class CouncilPayrollTests
             ticks.SetValue(null, 1000L);
             _realm = Blank<Kingdom>(); _realm.StringId = "realm";
             _crown = Blank<Clan>(); _first = Blank<Clan>(); _second = Blank<Clan>(); _hero = Blank<Hero>();
+            _player = _crown; _captive = false;
             _day = 10; _gold = 1000; _self = _vacant = false;
             _seats = new List<PrivyCouncilOfficeRecord> {
                 new PrivyCouncilOfficeRecord("realm", PrivyCouncilOffice.Marshal, 0),
@@ -52,7 +55,8 @@ internal static class CouncilPayrollTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), nameof(Leader));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Gold"), nameof(Gold));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "IsEliminated"), nameof(No));
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Crown));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "IsPrisoner"), nameof(Captive));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Crown));
             Patch(AccessTools.Method(type, "IsEligiblePermanentRealm"), nameof(Yes));
             Patch(AccessTools.Method(type, "GetOfficeRecords"), nameof(Seats));
@@ -68,6 +72,15 @@ internal static class CouncilPayrollTests
             }
             List<CouncilSalaryCredit> Credits() => (List<CouncilSalaryCredit>)AccessTools.Field(type, "_salaryCredits").GetValue(b);
             check(b.GetDailySalary(_realm, PrivyCouncilOffice.Marshal) == 625, "Salary keeps competence-scaled nominal rate");
+            _captive = true;
+            foreach (var player in new[] { _crown, _first, _second })
+            {
+                _player = player;
+                check(Finance("AddCouncilSalaryExpenses", _crown, false) == -1000
+                    && Finance("AddCouncilSalaryIncome", _first, false) == 625,
+                    "Captive holders keep salaries under player and NPC rulers");
+            }
+            _player = _crown; _captive = false;
             check(Finance("AddCouncilSalaryExpenses", _crown, false) == -1000 && Credits().Count == 0,
                 "Payroll preview is cash-capped and read-only");
             check(Finance("AddCouncilSalaryIncome", _first, false) == 625 && Credits().Count == 0,
@@ -100,6 +113,12 @@ internal static class CouncilPayrollTests
             check(Finance("AddCouncilSalaryExpenses", _crown, true) == 0 && Credits().Count == 0,
                 "Empty treasury creates no wages or unfunded arrears");
             check(AccessTools.Method(type, "PayDailyCouncilSalary") == null, "Old direct-transfer payment path is removed");
+            _gold = 1000; _day = 13;
+            _seats = new List<PrivyCouncilOfficeRecord> { new PrivyCouncilOfficeRecord("realm", PrivyCouncilOffice.FirstAdvisor, 0) };
+            check(Finance("AddCouncilSalaryExpenses", _crown, false) < 0, "Advisor is included in ordinary payroll");
+            _seats[0].SetControversy(100, "test", _day);
+            check(Finance("AddCouncilSalaryExpenses", _crown, false) == 0,
+                "Advisor awaiting dismissal at 100 controversy earns no further wages");
         }
         finally { h.UnpatchAll(h.Id); ticks.SetValue(null, oldTicks); }
     }

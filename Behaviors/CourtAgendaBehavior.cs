@@ -564,7 +564,7 @@ namespace BellumCivile.Behaviors
             bool queued = agenda.IsFiled;
             var expense = agenda.PaymentExpenseCode > 0
                 ? (NpcInfluenceExpenseKind)(agenda.PaymentExpenseCode - 1)
-                : IsCaptivityAppointment(agenda) ? NpcInfluenceExpenseKind.CrownEmergency : NpcInfluenceExpenseKind.Discretionary;
+                : LegacyCouncilExpense(agenda);
             int refund = agenda.SettleCancellation(reason);
             if (!agenda.IsPolicy)
             {

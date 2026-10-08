@@ -15,4 +15,4 @@ Check ($queue.Contains('BC_CouncilDelib_PendingSettlements') -and $queue.Contain
 Check ($queue.Contains('DelayedVoteReliability.RegisterFailure') -and $queue.Contains('preserveCommitted: true')) 'Existing ballot retries and committed nominations remain.'
 Check ($queue.Contains('_pendingCourtAgendaIds.ContainsKey(pendingKey) && CourtAgendaBehavior.Current == null')) 'Missing calendar pauses existing agenda ballots instead of cancelling them.'
 Check ($council.Contains('AssignmentCooldownDays = 30f') -and $council.Contains('TryReviewAiAssignment(kingdom);')) 'Councillor assignment scheduling is independent and unchanged.'
-Check ($council.Contains('PayDailyCouncilSalary(kingdom, record);') -and $council.Contains('TryDismissDisgracedOfficeHolder(kingdom, record, currentDay)')) 'Daily salary and disgrace consequences remain.'
+Check ((Read 'Behaviors/PrivyCouncilPayroll.cs').Contains('BuildCouncilPayroll') -and $council.Contains('TryDismissDisgracedOfficeHolder(kingdom, record, currentDay)')) 'Finance-model salary and daily disgrace consequences remain.'

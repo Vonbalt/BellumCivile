@@ -192,7 +192,9 @@ Named Crown and court-faction appointment motions reserve one ballot place for t
 
 **Appoint** costs 100 influence before applicable Chancellor discounts. A faction leader needs an active mandate; a player ruler can file directly. **Dismiss** is ruler-only, costs 100 influence, applies grievances/mood effects, and leaves a vacancy. Overrides have their own influence and relation costs.
 
-NPC rulers dismiss councillors in any captivity, with a lesser grievance than scandal dismissal. Eligible vacancies enter a serialized Crown crisis queue; subsequent appointments wait for the current proceeding. Player rulers manage captured councillors manually. A new appointment resets office controversy and assignment state.
+Captured councillors retain their office, tenure, salary, influence and court representation under both player and NPC rulers. Their duties pause, controversy rises by **0.5 per day**, and normal daily recovery stops. Captivity subtracts **10 points** from the incumbent's appointment support score, or **20 points for a Marshal during war with another kingdom**. These are score penalties, not percentage-point deductions from displayed court support. Release removes the temporary penalty and resumes duties and recovery.
+
+Captive incumbents remain eligible for retention votes; other captive nobles cannot become new appointees. Replacement motions follow normal support, term, cooldown and influence rules, without a capture-triggered emergency queue. At **100 controversy**, any councillor, including an advisor or player, is dismissed through the ordinary disgrace process. A new holder begins with cleared controversy and a default assignment. Existing saves retain old dismissal history and valid pending proceedings; previously dismissed holders are not automatically reinstated.
 
 ### Competence, Controversy, and Support
 
@@ -210,7 +212,7 @@ Each skill contributes up to 40 points after clamping to 0-300; the attribute co
 
 Core-office controversy attributes failures to the responsible office: military reverses to the Marshal, diplomatic/court failures to the Chancellor, economic distress to the Seneschal, and hostile intrigue to the Spymaster. Successes can reduce it. Repeated military events are capped. Ruler controversy derives from core-office controversy and sustainable vacancies and feeds rebellious intent.
 
-`PrivyCouncilOfficeRecord.Controversy` is clamped to **0-100**, not an unbounded accumulator. All offices share that scale, but their events and recovery paths differ. Support separately measures political security through competence, relations, representation, appointment history, monopolies, and current conditions. Low support is not the same as high controversy.
+`PrivyCouncilOfficeRecord.Controversy` is clamped to **0-100**, not an unbounded accumulator. All occupied offices, including advisors, recover **0.1-0.3 controversy per day** according to competence while their holder is free. Core-office recovery uses effective competence; advisor recovery uses the advisor's own competence. Support separately measures political security through competence, relations, representation, appointment history, monopolies, and current conditions. Low support is not the same as high controversy.
 
 The UI uses the following bands, with each lower bound inclusive:
 
@@ -226,7 +228,7 @@ Compatibility integrations should read these as separate metrics, not label a co
 
 ### Assignments and Incidents
 
-Assignments normally have a **30-day change cooldown** and stop functioning during captivity. `None` gives no administrative benefit and costs one relation per week with the sidelined councillor. The following are baseline effects; competence scales applicable costs/drawbacks and incidents can modify results. Tooltips show effective values.
+Assignments normally have a **30-day change cooldown**. Captivity preserves the selected assignment and its change date, suspends its effects and drawbacks, and prevents new assignments until release. The office's permanent operational benefits also pause; professional competence remains visible. `None` gives no administrative benefit and costs one relation per week with a free, sidelined councillor. The following are baseline effects; competence scales applicable costs/drawbacks and incidents can modify results. Tooltips show effective values.
 
 | Office | Assignment | Baseline effect and tradeoff |
 | --- | --- | --- |
@@ -829,6 +831,7 @@ dotnet build Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj -p:Gam
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game"
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --title-name-cache
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-names
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 ```
 
 Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Record results with the revision/environment rather than maintaining a stale passed-check count here.

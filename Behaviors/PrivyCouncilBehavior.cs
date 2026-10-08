@@ -100,6 +100,8 @@ namespace BellumCivile.Behaviors
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, OnRulingClanChanged);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, OnSettlementEntered);
+            CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, OnCouncillorCaptured);
+            CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, OnCouncillorReleased);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -218,7 +220,7 @@ namespace BellumCivile.Behaviors
                 return TextObject.GetEmpty();
 
             TextObject hint = new TextObject(
-                "{=BC_Council_AssignmentCaptive}{COUNCILLOR_NAME} is held captive and cannot be assigned new duties until released.");
+                "{=BC_Council_AssignmentCaptive}{COUNCILLOR_NAME} is held captive. Their duties are suspended and will resume upon release; new assignments must wait until then.");
             hint.SetTextVariable("COUNCILLOR_NAME", councillor.Name);
             return hint;
         }
@@ -267,6 +269,14 @@ namespace BellumCivile.Behaviors
             if (recordsChanged)
                 _recordIndexesDirty = true;
         }
+
+        private void OnCouncillorCaptured(PartyBase captor, Hero prisoner) => InvalidateRuntimeCache();
+
+        private void OnCouncillorReleased(Hero prisoner, PartyBase party, IFaction capturer,
+            EndCaptivityDetail detail, bool showNotification) => InvalidateRuntimeCache();
+
+        internal static bool CanPerformCouncilDuties(Clan holder) =>
+            holder?.Leader != null && !holder.Leader.IsPrisoner;
 
         private void EnsureRecordIndexes()
         {
@@ -465,8 +475,7 @@ namespace BellumCivile.Behaviors
                 && !string.IsNullOrEmpty(assignmentId)
                 && state.Assignment.Office == state.Record.Office
                 && string.Equals(state.Assignment.Id, assignmentId, StringComparison.OrdinalIgnoreCase)
-                && state.Holder?.Leader != null
-                && state.Holder.Leader.IsPrisoner == false;
+                && CanPerformCouncilDuties(state.Holder);
         }
 
         private bool IsAssignmentFunded(CouncilOfficeRuntimeState state)
@@ -2082,8 +2091,9 @@ namespace BellumCivile.Behaviors
                 .Where(record => record != null && !string.IsNullOrEmpty(record.HolderClanId))
                 .Select(record => record.HolderClanId));
 
-            return GetEligibleCouncilClans(kingdom, includePrisoners: false)
+            return GetEligibleCouncilClans(kingdom, includePrisoners: true)
                 .Where(candidate => candidate != kingdom.RulingClan
+                    && (candidate == incumbent || !candidate.Leader.IsPrisoner)
                     && (candidate == incumbent || !occupiedClanIds.Contains(candidate.StringId)))
                 .OrderByDescending(candidate => CalculateAppointmentMerit(kingdom, candidate, office))
                 .ThenBy(candidate => candidate.StringId)
@@ -2160,7 +2170,7 @@ namespace BellumCivile.Behaviors
 
             Kingdom kingdom = actingClan.Kingdom;
             Clan chancellor = GetOfficeHolder(kingdom, PrivyCouncilOffice.Chancellor);
-            if (chancellor?.Leader == null)
+            if (!CanPerformCouncilDuties(chancellor))
                 return baseCost;
 
             FactionManagerBehavior factions = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
@@ -2180,7 +2190,7 @@ namespace BellumCivile.Behaviors
                 return 1f;
 
             Clan chancellor = GetOfficeHolder(kingdom, PrivyCouncilOffice.Chancellor);
-            float competence = chancellor?.Leader == null
+            float competence = !CanPerformCouncilDuties(chancellor)
                 ? 0f
                 : GetEffectiveCoreOfficeCompetence(kingdom, PrivyCouncilOffice.Chancellor);
             return Clamp(1.5f - competence / 100f, 0.5f, 1.5f);
@@ -2189,7 +2199,7 @@ namespace BellumCivile.Behaviors
         public float GetSeneschalTaxBonusRate(Kingdom kingdom)
         {
             Clan seneschal = GetOfficeHolder(kingdom, PrivyCouncilOffice.Seneschal);
-            if (seneschal?.Leader == null)
+            if (!CanPerformCouncilDuties(seneschal))
                 return 0f;
 
             float competence = GetEffectiveCoreOfficeCompetence(kingdom, PrivyCouncilOffice.Seneschal);
@@ -2199,13 +2209,13 @@ namespace BellumCivile.Behaviors
         public Hero GetIntrigueProxy(Kingdom kingdom)
         {
             Clan spymaster = GetOfficeHolder(kingdom, PrivyCouncilOffice.Spymaster);
-            return spymaster?.Leader ?? kingdom?.RulingClan?.Leader;
+            return CanPerformCouncilDuties(spymaster) ? spymaster.Leader : kingdom?.RulingClan?.Leader;
         }
 
         public float GetIntrigueSkillModifier(Kingdom kingdom, bool actingSide)
         {
             Clan spymaster = GetOfficeHolder(kingdom, PrivyCouncilOffice.Spymaster);
-            if (spymaster?.Leader == null)
+            if (!CanPerformCouncilDuties(spymaster))
                 return actingSide ? 0f : -50f;
 
             float competence = GetEffectiveCoreOfficeCompetence(kingdom, PrivyCouncilOffice.Spymaster);
@@ -2389,10 +2399,32 @@ namespace BellumCivile.Behaviors
             {
                 float controversy = GetOfficeRecord(kingdom, office)?.Controversy ?? 100f;
                 score += 15f - controversy * 0.35f;
+                score -= GetCaptivitySupportPenalty(kingdom, office);
             }
 
             return Clamp(score, -100f, 100f);
         }
+
+        internal float GetCaptivitySupportPenalty(Kingdom kingdom, PrivyCouncilOffice office)
+        {
+            if (!IsOfficeHolderCaptive(kingdom, office)) return 0f;
+            bool wartimeMarshal = office == PrivyCouncilOffice.Marshal && Kingdom.All.Any(other =>
+                other != null && other != kingdom && !other.IsEliminated && kingdom.IsAtWarWith(other));
+            return wartimeMarshal ? 20f : 10f;
+        }
+
+        internal float GetDailyOfficeRecovery(Kingdom kingdom, PrivyCouncilOffice office)
+        {
+            Clan holder = GetOfficeHolder(kingdom, office);
+            if (!CanPerformCouncilDuties(holder)) return 0f;
+            return GetDailyRecovery(office <= PrivyCouncilOffice.Spymaster
+                ? GetEffectiveCoreOfficeCompetence(kingdom, office) : CalculateCompetence(holder.Leader, office));
+        }
+
+        internal TextObject GetCaptivityEffectsHint(Kingdom kingdom, PrivyCouncilOffice office) =>
+            new TextObject("{=BC_Council_CaptivityEffects}Duties are suspended during captivity. Controversy rises by {CONTROVERSY} each day and appointment support scores are reduced by {PENALTY}. Salary and court representation continue.")
+                .SetTextVariable("CONTROVERSY", CaptiveCouncillorControversyPerDay.ToString("0.0"))
+                .SetTextVariable("PENALTY", GetCaptivitySupportPenalty(kingdom, office).ToString("0"));
 
         public bool TryAppointOffice(Kingdom kingdom, PrivyCouncilOffice office, Clan candidate, bool showNotification = true)
         {
@@ -2676,30 +2708,25 @@ namespace BellumCivile.Behaviors
                     foreach (PrivyCouncilOfficeRecord record in GetOfficeRecords(kingdom))
                     {
                         ValidateHolder(kingdom, record, currentDay);
-                        if (TryRelieveCaptiveOfficeHolder(kingdom, record, currentDay))
-                            continue;
                         if (TryDismissDisgracedOfficeHolder(kingdom, record, currentDay))
                             continue;
 
                         Clan holder = ResolveClan(record.HolderClanId);
                         if (holder?.Leader?.IsPrisoner == true)
                         {
-                            CancelCaptiveCouncillorAssignment(kingdom, record, currentDay);
                             record.ChangeControversy(
                                 CaptiveCouncillorControversyPerDay,
                                 "councillor held captive",
                                 currentDay);
+                            TryDismissDisgracedOfficeHolder(kingdom, record, currentDay);
                             continue;
                         }
 
                         ApplyDailyAssignmentEffect(kingdom, record);
 
-                        if (record.Office > PrivyCouncilOffice.Spymaster)
-                            continue;
-
                         if (holder != null)
                         {
-                            float recovery = GetDailyRecovery(GetEffectiveCoreOfficeCompetence(kingdom, record.Office));
+                            float recovery = GetDailyOfficeRecovery(kingdom, record.Office);
                             record.ChangeControversy(-recovery, "competent administration", currentDay);
                         }
                         else if (!IsVacancyExcused(kingdom, record.Office)
@@ -2942,37 +2969,12 @@ namespace BellumCivile.Behaviors
             return captivity ? (normal + 1) / 2 : normal;
         }
 
-        internal static bool ShouldRelieveCaptive(bool npcRuler, bool captive) => npcRuler && captive;
-
-        private bool TryRelieveCaptiveOfficeHolder(Kingdom kingdom, PrivyCouncilOfficeRecord record, float currentDay)
-        {
-            var holder = ResolveClan(record.HolderClanId);
-            if (!ShouldRelieveCaptive(kingdom.RulingClan != null && kingdom.RulingClan != Clan.PlayerClan,
-                holder?.Leader?.IsPrisoner == true)) return false;
-            float controversy = record.Controversy;
-            CancelCaptiveCouncillorAssignment(kingdom, record, currentDay);
-            record.VacateForCaptivity(currentDay);
-            InvalidateRuntimeCache();
-            int grievance = ApplyDismissalAftermath(kingdom, holder, controversy, record.Office, captivity: true);
-            CourtAgendaBehavior.Current?.MarkCouncilCaptivityVacancy(kingdom, record.Office);
-            var message = new TextObject("{=BC_Council_CaptiveDismissal}With {COUNCILLOR_NAME} held captive and unable to serve, {RULER_NAME} has relieved them as {OFFICE}. The court must now choose a successor.");
-            message.SetTextVariable("COUNCILLOR_NAME", holder.Leader.Name);
-            message.SetTextVariable("RULER_NAME", kingdom.RulingClan.Leader?.Name ?? kingdom.RulingClan.Name);
-            message.SetTextVariable("OFFICE", GetLocalizedOfficeName(record.Office, kingdom));
-            BellumCivileNotifications.Show(message, BellumNotificationColors.Warning,
-                primaryKingdom: kingdom, primaryClan: holder, isPersonal: kingdom == Clan.PlayerClan?.Kingdom);
-            if (holder == Clan.PlayerClan) QueuePlayerDisgracedDismissal(kingdom, record.Office, captivity: true);
-            BellumCivileLogger.Log($"Councillor relieved during captivity; realm={kingdom.StringId}; office={record.Office}; house={holder.StringId}; controversy={controversy}; grievance={grievance}; urgent_vacancy=true.");
-            return true;
-        }
-
         private bool TryDismissDisgracedOfficeHolder(
             Kingdom kingdom,
             PrivyCouncilOfficeRecord record,
             float currentDay)
         {
             if (record == null
-                || record.Office > PrivyCouncilOffice.Spymaster
                 || record.Controversy < 100f)
             {
                 return false;
@@ -3003,20 +3005,18 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
-        private void QueuePlayerDisgracedDismissal(Kingdom kingdom, PrivyCouncilOffice office, bool captivity = false)
+        private void QueuePlayerDisgracedDismissal(Kingdom kingdom, PrivyCouncilOffice office)
         {
             Hero ruler = kingdom?.RulingClan?.Leader;
             if (ruler == null)
                 return;
 
             TextObject title = new TextObject(
-                captivity ? "{=BC_Council_CaptiveDismissalTitle}Relieved from the {COUNCIL_NAME}"
-                    : "{=BC_Council_DisgracedDismissalTitle}Dismissed from the {COUNCIL_NAME}");
+                "{=BC_Council_DisgracedDismissalTitle}Dismissed from the {COUNCIL_NAME}");
             title = CourtInstitutionDisplayHelper.ApplyPrivyCouncilName(title, kingdom);
 
             TextObject body = new TextObject(
-                captivity ? "{=BC_Council_CaptiveDismissalBody}A sealed message arrives from {RULER_NAME}:\n\n\"Word of your captivity has reached the court. While you remain in enemy hands, you cannot discharge the duties of {OFFICE}. I therefore relieve you of that charge in the {COUNCIL_NAME}, so another may serve in your absence. This is no judgment upon your loyalty. Yet the needs of the realm cannot await your release.\""
-                    : "{=BC_Council_DisgracedDismissalBody}A sealed message arrives from {RULER_NAME}:\n\n\"The scandals surrounding your tenure have brought the office of {OFFICE} into disrepute. I therefore relieve you of that position in the {COUNCIL_NAME}, effective immediately.\"");
+                "{=BC_Council_DisgracedDismissalBody}A sealed message arrives from {RULER_NAME}:\n\n\"The scandals surrounding your tenure have brought the office of {OFFICE} into disrepute. I therefore relieve you of that position in the {COUNCIL_NAME}, effective immediately.\"");
             body.SetTextVariable("RULER_NAME", ruler.Name);
             body.SetTextVariable("OFFICE", GetLocalizedOfficeName(office, kingdom));
             body = CourtInstitutionDisplayHelper.ApplyPrivyCouncilName(body, kingdom);
@@ -3051,30 +3051,6 @@ namespace BellumCivile.Behaviors
                 currentDay - AssignmentCooldownDays,
                 currentDay);
             InvalidateRuntimeCache();
-        }
-
-        private void CancelCaptiveCouncillorAssignment(
-            Kingdom kingdom,
-            PrivyCouncilOfficeRecord record,
-            float currentDay)
-        {
-            if (kingdom == null || record == null)
-                return;
-
-            PrivyCouncilAssignmentDefinition defaultAssignment =
-                PrivyCouncilAssignmentRegistry.GetDefaultAssignment(record.Office);
-            string defaultAssignmentId = defaultAssignment?.Id ?? string.Empty;
-            if (string.Equals(record.AssignmentId, defaultAssignmentId, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            record.RepairAssignment(
-                defaultAssignmentId,
-                currentDay - AssignmentCooldownDays,
-                currentDay);
-            GetIncidentBehavior()?.ClearAssignmentAspectModifiers(kingdom, record.Office);
-            InvalidateRuntimeCache();
-            BellumCivileLogger.Log(
-                $"Privy council assignment cancelled by captivity; kingdom={kingdom.StringId}; office={record.Office}; holder={record.HolderClanId}.");
         }
 
         private void ApplyDailyAssignmentEffect(Kingdom kingdom, PrivyCouncilOfficeRecord record)

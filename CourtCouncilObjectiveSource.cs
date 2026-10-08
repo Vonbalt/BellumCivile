@@ -80,10 +80,6 @@ namespace BellumCivile
             .GetFactionMotionInfluenceCost(sponsor, PrivyCouncilBehavior.AppointmentProposalInfluenceCost)
             ?? PrivyCouncilBehavior.AppointmentProposalInfluenceCost;
 
-        internal static bool IsCaptivityAppointment(CourtCouncilSelectionContext facts, CourtObjectiveOwner owner, PrivyCouncilOffice office) =>
-            owner.Faction == null && owner.Sponsor == facts.Realm.RulingClan && owner.Sponsor != Clan.PlayerClan
-            && facts.Council?.GetOfficeRecord(facts.Realm, office)?.IsCaptivityVacancy == true;
-
         public IEnumerable<CourtObjectiveCandidate> FindCandidates(CourtTermContext context, CourtObjectiveOwner owner)
         {
             if (!context.ManualSelection && !NpcInfluenceBudgetService.CanAfford(owner.Sponsor, Cost(owner.Sponsor), NpcInfluenceExpenseKind.Discretionary)) yield break;
@@ -130,7 +126,7 @@ namespace BellumCivile
             if (record == null || !council.IsOfficeUnlocked(facts.Realm, office)
                 || CourtAgendaBehavior.Current?.IsCouncilOfficeSettled(facts.Realm, office) == true) return false;
             var incumbent = council.GetOfficeHolder(facts.Realm, office);
-            if (incumbent == null) return record.IsCaptivityVacancy || council.GetVacancyDays(record) > PrivyCouncilBehavior.VacancyGraceDays
+            if (incumbent == null) return council.GetVacancyDays(record) > PrivyCouncilBehavior.VacancyGraceDays
                 && (office > PrivyCouncilOffice.Spymaster || !council.IsVacancyExcused(facts.Realm, office));
             return (council.GetOfficeTenureDays(facts.Realm, office) >= BellumCivileOptions.CourtTermDays || record.Controversy >= 60)
                 && (council.GetOfficeSupportPercent(facts.Realm, office) < 50 || record.Controversy >= 60);
@@ -151,11 +147,6 @@ namespace BellumCivile
             if (nominee == null || nominee == incumbent || !facts.Candidates(office).Contains(nominee)
                 || candidate.ActionId != (incumbent == null ? "fill" : "replace")) return Reject("candidate_or_action_invalid");
             if (context.ManualSelection) return new CourtObjectiveEvaluation(true, true, new CourtObjectiveWeight(1), "player_eligible");
-            if (IsCaptivityAppointment(facts, owner, office))
-            {
-                bool funded = NpcInfluenceBudgetService.CanAfford(owner.Sponsor, Cost(owner.Sponsor), NpcInfluenceExpenseKind.CrownEmergency);
-                return new CourtObjectiveEvaluation(true, funded, new CourtObjectiveWeight(1), "captivity_emergency; affordable=" + funded);
-            }
             var members = OwnerVoters(context, owner);
             float preference = members.Average(v => facts.Support(office, v, nominee));
             float meritGap = facts.Merit(office, nominee) - facts.Merit(office, incumbent);

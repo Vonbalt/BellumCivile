@@ -1296,7 +1296,7 @@ namespace BellumCivile.Behaviors
                 return 0f;
 
             Clan spymaster = council.GetOfficeHolder(kingdom, PrivyCouncilOffice.Spymaster);
-            return spymaster?.Leader == defender
+            return PrivyCouncilBehavior.CanPerformCouncilDuties(spymaster) && spymaster.Leader == defender
                 ? 0f
                 : council.GetIntrigueSkillModifier(kingdom, actingSide: false);
         }

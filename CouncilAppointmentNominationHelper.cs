@@ -154,10 +154,12 @@ namespace BellumCivile
                 reasons.Add(new WeightedReason { Id = "standing", Weight = 10f });
 
             Clan incumbent = council.GetOfficeHolder(kingdom, office);
+            if (candidate != incumbent && council.IsOfficeHolderCaptive(kingdom, office))
+                reasons.Add(new WeightedReason { Id = "captive_incumbent", Weight = council.GetCaptivitySupportPenalty(kingdom, office) });
             if (candidate == incumbent)
             {
                 PrivyCouncilOfficeRecord record = council.GetOfficeRecord(kingdom, office);
-                if ((record?.Controversy ?? 100f) < 40f)
+                if ((record?.Controversy ?? 100f) < 40f && !council.IsOfficeHolderCaptive(kingdom, office))
                     reasons.Add(new WeightedReason { Id = "continuity", Weight = 15f });
             }
 
@@ -245,6 +247,8 @@ namespace BellumCivile
                     return new TextObject("{=BC_CouncilNomination_ReasonStanding}Their station and reputation give proper weight to their candidacy.");
                 case "continuity":
                     return new TextObject("{=BC_CouncilNomination_ReasonContinuity}The present councillor has served without enough cause to disturb the office.");
+                case "captive_incumbent":
+                    return new TextObject("{=BC_CouncilNomination_ReasonCaptiveIncumbent}The present councillor is held captive. I favor someone able to attend to the duties of the office.");
                 default:
                     return new TextObject("{=BC_CouncilNomination_ReasonJudgment}After weighing the candidates, I consider them the soundest choice.");
             }

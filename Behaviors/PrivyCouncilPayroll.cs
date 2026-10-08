@@ -20,8 +20,7 @@ namespace BellumCivile.Behaviors
             {
                 var holder = GetOfficeHolder(realm, seat.Office);
                 if (holder?.Leader == null || holder.IsEliminated || holder.Kingdom != realm || holder == realm.RulingClan
-                    || seat.Office <= PrivyCouncilOffice.Spymaster && seat.Controversy >= 100
-                    || ShouldRelieveCaptive(realm.RulingClan != Clan.PlayerClan, holder.Leader.IsPrisoner)) continue;
+                    || seat.Controversy >= 100) continue;
                 int amount = Math.Min(remaining, GetDailySalary(realm, seat.Office));
                 if (amount <= 0) continue;
                 result.Add(new CouncilSalaryCredit { Realm = realm, Recipient = holder, Office = seat.Office, Amount = amount });

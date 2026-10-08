@@ -755,7 +755,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
             }
 
             if (holder != null)
-                return string.Empty;
+                return holder.Leader?.IsPrisoner == true
+                    ? new TextObject("{=BC_Council_CaptiveStatus}Held captive: duties suspended").ToString() : string.Empty;
 
             if (office > PrivyCouncilOffice.Spymaster)
                 return new TextObject("{=BC_Council_AdvisorVacancy}Vacant: this office generates no vacancy controversy.").ToString();
@@ -836,7 +837,12 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
                 properties.Add(new TooltipProperty(string.Empty,
                     new TextObject("{=BC_Council_SalaryPaymentNote}The Crown funds wages through its daily budget. Funded wages are collected through your clan's daily income; payment depends on the Crown's available funds.").ToString(),
                     0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
-            AddTooltipRow(properties, new TextObject("{=BC_Council_TooltipRecovery}Daily recovery"), GetDailyRecovery(competence).ToString("0.00"));
+            var council = Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>();
+            AddTooltipRow(properties, new TextObject("{=BC_Council_TooltipRecovery}Daily recovery"),
+                (council?.GetDailyOfficeRecovery(kingdom, office) ?? 0f).ToString("0.00"));
+            if (council?.IsOfficeHolderCaptive(kingdom, office) == true)
+                properties.Add(new TooltipProperty(string.Empty, council.GetCaptivityEffectsHint(kingdom, office).ToString(),
+                    0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
 
             AddTooltipSeparator(properties);
             AddTooltipRow(properties, new TextObject("{=BC_Council_TooltipLastDevelopment}Last development"), lastReason + " (" + lastChange + ")");
@@ -977,15 +983,6 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
                 case 3: return PoorColor;
                 default: return CriticalColor;
             }
-        }
-
-        private static float GetDailyRecovery(float competence)
-        {
-            if (competence < 20f) return 0.10f;
-            if (competence < 40f) return 0.15f;
-            if (competence < 60f) return 0.20f;
-            if (competence < 80f) return 0.25f;
-            return 0.30f;
         }
     }
 }
