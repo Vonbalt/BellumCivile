@@ -55,8 +55,14 @@ internal static partial class MarriageHouseholdTests
     private static bool Zero(ref int __result) { __result = 0; return false; }
     private static bool NoPolitics(ref float __result) { __result = 0; return false; }
     private static float _firstScore = 110, _secondScore = 120;
-    private static bool Evaluate(Hero member, ref float __result)
-    { __result = Women.Contains(member) ? _firstScore : _secondScore; return false; }
+    private static Dictionary<Clan, float> _npcHouseholdScores;
+    private static bool Evaluate(Hero member, object outcome, ref float __result)
+    {
+        var destination = (Clan)AccessTools.Property(outcome.GetType(), "Destination").GetValue(outcome);
+        if (member.Clan != _player && _npcHouseholdScores?.TryGetValue(destination, out __result) == true) return false;
+        __result = Women.Contains(member) ? _firstScore : _secondScore;
+        return false;
+    }
     private static bool NoEstates(ref List<Hero> __result) { __result = new List<Hero>(); return false; }
     private static bool NoRegency(ref RegencyBehavior __result) { __result = null; return false; }
     private static bool NoAccession(ref CrownAccessionBehavior __result) { __result = null; return false; }

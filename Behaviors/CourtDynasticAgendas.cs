@@ -94,7 +94,7 @@ namespace BellumCivile.Behaviors
                 {
                     if (!BellumMarriageStrategyHelper.CourtMarriageParticipant(p.First)
                         || !BellumMarriageStrategyHelper.CourtMarriageParticipant(p.Second)) continue;
-                    var match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(p.First, p.Second, true);
+                    var match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(p.First, p.Second, true, p.Destination);
                     if (match == null)
                     {
                         p.Response = CourtDynasticResponse.ForeignRefused;

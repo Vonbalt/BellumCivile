@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 namespace BellumCivile
 {
@@ -54,6 +55,13 @@ namespace BellumCivile
         {
             destination = MustRemain(other) || IsLastContinuation(other) ? other.Clan : ordinary;
             return PlayerMarriageAgreement.CanChoose(player, other, destination, false, this, out _);
+        }
+
+        internal bool CanOfferToPlayer(Hero first, Hero second, Clan destination, out TextObject reason)
+        {
+            bool firstPlayer = first?.Clan == Clan.PlayerClan;
+            return PlayerMarriageAgreement.CanChoose(firstPlayer ? first : second, firstPlayer ? second : first,
+                destination, false, this, out reason);
         }
 
         internal bool IsLastContinuation(Hero departing)
@@ -112,8 +120,13 @@ namespace BellumCivile
 
         internal static bool Matches(Hero first, Hero second, Clan destination)
         {
-            if (destination == null || first?.Spouse != null || second?.Spouse != null
-                || Resolve(first, second) != destination) return false;
+            if (destination == null || first?.Clan == null || second?.Clan == null
+                || first.Spouse != null || second.Spouse != null) return false;
+            if (first.Clan == Clan.PlayerClan || second.Clan == Clan.PlayerClan)
+            {
+                if (!new MarriageHouseholdPolicy().CanOfferToPlayer(first, second, destination, out _)) return false;
+            }
+            else if (Resolve(first, second) != destination) return false;
             // Another mod's replacement model must honor the outcome before we mutate spouses/clans.
             using (new NpcMarriageClanContext(first, second, destination))
                 return Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second) == destination;

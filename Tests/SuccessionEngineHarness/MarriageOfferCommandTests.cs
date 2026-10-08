@@ -78,14 +78,16 @@ internal static partial class MarriageHouseholdTests
             harmony.Patch(AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "CreateMarriageOffer"),
                 prefix: new HarmonyMethod(typeof(MarriageHouseholdTests), nameof(PublishTestOffer)) { priority = Priority.Last });
 
-            check(Command("invalid").StartsWith("Usage:") && Command("matrilineal", "patrilineal").StartsWith("Usage:"),
-                "Unknown or multiple offer modes show usage without creating an offer");
+            check(Command("invalid").StartsWith("Usage:"), "Unknown offer mode shows usage without creating an offer");
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { null });
             check(Command().StartsWith("Error: Load a campaign"), "Offer command is safe at the main menu");
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { campaign });
             _enabled = false;
             check(Command("matrilineal").Contains("Enable Bellum"), "Offer command explains when strategic marriage is disabled");
             _enabled = true;
+
+            check(Command("matrilineal", "not_a_player_member").Contains("No player-clan member found") && records.Count == 0,
+                "Unknown player member selector cannot silently target someone else");
 
             string result = Command("MaTrIlInEaL");
             check(result.StartsWith("Success!") && records.Single().Other == heiress
@@ -97,10 +99,10 @@ internal static partial class MarriageHouseholdTests
                 && records.Single().Other == heiress, "Active offer cannot be overwritten by another test mode");
             ClearOffer();
 
-            result = Command("patrilineal");
+            result = Command("patrilineal", player.StringId.ToUpperInvariant());
             check(result.StartsWith("Success!") && records.Single().Other == ordinary
                 && records.Single().Destination == player.Clan,
-                "Patrilineal command finds a different eligible pair without moving the protected heiress");
+                "Player-member StringId selector is case-insensitive and retains NPC heiress protection");
             ClearOffer();
             _commandCandidates = new List<Hero> { heiress };
             int notifications = _commandNotifications;
@@ -112,11 +114,14 @@ internal static partial class MarriageHouseholdTests
             _firstScore = 94;
             result = Command("matrilineal");
             check(result.StartsWith("Error:") && result.Contains("acceptance_rejected=1"), "Test offers retain the NPC's 95 acceptance floor");
+            check(result.Contains("npc_score=94/95") && result.Contains("closest_refused="),
+                "Failed search distinguishes an NPC acceptance shortfall from household restrictions");
             _firstScore = 110;
             waiting[player] = heiress;
-            result = Command();
+            result = Command("any", player.Name.ToString());
             check(result.StartsWith("Error:") && result.Contains("available_player_members=0"),
                 "Already-engaged player member is excluded from the test search");
+            check(result.Contains("selected_member_rejected=reserved"), "Targeted member diagnostics identify an existing reservation");
             waiting.Clear();
             result = Command();
             check(result.StartsWith("Success!") && records.Single().Destination == heiress.Clan,
@@ -124,6 +129,9 @@ internal static partial class MarriageHouseholdTests
             ClearOffer();
             _suppressCommandNotification = true;
             check(Command("matrilineal").Contains("was not registered"), "Suppressed native offer creation cannot report false success");
+            check(records.Count == 0, "Suppressed publication discards the orphaned household record");
+            _suppressCommandNotification = false;
+            RunAlternatePlayerOffers(check, campaign, behavior, ordinary, player, ClearOffer);
         }
         finally
         {

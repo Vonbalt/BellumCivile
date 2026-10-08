@@ -21,6 +21,7 @@ internal static class CourtDynasticPursuitTests
     private static int _offers;
     private static bool _willing, _funded, _register, _throwAfter, _available, _legal, _valid, _married, _throwEvaluation;
     private static object _match;
+    private static Clan _evaluatedDestination;
     private static int _weddings;
     private static int _spent, _refunded, _submissions, _evaluations;
     private static double _day;
@@ -29,8 +30,8 @@ internal static class CourtDynasticPursuitTests
     private static bool Valid(ref bool __result) { __result = _valid; return false; }
     private static bool Legal(ref bool __result) { __result = _legal; return false; }
     private static bool Available(ref bool __result) { __result = _available; return false; }
-    private static bool Evaluate(ref object __result)
-    { _evaluations++; if (_throwEvaluation) throw new InvalidOperationException("test evaluation failure"); __result = _match; return false; }
+    private static bool Evaluate(Clan destination, ref object __result)
+    { _evaluations++; _evaluatedDestination = destination; if (_throwEvaluation) throw new InvalidOperationException("test evaluation failure"); __result = _match; return false; }
     private static bool Married(ref bool __result) { __result = _married; return false; }
     private static bool Wedding() { _weddings++; _married = true; return false; }
     private static bool Skip() => false;
@@ -183,6 +184,8 @@ internal static class CourtDynasticPursuitTests
             Marry(); _day = 44; Marry();
             check(_weddings == 1 && a.Dynastic.NpcAttempted && a.Dynastic.MarriageOutcome == "married",
                 "Naturally willing unaligned NPC houses complete exactly one wedding without an annual random roll");
+            check(_evaluatedDestination == a.Dynastic.Destination,
+                "Court-sponsored marriage rechecks the recorded household instead of selecting another arrangement");
             a = Agenda(); a.State = CourtAgendaState.PursuingObjective; _married = false;
             _match.GetType().GetProperty("SuitorAcceptance").SetValue(_match, 100f);
             _match.GetType().GetProperty("CandidateAcceptance").SetValue(_match, 100f);

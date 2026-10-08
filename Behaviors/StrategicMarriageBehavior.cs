@@ -245,9 +245,7 @@ namespace BellumCivile.Behaviors
                 return true;
             }
 
-            offerBehavior.CreateMarriageOffer(playerClanHero, otherClanHero);
-            if (OfferedPlayer.GetValue(offerBehavior) != playerClanHero || OfferedOther.GetValue(offerBehavior) != otherClanHero)
-                return true;
+            if (!PlayerMarriageAgreementBehavior.TryCreateOffer(match)) return true;
             _lastPlayerOfferDay = CurrentDay;
             _yearlySummary.RecordPlayerOffer(match);
             BellumCivileLogger.Log(

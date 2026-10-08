@@ -86,7 +86,7 @@ namespace BellumCivile.Behaviors
             if ((prospect.FirstHouse == Clan.PlayerClan || prospect.SecondHouse == Clan.PlayerClan) && !CanSendPlayerOffer()) return true;
             try
             {
-                var match = BellumMarriageStrategyHelper.ReevaluateProspect(prospect.First, prospect.Second);
+                var match = BellumMarriageStrategyHelper.ReevaluateProspect(prospect.First, prospect.Second, prospect.Destination);
                 if (match == null || match.Outcome.Destination != prospect.Destination)
                 { RemoveMarriageProspect(prospect, "consent_or_destination_changed"); return true; }
                 // Remove before callbacks so neither a partial marriage nor a player rejection is retried.

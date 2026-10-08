@@ -64,7 +64,7 @@ namespace BellumCivile.Behaviors
                         if (!PlayerDynasticAgenda(a) || a.Dynastic != plan || plan.Response != response) return;
                         if (!BellumMarriageStrategyHelper.CourtMarriageParticipant(plan.First)
                             || !BellumMarriageStrategyHelper.CourtMarriageParticipant(plan.Second)) return;
-                        var match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(plan.First, plan.Second, true);
+                        var match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(plan.First, plan.Second, true, plan.Destination);
                         if (match == null)
                         {
                             plan.Response = CourtDynasticResponse.ForeignRefused;

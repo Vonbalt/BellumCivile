@@ -37,7 +37,7 @@ namespace BellumCivile.Behaviors
             BellumMarriageMatch match = null;
             try
             {
-                match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(p.First, p.Second, false);
+                match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(p.First, p.Second, false, p.Destination);
                 if (match == null)
                 { DynasticBlocked(a, "native_couple_unavailable"); return true; }
                 if (!MarriageOutcome.BothAccept(match.SuitorAcceptance, match.CandidateAcceptance,

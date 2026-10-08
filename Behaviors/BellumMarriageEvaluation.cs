@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 using C = BellumCivile.BellumCivileConstants;
 
 namespace BellumCivile.Behaviors
@@ -63,6 +64,28 @@ namespace BellumCivile.Behaviors
             {
                 Clan ordinary = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second);
                 return _households.TryChoose(first, second, ordinary, out Clan destination) ? destination : null;
+            }
+
+            public IEnumerable<Clan> HouseholdDestinations(Hero first, Hero second)
+            {
+                Clan preferred = HouseholdDestination(first, second);
+                if (first.Clan != Clan.PlayerClan && second.Clan != Clan.PlayerClan)
+                {
+                    if (preferred != null) yield return preferred;
+                    yield break;
+                }
+                // Share the same heir/health snapshot while considering both player-offer arrangements.
+                if (preferred != first.Clan && preferred != second.Clan) preferred = first.Clan;
+                yield return preferred;
+                yield return preferred == first.Clan ? second.Clan : first.Clan;
+            }
+
+            public bool CanChooseHousehold(Hero first, Hero second, Clan destination, out TextObject reason)
+            {
+                reason = null;
+                if (first.Clan == Clan.PlayerClan || second.Clan == Clan.PlayerClan)
+                    return _households.CanOfferToPlayer(first, second, destination, out reason);
+                return destination != null && HouseholdDestination(first, second) == destination;
             }
 
             public float PoliticalValue(Clan house, Clan other)
@@ -196,17 +219,20 @@ namespace BellumCivile.Behaviors
 
         // Console-only search: retain normal acceptance and household rules, skipping only scheduling.
         internal static List<BellumMarriageMatch> FindPlayerClanTestOffers(FactionManagerBehavior factions,
-            bool? matrilineal, out string diagnostics)
+            bool? matrilineal, out string diagnostics, Hero playerMember = null)
         {
             var matches = new List<BellumMarriageMatch>();
-            var context = new EvaluationContext(factions, true);
+            var stats = new BellumMarriageEvaluationStats();
+            var context = new EvaluationContext(factions, true, stats: stats);
             if (!context.Participants.TryGetValue(Clan.PlayerClan, out var members))
             {
                 diagnostics = "player clan is not eligible for strategic offers (it must belong to an active kingdom)";
                 return matches;
             }
-            var availableMembers = members.Where(h => !MarriageReserved(h)).ToList();
+            var availableMembers = members.Where(h => (playerMember == null || h == playerMember) && !MarriageReserved(h)).ToList();
             int pairs = 0, householdRejected = 0, acceptanceRejected = 0, maternal = 0, paternal = 0;
+            var householdReasons = new HashSet<string>();
+            BellumMarriageMatch closestRefused = null;
             foreach (var entry in context.Participants)
             {
                 if (entry.Key == Clan.PlayerClan
@@ -218,33 +244,73 @@ namespace BellumCivile.Behaviors
                     {
                         if (GetPairRejectionReason(other, player, factions, true) != BellumMarriageRejectionReason.None) continue;
                         pairs++;
-                        var match = EvaluateOutcome(other, player, context, false);
-                        if (match == null) { householdRejected++; continue; }
-                        if (match.Score < C.MarriageStrategyMinimumScore) { acceptanceRejected++; continue; }
-                        bool isMatrilineal = match.Outcome.Destination == (other.IsFemale ? other.Clan : player.Clan);
-                        if (isMatrilineal) maternal++; else paternal++;
-                        if (!matrilineal.HasValue || matrilineal.Value == isMatrilineal) matches.Add(match);
+                        foreach (Clan destination in context.HouseholdDestinations(other, player))
+                        {
+                            bool isMatrilineal = destination == (other.IsFemale ? other.Clan : player.Clan);
+                            bool requested = !matrilineal.HasValue || matrilineal.Value == isMatrilineal;
+                            if (!context.CanChooseHousehold(other, player, destination, out TextObject reason))
+                            {
+                                householdRejected++;
+                                if (requested && reason != null) householdReasons.Add(reason.ToString());
+                                continue;
+                            }
+                            var match = EvaluateHousehold(other, player, context, destination, false);
+                            if (match.Score < C.MarriageStrategyMinimumScore)
+                            {
+                                acceptanceRejected++;
+                                if (requested && (closestRefused == null || match.Score > closestRefused.Score)) closestRefused = match;
+                                continue;
+                            }
+                            if (isMatrilineal) maternal++; else paternal++;
+                            if (requested) matches.Add(match);
+                        }
                     }
                 }
             }
             diagnostics = $"available_player_members={availableMembers.Count}; suitable_pairs={pairs}; "
                 + $"household_rejected={householdRejected}; acceptance_rejected={acceptanceRejected}; "
-                + $"eligible_matrilineal={maternal}; eligible_patrilineal={paternal}";
+                + $"eligible_matrilineal={maternal}; eligible_patrilineal={paternal}; "
+                + $"participants_too_young={stats.RejectedTooYoung}; participants_unavailable={stats.TemporaryParticipants}";
+            if (playerMember != null && !members.Contains(playerMember))
+                diagnostics += $"; selected_member_rejected={GetOfferParticipantRejectionReason(playerMember, true)}";
+            else if (playerMember != null && availableMembers.Count == 0)
+                diagnostics += "; selected_member_rejected=reserved";
+            if (householdReasons.Count > 0) diagnostics += "; household_reasons=" + string.Join(" | ", householdReasons);
+            if (closestRefused != null)
+                diagnostics += $"; closest_refused={closestRefused.Suitor.StringId}/{closestRefused.Candidate.StringId}; "
+                    + $"destination={closestRefused.Outcome.Destination.StringId}; npc_score={closestRefused.Score:0.##}/{C.MarriageStrategyMinimumScore:0}; "
+                    + "reasons=" + string.Join(", ", closestRefused.Reasons);
             return matches;
         }
 
-        internal static BellumMarriageMatch ReevaluateProspect(Hero first, Hero second)
+        internal static BellumMarriageMatch ReevaluateProspect(Hero first, Hero second, Clan destination = null)
         {
             if (!MarriageProspectEligible(first) || !MarriageProspectEligible(second)) return null;
             var factions = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             if (GetPairRejectionReason(first, second, factions, true) != BellumMarriageRejectionReason.None) return null;
-            return EvaluateOutcome(first, second, new EvaluationContext(factions, true,
-                new HashSet<Clan> { first.Clan, second.Clan }), true);
+            var context = new EvaluationContext(factions, true, new HashSet<Clan> { first.Clan, second.Clan });
+            return destination == null ? EvaluateOutcome(first, second, context, true)
+                : context.CanChooseHousehold(first, second, destination, out _)
+                    ? EvaluateHousehold(first, second, context, destination, true) : null;
         }
 
         private static BellumMarriageMatch EvaluateOutcome(Hero first, Hero second, EvaluationContext context, bool requireAcceptance = true)
         {
-            Clan destination = context.HouseholdDestination(first, second);
+            if (first.Clan != Clan.PlayerClan && second.Clan != Clan.PlayerClan)
+                return EvaluateHousehold(first, second, context, context.HouseholdDestination(first, second), requireAcceptance);
+            BellumMarriageMatch best = null;
+            foreach (Clan destination in context.HouseholdDestinations(first, second))
+            {
+                if (!context.CanChooseHousehold(first, second, destination, out _)) continue;
+                var match = EvaluateHousehold(first, second, context, destination, requireAcceptance);
+                if (match != null && (best == null || match.Score > best.Score)) best = match;
+            }
+            return best;
+        }
+
+        private static BellumMarriageMatch EvaluateHousehold(Hero first, Hero second, EvaluationContext context,
+            Clan destination, bool requireAcceptance)
+        {
             if (destination == null || destination.IsEliminated) return null;
             var outcome = new MarriageOutcome(first, second, destination,
                 context.CrownHeirs.Contains(first), context.CrownHeirs.Contains(second));

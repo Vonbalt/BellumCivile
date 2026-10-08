@@ -38,10 +38,41 @@ namespace BellumCivile.Behaviors
             if (player?.Clan != Clan.PlayerClan || other?.Clan == null || Native == null) return false;
             if (ActivePlayer != null || Native.IsHeroEngaged(player) || Native.IsHeroEngaged(other)) return false;
             var policy = new MarriageHouseholdPolicy();
-            Clan ordinary = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(player, other);
-            if (!policy.TryChoosePlayerOffer(player, other, ordinary, out Clan destination)) return false;
+            Clan destination;
+            if (NpcMarriageClanContext.TryResolve(player, other, out destination))
+            {
+                if (!policy.CanOfferToPlayer(player, other, destination, out _)) return false;
+            }
+            else
+            {
+                Clan ordinary = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(player, other);
+                if (!policy.TryChoosePlayerOffer(player, other, ordinary, out destination)) return false;
+            }
             _agreements.Add(PlayerMarriageAgreement.Create(player, other, destination, false));
             return true;
+        }
+
+        internal static bool TryCreateOffer(BellumMarriageMatch match)
+        {
+            var behavior = Instance;
+            var native = Native;
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic
+                || behavior == null || native == null || match?.Outcome?.StillMatches() != true
+                || ActivePlayer != null || ActiveOther != null) return false;
+            Hero player = match.Suitor.Clan == Clan.PlayerClan ? match.Suitor : match.Candidate;
+            Hero other = player == match.Suitor ? match.Candidate : match.Suitor;
+            if (player.Clan != Clan.PlayerClan || other.Clan == Clan.PlayerClan
+                || native.IsHeroEngaged(player) || native.IsHeroEngaged(other)) return false;
+            using (new NpcMarriageClanContext(player, other, match.Outcome.Destination))
+                native.CreateMarriageOffer(player, other);
+            var record = behavior.Find(player, other);
+            if (ActivePlayer == player && ActiveOther == other && record?.Destination == match.Outcome.Destination)
+                return true;
+            // A compatibility patch may suppress publication after our capture prefix ran.
+            if (record != null && !record.Matches(ActivePlayer, ActiveOther)
+                && !(Waiting?.TryGetValue(player, out Hero partner) == true && partner == other))
+                behavior.Remove(record);
+            return false;
         }
 
         internal static bool IsOwnReservation(Hero hero)

@@ -13,6 +13,7 @@ internal static class MarriageProspectTests
     private static readonly Dictionary<Hero, Clan> Houses = new Dictionary<Hero, Clan>();
     private static int _day, _evaluations, _completed;
     private static object _acceptedMatch;
+    private static Clan _evaluatedDestination;
     private static bool _ready, _engaged, _eligible;
     private static bool Day(ref int __result) { __result = _day; return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
@@ -21,7 +22,8 @@ internal static class MarriageProspectTests
     private static bool Ready(ref bool __result) { __result = _ready; return false; }
     private static bool Eligible(ref bool __result) { __result = _eligible; return false; }
     private static bool Engaged(ref bool __result) { __result = _engaged; return false; }
-    private static bool Evaluate(ref object __result) { _evaluations++; __result = _acceptedMatch; return false; }
+    private static bool Evaluate(Clan destination, ref object __result)
+    { _evaluations++; _evaluatedDestination = destination; __result = _acceptedMatch; return false; }
     private static bool Complete() { _completed++; return false; }
     private static bool Year(ref int __result) { __result = 24; return false; }
     private static bool Need(ref float __result) { __result = 0; return false; }
@@ -83,6 +85,7 @@ internal static class MarriageProspectTests
             _day = 103;
             check(Process() && _evaluations == 1 && records.Count == 0,
                 "Ready match rechecks consent and cancels a refused pair");
+            check(_evaluatedDestination == p.Destination, "Prospect rechecks consent for its saved household, not a newly preferred alternative");
             _ready = false; p = Add(); _day = p.ExpiresDay + 1;
             check(!Process() && records.Count == 0, "Expired prospect releases the annual scheduler instead of extending itself");
             p = Add(); Houses[first] = b;

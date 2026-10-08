@@ -18,12 +18,15 @@ namespace BellumCivile.Behaviors
             && MarriageProspectEligible(hero) && !StrategicMarriageBehavior.HasMarriageOfferFor(hero)
             && Campaign.Current?.GetCampaignBehavior<StrategicMarriageBehavior>()?.HasPendingProspect(hero) != true;
 
-        internal static BellumMarriageMatch EvaluateCourtMarriage(Hero first, Hero second, bool requireAcceptance)
+        internal static BellumMarriageMatch EvaluateCourtMarriage(Hero first, Hero second, bool requireAcceptance, Clan destination = null)
         {
             if (!CourtMarriageParticipant(first) || !CourtMarriageParticipant(second)) return null;
             var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             if (GetPairRejectionReason(first, second, manager, true) != BellumMarriageRejectionReason.None) return null;
-            return EvaluateOutcome(first, second, new EvaluationContext(manager, true, new HashSet<Clan> { first.Clan, second.Clan }), requireAcceptance);
+            var context = new EvaluationContext(manager, true, new HashSet<Clan> { first.Clan, second.Clan });
+            return destination == null ? EvaluateOutcome(first, second, context, requireAcceptance)
+                : context.CanChooseHousehold(first, second, destination, out _)
+                    ? EvaluateHousehold(first, second, context, destination, requireAcceptance) : null;
         }
 
         internal static bool CourtMarriageExecutionReady(BellumMarriageMatch match) => match?.Outcome?.StillMatches() == true
