@@ -21,6 +21,7 @@ namespace BellumCivile
         [SaveableField(15)] private bool _wasVoluntaryOffering;
         [SaveableField(16)] private int _hostageTier;
         [SaveableField(17)] private string _hostageReceivingClanId;
+        [SaveableField(18)] private bool _hostageDurationPriced;
 
         public TreatyTermType Type => _type;
         public int WarScoreCost => _warScoreCost;
@@ -39,6 +40,7 @@ namespace BellumCivile
         public bool WasVoluntaryOffering => _wasVoluntaryOffering;
         public int HostageTier => _hostageTier;
         public string HostageReceivingClanId => _hostageReceivingClanId;
+        public bool HostageDurationPriced => _hostageDurationPriced;
 
         public TreatyTermRecord(
             TreatyTermType type,
@@ -57,7 +59,8 @@ namespace BellumCivile
             string thirdKingdomId = "",
             bool wasVoluntaryOffering = false,
             int hostageTier = 0,
-            string hostageReceivingClanId = "")
+            string hostageReceivingClanId = "",
+            bool hostageDurationPriced = false)
         {
             _type = type;
             _warScoreCost = warScoreCost;
@@ -76,6 +79,7 @@ namespace BellumCivile
             _wasVoluntaryOffering = wasVoluntaryOffering;
             _hostageTier = hostageTier;
             _hostageReceivingClanId = hostageReceivingClanId ?? string.Empty;
+            _hostageDurationPriced = hostageDurationPriced;
         }
 
         public int GetWarScoreImpact(string favoredKingdomId)

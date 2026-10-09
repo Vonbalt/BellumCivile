@@ -67,7 +67,7 @@ internal static class HostageTreatyTermTests
         var fields = typeof(TreatyTermRecord).GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
         var ids = fields.SelectMany(f => f.GetCustomAttributesData().Where(a => a.AttributeType.Name == "SaveableFieldAttribute")
             .Select(a => Convert.ToInt32(a.ConstructorArguments[0].Value))).ToArray();
-        check(ids.Length == 17 && ids.Distinct().Count() == 17, "Treaty tier and receiving house append unique save fields");
+        check(ids.Length == 18 && ids.Distinct().Count() == 18, "Treaty pricing version appends a unique save field");
         check(Valid(Hostage()) && Valid(Hostage(true)), "One-sided demand or voluntary offering is supported");
         check(Valid(Hostage(), Hostage(true)), "Reciprocal pact accepts one hostage per side");
         check(!Valid(Hostage(), Hostage(hero: "other_heir")), "Two hostages from one realm are rejected");

@@ -9,8 +9,8 @@ internal static class HostagePactRulesTests
     {
         Type rules = typeof(TreatyTermRecord).Assembly.GetType("BellumCivile.HostagePactRules", true);
         object Call(string name, params object[] args) => AccessTools.Method(rules, name).Invoke(null, args);
-        check((int)AccessTools.Field(rules, "DefaultDurationDays").GetRawConstantValue() == 100,
-            "Hostage pact duration defaults to 100 days");
+        check((int)AccessTools.Field(rules, "DefaultDurationDays").GetRawConstantValue() == 50,
+            "Hostage pact duration defaults to 50 days");
         check((int)AccessTools.Field(rules, "MaximumDurationDays").GetRawConstantValue() == 1000,
             "Hostage pact duration permits up to 1000 days");
         check((bool)Call("IsValidDuration", 0) && (bool)Call("IsValidDuration", 1000)

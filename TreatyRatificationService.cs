@@ -20,6 +20,8 @@ namespace BellumCivile
                 ["Court clientage initiative"] = "{=BC_Parley_Reason_CourtClientageInitiative}These terms would fulfill the submission our faction has sought.",
                 ["Crown-backed clientage initiative"] = "{=BC_Parley_Reason_CrownClientageInitiative}These terms would fulfill the ambition to which I have lent the Crown's support.",
                 ["Low Enthusiasm"] = "{=BC_Parley_Reason_LowEnthusiasm}I am exhausted by this conflict.",
+                ["Lengthy peace commitment"] = "{=BC_Parley_Reason_LengthyPact}This pact would bind our hands for too long.",
+                ["Time to recover"] = "{=BC_Parley_Reason_PactRecovery}Our realm needs time to recover.",
                 ["High Enthusiasm"] = "{=BC_Parley_Reason_HighEnthusiasm}I am still eager to carry on the fight.",
                 ["Early war reluctance"] = "{=BC_Parley_Reason_EarlyWar}We have only just taken up arms; we should see this campaign through.",
                 ["Inconclusive campaign"] = "{=BC_Parley_Reason_InconclusiveWar}This war has not yet yielded a decisive result.",
@@ -122,6 +124,8 @@ namespace BellumCivile
             int warScoreBudget = Math.Max(0, proposal?.WarScoreBudget ?? 0);
             int usedWarScore = proposal?.UsedWarScore ?? 0;
             bool overBudget = proposal?.IsOverBudget == true;
+            var negotiatedPact = proposal?.Terms.FirstOrDefault(t => t?.Type == TreatyTermType.HostagePeace
+                && t.HostageDurationPriced);
             int unusedTolerance = Math.Max(
                 C.TreatyUnusedLeverageToleranceMinimum,
                 (int)Math.Ceiling(warScoreBudget * C.TreatyUnusedLeverageToleranceShare));
@@ -183,6 +187,15 @@ namespace BellumCivile
 
                 foreach (TreatyTermRecord term in proposal?.Terms ?? Enumerable.Empty<TreatyTermRecord>())
                     ApplyTermUtility(reasons, ref utility, war, term, clan, winnerSide);
+
+                // Both courts lose freedom of action, regardless of how many hostages secure the pact.
+                if (negotiatedPact != null)
+                {
+                    Add(reasons, ref utility, -HostagePactRules.GetDurationPenalty(negotiatedPact.DurationDays),
+                        "Lengthy peace commitment");
+                    Add(reasons, ref utility, HostagePactRules.GetRecoveryUtility(negotiatedPact.DurationDays, effectiveWill),
+                        "Time to recover");
+                }
 
                 float courtPeace = CourtAgendaBehavior.Current?.PeaceInitiativeBonus(kingdom, war, clan) ?? 0;
                 if (courtPeace != 0) Add(reasons, ref utility, courtPeace,

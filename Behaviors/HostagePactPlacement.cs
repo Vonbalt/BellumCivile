@@ -7,11 +7,11 @@ namespace BellumCivile.Behaviors
 {
     public sealed partial class HostagePactBehavior
     {
-        // Called only after peace is concluded. Treaty UI integration remains gated.
+        // Direct creation uses the standard term; parleys supply their own saved duration.
         internal bool TryEstablish(Kingdom first, Kingdom second, Hero firstHostage, Hero secondHostage)
         {
-            int durationDays = BellumCivileOptions.HostagePactDurationDays;
-            if (_maintaining || durationDays == 0 || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first == null || second == null
+            int durationDays = HostagePactRules.DefaultDurationDays;
+            if (_maintaining || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first == null || second == null
                 || first == second || first.IsEliminated || second.IsEliminated || first.IsAtWarWith(second)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(first)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(second)
@@ -56,7 +56,9 @@ namespace BellumCivile.Behaviors
             var holding = SelectHolding(receiver);
             return holding == null ? null : new TreatyHostageRecord { Hero = candidate.Hero, SupplyingHouse = supplier,
                 ReceivingHouse = receiver, Holding = holding, PreviousHome = candidate.Hero.CurrentSettlement,
-                PreviousHeroState = (int)candidate.Hero.HeroState, Tier = candidate.Tier, NegotiatedCost = candidate.Cost };
+                PreviousHeroState = (int)candidate.Hero.HeroState, Tier = candidate.Tier,
+                NegotiatedCost = HostagePactRules.GetNegotiatedCost(candidate.Tier, HostagePactRules.DefaultDurationDays),
+                DurationPriced = true };
         }
 
         private static bool Place(TreatyHostageRecord record)

@@ -218,7 +218,14 @@
 
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@DraftEditorHeight" IsVisible="@IsPoliticsTabSelected">
                           <Children>
-                            <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" AutoHideScrollBars="true" ClipRect="PoliticsDraftClip" InnerPanel="PoliticsDraftClip\PoliticsDraftList" VerticalScrollbar="..\PoliticsDraftScrollbar">
+                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@HostageControlsHeight" MarginLeft="14" MarginRight="14" IsVisible="@HasHostagePact" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="10" Brush="Info.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Text="@HostageDurationText" />
+                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" MarginRight="4" Brush="GameMenu.ManageHideoutTroops.MinusButton" IsDisabled="@IsHostageDecreaseDisabled" Command.Click="ExecuteDecreaseHostageDuration" UpdateChildrenStates="true" />
+                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" Brush="GameMenu.ManageHideoutTroops.PlusButton" IsDisabled="@IsHostageIncreaseDisabled" Command.Click="ExecuteIncreaseHostageDuration" UpdateChildrenStates="true" />
+                              </Children>
+                            </ListPanel>
+                            <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="@HostageControlsHeight" MarginLeft="14" MarginRight="14" AutoHideScrollBars="true" ClipRect="PoliticsDraftClip" InnerPanel="PoliticsDraftClip\PoliticsDraftList" VerticalScrollbar="..\PoliticsDraftScrollbar">
                               <Children>
                                 <Widget Id="PoliticsDraftClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                                   <Children>
@@ -245,7 +252,7 @@
                                 </Widget>
                               </Children>
                             </ScrollablePanel>
-                            <ScrollbarWidget Id="PoliticsDraftScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="2" AlignmentAxis="Vertical" Handle="PoliticsDraftScrollbarHandle" MaxValue="100" MinValue="0" IsVisible="@IsPoliticsDraftScrollbarVisible">
+                            <ScrollbarWidget Id="PoliticsDraftScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginTop="@HostageControlsHeight" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="2" AlignmentAxis="Vertical" Handle="PoliticsDraftScrollbarHandle" MaxValue="100" MinValue="0" IsVisible="@IsPoliticsDraftScrollbarVisible">
                               <Children>
                                 <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
                                 <BrushWidget Id="PoliticsDraftScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />

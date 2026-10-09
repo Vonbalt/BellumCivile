@@ -743,3 +743,4 @@ Cadet branches now inherit custom family banners exactly, preserving all colors,
 Improved recognition and preservation of custom banners during kingdom transfers and color synchronization.
 Fixed Bellum’s realm names preventing POC from applying kingdom-specific colors and shield patterns.
 Fixed POC equipment lookups confusing parent and cadet houses with identical banners.
+Made hostage-pact duration negotiable in peace treaties, replacing the MCM setting with duration-based war-score costs and balanced AI acceptance while preserving existing agreements.

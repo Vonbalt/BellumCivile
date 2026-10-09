@@ -84,10 +84,6 @@ namespace BellumCivile
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int MinimumPeaceBeforeRenewedWarDays { get; set; } = C.WarPeaceRevampRecentPeaceBlockDays;
 
-        [SettingPropertyInteger("{=BC_MCM_HostagePactDuration}Hostage Pact Duration (Days)", 0, HostagePactRules.MaximumDurationDays, Order = 7, RequireRestart = false, HintText = "{=BC_MCM_HostagePactDuration_Hint}Duration of new hostage-backed non-aggression pacts. Existing treaties keep their agreed duration. A value of 0 disables new pacts; any zero-day pact ends on the next daily tick. Default: 100 days.")]
-        [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
-        public int HostagePactDurationDays { get; set; } = HostagePactRules.DefaultDurationDays;
-
         [SettingPropertyInteger("{=BC_MCM_TreatyReparationsPerWarScore}Reparations per War Score", 0, 100000, Order = 10, RequireRestart = false, HintText = "{=BC_MCM_TreatyReparationsPerWarScore_Hint}Denars paid as immediate reparations for each War Score spent on the treaty term. A value of 0 disables reparations. Default: 5,000 denars per War Score.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int TreatyReparationsGoldPerWarScore { get; set; } = C.TreatyReparationsGoldPerWarScore;

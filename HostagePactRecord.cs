@@ -35,6 +35,7 @@ namespace BellumCivile
         [SaveableField(17)] public bool ExecutionSucceeded;
         [SaveableField(18)] public bool ClemencyChosen;
         [SaveableField(19)] public bool ReleaseSucceeded;
+        [SaveableField(20)] public bool DurationPriced;
 
         internal bool TryChoose(HostageCustodyOutcome outcome)
         {
@@ -77,7 +78,7 @@ namespace BellumCivile
         [SaveableField(28)] public bool DurationRecorded;
 
         // Older saves lack this snapshot and used the original 100-day agreement.
-        internal int DurationDays => DurationRecorded ? AgreedDurationDays : HostagePactRules.DefaultDurationDays;
+        internal int DurationDays => DurationRecorded ? AgreedDurationDays : HostagePactRules.LegacyDurationDays;
 
         internal bool TryActivate(double day)
         {
@@ -146,12 +147,11 @@ namespace BellumCivile
             => record?.Hero == hero && record.CustodyEstablished && !record.ActionCompleted;
         private static bool Completed(TreatyHostageRecord record) => record == null
             || (record.Outcome != HostageCustodyOutcome.Pending && record.ActionCompleted);
-        private static bool ValidHostage(TreatyHostageRecord record, Clan supplier, Clan receiver)
+        private bool ValidHostage(TreatyHostageRecord record, Clan supplier, Clan receiver)
             => record == null || (record.Hero != null && record.SupplyingHouse == supplier
                 && record.ReceivingHouse == receiver && record.Holding != null && record.CustodyEstablished
                 && !record.ActionStarted && !record.ActionCompleted && record.Outcome == HostageCustodyOutcome.Pending
-                && record.Tier >= 1 && record.Tier <= 4
-                && record.NegotiatedCost == HostagePactRules.GetTreatyCost(record.Tier));
+                && HostagePactRules.IsValidPrice(record.Tier, DurationDays, record.NegotiatedCost, record.DurationPriced));
         private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     }
 }

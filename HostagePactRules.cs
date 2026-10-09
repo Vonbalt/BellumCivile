@@ -7,9 +7,55 @@ namespace BellumCivile
     // Pure rules only. Custody and transaction integration must validate candidates separately.
     internal static class HostagePactRules
     {
-        internal const int DefaultDurationDays = 100;
+        internal const int LegacyDurationDays = 100;
+        internal const int DefaultDurationDays = 50;
+        internal const int MinimumNegotiatedDurationDays = 30;
+        internal const int DurationStepDays = 10;
         internal const int MaximumDurationDays = 1000;
         internal static bool IsValidDuration(int days) => days >= 0 && days <= MaximumDurationDays;
+        internal static bool IsNegotiableDuration(int days) => days >= MinimumNegotiatedDurationDays
+            && days <= MaximumDurationDays && days % DurationStepDays == 0;
+
+        internal static int GetNegotiatedCost(int tier, int days)
+        {
+            if (!IsNegotiableDuration(days)) throw new ArgumentOutOfRangeException(nameof(days));
+            return GetTreatyCost(tier) + (days - DefaultDurationDays) / DurationStepDays;
+        }
+
+        internal static bool IsValidPrice(int tier, int days, int cost, bool durationPriced)
+            => tier >= 1 && tier <= 4 && (durationPriced
+                ? IsNegotiableDuration(days) && cost == GetNegotiatedCost(tier, days)
+                : IsValidDuration(days) && cost == GetTreatyCost(tier));
+
+        internal static float GetDurationPenalty(int days)
+            => .2f * Math.Min(50, Math.Max(0, days - 50))
+                + .4f * Math.Min(100, Math.Max(0, days - 100))
+                + .6f * Math.Max(0, days - 200);
+
+        // Exhaustion already encourages peace. This small extra benefit stops growing at 100 days.
+        internal static float GetRecoveryUtility(int days, float enthusiasm)
+            => 15f * (Math.Min(50, Math.Max(0, days - DefaultDurationDays)) / 50f)
+                * (float)Clamp((10 - enthusiasm) / 10.0, 0, 1);
+
+        internal static int GetPreferredAiDuration(float enthusiasm, float warDays)
+        {
+            if (enthusiasm <= 0 && warDays >= 400) return 200;
+            if (enthusiasm <= 0 && warDays >= 200) return 150;
+            return enthusiasm < 10 ? 100 : DefaultDurationDays;
+        }
+
+        internal static int[] GetAiDurations(float enthusiasm, float warDays)
+        {
+            int preferred = GetPreferredAiDuration(enthusiasm, warDays);
+            if (preferred == 200) return new[] { 200, 150, 100, 50, 30 };
+            if (preferred == 150) return new[] { 150, 100, 50, 30 };
+            if (preferred == 100) return new[] { 100, 50, 30 };
+            return new[] { 50, 30 };
+        }
+
+        internal static float GetAiDurationAdjustment(int days, float enthusiasm, float warDays)
+            => -Math.Abs(days - GetPreferredAiDuration(enthusiasm, warDays)) / 10f
+                - GetDurationPenalty(days) * .1f;
 
         internal static int GetTier(int rightfulSuccessionPosition)
             => rightfulSuccessionPosition <= 0 ? 4 : Math.Min(4, rightfulSuccessionPosition);

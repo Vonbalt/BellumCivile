@@ -35,11 +35,11 @@ namespace BellumCivile
         }
         internal static int DurationForDraft(IEnumerable<TreatyTermRecord> terms)
             => terms?.FirstOrDefault(t => t?.Type == TreatyTermType.HostagePeace)?.DurationDays
-                ?? BellumCivileOptions.HostagePactDurationDays;
+                ?? HostagePactRules.DefaultDurationDays;
 
         internal static IReadOnlyList<TreatyHostageCandidate> Available(Kingdom supplier, Kingdom receiver, int? durationDays = null)
         {
-            int duration = durationDays ?? BellumCivileOptions.HostagePactDurationDays;
+            int duration = durationDays ?? HostagePactRules.DefaultDurationDays;
             if (duration <= 0 || !HostagePactRules.IsValidDuration(duration)
                 || !BellumCivileOptions.EnableWarPeaceLogicRevamp || supplier == null || receiver == null || supplier == receiver
                 || supplier.IsEliminated || receiver.IsEliminated || receiver.RulingClan == null
@@ -49,11 +49,20 @@ namespace BellumCivile
             return TreatyHostageEligibility.GetCandidates(supplier);
         }
         internal static TreatyTermRecord Create(Kingdom supplier, Kingdom receiver, TreatyHostageCandidate candidate, bool offering,
-            int? durationDays = null)
-            => new TreatyTermRecord(TreatyTermType.HostagePeace, candidate.Cost,
-                durationDays: durationDays ?? BellumCivileOptions.HostagePactDurationDays, fromKingdomId: supplier.StringId, toKingdomId: receiver.StringId,
+            int? durationDays = null, bool durationPriced = true)
+            => new TreatyTermRecord(TreatyTermType.HostagePeace,
+                durationPriced ? HostagePactRules.GetNegotiatedCost(candidate.Tier, durationDays ?? HostagePactRules.DefaultDurationDays)
+                    : candidate.Cost,
+                durationDays: durationDays ?? HostagePactRules.DefaultDurationDays, fromKingdomId: supplier.StringId, toKingdomId: receiver.StringId,
                 heroId: candidate.Hero.StringId, clanId: supplier.RulingClan.StringId, wasVoluntaryOffering: offering,
-                hostageTier: candidate.Tier, hostageReceivingClanId: receiver.RulingClan.StringId);
+                hostageTier: candidate.Tier, hostageReceivingClanId: receiver.RulingClan.StringId, hostageDurationPriced: durationPriced);
+
+        internal static List<TreatyTermRecord> WithDuration(IEnumerable<TreatyTermRecord> terms, int days)
+            => terms.Select(t => t.Type != TreatyTermType.HostagePeace ? t : new TreatyTermRecord(
+                t.Type, HostagePactRules.GetNegotiatedCost(t.HostageTier, days), durationDays: days,
+                fromKingdomId: t.FromKingdomId, toKingdomId: t.ToKingdomId, heroId: t.HeroId, clanId: t.ClanId,
+                wasVoluntaryOffering: t.WasVoluntaryOffering, hostageTier: t.HostageTier,
+                hostageReceivingClanId: t.HostageReceivingClanId, hostageDurationPriced: true)).ToList();
 
         internal static bool ValidShape(IEnumerable<TreatyTermRecord> terms, string winner, string loser, out string reason)
         {
@@ -73,7 +82,7 @@ namespace BellumCivile
                     || string.IsNullOrEmpty(term.HostageReceivingClanId) || term.ClanId == term.HostageReceivingClanId
                     || term.HostageTier < 1 || term.HostageTier > 4 || !HostagePactRules.IsValidDuration(term.DurationDays)
                     || term.DurationDays != hostages[0].DurationDays
-                    || term.WarScoreCost != HostagePactRules.GetTreatyCost(term.HostageTier))
+                    || !HostagePactRules.IsValidPrice(term.HostageTier, term.DurationDays, term.WarScoreCost, term.HostageDurationPriced))
                 { reason = "the draft contains an invalid hostage pledge"; return false; }
                 if (all.Any(t => t.Type == TreatyTermType.ArrangeRoyalMarriage
                     && (t.HeroId == term.HeroId || t.SecondaryHeroId == term.HeroId)))
@@ -104,7 +113,8 @@ namespace BellumCivile
             var candidate = TreatyHostageEligibility.GetCandidates(supplier).FirstOrDefault(c => c.Hero.StringId == term.HeroId);
             if (candidate == null)
             { reason = "the selected relative is no longer available as a hostage"; return false; }
-            if (candidate.Tier != term.HostageTier || candidate.Cost != term.WarScoreCost)
+            if (candidate.Tier != term.HostageTier
+                || !HostagePactRules.IsValidPrice(term.HostageTier, term.DurationDays, term.WarScoreCost, term.HostageDurationPriced))
             { reason = "the hostage succession rank has changed; select the relative again"; return false; }
             if (HostagePactBehavior.SelectHolding(receiver.RulingClan) == null)
             { reason = "the receiving ruling house has no town or castle free of siege for the hostage"; return false; }

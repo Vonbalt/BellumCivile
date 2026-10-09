@@ -221,6 +221,32 @@ internal static class PeaceCouncilReadinessTests
                 var offering = new TreatyTermRecord(TreatyTermType.Reparations, 200,
                     fromKingdomId: kingdom.StringId, toKingdomId: loser.StringId, wasVoluntaryOffering: true);
                 const string unreasonable = "Enemy making unreasonable demands";
+                foreach (bool reciprocal in new[] { false, true })
+                foreach (bool priced in new[] { false, true })
+                foreach (bool forcedPact in new[] { false, true })
+                {
+                    var pactProposal = new TreatyProposalRecord(war.WarKey, kingdom.StringId, loser.StringId,
+                        kingdom.StringId, _day, 100, forcedPact);
+                    pactProposal.AddTerm(new TreatyTermRecord(TreatyTermType.HostagePeace, priced ? 55 : 30,
+                        durationDays: 300, fromKingdomId: loser.StringId, toKingdomId: kingdom.StringId,
+                        hostageTier: 1, hostageDurationPriced: priced));
+                    if (reciprocal)
+                        pactProposal.AddTerm(new TreatyTermRecord(TreatyTermType.HostagePeace, priced ? 37 : 12,
+                            durationDays: 300, fromKingdomId: kingdom.StringId, toKingdomId: loser.StringId,
+                            hostageTier: 4, wasVoluntaryOffering: true, hostageDurationPriced: priced));
+                    // Spend the remaining budget so this isolated fixture needs no live realm search.
+                    pactProposal.AddTerm(Demand(100 - pactProposal.UsedWarScore));
+                    foreach (bool winnerSide in new[] { false, true })
+                    {
+                        var member = BudgetCouncil(pactProposal, winnerSide).Members.Single();
+                        check(Near(Amount(member, "Lengthy peace commitment"), priced ? -110 : 0)
+                            && Near(Amount(member, "Time to recover"), priced ? 15 : 0)
+                            && member.Reasons.Count(r => r.Label == Label("Lengthy peace commitment")) == (priced ? 1 : 0),
+                            $"Actual council prices duration once: reciprocal={reciprocal}; new={priced}; forced={forcedPact}; winner={winnerSide}");
+                        check(!forcedPact || member.Utility >= 200,
+                            "Duration assessment preserves deliberate forced-capitulation behavior");
+                    }
+                }
                 check(!HasBudget(null, out _), "Settlement budget guard rejects a missing proposal");
 
                 foreach (bool forced in new[] { false, true })

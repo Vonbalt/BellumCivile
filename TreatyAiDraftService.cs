@@ -65,6 +65,17 @@ namespace BellumCivile
         private const int CouncilAdjustmentStep = 10;
         private const float MinimumReciprocalDemandPriority = 45f;
 
+        internal static IEnumerable<TreatyAiDraftResult> ShorterHostageDrafts(TreatyAiDraftResult draft)
+        {
+            var pact = draft.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace);
+            if (pact == null) yield break;
+            foreach (int days in new[] { 150, 100, 50, 30 })
+                if (days < pact.DurationDays)
+                    yield return new TreatyAiDraftResult(TreatyHostageTerms.WithDuration(draft.Terms, days),
+                        draft.Posture, draft.TargetSpend, draft.Summary + $"; shorten pact to {days} days",
+                        draft.IsObjectiveAlternative);
+        }
+
         public static int GetCouncilAdjustmentStep(int budget)
         {
             return Math.Max(5, Math.Min(CouncilAdjustmentStep, Math.Max(1, budget / 5)));
@@ -464,10 +475,13 @@ namespace BellumCivile
         {
             List<TreatyAiTermCandidate> candidates = new List<TreatyAiTermCandidate>();
             Hero ruler = (drafter ?? winner)?.RulingClan?.Leader;
-            int durationDays = BellumCivileOptions.HostagePactDurationDays;
-
             if (war?.ConflictType == WarScoreConflictType.ForeignWar)
-                foreach (var hostage in TreatyHostageTerms.Available(loser, winner, durationDays))
+            {
+                float enthusiasm = CalculateRealmWarWill(drafter ?? winner, war);
+                float warDays = Math.Max(0, (float)CampaignTime.Now.ToDays - war.StartedDay);
+                int[] durations = HostagePactRules.GetAiDurations(enthusiasm, warDays);
+                // Availability is independent of duration; scan the dynasty only once.
+                foreach (var hostage in TreatyHostageTerms.Available(loser, winner))
                 {
                     float priority = 28 + GetTrait(ruler, DefaultTraits.Calculating) * 6
                         + GetTrait(ruler, DefaultTraits.Honor) * 4 + GetTrait(ruler, DefaultTraits.Mercy) * 4
@@ -476,9 +490,12 @@ namespace BellumCivile
                         priority -= (float)HostagePactRules.GetHouseReluctance(hostage.Tier,
                             GetTrait(ruler, DefaultTraits.Mercy), ruler == null ? 0 : ruler.GetRelation(hostage.Hero)) * .5f;
                     if (priority >= 20)
-                        candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering, durationDays),
-                            priority, "secure the peace with a royal hostage"));
+                        foreach (int duration in durations)
+                            candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering, duration),
+                                priority + HostagePactRules.GetAiDurationAdjustment(duration, enthusiasm, warDays),
+                                $"secure the peace with a royal hostage for {duration} days"));
                 }
+            }
 
             foreach (TreatyClaimRenunciationCandidate claim in TreatyDraftService.GetAvailableClaimRenunciations(loser, winner))
             {

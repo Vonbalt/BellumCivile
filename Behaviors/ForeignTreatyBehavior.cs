@@ -1151,8 +1151,10 @@ namespace BellumCivile.Behaviors
                 var objectiveDraft = TreatyAiDraftService.BuildObjectiveDraft(war, proposal, winner, loser, drafter, spendTarget, courtPreference);
                 if (objectiveDraft != null) candidates.Add(objectiveDraft);
 
-                foreach (TreatyAiDraftResult candidate in candidates)
+                int initialCandidateCount = candidates.Count;
+                for (int candidateIndex = 0; candidateIndex < candidates.Count; candidateIndex++)
                 {
+                    TreatyAiDraftResult candidate = candidates[candidateIndex];
                     if (!TreatyDraftService.TryValidateAndNormalize(
                         war,
                         proposal,
@@ -1182,6 +1184,10 @@ namespace BellumCivile.Behaviors
                         forcedAcceptance: proposal.IsForced,
                         playerRulerAuthorizesOverride: false,
                         out bool loserOverride);
+
+                    // Only rejected initial drafts need duration alternatives. Do not recursively expand them.
+                    if (candidateIndex < initialCandidateCount && (!winnerAccepts || !loserAccepts))
+                        candidates.AddRange(TreatyAiDraftService.ShorterHostageDrafts(candidate));
 
                     var normalizedCandidate = new TreatyAiDraftResult(normalized, candidate.Posture, candidate.TargetSpend,
                         candidate.Summary, candidate.IsObjectiveAlternative);
@@ -1231,7 +1237,8 @@ namespace BellumCivile.Behaviors
             BellumCivileLogger.Log(
                 $"AI treaty draft selected{(bestDraftRatifiedByBoth ? string.Empty : " as best available compromise")}; war={war.WarKey}; drafter={drafter.StringId}; "
                 + $"posture={bestDraft.Posture}; target={bestDraft.TargetSpend}; used={proposal.UsedWarScore}/{budget}; "
-                + $"score={bestScore:0.0}; {bestCouncilReport}; motives={bestDraft.Summary}.");
+                + $"score={bestScore:0.0}; pact_days={proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace)?.DurationDays ?? 0}; "
+                + $"{bestCouncilReport}; motives={bestDraft.Summary}.");
             return true;
         }
 
@@ -1898,7 +1905,7 @@ namespace BellumCivile.Behaviors
             QueueRebelDemandResolutions(proposal);
             try { CourtRallySettlement.Record(war,proposal,rallyGold,rallyDelivered); }
             catch (Exception ex) { BellumCivileLogger.Log("Court rally settlement receipt interrupted: " + ex); }
-            BellumCivileLogger.Log($"Foreign treaty applied; war={war.WarKey}; winner={winner.StringId}; loser={loser.StringId}; used_ws={proposal.UsedWarScore}/{proposal.WarScoreBudget}; white_peace={whitePeace}.");
+            BellumCivileLogger.Log($"Foreign treaty applied; war={war.WarKey}; winner={winner.StringId}; loser={loser.StringId}; used_ws={proposal.UsedWarScore}/{proposal.WarScoreBudget}; white_peace={whitePeace}; pact_days={proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace)?.DurationDays ?? 0}.");
             return true;
         }
 

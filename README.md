@@ -566,9 +566,13 @@ Unexchanged foreign nobles can remain captive after peace under retained-prisone
 
 ### Hostage-Backed Pacts
 
-Treaties can demand or offer a blood relative of the supplying ruler for **100 days by default**. Children are eligible. Succession standing supplies four value tiers; voluntary pledges use shared half-value offering credit.
+Treaties can demand or offer a blood relative of the supplying ruler for **50 days by default**. Children are eligible. Succession standing supplies four base prices: first heir 30 WS, second heir 24, third heir 18, and later heirs or other eligible relatives 12. The price is `base + (days - 50) / 10`; voluntary pledges use shared half-value offering credit.
 
-The **Hostage Pact Duration (Days)** MCM slider ranges from 0 to 1,000 and applies when a new pledge is drafted. Reciprocal pledges share that duration, which is saved before handover and retained through delivery recovery. Existing pacts keep their saved expiry; older records retain their original 100-day agreement. Setting 0 disables new pacts for players and NPCs without invalidating existing or pending agreements. A zero-day pact, if signed, returns its hostages on the next daily tick.
+Duration is negotiated in the parley's Politics tab, from 30 to 1,000 days in ten-day steps. A single control updates both reciprocal pledges and their costs. The duration MCM slider is removed. Duration and pricing are saved before handover and retained through delivery recovery. Existing pacts keep their saved expiry; records without a duration snapshot retain their original 100-day agreement. Pending legacy clauses retain tier-only pricing and arbitrary previously configured durations until explicitly repriced by the duration control. Legacy zero-day pacts still resolve on the next daily tick. New pricing is identified by appended save fields, with absent fields selecting legacy validation.
+
+Both councils assess the duration once per pact, not per hostage: no penalty through 50 days, then -2 utility per ten days through 100, -4 through 200, and -6 thereafter. Exhaustion below 10 can add up to +15 recovery utility, increasing between 50 and 100 days and never growing beyond 100. Existing hostage-family reluctance remains separate and unchanged. Legacy pending clauses do not acquire these new duration modifiers until repriced.
+
+NPC drafting normally prefers 50 days, or 100 with strength-weighted realm enthusiasm below 10. Complete exhaustion after at least 200 days of war permits a 150-day preference; after 400 days it permits 200. The shortlist always includes 50 and 30, and never exceeds five durations or 200 days, including capitulation. It is independent of surplus war score. Rejected initial drafts can be retried with shorter hostage terms without rebuilding dynasty candidates; those fallbacks do not recursively generate further alternatives. Player-authored longer pacts face the same council evaluation, while existing forced-capitulation rules still apply. Draft-selection logs include the chosen duration for campaign balance audits.
 
 Hostages remain in their own house but enter protected custody in an eligible captor stronghold. Ordinary escape, ransom, and manual release are blocked. Encyclopedia/clan descriptions identify treaty custody; the broker explains why ordinary ransom is unavailable.
 
@@ -684,7 +688,6 @@ Use `BellumCivileNotifications` for optional political chat messages. Its Disabl
 | --- | --- |
 | Presentation | Anglicized titles; Sovereign Title name display; both widgets on |
 | War/peace | Revamp on; reluctance 100 days (1-500); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
-| Hostage pacts | Duration 100 days (0-1,000), fixed per drafted agreement; 0 disables new pacts without shortening existing ones |
 | Treaty wealth/captivity | 5,000 gold or 250 daily tribute per point; dungeon/mobile escape 1%/3% |
 | Court | One-year terms (0.25-4); five-day deliberation; rebellion threshold 100; automatic treason indictments on |
 | Titles/armies | Three-year fabrication; minimum two children for formation; restricted summons on; friend exception +60 relation |

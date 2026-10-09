@@ -33,6 +33,8 @@ namespace BellumCivile.Behaviors
                     var holding = TreatyHostageTerms.SettlementHolding(to.RulingClan, war, proposal.Terms);
                     if (record == null || holding == null) return null;
                     record.Holding = holding;
+                    record.NegotiatedCost = term.WarScoreCost;
+                    record.DurationPriced = term.HostageDurationPriced;
                     return record;
                 }
                 pact = new HostagePactRecord { Id = Guid.NewGuid().ToString("N"), TreatyProposalId = proposal.ProposalId,
