@@ -212,7 +212,7 @@ namespace BellumCivile.Behaviors
             }
             var partition = Campaign.Current.GetCampaignBehavior<PartitionSuccessionBehavior>();
             if (partition?.PrepareAbdicationCadet(record) != true)
-                return DeferAbdication(record, "cadet household preparation is incomplete");
+                return DeferAbdication(record, record.AbdicationFailure ?? "cadet household preparation is incomplete");
             titles.MoveCrownHeirClaims(record.Heir, source, record.Cadet);
             foreach (string id in record.EndowmentFiefs.Except(record.DeliveredFiefs).ToList())
             {

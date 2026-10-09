@@ -235,6 +235,7 @@ namespace BellumCivile.Behaviors
         private void SettleCrossClanShare(CrossClanEstateRecord record, CrossClanEstateShare share,
             FeudalTitleBehavior titles, Hero readyCrownHeir)
         {
+            PreservePendingCadetHead(share.CadetPlan?.Cadet, share.CadetPlan?.Heir);
             share.SupersededFiefs = share.SupersededFiefs ?? new List<string>();
             share.SupersededTitles = share.SupersededTitles ?? new List<string>();
             share.SovereignTransfers = share.SovereignTransfers ?? new List<string>();
@@ -320,14 +321,9 @@ namespace BellumCivile.Behaviors
                     }
                     if (heir.IsPrisoner || heir.PartyBelongedTo?.MapEvent != null || heir.PartyBelongedTo?.SiegeEvent != null)
                     { ReportEstateShare(record, share, "awaiting heir freedom or battle completion"); return; }
-                    share.CadetPlan.Household.RemoveAll(id =>
-                        CrownAccessionBehavior.ResolveAbdicationHero(id)?.IsDead == true);
-                    if (share.CadetPlan.Household.Select(CrownAccessionBehavior.ResolveAbdicationHero)
-                        .Any(h => h == null || !h.IsAlive || h.IsPrisoner || h.IsTraveling
-                            || h.PartyBelongedTo?.MapEvent != null || h.PartyBelongedTo?.SiegeEvent != null))
-                    { ReportEstateShare(record, share, "awaiting cadet household availability"); return; }
+                    ReconcileEstateCadetHousehold(record, share);
                     if (!PrepareAbdicationCadet(share.CadetPlan))
-                    { ReportEstateShare(record, share, "awaiting cadet preparation"); return; }
+                    { ReportEstateShare(record, share, "awaiting cadet preparation: " + share.CadetPlan.AbdicationFailure); return; }
                     titles.MoveCrownHeirClaims(heir, record.Source, heir.Clan);
                 }
                 share.Recipient = heir.Clan;
@@ -424,6 +420,29 @@ namespace BellumCivile.Behaviors
                 BellumCivileNotifications.Show(message, BellumNotificationColors.Inheritance,
                     primaryKingdom: record.Realm, primaryClan: recipient, secondaryClan: record.Source);
             }
+        }
+
+        private static void ReconcileEstateCadetHousehold(CrossClanEstateRecord estate, CrossClanEstateShare share)
+        {
+            var plan = share.CadetPlan;
+            if (plan?.Household == null) return;
+            var otherHeirs = new HashSet<Hero>(estate.Shares.Where(s => s != null && s != share).Select(s => s.Heir));
+            Hero legalHead = RegencyBehavior.Instance?.GetLegalClanHead(estate.Source);
+            plan.Household.RemoveAll(id =>
+            {
+                if (id == plan.Heir?.StringId) return false;
+                Hero member = CrownAccessionBehavior.ResolveAbdicationHero(id);
+                // Unresolved references still defer preparation. Already-transferred living
+                // members stay put; only unexecuted dependant moves are reconciled.
+                if (member == null || (member.IsAlive && plan.Cadet != null && member.Clan == plan.Cadet)) return false;
+                bool remove = member.IsDead || otherHeirs.Contains(member) || member == estate.Source.Leader
+                    || member == legalHead || member == Hero.MainHero
+                    || (member.Clan != null && member.Clan != estate.Source)
+                    || CrownAccessionBehavior.Instance?.IsPendingCrownHeir(member) == true;
+                if (remove)
+                    BellumCivileLogger.Log($"Estate cadet dependant retained outside household; cadet={plan.CadetId}; heir={plan.Heir?.StringId}; member={id}; current_house={member.Clan?.StringId}; separate_beneficiary={otherHeirs.Contains(member)}.");
+                return remove;
+            });
         }
 
         internal static void SupersedeEstateTitle(CrossClanEstateShare share, string id)

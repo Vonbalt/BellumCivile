@@ -135,6 +135,10 @@ namespace BellumCivile.Behaviors
                     foreach (var share in estate.Shares)
                         if (share != null && !share.Completed && share.CadetPlan != null)
                             PreservePendingCadetHead(share.CadetPlan.Cadet, share.CadetPlan.Heir);
+            foreach (var pending in _pendingPartitions)
+                foreach (var share in pending?.EstateShares ?? Enumerable.Empty<CrossClanEstateShare>())
+                    if (share != null && !share.Completed && share.CadetPlan != null)
+                        PreservePendingCadetHead(share.CadetPlan.Cadet, share.CadetPlan.Heir);
         }
 
         private void OnHourlyTick()
@@ -503,11 +507,24 @@ namespace BellumCivile.Behaviors
 
         internal bool PrepareAbdicationCadet(CrownAccessionRecord record)
         {
+            if (record == null) return false;
+            if (record.Cadet == null && !string.IsNullOrWhiteSpace(record.CadetId))
+                record.Cadet = Clan.All.FirstOrDefault(clan => clan.StringId == record.CadetId);
+            // A resumed household may already exist even though its estate is still pending.
+            PreservePendingCadetHead(record.Cadet, record.Heir);
+            try { return PrepareAbdicationCadetCore(record); }
+            finally { PreservePendingCadetHead(record.Cadet, record.Heir); }
+        }
+
+        private bool PrepareAbdicationCadetCore(CrownAccessionRecord record)
+        {
             Clan parent = record.EndowmentHouse;
             Hero heir = record.Heir;
+            if (!TryValidateCadetHousehold(record, out var household)) return false;
             Settlement home = record.EndowmentFiefs.Select(Settlement.Find).FirstOrDefault()
                 ?? parent.HomeSettlement ?? Settlement.All.FirstOrDefault(s => s.IsTown || s.IsCastle);
-            if (home == null || heir == null || string.IsNullOrWhiteSpace(record.CadetId)) return false;
+            if (home == null || string.IsNullOrWhiteSpace(record.CadetId))
+                return DeferCadetPreparation(record, "missing residence or cadet identity");
             if (record.PreserveHeirParty && !record.HeirPartyCaptured)
             {
                 var party = heir.PartyBelongedTo;
@@ -518,14 +535,13 @@ namespace BellumCivile.Behaviors
             if (retainedParty != null && (!retainedParty.IsActive || !retainedParty.IsLordParty
                 || retainedParty == MobileParty.MainParty || retainedParty.LeaderHero != heir
                 || retainedParty.MapEvent != null || retainedParty.SiegeEvent != null
-                || (retainedParty.ActualClan != parent && retainedParty.ActualClan != record.Cadet))) return false;
+                || (retainedParty.ActualClan != parent && retainedParty.ActualClan != record.Cadet)))
+                return DeferCadetPreparation(record, "retained heir party is unavailable");
             // Save the clan reference immediately. Recovery initializes this same object,
             // never creates a second branch or computes a different inheritance package.
-            if (record.Cadet == null)
-                record.Cadet = Clan.All.FirstOrDefault(clan => clan.StringId == record.CadetId)
-                    ?? Clan.CreateClan(record.CadetId);
+            if (record.Cadet == null) record.Cadet = Clan.CreateClan(record.CadetId);
             Clan cadet = record.Cadet;
-            if (cadet.IsEliminated) return false;
+            if (cadet.IsEliminated) return DeferCadetPreparation(record, "cadet house was eliminated");
             if (!record.CadetInitialized)
             {
                 var visuals = KingdomVisualHelper.ResolveCadetBranchVisuals(parent, record.CadetId);
@@ -544,28 +560,36 @@ namespace BellumCivile.Behaviors
                 KingdomVisualHelper.AssignCadetKingdom(cadet, record.HouseholdRealm, visuals);
                 record.CadetInitialized = true;
             }
-            if (cadet.Kingdom != record.HouseholdRealm) return false;
-            foreach (string id in record.Household)
+            if (cadet.Kingdom != record.HouseholdRealm)
+                return DeferCadetPreparation(record, "cadet house changed realm");
+            // Found the house before moving dependants. An interrupted later transfer
+            // must not leave a registered clan without a head for native daily finance.
+            foreach (Hero member in household)
             {
-                Hero member = CrownAccessionBehavior.ResolveAbdicationHero(id);
-                if (member == null || member == Hero.MainHero || member == parent.Leader) return false;
-                if (member.Clan == parent) TransferHeroToClan(member, parent, cadet, preserveNonLeaderArmy: true,
-                    retainedParty: retainedParty);
-                if (member.Clan != cadet) return false;
+                if (!ValidateCadetMember(record, member)) return false;
+                try
+                {
+                    if (member.Clan == parent) TransferHeroToClan(member, parent, cadet, preserveNonLeaderArmy: true,
+                        retainedParty: retainedParty, installFoundingHead: member == heir);
+                }
+                finally
+                {
+                    if (member == heir) PreservePendingCadetHead(cadet, heir);
+                }
+                if (member.Clan != cadet)
+                    return DeferCadetPreparation(record, "household transfer incomplete: " + member.StringId);
             }
             if (retainedParty != null)
             {
                 retainedParty.ActualClan = cadet;
                 retainedParty.Party.SetVisualAsDirty();
-                if (heir.PartyBelongedTo != retainedParty || retainedParty.ActualClan != cadet) return false;
+                if (heir.PartyBelongedTo != retainedParty || retainedParty.ActualClan != cadet)
+                    return DeferCadetPreparation(record, "retained heir party transfer is incomplete");
             }
             if (heir.Age < SuccessionLawHelper.GetAgeOfMajority())
             {
-                try
-                {
-                    if (RegencyBehavior.Instance?.EnsureCrownHeirRegency(cadet, heir, record.Predecessor) != true) return false;
-                }
-                finally { PreservePendingCadetHead(cadet, heir); }
+                if (RegencyBehavior.Instance?.EnsureCrownHeirRegency(cadet, heir, record.Predecessor) != true)
+                    return DeferCadetPreparation(record, "awaiting a usable regent");
             }
             else if (cadet.Leader != heir) cadet.SetLeader(heir);
             cadet.ConsiderAndUpdateHomeSettlement();
@@ -578,13 +602,53 @@ namespace BellumCivile.Behaviors
                 record.CadetAnnounced = true;
                 CampaignEventDispatcher.Instance.OnClanCreated(cadet, isCompanion: false);
             }
+            record.AbdicationFailure = null;
             return true;
+        }
+
+        private static bool TryValidateCadetHousehold(CrownAccessionRecord record, out List<Hero> household)
+        {
+            household = new List<Hero>();
+            if (record.EndowmentHouse == null || record.EndowmentHouse.IsEliminated || record.Heir == null
+                || record.Household == null || !record.Household.Contains(record.Heir.StringId))
+                return DeferCadetPreparation(record, "missing source house or founding heir in household");
+            // Resolve every member before registering a clan or transferring anyone.
+            household.Add(record.Heir);
+            foreach (string id in record.Household.Where(id => id != record.Heir.StringId).Distinct())
+            {
+                Hero member = CrownAccessionBehavior.ResolveAbdicationHero(id);
+                if (member == null) return DeferCadetPreparation(record, "unresolved household member: " + id);
+                household.Add(member);
+            }
+            return household.All(member => ValidateCadetMember(record, member));
+        }
+
+        private static bool ValidateCadetMember(CrownAccessionRecord record, Hero member)
+        {
+            Clan parent = record.EndowmentHouse;
+            if (!member.IsAlive || member.IsDisabled || member == Hero.MainHero || member == parent.Leader
+                || member == RegencyBehavior.Instance?.GetLegalClanHead(parent))
+                return DeferCadetPreparation(record, "unavailable or protected household member: " + member.StringId);
+            if (member.Clan == null || (member.Clan != parent && member.Clan != record.Cadet))
+                return DeferCadetPreparation(record, "household member changed house: " + member.StringId
+                    + "; current_house=" + member.Clan?.StringId);
+            if (member.IsPrisoner || member.IsTraveling || member.PartyBelongedTo?.MapEvent != null
+                || member.PartyBelongedTo?.SiegeEvent != null)
+                return DeferCadetPreparation(record, "household member temporarily unavailable: " + member.StringId);
+            return true;
+        }
+
+        private static bool DeferCadetPreparation(CrownAccessionRecord record, string reason)
+        {
+            if (record.AbdicationFailure != reason)
+                BellumCivileLogger.Log($"Cadet household preparation deferred; cadet={record.CadetId}; heir={record.Heir?.StringId}; reason={reason}.");
+            record.AbdicationFailure = reason;
+            return false;
         }
 
         internal static void PreservePendingCadetHead(Clan cadet, Hero heir)
         {
-            // Keep native daily finance safe while the estate waits for a usable adult regent.
-            // This is not a completed regency and must not release the pending inheritance.
+            // A provisional head does not complete household preparation or release its estate.
             if (cadet != null && !cadet.IsEliminated && cadet.Leader == null && heir?.IsAlive == true && heir.Clan == cadet)
                 cadet.SetLeader(heir);
         }
@@ -695,7 +759,7 @@ namespace BellumCivile.Behaviors
             && party.MapEvent == null && party.SiegeEvent == null;
 
         private static void TransferHeroToClan(Hero hero, Clan parentClan, Clan cadetClan, bool preserveNonLeaderArmy = false,
-            MobileParty retainedParty = null)
+            MobileParty retainedParty = null, bool installFoundingHead = false)
         {
             if (hero == null || cadetClan == null || hero.Clan == cadetClan)
                 return;
@@ -731,8 +795,14 @@ namespace BellumCivile.Behaviors
                 }
             }
 
-            if (hero.Clan == parentClan)
-                hero.Clan = cadetClan;
+            try
+            {
+                if (hero.Clan == parentClan) hero.Clan = cadetClan;
+            }
+            finally
+            {
+                if (installFoundingHead) PreservePendingCadetHead(cadetClan, hero);
+            }
 
             foreach (Hero member in oldClan?.Heroes ?? Enumerable.Empty<Hero>())
                 member.UpdateHomeSettlement();

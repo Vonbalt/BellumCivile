@@ -140,6 +140,12 @@ internal static class Program
                 TitleNameCacheTests.Run(Check);
                 Console.WriteLine($"{_checks} title-name cache checks passed.");
             }
+            else if (args.Contains("--cadet-household-preparation"))
+            {
+                CadetHouseholdPreparationTests.Run(Check);
+                CadetRegencyFoundingTests.Run(Check);
+                Console.WriteLine($"{_checks} cadet household preparation checks passed.");
+            }
             else if (args.Contains("--clan-finance-diagnostic"))
             {
                 ClanFinanceDiagnosticTests.Run(Check);
@@ -907,6 +913,7 @@ internal static class Program
         MarriageCombinedScoreTests.Run(Check);
         CourtTradeSaveDefinitionTests.Run(Check);
         CadetRegencyFoundingTests.Run(Check);
+        CadetHouseholdPreparationTests.Run(Check);
         ClanFinanceDiagnosticTests.Run(Check);
         EstateSovereignRoutingTests.Run(Check);
         LongRunRecoveryTests.Run(Check);
