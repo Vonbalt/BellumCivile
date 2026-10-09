@@ -464,7 +464,7 @@ namespace BellumCivile
                 ? root.Value : "{=!}" + root.ToString();
         }
 
-        private static TextObject GetNativeNameText(Kingdom kingdom)
+        internal static TextObject GetNativeNameText(Kingdom kingdom)
         {
             if (kingdom == null)
                 return null;

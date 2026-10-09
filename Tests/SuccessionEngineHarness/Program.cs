@@ -130,6 +130,11 @@ internal static class Program
                 RealmNameTests.Run(Check);
                 Console.WriteLine($"{_checks} realm naming checks passed.");
             }
+            else if (args.Contains("--banner-compatibility"))
+            {
+                BannerCompatibilityTests.Run(Check);
+                Console.WriteLine($"{_checks} banner compatibility checks passed.");
+            }
             else if (args.Contains("--title-name-cache"))
             {
                 TitleNameCacheTests.Run(Check);

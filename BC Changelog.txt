@@ -739,3 +739,7 @@ Improved marriage logic with matrilineal arrangements to protect clan and crown 
 Replaces language-dependent clan and capital names with stable IDs, correcting title initialization in non-English games. (credits and thanks to OhMyMike57/Cartoonist57 for the fix)
 Restores missing relation and faction-mood tooltip rows, including translations using full-width colons. (credits and thanks to OhMyMike57/Cartoonist57 for the fix)
 Captured councillors now retain their offices, gradually accumulating controversy and losing support while their duties remain suspended until release.
+Cadet branches now inherit custom family banners exactly, preserving all colors, layers and details.
+Improved recognition and preservation of custom banners during kingdom transfers and color synchronization.
+Fixed Bellum’s realm names preventing POC from applying kingdom-specific colors and shield patterns.
+Fixed POC equipment lookups confusing parent and cadet houses with identical banners.

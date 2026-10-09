@@ -541,7 +541,7 @@ namespace BellumCivile.Behaviors
                 cadet.Renown = parent.Renown;
                 SetClanTier(cadet, parent.Tier - C.PartitionSuccessionCadetTierPenalty);
                 cadet.SetInitialHomeSettlement(home);
-                cadet.Kingdom = record.HouseholdRealm;
+                KingdomVisualHelper.AssignCadetKingdom(cadet, record.HouseholdRealm, visuals);
                 record.CadetInitialized = true;
             }
             if (cadet.Kingdom != record.HouseholdRealm) return false;
@@ -635,7 +635,7 @@ namespace BellumCivile.Behaviors
             cadetClan.Renown = parentClan.Renown;
             SetClanTier(cadetClan, parentClan.Tier - C.PartitionSuccessionCadetTierPenalty);
             cadetClan.SetInitialHomeSettlement(residence.Settlement);
-            cadetClan.Kingdom = kingdom;
+            KingdomVisualHelper.AssignCadetKingdom(cadetClan, kingdom, visuals);
 
             TransferHouseholdToCadet(parentClan, cadetClan, heir);
             cadetClan.SetLeader(heir);

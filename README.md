@@ -427,7 +427,7 @@ Matching shares short-lived house-health, kinship, claim, and political calculat
 
 ### Cadet Households and Mercenary Companies
 
-Marriage preserves personal Crown rights without immediately creating a cadet house. Later accession can require a separate ruling house; the saved plan handles household and estate delivery. Existing children do not automatically move with an incoming Crown heir. Separate-household newborns follow their mother's current clan. Cadet banners preserve parent geometry and the intended palette.
+Marriage preserves personal Crown rights without immediately creating a cadet house. Later accession can require a separate ruling house; the saved plan handles household and estate delivery. Existing children do not automatically move with an incoming Crown heir. Separate-household newborns follow their mother's current clan. Cadets inheriting recognized custom house banners receive independent, exact copies, including all colors, layers and strokes. Vanilla-style houses retain the generated cadet-banner path.
 
 Dynamic mercenary evaluation defaults to once every **five years per house**. Adventurous adults not due to inherit may join a cultural company or found one. Defaults are **10 companies**, three adult officers, and starting tier two. Zero prevents new departures/formations; lowering the cap does not destroy existing companies. Companies use local troops and configurable cultural names.
 
@@ -754,7 +754,13 @@ True Noble Opinion integration retains hero-pair identity, including regular mem
 
 HAP uses external requisition for Stockpile Provisions instead of direct food creation: up to 2% of eligible market food, subject to HAP capacity/supply. Bellum pays administration; HAP owns the food tooltip. Construction retains Bellum's modifier. See `CouncilAssignmentHapIntegration.cs`, `CouncilAssignmentRuntimePatches.cs`, and `BellumCouncilAssignmentModels.cs`.
 
-`KingdomVisualHelper` preserves recognized custom banners and limits recoloring to appropriate paths. Cadet/rebel banners copy geometry before changing palette. Test banner integrations with generated houses and realm transitions.
+`KingdomVisualHelper` recognizes layered artwork, mixed layer colors, non-kingdom palettes, and explicitly configured POC house banners. Custom cadet banners are copied without recoloring; kingdom assignment and native banner synchronization protect that artwork while keeping a ruling house's personal banner separate from its kingdom banner. Generated cadet banners and dynamic mercenary banners retain their existing generation rules. Existing damaged banners are not reconstructed, and no new save fields are required.
+
+`Patches/PocBannerCompatibility.cs` optionally adapts POC's internal realm-name reads: an explicitly configured displayed name wins, followed by a matching native realm name. This keeps sovereign-title display names from hiding POC's kingdom-specific uniforms and shield-pattern rules. It does not edit POC configuration files or select shield patterns. Explicit POC banner replacements, palette overrides and kingdom-color-following rules remain authoritative. Unsupported APIs are logged and left in POC's control. Banner Color Persistence can continue protecting native banner colors alongside Bellum.
+
+`Patches/PocEquipmentOwnerCompatibility.cs` supplies the actual party's clan to POC's equipment fallback when available, with the hero's clan and POC's original cache as fallbacks. This prevents identical parent/cadet artwork from selecting the wrong house's settings; POC still owns pattern selection and equipment rendering.
+
+The engine harness's `--banner-compatibility` checks cover exact copies, creation/synchronization boundaries, ownership precedence and name resolution. Set `BellumTestPocModule` to an installed POC DLL and optionally `BellumTestBannerPersistenceModule` to the persistence DLL to exercise their real configuration and synchronization code. These checks do not replace campaign save/load and battle-rendering tests; include parent/cadet parties with identical artwork in different realms.
 
 ### Naval DLC / War Sails
 

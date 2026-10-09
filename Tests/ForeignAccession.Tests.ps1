@@ -14,7 +14,7 @@ Check ($foreign -match 'ForeignMoveStarted = true' -and $foreign.IndexOf('Foreig
 Check ($foreign -match 'ForeignInfluenceRestored' -and $foreign -match 'ForeignLegalRightsUnchanged') 'Foreign completion validates legal rights and restores recorded influence once.'
 Check ($crown.IndexOf('PrepareForeignCrownClan(record, house)') -lt $crown.IndexOf('ChangeRulingClanAction.Apply(record.Realm, house)')) 'Incoming membership settles before the target Crown changes hands.'
 Check ($crown -match 'record.IncomingHousePrepared \|\| record.ForeignMovingClan != null') 'An interrupted foreign transfer cannot silently become an emergency election.'
-Check ($incoming -match 'IncomingSourceRealm = source.Kingdom' -and (Read 'Behaviors/PartitionSuccessionBehavior.cs') -match 'cadet.Kingdom = record.HouseholdRealm') 'A non-leading heir receives its cadet estate in the source realm first.'
+Check ($incoming -match 'IncomingSourceRealm = source.Kingdom' -and (Read 'Behaviors/PartitionSuccessionBehavior.cs').Contains('AssignCadetKingdom(cadet, record.HouseholdRealm, visuals)')) 'A non-leading heir receives its cadet estate in the source realm first, preserving its banner.'
 Check ($incoming -match 't.TitleId != sourcePoliticalCrown' -and $incoming -match 't.TitleType < sourceCrown.TitleType') 'An inheritance advance cannot strip a living source monarch of sovereign Crown titles.'
 Check ($foreign -notmatch 'SetParentTitle|SetDeJureHolder|Kingdom.All|ChangeOwnerOfSettlementAction') 'Movement does not rewrite legal hierarchy, confiscate holdings or move subordinate clans.'
 Check ((Read 'Behaviors/DynasticHeirBehavior.cs') -match 'BC_DynasticHeiress_RightsRetained') 'Hereditary foreign marriage narration no longer announces automatic renunciation.'

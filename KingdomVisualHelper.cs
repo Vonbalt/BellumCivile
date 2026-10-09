@@ -19,6 +19,7 @@ namespace BellumCivile
         private static PropertyInfo _kingdomColor2Property;
         private static PropertyInfo _bannerManagerColorPaletteProperty;
         private static MethodInfo _clanUpdateBannerColorsAccordingToKingdomMethod;
+        [ThreadStatic] private static Clan _generatedCadetAssignment;
         private static readonly int[] MetalColorIds = new[]
         {
             3, 5, 7, 11, 13, 15, 17, 19, 20, 21, 22, 26, 27, 28, 31, 32, 33, 34, 35, 36, 38, 39, 41, 42, 43, 44, 45,
@@ -122,7 +123,8 @@ namespace BellumCivile
             if (sourceKingdom == null)
                 return new KingdomFoundingVisuals(foundingBanner, foundingPrimary, foundingSecondary, recolorMemberClans: false);
 
-            if (ShouldPreserveBreakawayBanner(sourceKingdom, foundingSourceBanner, foundingPrimary, foundingSecondary))
+            if (ShouldPreserveClanBanner(foundingClan)
+                || ShouldPreserveBreakawayBanner(sourceKingdom, foundingSourceBanner, foundingPrimary, foundingSecondary))
                 return new KingdomFoundingVisuals(foundingBanner, foundingPrimary, foundingSecondary, recolorMemberClans: false);
 
             TailoredBannerPalette palette = BuildTailoredBannerPalette(seedKey, sourceBannerPrimary, sourceBannerSecondary);
@@ -193,6 +195,13 @@ namespace BellumCivile
         public static CadetBranchVisuals ResolveCadetBranchVisuals(Clan parentClan, string seedKey)
         {
             Banner parentBanner = parentClan?.ClanOriginalBanner ?? parentClan?.Banner;
+            if (ShouldPreserveClanBanner(parentClan))
+            {
+                Banner inheritedBanner = CloneBanner(parentBanner);
+                return new CadetBranchVisuals(inheritedBanner, inheritedBanner.GetPrimaryColor(),
+                    inheritedBanner.GetFirstIconColor(), copiedParentArtwork: true);
+            }
+
             Kingdom kingdom = parentClan?.Kingdom;
             uint sourcePrimary = GetKingdomPrimaryBannerColor(kingdom)
                 ?? kingdom?.Color
@@ -205,47 +214,9 @@ namespace BellumCivile
                 ?? parentBanner?.GetFirstIconColor()
                 ?? GetPaletteFallbackSecondary();
 
-            bool copyParentArtwork = ShouldPreserveClanBanner(parentClan);
             TailoredBannerPalette palette = BuildTailoredBannerPalette(seedKey, sourcePrimary, sourceSecondary);
-            Banner cadetBanner = copyParentArtwork ? CloneBanner(parentBanner) : CreateTailoredRandomBanner(seedKey, palette);
-
-            if (cadetBanner == null)
-                cadetBanner = CreateTailoredRandomBanner(seedKey, palette);
-            else if (copyParentArtwork)
-                ApplyTailoredPaletteToBanner(cadetBanner, palette, randomizeBackground: false);
-
-            return new CadetBranchVisuals(cadetBanner, palette.BackgroundPrimaryColor, palette.SigilPrimaryColor, copyParentArtwork);
-        }
-
-        public static CadetBranchVisuals ResolveDynasticHeiressCadetVisuals(Clan heiressParentClan, Clan husbandParentClan, string seedKey)
-        {
-            // POC and similar mods replace the live clan banner. Prefer it over the original
-            // vanilla banner so the cadet branch inherits the heiress's actual heraldic device.
-            Banner heiressBanner = heiressParentClan?.Banner ?? heiressParentClan?.ClanOriginalBanner;
-            Banner husbandBanner = husbandParentClan?.Banner ?? husbandParentClan?.ClanOriginalBanner;
-            Banner sourceBanner = heiressBanner ?? husbandBanner;
-            uint primaryColor = husbandBanner?.GetPrimaryColor()
-                ?? husbandParentClan?.Color
-                ?? heiressBanner?.GetPrimaryColor()
-                ?? heiressParentClan?.Color
-                ?? GetPaletteFallbackPrimary();
-            uint secondaryColor = husbandBanner?.GetFirstIconColor()
-                ?? husbandParentClan?.Color2
-                ?? heiressBanner?.GetFirstIconColor()
-                ?? heiressParentClan?.Color2
-                ?? GetPaletteFallbackSecondary();
-            Banner cadetBanner = sourceBanner != null
-                ? CloneBanner(sourceBanner)
-                : CreateRandomClanBannerWithoutStrokes(seedKey);
-
-            if (cadetBanner == null)
-                cadetBanner = CreateRandomClanBannerWithoutStrokes(seedKey);
-
-            // Keep every mesh, position, scale, rotation and mirror flag from the heiress's
-            // banner while transplanting the husband's parental colors onto that artwork.
-            ApplyBannerPalette(cadetBanner, primaryColor, secondaryColor);
-
-            return new CadetBranchVisuals(cadetBanner, primaryColor, secondaryColor, heiressBanner != null);
+            Banner cadetBanner = CreateTailoredRandomBanner(seedKey, palette);
+            return new CadetBranchVisuals(cadetBanner, palette.BackgroundPrimaryColor, palette.SigilPrimaryColor, copiedParentArtwork: false);
         }
 
         internal static Banner CreateRandomClanBannerWithoutStrokes(string seedKey)
@@ -301,7 +272,8 @@ namespace BellumCivile
 
         public static void ApplyJoinToKingdomWithBannerPolicy(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner, bool showNotification = true)
         {
-            if (!preserveCustomBanner)
+            // A vanilla founder's palette must not decide the fate of another house's custom artwork.
+            if (!preserveCustomBanner && !ShouldPreserveClanBanner(clan))
             {
                 ChangeKingdomAction.ApplyByJoinToKingdom(clan, targetKingdom, showNotification: showNotification);
                 InvokeClanBannerSync(clan);
@@ -374,16 +346,25 @@ namespace BellumCivile
         {
             if (clan == null || preservedBanner == null)
                 return;
+            if (Patches.PocBannerCompatibility.TryGetPolicy(clan, out _, out bool controlsColors) && controlsColors)
+                return;
 
             clan.Banner = CloneBanner(preservedBanner);
             MarkClanVisualsDirty(clan);
         }
 
-        private static bool ShouldPreserveClanBanner(Clan clan)
+        internal static bool ShouldPreserveClanBanner(Clan clan)
         {
+            if (clan != null && clan == _generatedCadetAssignment) return false;
             Banner clanBanner = clan?.ClanOriginalBanner ?? clan?.Banner;
-            if (clanBanner == null)
+            if (clanBanner?.BannerDataList == null || clanBanner.BannerDataList.Count == 0)
                 return false;
+
+            if (clanBanner.BannerDataList.Count > 2
+                || clanBanner.BannerDataList.Any(layer => layer.ColorId != layer.ColorId2))
+                return true;
+            if (Patches.PocBannerCompatibility.TryGetPolicy(clan, out bool customBanner, out _) && customBanner)
+                return true;
 
             Kingdom kingdom = clan.Kingdom;
             if (kingdom == null)
@@ -393,6 +374,26 @@ namespace BellumCivile
                 return true;
 
             return HasForeignPaletteArtwork(kingdom, clanBanner);
+        }
+
+        internal static void AssignCadetKingdom(Clan cadet, Kingdom kingdom, CadetBranchVisuals visuals)
+        {
+            // Keep an independent snapshot: the kingdom setter may mutate the assigned Banner in place.
+            Banner inherited = visuals.CopiedParentArtwork ? CloneBanner(visuals.Banner) : null;
+            Clan previous = _generatedCadetAssignment;
+            try
+            {
+                if (!visuals.CopiedParentArtwork) _generatedCadetAssignment = cadet;
+                cadet.Kingdom = kingdom;
+            }
+            finally { _generatedCadetAssignment = previous; }
+            if (inherited == null
+                || (Patches.PocBannerCompatibility.TryGetPolicy(cadet, out _, out bool controlsColors) && controlsColors))
+                return;
+            cadet.Banner = inherited;
+            cadet.UpdateBannerColor(visuals.PrimaryColor, visuals.SecondaryColor);
+            cadet.Color = visuals.PrimaryColor;
+            cadet.Color2 = visuals.SecondaryColor;
         }
 
         private static bool HasForeignPaletteArtwork(Kingdom kingdom, Banner banner)
