@@ -127,6 +127,42 @@ internal static class HostagePactDurationTests
             check(_editedTerms.Count == 2 && _editedTerms.All(t => t.DurationDays == 110)
                 && _editedTerms[0].WarScoreCost == 36 && _editedTerms[1].WarScoreCost == 18,
                 "Actual plus command updates both pledged hostages and prices");
+            var rowType = assembly.GetType("BellumCivile.UI.Parley.TreatyClaimDraftOptionVM");
+            int toggles = 0;
+            var row = Activator.CreateInstance(rowType, BindingFlags.Instance | BindingFlags.NonPublic, null,
+                new object[] { "hostage_peace", "Hostage for peace: Lord Wahan, 100 days", 35, true, false,
+                    new Action<string>(_ => toggles++), null }, null);
+            bool RowFlag(string name) => (bool)AccessTools.Property(rowType, name).GetValue(row);
+            check(!RowFlag("HasDurationControls") && RowFlag("IsPlainOption")
+                && (int)AccessTools.Property(rowType, "RowHeight").GetValue(row) == 38,
+                "Ordinary politics rows retain their compact layout without duration controls");
+            var configure = AccessTools.Method(rowType, "ConfigureDurationControls");
+            configure.Invoke(row, new object[] {
+                new Action(() => AccessTools.Method(vmType, "ExecuteDecreaseHostageDuration").Invoke(vm, null)),
+                new Action(() => AccessTools.Method(vmType, "ExecuteIncreaseHostageDuration").Invoke(vm, null)), false, false });
+            _editedTerms = null;
+            AccessTools.Method(rowType, "ExecuteIncreaseDuration").Invoke(row, null);
+            check(RowFlag("HasDurationControls") && !RowFlag("IsPlainOption")
+                && _editedTerms.All(t => t.DurationDays == 110) && toggles == 0,
+                "Inline plus adjusts the shared pact without toggling its checkbox");
+            check((int)AccessTools.Property(rowType, "RowHeight").GetValue(row) == 56
+                && (int)AccessTools.Property(rowType, "ToggleRightMargin").GetValue(row) == 146
+                && (int)AccessTools.Property(rowType, "NameRightMargin").GetValue(row) == 0,
+                "Selected hostage row reserves Wealth-style controls and room for wrapped names");
+            AccessTools.Property(rowType, "IsDisabled").SetValue(row, true);
+            _editedTerms = null;
+            AccessTools.Method(rowType, "ExecuteDecreaseDuration").Invoke(row, null);
+            check(_editedTerms == null && RowFlag("IsDurationDecreaseDisabled") && RowFlag("IsDurationIncreaseDisabled"),
+                "Read-only hostage row disables inline commands");
+            AccessTools.Property(rowType, "IsDisabled").SetValue(row, false);
+            AccessTools.Property(rowType, "IsSelected").SetValue(row, false);
+            AccessTools.Method(rowType, "ExecuteIncreaseDuration").Invoke(row, null);
+            check(_editedTerms == null, "Unselected row cannot adjust duration");
+            AccessTools.Property(rowType, "IsSelected").SetValue(row, true);
+            configure.Invoke(row, new object[] { new Action(() => toggles++), new Action(() => toggles++), true, true });
+            AccessTools.Method(rowType, "ExecuteDecreaseDuration").Invoke(row, null);
+            AccessTools.Method(rowType, "ExecuteIncreaseDuration").Invoke(row, null);
+            check(toggles == 0, "Inline minimum and maximum disabled states block callbacks");
             proposal.ReplaceTerms(new[] { Draft(30) }); Click(false);
             check(_editedTerms == null, "Minus command stops at 30 days");
             proposal.ReplaceTerms(new[] { Draft(1000) }); Click(true);

@@ -114,7 +114,6 @@
     <string id="BC_MCM_WarDurationReluctance_Hint" text="Days over which the full -100 peace reluctance decays to 0. Enthusiasm below 10 softens this penalty. After this period, enthusiasm below 10 grants +30 peace support, and zero enthusiasm allows an exhausted internal opponent to consider conceding at more than 10 War Score. This setting never blocks peace proposals. Default: 100 days." />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar" text="Minimum Peace Before Renewed War" />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar_Hint" text="Minimum number of days two realms must remain at peace before Bellum&apos;s AI will consider another offensive against the same realm. A value of 0 disables this waiting period. Client liberation wars remain exempt. Default: 20." />
-    <string id="BC_Parley_PactDuration" text="Pact duration: {DAYS} days" />
     <string id="BC_Parley_Reason_LengthyPact" text="This pact would bind our hands for too long." />
     <string id="BC_Parley_Reason_PactRecovery" text="Our realm needs time to recover." />
     <string id="BC_MCM_TreatyReparationsPerWarScore" text="Reparations per War Score" />
@@ -5219,7 +5218,7 @@
     <string id="BC_Treaty_SummaryHostagePeace" text="{FROM_REALM} entrusts {HERO} to {TO_REALM} as a hostage to secure {DAYS} days of peace" />
     <string id="BC_Hostage_SettlementInterrupted" text="The treaty's hostage pledge could not be completed. The hostages are being released. Concessions already carried out remain in effect; no further concessions will be imposed under this interrupted settlement." />
     <string id="BC_Parley_HostageOption" text="Secure peace with a royal hostage" />
-    <string id="BC_Parley_HostageSelected" text="Hostage for peace: {HERO}" />
+    <string id="BC_Parley_HostageSelectedDuration" text="Hostage for peace: {HERO}, {DAYS} days" />
     <string id="BC_Parley_HostageHint" text="A blood relative of the ruler remains in the other house's custody for {DAYS} days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it." />
     <string id="BC_Parley_HostageCandidate" text="{HERO} - {COST} WS (tier {TIER})" />
     <string id="BC_Parley_HostageTitle" text="A Pledge of Peace" />

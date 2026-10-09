@@ -15,6 +15,10 @@ namespace BellumCivile.UI.Parley
         private bool _isSelected;
         private bool _isDisabled;
         private HintViewModel _hint;
+        private Action _decreaseDuration;
+        private Action _increaseDuration;
+        private bool _decreaseDurationDisabled;
+        private bool _increaseDurationDisabled;
 
         internal TreatyClaimDraftOptionVM(TreatyClaimRenunciationCandidate candidate, bool selected, bool disabled, Action<string> toggleAction)
         {
@@ -63,6 +67,32 @@ namespace BellumCivile.UI.Parley
 
         public void ExecuteBeginHint() => Hint?.ExecuteBeginHint();
         public void ExecuteEndHint() => Hint?.ExecuteEndHint();
+
+        internal void ConfigureDurationControls(Action decrease, Action increase, bool decreaseDisabled, bool increaseDisabled)
+        {
+            _decreaseDuration = decrease;
+            _increaseDuration = increase;
+            _decreaseDurationDisabled = decreaseDisabled;
+            _increaseDurationDisabled = increaseDisabled;
+        }
+
+        public void ExecuteDecreaseDuration()
+        {
+            if (!IsDisabled && IsSelected && !IsDurationDecreaseDisabled) _decreaseDuration?.Invoke();
+        }
+
+        public void ExecuteIncreaseDuration()
+        {
+            if (!IsDisabled && IsSelected && !IsDurationIncreaseDisabled) _increaseDuration?.Invoke();
+        }
+
+        [DataSourceProperty] public bool HasDurationControls => _decreaseDuration != null && _increaseDuration != null;
+        [DataSourceProperty] public bool IsPlainOption => !HasDurationControls;
+        [DataSourceProperty] public bool IsDurationDecreaseDisabled => IsDisabled || !IsSelected || _decreaseDurationDisabled;
+        [DataSourceProperty] public bool IsDurationIncreaseDisabled => IsDisabled || !IsSelected || _increaseDurationDisabled;
+        [DataSourceProperty] public int RowHeight => HasDurationControls ? 56 : 38;
+        [DataSourceProperty] public int ToggleRightMargin => HasDurationControls ? 146 : 0;
+        [DataSourceProperty] public int NameRightMargin => HasDurationControls ? 0 : 100;
 
         [DataSourceProperty] public string Name { get => _name; set { if (value != _name) { _name = value; OnPropertyChangedWithValue(value, nameof(Name)); } } }
         [DataSourceProperty] public string CostText { get => _costText; set { if (value != _costText) { _costText = value; OnPropertyChangedWithValue(value, nameof(CostText)); } } }

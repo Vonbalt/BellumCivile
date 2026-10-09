@@ -11,9 +11,6 @@ namespace BellumCivile.UI.Parley
     public sealed partial class PeaceParleyVM
     {
         [DataSourceProperty] public bool HasHostagePact => _proposal?.Terms.Any(t => t.Type == TreatyTermType.HostagePeace) == true;
-        [DataSourceProperty] public int HostageControlsHeight => HasHostagePact ? 48 : 0;
-        [DataSourceProperty] public string HostageDurationText => new TextObject("{=BC_Parley_PactDuration}Pact duration: {DAYS} days")
-            .SetTextVariable("DAYS", TreatyHostageTerms.DurationForDraft(_proposal?.Terms)).ToString();
         [DataSourceProperty] public bool IsHostageDecreaseDisabled => IsDraftEditingDisabled || !HasHostagePact
             || TreatyHostageTerms.DurationForDraft(_proposal.Terms) <= HostagePactRules.MinimumNegotiatedDurationDays;
         [DataSourceProperty] public bool IsHostageIncreaseDisabled => IsDraftEditingDisabled || !HasHostagePact
@@ -32,15 +29,6 @@ namespace BellumCivile.UI.Parley
             ReplaceDraft(TreatyHostageTerms.WithDuration(GetEditableDemandTerms(), next));
         }
 
-        private void RefreshHostageControls()
-        {
-            OnPropertyChanged(nameof(HasHostagePact));
-            OnPropertyChanged(nameof(HostageControlsHeight));
-            OnPropertyChanged(nameof(HostageDurationText));
-            OnPropertyChanged(nameof(IsHostageDecreaseDisabled));
-            OnPropertyChanged(nameof(IsHostageIncreaseDisabled));
-        }
-
         private void AddHostageOption(Kingdom supplier, Kingdom receiver)
         {
             var existing = _proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace && t.FromKingdomId == supplier.StringId);
@@ -51,11 +39,16 @@ namespace BellumCivile.UI.Parley
             if (supplier.StringId == _proposal.WinnerKingdomId && !IsOfferingsMode) return;
             var hero = Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == existing?.HeroId);
             var label = existing == null ? new TextObject("{=BC_Parley_HostageOption}Secure peace with a royal hostage")
-                : new TextObject("{=BC_Parley_HostageSelected}Hostage for peace: {HERO}").SetTextVariable("HERO", hero?.Name ?? TextObject.GetEmpty());
-            AvailablePoliticsTerms.Add(new TreatyClaimDraftOptionVM("hostage_peace", label.ToString(),
+                : new TextObject("{=BC_Parley_HostageSelectedDuration}Hostage for peace: {HERO}, {DAYS} days")
+                    .SetTextVariable("HERO", hero?.Name ?? TextObject.GetEmpty()).SetTextVariable("DAYS", durationDays);
+            var option = new TreatyClaimDraftOptionVM("hostage_peace", label.ToString(),
                 existing?.WarScoreCost ?? candidates.Min(c => durationPriced ? HostagePactRules.GetNegotiatedCost(c.Tier, durationDays) : c.Cost), existing != null, IsDraftEditingDisabled,
                 ToggleHostageTerm, new TextObject("{=BC_Parley_HostageHint}A blood relative of the ruler remains in the other house's custody for {DAYS} days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it.")
-                    .SetTextVariable("DAYS", durationDays)));
+                    .SetTextVariable("DAYS", durationDays));
+            if (existing != null)
+                option.ConfigureDurationControls(ExecuteDecreaseHostageDuration, ExecuteIncreaseHostageDuration,
+                    IsHostageDecreaseDisabled, IsHostageIncreaseDisabled);
+            AvailablePoliticsTerms.Add(option);
         }
 
         private void ToggleHostageTerm(string key)

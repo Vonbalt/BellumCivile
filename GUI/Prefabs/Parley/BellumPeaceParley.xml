@@ -218,32 +218,32 @@
 
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@DraftEditorHeight" IsVisible="@IsPoliticsTabSelected">
                           <Children>
-                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@HostageControlsHeight" MarginLeft="14" MarginRight="14" IsVisible="@HasHostagePact" StackLayout.LayoutMethod="HorizontalLeftToRight">
-                              <Children>
-                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="10" Brush="Info.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Text="@HostageDurationText" />
-                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" MarginRight="4" Brush="GameMenu.ManageHideoutTroops.MinusButton" IsDisabled="@IsHostageDecreaseDisabled" Command.Click="ExecuteDecreaseHostageDuration" UpdateChildrenStates="true" />
-                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" Brush="GameMenu.ManageHideoutTroops.PlusButton" IsDisabled="@IsHostageIncreaseDisabled" Command.Click="ExecuteIncreaseHostageDuration" UpdateChildrenStates="true" />
-                              </Children>
-                            </ListPanel>
-                            <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="@HostageControlsHeight" MarginLeft="14" MarginRight="14" AutoHideScrollBars="true" ClipRect="PoliticsDraftClip" InnerPanel="PoliticsDraftClip\PoliticsDraftList" VerticalScrollbar="..\PoliticsDraftScrollbar">
+                            <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" AutoHideScrollBars="true" ClipRect="PoliticsDraftClip" InnerPanel="PoliticsDraftClip\PoliticsDraftList" VerticalScrollbar="..\PoliticsDraftScrollbar">
                               <Children>
                                 <Widget Id="PoliticsDraftClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                                   <Children>
                                     <ListPanel Id="PoliticsDraftList" DataSource="{AvailablePoliticsTerms}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                       <ItemTemplate>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38">
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@RowHeight">
                                           <Children>
-                                            <EncyclopediaFilterListItemButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ButtonType="Toggle" Brush="Encyclopedia.FilterListButton" IsSelected="@IsSelected" IsDisabled="@IsDisabled" ToggleIndicator="ToggleIndicatorParent\ToggleIndicator" Command.Click="ExecuteToggle" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" UpdateChildrenStates="true">
+                                            <EncyclopediaFilterListItemButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="@ToggleRightMargin" ButtonType="Toggle" Brush="Encyclopedia.FilterListButton" IsSelected="@IsSelected" IsDisabled="@IsDisabled" ToggleIndicator="ToggleIndicatorParent\ToggleIndicator" Command.Click="ExecuteToggle" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" UpdateChildrenStates="true">
                                               <Children>
                                                 <Widget Id="ToggleIndicatorParent" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="44" SuggestedHeight="44" VerticalAlignment="Center" Sprite="Encyclopedia\list_filters_checkbox" IsEnabled="false">
                                                   <Children>
                                                     <Widget Id="ToggleIndicator" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="Encyclopedia\list_filters_checkbox_full" IsDisabled="true" />
                                                   </Children>
                                                 </Widget>
-                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="60" MarginRight="100" Brush="Info.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Text="@Name" />
-                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginRight="10" Brush="Info.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Text="@CostText" />
+                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="60" MarginRight="@NameRightMargin" Brush="Info.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Text="@Name" />
+                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginRight="10" Brush="Info.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" IsVisible="@IsPlainOption" Text="@CostText" />
                                               </Children>
                                             </EncyclopediaFilterListItemButtonWidget>
+                                            <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="136" HorizontalAlignment="Right" IsVisible="@HasDurationControls" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                              <Children>
+                                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" MarginRight="4" Brush="GameMenu.ManageHideoutTroops.MinusButton" IsDisabled="@IsDurationDecreaseDisabled" Command.Click="ExecuteDecreaseDuration" UpdateChildrenStates="true" />
+                                                <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" Brush="GameMenu.ManageHideoutTroops.PlusButton" IsDisabled="@IsDurationIncreaseDisabled" Command.Click="ExecuteIncreaseDuration" UpdateChildrenStates="true" />
+                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="58" MarginLeft="4" Brush="Info.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Right" Text="@CostText" />
+                                              </Children>
+                                            </ListPanel>
                                           </Children>
                                         </Widget>
                                       </ItemTemplate>
@@ -252,7 +252,7 @@
                                 </Widget>
                               </Children>
                             </ScrollablePanel>
-                            <ScrollbarWidget Id="PoliticsDraftScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginTop="@HostageControlsHeight" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="2" AlignmentAxis="Vertical" Handle="PoliticsDraftScrollbarHandle" MaxValue="100" MinValue="0" IsVisible="@IsPoliticsDraftScrollbarVisible">
+                            <ScrollbarWidget Id="PoliticsDraftScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="2" AlignmentAxis="Vertical" Handle="PoliticsDraftScrollbarHandle" MaxValue="100" MinValue="0" IsVisible="@IsPoliticsDraftScrollbarVisible">
                               <Children>
                                 <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
                                 <BrushWidget Id="PoliticsDraftScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />

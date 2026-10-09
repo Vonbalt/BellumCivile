@@ -481,7 +481,7 @@ namespace BellumCivile.UI.Parley
                             .SetTextVariable("SOURCE_REALM", sourceRealm.Name)
                             .SetTextVariable("THIRD_REALM", candidate.ThirdRealm.Name)));
                 }
-                IsPoliticsDraftScrollbarVisible = AvailablePoliticsTerms.Count * 38 > DraftEditorHeight - HostageControlsHeight;
+                IsPoliticsDraftScrollbarVisible = AvailablePoliticsTerms.Sum(option => option.RowHeight) > DraftEditorHeight;
                 IsDraftTermsScrollbarVisible = DraftTerms.Count * 32 > DraftTermsHeight;
 
                 int reparationsScore = proposal.Terms.FirstOrDefault(term => term?.Type == TreatyTermType.Reparations
@@ -499,7 +499,6 @@ namespace BellumCivile.UI.Parley
                 TributeCostText = BuildWealthCostText(tributeScore);
             }
 
-            RefreshHostageControls();
             PrisonersTabHint = new HintViewModel(IsDraftEditingDisabled
                 ? new TextObject("{=BC_Parley_PrisonersRulerOnly}Only the ruler may alter prisoner terms in the treaty.")
                 : TextObject.GetEmpty());
