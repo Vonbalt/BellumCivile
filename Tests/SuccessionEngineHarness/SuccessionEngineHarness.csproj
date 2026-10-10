@@ -11,6 +11,7 @@
     <Reference Include="TaleWorlds.Core" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Core.dll" />
     <Reference Include="TaleWorlds.Library" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Library.dll" />
     <Reference Include="TaleWorlds.Localization" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Localization.dll" />
+    <Reference Include="TaleWorlds.ModuleManager" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.ModuleManager.dll" />
     <Reference Include="TaleWorlds.SaveSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.SaveSystem.dll" />
     <Reference Include="TaleWorlds.ObjectSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.ObjectSystem.dll" />
   </ItemGroup>

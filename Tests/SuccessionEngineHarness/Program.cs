@@ -134,6 +134,7 @@ internal static class Program
             else if (args.Contains("--realm-names"))
             {
                 RealmNameTests.Run(Check);
+                TitlePresetLocalizationTests.Run(Check);
                 Console.WriteLine($"{_checks} realm naming checks passed.");
             }
             else if (args.Contains("--banner-compatibility"))

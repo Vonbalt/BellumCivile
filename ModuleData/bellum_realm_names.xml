@@ -3,6 +3,8 @@
      Files are read in active module order; bellum_realm_names_patch.xml overrides
      this file within each module. Empty root removes an earlier entry.
      nativeName is an optional guard protecting player renames and conversion mods.
+     Keep the guard pointing to the native name when changing only the root.
+     The guard compares translated text, not localization key identity.
      Roots and guards accept Bannerlord localization strings, preserved as TextObjects.
      Used by Realm Identity mode in the Realm Name Display selector. Unknown realms
      keep their native names. Native mode bypasses these entries; Sovereign Title

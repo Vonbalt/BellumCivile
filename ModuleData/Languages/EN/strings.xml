@@ -5462,5 +5462,1463 @@
     <string id="BC_Marriage_HeirDepartureWithCrown" text="{WARNING}&#10;&#10;{CROWN}" />
     <string id="BC_Marriage_OneAgreement" text="Only one marriage agreement can be concluded at a time." />
     <string id="BC_Marriage_BarterHousehold" text="{FORM}: {HERO} joins {HOUSE}" />
+    <!-- Shipped title preset names, territorial roots, ranks and formats. -->
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_aserai" text="the Aserai" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n" text="the Northern Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s" text="the Southern Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_w" text="the Western Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_nord" text="the Nords" />
+    <string id="BC_TitleRoot_Anglicized_county_ailtadruin" text="Ailta Druin" />
+    <string id="BC_TitleRoot_Anglicized_county_akkan" text="Akkan" />
+    <string id="BC_TitleRoot_Anglicized_county_aleshoriyya" text="Al-Eshoriyya" />
+    <string id="BC_TitleRoot_Anglicized_county_alyachiyya" text="Al-Yachiyya" />
+    <string id="BC_TitleRoot_Anglicized_county_aris" text="Aris" />
+    <string id="BC_TitleRoot_Anglicized_county_bahralyeshm" text="Bahr al Yeshm" />
+    <string id="BC_TitleRoot_Anglicized_county_barsdag" text="Barsdag" />
+    <string id="BC_TitleRoot_Anglicized_county_beinland" text="Beinland" />
+    <string id="BC_TitleRoot_Anglicized_county_biscan" text="Biscany" />
+    <string id="BC_TitleRoot_Anglicized_county_byal" text="Byal" />
+    <string id="BC_TitleRoot_Anglicized_county_cafalcombe" text="Cafalcombe" />
+    <string id="BC_TitleRoot_Anglicized_county_calsa" text="Calsa" />
+    <string id="BC_TitleRoot_Anglicized_county_chertyg" text="Chertyg" />
+    <string id="BC_TitleRoot_Anglicized_county_damar" text="Damar" />
+    <string id="BC_TitleRoot_Anglicized_county_diatagmatia" text="Diatagmatia" />
+    <string id="BC_TitleRoot_Anglicized_county_epiris" text="Epiris" />
+    <string id="BC_TitleRoot_Anglicized_county_fiur" text="Fiur" />
+    <string id="BC_TitleRoot_Anglicized_county_galchas" text="Galchas" />
+    <string id="BC_TitleRoot_Anglicized_county_gavys" text="Gavys" />
+    <string id="BC_TitleRoot_Anglicized_county_glanys" text="Glanys" />
+    <string id="BC_TitleRoot_Anglicized_county_gorea" text="Gorea" />
+    <string id="BC_TitleRoot_Anglicized_county_icara" text="Icara" />
+    <string id="BC_TitleRoot_Anglicized_county_iltan" text="Iltan" />
+    <string id="BC_TitleRoot_Anglicized_county_iltanhindrun" text="Iltanhindrun" />
+    <string id="BC_TitleRoot_Anglicized_county_jabalashab" text="Jabal Ashab" />
+    <string id="BC_TitleRoot_Anglicized_county_jabaltamar" text="Jabal Tamar" />
+    <string id="BC_TitleRoot_Anglicized_county_kachyar" text="Kachyar" />
+    <string id="BC_TitleRoot_Anglicized_county_karakaz" text="Karakas" />
+    <string id="BC_TitleRoot_Anglicized_county_kjolfjallen" text="Kjolfjallen" />
+    <string id="BC_TitleRoot_Anglicized_county_kohirohini" text="Kohi Rohini" />
+    <string id="BC_TitleRoot_Anglicized_county_mazopor" text="Mazopor" />
+    <string id="BC_TitleRoot_Anglicized_county_mesogea" text="Mesogea" />
+    <string id="BC_TitleRoot_Anglicized_county_minador" text="Minador" />
+    <string id="BC_TitleRoot_Anglicized_county_morcomb" text="Morcomb" />
+    <string id="BC_TitleRoot_Anglicized_county_myzead" text="the Myzead" />
+    <string id="BC_TitleRoot_Anglicized_county_n_rhennod" text="Northern Rhennod" />
+    <string id="BC_TitleRoot_Anglicized_county_nahralkals" text="Nahr Al-Kals" />
+    <string id="BC_TitleRoot_Anglicized_county_neurval" text="Neurval" />
+    <string id="BC_TitleRoot_Anglicized_county_nevis" text="Nevis" />
+    <string id="BC_TitleRoot_Anglicized_county_ocspool" text="Ocspool" />
+    <string id="BC_TitleRoot_Anglicized_county_ophthys" text="Ophthys" />
+    <string id="BC_TitleRoot_Anglicized_county_ornia" text="Ornia" />
+    <string id="BC_TitleRoot_Anglicized_county_portatia" text="Portatia" />
+    <string id="BC_TitleRoot_Anglicized_county_rhennod" text="Rhennod" />
+    <string id="BC_TitleRoot_Anglicized_county_sarapia" text="Sarapia" />
+    <string id="BC_TitleRoot_Anglicized_county_sarpene" text="Sarpene" />
+    <string id="BC_TitleRoot_Anglicized_county_sericea" text="Sericea" />
+    <string id="BC_TitleRoot_Anglicized_county_sethys" text="Sethys" />
+    <string id="BC_TitleRoot_Anglicized_county_sulundag" text="Sulun Dag" />
+    <string id="BC_TitleRoot_Anglicized_county_temea" text="Temea" />
+    <string id="BC_TitleRoot_Anglicized_county_trand" text="Trand" />
+    <string id="BC_TitleRoot_Anglicized_county_vestroenn" text="Vestroenn" />
+    <string id="BC_TitleRoot_Anglicized_county_zakhan" text="Zakhan" />
+    <string id="BC_TitleRoot_Anglicized_county_zeos" text="Zeos" />
+    <string id="BC_TitleRoot_Anglicized_duchy_alkinaniyya" text="Al-Kinaniyya" />
+    <string id="BC_TitleRoot_Anglicized_duchy_aminys" text="Aminys" />
+    <string id="BC_TitleRoot_Anglicized_duchy_devseg" text="Devseg" />
+    <string id="BC_TitleRoot_Anglicized_duchy_dryatica" text="Dryatica" />
+    <string id="BC_TitleRoot_Anglicized_duchy_ebor" text="Ebor" />
+    <string id="BC_TitleRoot_Anglicized_duchy_erithrys" text="Erithrys" />
+    <string id="BC_TitleRoot_Anglicized_duchy_ilatarea" text="Ilatarea" />
+    <string id="BC_TitleRoot_Anglicized_duchy_jarjara" text="Jarjara" />
+    <string id="BC_TitleRoot_Anglicized_duchy_jumne" text="Jumne" />
+    <string id="BC_TitleRoot_Anglicized_duchy_laconia" text="Laconia" />
+    <string id="BC_TitleRoot_Anglicized_duchy_llyntywal" text="Llyn Tywal" />
+    <string id="BC_TitleRoot_Anglicized_duchy_lycarea" text="Lycarea" />
+    <string id="BC_TitleRoot_Anglicized_duchy_nahasa" text="Nahasa" />
+    <string id="BC_TitleRoot_Anglicized_duchy_nordvyg" text="Nordvyg" />
+    <string id="BC_TitleRoot_Anglicized_duchy_svadia" text="Svadia" />
+    <string id="BC_TitleRoot_Anglicized_duchy_tanaesia" text="Tanaesia" />
+    <string id="BC_TitleRoot_Anglicized_duchy_tarantanya" text="Tarantanya" />
+    <string id="BC_TitleRoot_Anglicized_duchy_tripotamia" text="Tripotamia" />
+    <string id="BC_TitleRoot_Anglicized_duchy_uchalion" text="Uchalion" />
+    <string id="BC_TitleRoot_Anglicized_duchy_vostoku" text="Vostoka" />
+    <string id="BC_TitleRoot_Anglicized_duchy_walhdok" text="Walhdok" />
+    <string id="BC_TitleRoot_Anglicized_duchy_zapadu" text="Zapada" />
+    <string id="BC_TitleRoot_Anglicized_empire_calradia" text="the Calradians" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_aserai" text="al-Aserai" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_battania" text="Battaniaid" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_empire_n" text="Voreioi Calradoi" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_empire_s" text="Notioi Calradoi" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_empire_w" text="Dytikoi Calradoi" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_khuzait" text="Quzayt" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_nord" text="Nordmanna" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_sturgia" text="Sturgiskyy" />
+    <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_vlandia" text="Wilundinga" />
+    <string id="BC_TitleRoot_Bannerkings_county_ailtadruin" text="Ailta Druin" />
+    <string id="BC_TitleRoot_Bannerkings_county_akkan" text="Akkan" />
+    <string id="BC_TitleRoot_Bannerkings_county_aleshoriyya" text="Al-Eshoriyya" />
+    <string id="BC_TitleRoot_Bannerkings_county_alyachiyya" text="Al-Yachiyya" />
+    <string id="BC_TitleRoot_Bannerkings_county_aris" text="Aridon" />
+    <string id="BC_TitleRoot_Bannerkings_county_bahralyeshm" text="Bahr al Yeshm" />
+    <string id="BC_TitleRoot_Bannerkings_county_barsdag" text="Bars Dag" />
+    <string id="BC_TitleRoot_Bannerkings_county_beinland" text="Beinlands" />
+    <string id="BC_TitleRoot_Bannerkings_county_biscan" text="Biscaniae" />
+    <string id="BC_TitleRoot_Bannerkings_county_byal" text="Byals" />
+    <string id="BC_TitleRoot_Bannerkings_county_cafalcombe" text="Cafalcombe" />
+    <string id="BC_TitleRoot_Bannerkings_county_calsa" text="Kalson" />
+    <string id="BC_TitleRoot_Bannerkings_county_chertyg" text="Chertyga" />
+    <string id="BC_TitleRoot_Bannerkings_county_damar" text="Damar" />
+    <string id="BC_TitleRoot_Bannerkings_county_diatagmatia" text="Diatagmatikon" />
+    <string id="BC_TitleRoot_Bannerkings_county_epiris" text="Epiridis" />
+    <string id="BC_TitleRoot_Bannerkings_county_fiur" text="Fiur" />
+    <string id="BC_TitleRoot_Bannerkings_county_galchas" text="Galchadon" />
+    <string id="BC_TitleRoot_Bannerkings_county_gavys" text="Gavyon" />
+    <string id="BC_TitleRoot_Bannerkings_county_glanys" text="Glanys" />
+    <string id="BC_TitleRoot_Bannerkings_county_gorea" text="Goreon" />
+    <string id="BC_TitleRoot_Bannerkings_county_icara" text="Icary" />
+    <string id="BC_TitleRoot_Bannerkings_county_iltan" text="Iltana" />
+    <string id="BC_TitleRoot_Bannerkings_county_iltanhindrun" text="Iltanhindranar" />
+    <string id="BC_TitleRoot_Bannerkings_county_jabalashab" text="Jabal Ashab" />
+    <string id="BC_TitleRoot_Bannerkings_county_jabaltamar" text="Jabal Tamar" />
+    <string id="BC_TitleRoot_Bannerkings_county_kachyar" text="Kachyara" />
+    <string id="BC_TitleRoot_Bannerkings_county_karakaz" text="Karakas" />
+    <string id="BC_TitleRoot_Bannerkings_county_kjolfjallen" text="Kjólfjalla" />
+    <string id="BC_TitleRoot_Bannerkings_county_kohirohini" text="Kohi Rohini" />
+    <string id="BC_TitleRoot_Bannerkings_county_mazopor" text="Mazopora" />
+    <string id="BC_TitleRoot_Bannerkings_county_mesogea" text="Mesogeion" />
+    <string id="BC_TitleRoot_Bannerkings_county_minador" text="Minadora" />
+    <string id="BC_TitleRoot_Bannerkings_county_morcomb" text="Morcombae" />
+    <string id="BC_TitleRoot_Bannerkings_county_myzead" text="Myzeadon" />
+    <string id="BC_TitleRoot_Bannerkings_county_n_rhennod" text="Rhennodi Septentrionalis" />
+    <string id="BC_TitleRoot_Bannerkings_county_nahralkals" text="Nahr Al-Kals" />
+    <string id="BC_TitleRoot_Bannerkings_county_neurval" text="Neurvalliae" />
+    <string id="BC_TitleRoot_Bannerkings_county_nevis" text="Nevidon" />
+    <string id="BC_TitleRoot_Bannerkings_county_ocspool" text="Ocspoolii" />
+    <string id="BC_TitleRoot_Bannerkings_county_ophthys" text="Ophthyon" />
+    <string id="BC_TitleRoot_Bannerkings_county_ornia" text="Ornion" />
+    <string id="BC_TitleRoot_Bannerkings_county_portatia" text="Portatikon" />
+    <string id="BC_TitleRoot_Bannerkings_county_rhennod" text="Rhennod" />
+    <string id="BC_TitleRoot_Bannerkings_county_sarapia" text="Sarapion" />
+    <string id="BC_TitleRoot_Bannerkings_county_sarpene" text="Sarpenon" />
+    <string id="BC_TitleRoot_Bannerkings_county_sericea" text="Serikon" />
+    <string id="BC_TitleRoot_Bannerkings_county_sethys" text="Sethyon" />
+    <string id="BC_TitleRoot_Bannerkings_county_sulundag" text="Sulun Dag" />
+    <string id="BC_TitleRoot_Bannerkings_county_temea" text="Temeon" />
+    <string id="BC_TitleRoot_Bannerkings_county_trand" text="Trandiae" />
+    <string id="BC_TitleRoot_Bannerkings_county_vestroenn" text="Vestræna" />
+    <string id="BC_TitleRoot_Bannerkings_county_zakhan" text="Zakhan" />
+    <string id="BC_TitleRoot_Bannerkings_county_zeos" text="Zeon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_alkinaniyya" text="Al-Kinaniyya" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_aminys" text="Aminyon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_devseg" text="Devseg" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_dryatica" text="Dryatikon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_ebor" text="Eboraci" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_erithrys" text="Erithron" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_ilatarea" text="Ilatareon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_jarjara" text="Jarjara" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_jumne" text="Jumnis" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_laconia" text="Lakonon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_llyntywal" text="Llyn Tywal" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_lycarea" text="Lykareon" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_nahasa" text="al-Nahasa" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_nordvyg" text="Norðvegs" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_svadia" text="Svadiae" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_tanaesia" text="Tanaesion" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_tarantanya" text="Tarantanya" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_tripotamia" text="Tripotamion" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_uchalion" text="Uchalion" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_vostoku" text="Vostoka" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_walhdok" text="Walhdochi" />
+    <string id="BC_TitleRoot_Bannerkings_duchy_zapadu" text="Zapada" />
+    <string id="BC_TitleRoot_Bannerkings_empire_calradia" text="Calradium" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_aserai" text="al-Asarin" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_battania" text="Bhattanach" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_empire_n" text="Voreiōn Kalradōn" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_empire_s" text="Notiōn Kalradōn" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_empire_w" text="Dytikōn Kalradōn" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_khuzait" text="Quzayt" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_nord" text="Nordmanna" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_sturgia" text="Sturgova" />
+    <string id="BC_TitleRoot_Immersive_bc_title_kingdom_vlandia" text="Valandorum" />
+    <string id="BC_TitleRoot_Immersive_county_ailtadruin" text="Ailta Druin" />
+    <string id="BC_TitleRoot_Immersive_county_akkan" text="Akkan" />
+    <string id="BC_TitleRoot_Immersive_county_aleshoriyya" text="Al-Eshoriyya" />
+    <string id="BC_TitleRoot_Immersive_county_alyachiyya" text="Al-Yachiyya" />
+    <string id="BC_TitleRoot_Immersive_county_aris" text="Aridon" />
+    <string id="BC_TitleRoot_Immersive_county_bahralyeshm" text="Bahr al Yeshm" />
+    <string id="BC_TitleRoot_Immersive_county_barsdag" text="Bars Dag" />
+    <string id="BC_TitleRoot_Immersive_county_beinland" text="Beinlands" />
+    <string id="BC_TitleRoot_Immersive_county_biscan" text="Biscaniae" />
+    <string id="BC_TitleRoot_Immersive_county_byal" text="Byals" />
+    <string id="BC_TitleRoot_Immersive_county_cafalcombe" text="Cafalcombe" />
+    <string id="BC_TitleRoot_Immersive_county_calsa" text="Kalson" />
+    <string id="BC_TitleRoot_Immersive_county_chertyg" text="Chertyga" />
+    <string id="BC_TitleRoot_Immersive_county_damar" text="Damar" />
+    <string id="BC_TitleRoot_Immersive_county_diatagmatia" text="Diatagmatikon" />
+    <string id="BC_TitleRoot_Immersive_county_epiris" text="Epiridis" />
+    <string id="BC_TitleRoot_Immersive_county_fiur" text="Fiur" />
+    <string id="BC_TitleRoot_Immersive_county_galchas" text="Galchadon" />
+    <string id="BC_TitleRoot_Immersive_county_gavys" text="Gavyon" />
+    <string id="BC_TitleRoot_Immersive_county_glanys" text="Glanys" />
+    <string id="BC_TitleRoot_Immersive_county_gorea" text="Goreon" />
+    <string id="BC_TitleRoot_Immersive_county_icara" text="Icary" />
+    <string id="BC_TitleRoot_Immersive_county_iltan" text="Iltana" />
+    <string id="BC_TitleRoot_Immersive_county_iltanhindrun" text="Iltanhindranar" />
+    <string id="BC_TitleRoot_Immersive_county_jabalashab" text="Jabal Ashab" />
+    <string id="BC_TitleRoot_Immersive_county_jabaltamar" text="Jabal Tamar" />
+    <string id="BC_TitleRoot_Immersive_county_kachyar" text="Kachyara" />
+    <string id="BC_TitleRoot_Immersive_county_karakaz" text="Karakas" />
+    <string id="BC_TitleRoot_Immersive_county_kjolfjallen" text="Kjólfjalla" />
+    <string id="BC_TitleRoot_Immersive_county_kohirohini" text="Kohi Rohini" />
+    <string id="BC_TitleRoot_Immersive_county_mazopor" text="Mazopora" />
+    <string id="BC_TitleRoot_Immersive_county_mesogea" text="Mesogeion" />
+    <string id="BC_TitleRoot_Immersive_county_minador" text="Minadora" />
+    <string id="BC_TitleRoot_Immersive_county_morcomb" text="Morcombae" />
+    <string id="BC_TitleRoot_Immersive_county_myzead" text="Myzeadon" />
+    <string id="BC_TitleRoot_Immersive_county_n_rhennod" text="Rhennodi Septentrionalis" />
+    <string id="BC_TitleRoot_Immersive_county_nahralkals" text="Nahr Al-Kals" />
+    <string id="BC_TitleRoot_Immersive_county_neurval" text="Neurvalliae" />
+    <string id="BC_TitleRoot_Immersive_county_nevis" text="Nevidon" />
+    <string id="BC_TitleRoot_Immersive_county_ocspool" text="Ocspoolii" />
+    <string id="BC_TitleRoot_Immersive_county_ophthys" text="Ophthyon" />
+    <string id="BC_TitleRoot_Immersive_county_ornia" text="Ornion" />
+    <string id="BC_TitleRoot_Immersive_county_portatia" text="Portatikon" />
+    <string id="BC_TitleRoot_Immersive_county_rhennod" text="Rhennod" />
+    <string id="BC_TitleRoot_Immersive_county_sarapia" text="Sarapion" />
+    <string id="BC_TitleRoot_Immersive_county_sarpene" text="Sarpenon" />
+    <string id="BC_TitleRoot_Immersive_county_sericea" text="Serikon" />
+    <string id="BC_TitleRoot_Immersive_county_sethys" text="Sethyon" />
+    <string id="BC_TitleRoot_Immersive_county_sulundag" text="Sulun Dag" />
+    <string id="BC_TitleRoot_Immersive_county_temea" text="Temeon" />
+    <string id="BC_TitleRoot_Immersive_county_trand" text="Trandiae" />
+    <string id="BC_TitleRoot_Immersive_county_vestroenn" text="Vestræna" />
+    <string id="BC_TitleRoot_Immersive_county_zakhan" text="Zakhan" />
+    <string id="BC_TitleRoot_Immersive_county_zeos" text="Zeon" />
+    <string id="BC_TitleRoot_Immersive_duchy_alkinaniyya" text="Al-Kinaniyya" />
+    <string id="BC_TitleRoot_Immersive_duchy_aminys" text="Aminyon" />
+    <string id="BC_TitleRoot_Immersive_duchy_devseg" text="Devseg" />
+    <string id="BC_TitleRoot_Immersive_duchy_dryatica" text="Dryatikon" />
+    <string id="BC_TitleRoot_Immersive_duchy_ebor" text="Eboraci" />
+    <string id="BC_TitleRoot_Immersive_duchy_erithrys" text="Erithron" />
+    <string id="BC_TitleRoot_Immersive_duchy_ilatarea" text="Ilatareon" />
+    <string id="BC_TitleRoot_Immersive_duchy_jarjara" text="Jarjara" />
+    <string id="BC_TitleRoot_Immersive_duchy_jumne" text="Jumnis" />
+    <string id="BC_TitleRoot_Immersive_duchy_laconia" text="Lakonon" />
+    <string id="BC_TitleRoot_Immersive_duchy_llyntywal" text="Llyn Tywal" />
+    <string id="BC_TitleRoot_Immersive_duchy_lycarea" text="Lykareon" />
+    <string id="BC_TitleRoot_Immersive_duchy_nahasa" text="al-Nahasa" />
+    <string id="BC_TitleRoot_Immersive_duchy_nordvyg" text="Norðvegs" />
+    <string id="BC_TitleRoot_Immersive_duchy_svadia" text="Svadiae" />
+    <string id="BC_TitleRoot_Immersive_duchy_tanaesia" text="Tanaesion" />
+    <string id="BC_TitleRoot_Immersive_duchy_tarantanya" text="Tarantanya" />
+    <string id="BC_TitleRoot_Immersive_duchy_tripotamia" text="Tripotamion" />
+    <string id="BC_TitleRoot_Immersive_duchy_uchalion" text="Uchalion" />
+    <string id="BC_TitleRoot_Immersive_duchy_vostoku" text="Vostoka" />
+    <string id="BC_TitleRoot_Immersive_duchy_walhdok" text="Walhdochi" />
+    <string id="BC_TitleRoot_Immersive_duchy_zapadu" text="Zapada" />
+    <string id="BC_TitleRoot_Immersive_empire_calradia" text="Kalradōn" />
+    <string id="BC_TitleStylePreset_Bannerkings" text="bannerkings" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Barony_femaleRank" text="Sheikha" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Barony_maleRank" text="Sheikh" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Barony_titleName" text="Sheikhdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_County_femaleRank" text="Emira" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_County_maleRank" text="Emir" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_County_titleName" text="Emirate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Duchy_femaleRank" text="Malika" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Duchy_maleRank" text="Malik" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Duchy_titleName" text="Mamlakah" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleRank" text="Sultana" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_maleRank" text="Sultan" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_titleName" text="Sultanate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Barony_femaleRank" text="Chieftess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Barony_maleRank" text="Chief" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Barony_titleName" text="Tribe" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_County_femaleRank" text="Banmormaer" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_County_maleRank" text="Mormaer" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_County_titleName" text="Mormaerdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Duchy_femaleRank" text="Petty Queen" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Duchy_maleRank" text="Petty King" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Duchy_titleName" text="Petty Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleRank" text="High Queen" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_maleRank" text="High King" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_titleName" text="High Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Barony_titleName" text="Toparchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Duchy_titleName" text="Duchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_maleRank" text="Exarch" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_titleName" text="Exarchate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Barony_titleName" text="Toparchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_titleName" text="Duchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_maleRank" text="Exarch" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_titleName" text="Exarchate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Barony_titleName" text="Toparchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_titleName" text="Duchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_maleRank" text="Exarch" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_titleName" text="Exarchate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Barony_titleName" text="Toparchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_titleName" text="Duchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_maleRank" text="Exarch" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_titleName" text="Exarchate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Barony_femaleRank" text="Chieftess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Barony_maleRank" text="Chief" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Barony_titleName" text="Tribe" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_County_femaleRank" text="Noyan" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_County_maleRank" text="Noyan" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_County_titleName" text="Noyanlik" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Duchy_femaleRank" text="Begum" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Duchy_maleRank" text="Bey" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Duchy_titleName" text="Beylik" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleRank" text="Khatun" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_maleRank" text="Khagan" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_titleName" text="Khaganate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleRank" text="Khanum" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_maleRank" text="Khan" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_titleName" text="Khanate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_femaleRank" text="Chieftess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_maleRank" text="Chief" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_titleName" text="Tribe" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_County_femaleRank" text="High Chieftess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_County_maleRank" text="High Chief" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_County_titleName" text="Chiefdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Duchy_femaleRank" text="Jarlkona" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Duchy_maleRank" text="Jarl" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Duchy_titleName" text="Jarldom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleRank" text="Fylkja" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_maleRank" text="Fylkir" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_titleName" text="Fylkirate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleRank" text="Dróttning" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_maleRank" text="Konungr" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_titleName" text="Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_femaleRank" text="Chieftess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_maleRank" text="Chief" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_titleName" text="Tribe" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_County_femaleRank" text="Boyarina" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_County_maleRank" text="Boyar" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_County_titleName" text="Chiefdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Duchy_femaleRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Duchy_maleRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Duchy_titleName" text="Principality" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleRank" text="Grand Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_maleRank" text="Grand Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_titleName" text="Grand Principality" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Barony_femaleRank" text="Baroness" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Barony_maleRank" text="Baron" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Barony_titleName" text="Barony" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_County_femaleRank" text="Countess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_County_maleRank" text="Count" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_County_titleName" text="County" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Duchy_femaleRank" text="Duchess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Duchy_maleRank" text="Duke" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Duchy_titleName" text="Duchy" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleRank" text="Queen" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_maleRank" text="King" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_titleName" text="Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleRank" text="Consuless" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_maleRank" text="Consul" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_titleName" text="Republic" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleRank" text="Queen" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_maleRank" text="King" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_titleName" text="Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleRank" text="Autocratrix" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_maleRank" text="Autocrat" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_titleName" text="Autocracy" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_femaleRank" text="Walia" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_maleRank" text="Wali" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_titleName" text="Walya" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_femaleRank" text="Shaykah" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_maleRank" text="Shayk" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_County_titleName" text="Mashyaka" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_femaleRank" text="Amiira" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_maleRank" text="Amiir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Duchy_titleName" text="Imaara" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_childRank" text="Amiir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleChildRank" text="Amiira" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleHeirRank" text="Amiira" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleNobleRank" text="Beghum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRank" text="Khalifa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heirRank" text="Amiir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_maleRank" text="Khalifa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_nobleRank" text="Mawlaa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_titleName" text="Khilaafa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_childRank" text="Amiir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleChildRank" text="Amiira" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleHeirRank" text="Amiira" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleNobleRank" text="Beghum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRank" text="Sultana" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_heirRank" text="Amiir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_maleRank" text="Sultan" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_nobleRank" text="Mawlaa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_titleName" text="Saltana" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_femaleRank" text="Teyrnes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_maleRank" text="Teyrn" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_titleFormat" text="{TITLE_NOUN} y {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_titleName" text="Teyrnas" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_femaleRank" text="Tywysoces" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_maleRank" text="Tywysauc" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_titleFormat" text="{TITLE_NOUN} y {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_County_titleName" text="Tywysauciaeth" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_femaleRank" text="Brenhines" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_maleRank" text="Brenhin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_titleFormat" text="{TITLE_NOUN} y {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Duchy_titleName" text="Brenhinaeth" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_childRank" text="Pendewic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleChildRank" text="Pendewices" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleHeirRank" text="Pendewices" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleNobleRank" text="Arglwytes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRank" text="Pendreices" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_heirRank" text="Pendewic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_maleRank" text="Pendreic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_nobleRank" text="Arglwyt" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_titleFormat" text="{TITLE_NOUN} y {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_titleName" text="Pendreiciaeth" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_childRank" text="Pendewic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleChildRank" text="Pendewices" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleHeirRank" text="Pendewices" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleNobleRank" text="Arglwytes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRank" text="Uchelbrenhines" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_heirRank" text="Pendewic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_maleRank" text="Uchelbrenhin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_nobleRank" text="Arglwyt" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_titleFormat" text="{TITLE_NOUN} y {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_titleName" text="Uchelbrenhinaeth" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_femaleRank" text="Baronessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_maleRank" text="Baro" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_titleName" text="Baronatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_femaleRank" text="Cometessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_maleRank" text="Comes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_County_titleName" text="Comitatus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_femaleRank" text="Ducissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_maleRank" text="Dux" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Duchy_titleName" text="Ducatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRank" text="Regina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_maleRank" text="Rex" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_titleName" text="Regnum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_femaleRank" text="Baronessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_maleRank" text="Baro" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_titleName" text="Baronatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_femaleRank" text="Cometessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_maleRank" text="Comes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_County_titleName" text="Comitatus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_femaleRank" text="Ducissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_maleRank" text="Dux" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Duchy_titleName" text="Ducatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRank" text="Regina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_maleRank" text="Rex" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_titleName" text="Regnum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_femaleRank" text="Baronessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_maleRank" text="Baro" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_titleName" text="Baronatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_femaleRank" text="Cometessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_maleRank" text="Comes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_County_titleName" text="Comitatus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_femaleRank" text="Ducissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_maleRank" text="Dux" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Duchy_titleName" text="Ducatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRank" text="Regina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_maleRank" text="Rex" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_titleName" text="Regnum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_femaleRank" text="Baronessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_maleRank" text="Baro" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_titleName" text="Baronatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_femaleRank" text="Cometessa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_maleRank" text="Comes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_County_titleName" text="Comitatus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_femaleRank" text="Ducissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_maleRank" text="Dux" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Duchy_titleName" text="Ducatum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleHeirRank" text="Principissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRank" text="Regina" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_heirRank" text="Princeps" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_maleRank" text="Rex" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_titleName" text="Regnum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_femaleRank" text="Begum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_maleRank" text="Beg" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_titleName" text="Beglik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_femaleRank" text="Atabegum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_maleRank" text="Atabeg" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_County_titleName" text="Atabeglik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_femaleRank" text="Khanum" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_maleRank" text="Khan" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Duchy_titleName" text="Khanlik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_childRank" text="Khan Khuu" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleChildRank" text="Gonji" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleHeirRank" text="Gonji" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleNobleRank" text="Khatagtai" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRank" text="Erxem Khatun" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heirRank" text="Khan Khuu" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_maleRank" text="Erxem Khagan" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_nobleRank" text="Erxem" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_titleName" text="Ulus" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_childRank" text="Khan Khuu" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleChildRank" text="Gonji" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleHeirRank" text="Gonji" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleNobleRank" text="Khatagtai" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRank" text="Khatun" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_heirRank" text="Khan Khuu" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_maleRank" text="Khagan" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_nobleRank" text="Erxem" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_titleName" text="Khaganlik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_femaleRank" text="Drott" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_maleRank" text="Othlingr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_titleName" text="Othlingdómr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_femaleRank" text="Thegna" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_maleRank" text="Thegn" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_County_titleName" text="Thegndómr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_femaleRank" text="Haerskarinna" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_maleRank" text="Jarl" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Duchy_titleName" text="Jarldómr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_childRank" text="Fursteson" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleChildRank" text="Furstedatter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleHeirRank" text="Furstedatter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleNobleRank" text="Hoevdinga" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRank" text="Riksdrottning" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_heirRank" text="Fursteson" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_maleRank" text="Storkungen" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_nobleRank" text="Hoevding" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleName" text="Storkungendómr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_childRank" text="Fursteson" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleChildRank" text="Furstedatter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleHeirRank" text="Furstedatter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleNobleRank" text="Hoevdinga" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRank" text="Drottning" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_heirRank" text="Fursteson" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_maleRank" text="Konungr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_nobleRank" text="Hoevding" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_titleName" text="Konungdómr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_femaleRank" text="Vrifrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_maleRank" text="Vriherre" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_titleName" text="Vriherreschaft" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_femaleRank" text="Gravin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_maleRank" text="Grave" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_County_titleName" text="Graveschaft" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_femaleRank" text="Kunigin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_maleRank" text="Kunic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Duchy_titleName" text="Kunicriich" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_childRank" text="Edelinc" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleChildRank" text="Edelfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleHeirRank" text="Edelfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleNobleRank" text="Lhandsfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRank" text="Vronenentin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heirRank" text="Edelinc" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_maleRank" text="Vronenent" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_nobleRank" text="Lhandsherre" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_titleName" text="Vronenentriich" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_childRank" text="Edelinc" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleChildRank" text="Edelfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleHeirRank" text="Edelfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleNobleRank" text="Lhandsfrou" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRank" text="Hougekunigin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_heirRank" text="Edelinc" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_maleRank" text="Hougekunic" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_nobleRank" text="Lhandsherre" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_titleName" text="Hougekunicriich" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_femaleRank" text="Vojevodýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_maleRank" text="Vojevóda" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_titleName" text="Vojevódastvo" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_femaleRank" text="Bojarýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_maleRank" text="Bojárin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_County_titleName" text="Bojárstvo" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_femaleRank" text="Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_maleRank" text="Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Duchy_titleName" text="Knjazývstvo" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_childRank" text="Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleChildRank" text="Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleHeirRank" text="Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleNobleRank" text="Gospodja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRank" text="Koroléva" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heirRank" text="Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_maleRank" text="Koról" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_nobleRank" text="Gospodin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_titleName" text="Korolévstvo" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_childRank" text="Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleChildRank" text="Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleHeirRank" text="Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleNobleRank" text="Gospodja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRank" text="Velykyy Knjahýnja" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_heirRank" text="Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_maleRank" text="Velykyy Knjaz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_nobleRank" text="Gospodin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_titleName" text="Velykyy Knjazývstvo" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_femaleRank" text="Beresse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_maleRank" text="Bers" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_titleName" text="Baronie" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_femaleRank" text="Contesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_maleRank" text="Cuens" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_County_titleName" text="Cuntez" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_femaleRank" text="Princesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_maleRank" text="Princes" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Duchy_titleName" text="Principaliz" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_childRank" text="Edelings" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleChildRank" text="Edelesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleHeirRank" text="Edelesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleNobleRank" text="Siresse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRank" text="Emperesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heirRank" text="Edelings" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_maleRank" text="Emperere" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_nobleRank" text="Sire" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_titleName" text="Empires" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_childRank" text="Edelings" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleChildRank" text="Edelesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleHeirRank" text="Edelesse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleNobleRank" text="Siresse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRank" text="Reigne" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_heirRank" text="Edelings" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_maleRank" text="Reis" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_nobleRank" text="Sire" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_titleName" text="Ríce" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_childRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleChildRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleHeirRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleNobleRank" text="Coryárkhousa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRank" text="Hypatissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_heirRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_maleRank" text="Hypatos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_nobleRank" text="Coryárkhos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_titleFormat" text="{TITLE_NOUN} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_titleName" text="Politeia" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_childRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleChildRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleHeirRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleNobleRank" text="Coryárkhousa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRank" text="Basíleia" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_heirRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_maleRank" text="Basileús" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_nobleRank" text="Coryárkhos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_titleFormat" text="{TITLE_NOUN} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_titleName" text="Basileía" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_childRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleChildRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleHeirRank" text="Prinkipissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleNobleRank" text="Coryárkhousa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRank" text="Autokratórissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_heirRank" text="Prinkips" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_heroNameFormat" text="{HERO_NAME}, {HELD_TITLE}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_maleRank" text="Autokrátor" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_nobleRank" text="Coryárkhos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_titleFormat" text="{TITLE_NOUN} ton {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_titleName" text="Diktatoría" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_femaleRank" text="Shaykha" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_maleRank" text="Shaykh" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_titleName" text="Mashyakhat" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_County_femaleRank" text="Amira" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_County_maleRank" text="Amir" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_County_titleName" text="Imarat" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Duchy_femaleRank" text="Malika" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Duchy_maleRank" text="Malik" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Duchy_titleName" text="Mamlakat" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_childRank" text="Amirzadeh" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleChildRank" text="Amirzadi" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleHeirRank" text="Waliyat al-Ahd" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleNobleRank" text="Sharifa" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRank" text="Sultana al-Salatin" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_heirRank" text="Wali al-Ahd" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_maleRank" text="Sultan al-Salatin" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_nobleRank" text="Sharif" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_titleName" text="Saltanat Uzma" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_childRank" text="Amirzadeh" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleChildRank" text="Amirzadi" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleHeirRank" text="Waliyat al-Ahd" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleNobleRank" text="Sharifa" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRank" text="Sultana" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_heirRank" text="Wali al-Ahd" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_maleRank" text="Sultan" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_nobleRank" text="Sharif" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_titleName" text="Saltanat" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_femaleRank" text="Bantaoiseach" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_heldTitleFormat" text="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_maleRank" text="Taoiseach" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_titleFormat" text="{TITLE_NOUN} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_titleName" text="Tuath" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_County_femaleRank" text="Banmormaer" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_County_heldTitleFormat" text="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_County_maleRank" text="Mormaer" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_County_titleFormat" text="{TITLE_NOUN} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_County_titleName" text="Mormaeracht" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Duchy_femaleRank" text="Bainríon" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Duchy_maleRank" text="Rí" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Duchy_titleFormat" text="{TITLE_NOUN} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Duchy_titleName" text="Ríocht" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_childRank" text="Mac Flaith" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleChildRank" text="Inghean Flaith" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleHeirRank" text="Ban-tánaiste" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleNobleRank" text="Bantighearna" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRank" text="Banrí Ruirech" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_heirRank" text="Tánaiste" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_heldTitleFormat" text="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_maleRank" text="Rí Ruirech" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_nobleRank" text="Tighearna" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_titleFormat" text="{TITLE_NOUN} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_titleName" text="Ríocht Ruirech" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_childRank" text="Mac Flaith" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleChildRank" text="Inghean Flaith" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleHeirRank" text="Ban-tánaiste" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleNobleRank" text="Bantighearna" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRank" text="Ardbhainríon" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_heirRank" text="Tánaiste" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_maleRank" text="Ard Rí" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_nobleRank" text="Tighearna" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_titleFormat" text="{TITLE_NOUN} na {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_titleName" text="Ard Ríocht" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_titleName" text="Toparchia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_County_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_County_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Duchy_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Duchy_titleName" text="Doukaton" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_maleRank" text="Exarchos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_titleName" text="Exarchatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_titleName" text="Toparchia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_County_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_County_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Duchy_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Duchy_titleName" text="Doukaton" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_maleRank" text="Exarchos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_titleName" text="Exarchatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_titleName" text="Toparchia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_County_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_County_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Duchy_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Duchy_titleName" text="Doukaton" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_maleRank" text="Exarchos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_titleName" text="Exarchatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_femaleRank" text="Archontissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_maleRank" text="Archon" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_titleName" text="Toparchia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_County_femaleRank" text="Strategina" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_County_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_County_maleRank" text="Strategos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_County_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_County_titleName" text="Thema" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Duchy_femaleRank" text="Doukissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Duchy_maleRank" text="Doux" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Duchy_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Duchy_titleName" text="Doukaton" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRank" text="Exarchissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_maleRank" text="Exarchos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_titleName" text="Exarchatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_femaleRank" text="Noyan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_maleRank" text="Noyan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_titleName" text="Noyanliqi" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_County_femaleRank" text="Bike" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_County_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_County_maleRank" text="Bey" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_County_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_County_titleName" text="Beyliyi" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Duchy_femaleRank" text="Begum" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Duchy_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Duchy_maleRank" text="Beylerbey" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Duchy_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Duchy_titleName" text="Beylerbeyliyi" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_childRank" text="Tegin" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleChildRank" text="Khanika" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleHeirRank" text="Veliaht Hatun" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleNobleRank" text="Tarkhanah" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRank" text="Khatun" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_heirRank" text="Veliaht" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_maleRank" text="Khagan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_nobleRank" text="Tarkhan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_titleName" text="Khaganliqi" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_childRank" text="Tegin" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleChildRank" text="Khanika" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleHeirRank" text="Veliaht Hatun" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleNobleRank" text="Tarkhanah" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRank" text="Khanum" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_heirRank" text="Veliaht" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_heldTitleFormat" text="{TITLE_NAME} {TITLE_RANK}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_maleRank" text="Khan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_nobleRank" text="Tarkhan" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_titleFormat" text="{TITLE_NAME} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_titleName" text="Khanliqi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_femaleRank" text="Hersirkona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_maleRank" text="Hersir" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_titleName" text="Hersirsdæmi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_County_femaleRank" text="Jarlkona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_County_maleRank" text="Jarl" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_County_titleName" text="Jarlsdæmi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Duchy_femaleRank" text="Hertogynja" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Duchy_maleRank" text="Hertogi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Duchy_titleName" text="Hertugadæmi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_childRank" text="Konungsson" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleChildRank" text="Konungsdóttir" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleHeirRank" text="Konungserfingja" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleNobleRank" text="Frú" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRank" text="Fylkja" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_heirRank" text="Konungserfingi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_maleRank" text="Fylkir" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_nobleRank" text="Herra" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_titleName" text="Fylkirate" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_childRank" text="Konungsson" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleChildRank" text="Konungsdóttir" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleHeirRank" text="Konungserfingja" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleNobleRank" text="Frú" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRank" text="Dróttning" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_heirRank" text="Konungserfingi" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_maleRank" text="Konungr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_nobleRank" text="Herra" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_titleName" text="Konungsríki" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_femaleRank" text="Dvoryanka" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_maleRank" text="Dvoryanin" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_titleName" text="Votchina" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_County_femaleRank" text="Boyarynya" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_County_maleRank" text="Boyar" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_County_titleName" text="Boyarstvo" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Duchy_femaleRank" text="Knyaginya" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Duchy_maleRank" text="Knyaz" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Duchy_titleName" text="Knyazhestvo" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_childRank" text="Knyazhich" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleChildRank" text="Knyazhna" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleHeirRank" text="Naslednitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleNobleRank" text="Boyaryshnya" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRank" text="Samoderzhitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_heirRank" text="Naslednik" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_maleRank" text="Samoderzhets" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_nobleRank" text="Boyarich" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_titleName" text="Samoderzhaviye" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_childRank" text="Knyazhich" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleChildRank" text="Knyazhna" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleHeirRank" text="Naslednitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleNobleRank" text="Boyaryshnya" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRank" text="Velikaya Knyaginya" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_heirRank" text="Naslednik" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_maleRank" text="Velikiy Knyaz" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_nobleRank" text="Boyarich" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_titleName" text="Velikoye Knyazhestvo" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_femaleRank" text="Baronissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_maleRank" text="Baro" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_titleName" text="Baronatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_County_femaleRank" text="Comitissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_County_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_County_maleRank" text="Comes" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_County_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_County_titleName" text="Comitatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Duchy_femaleRank" text="Ducissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Duchy_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Duchy_maleRank" text="Dux" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Duchy_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Duchy_titleName" text="Ducatus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleHeirRank" text="Principissa Hereditaria" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRank" text="Imperatrix" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_heirRank" text="Princeps Hereditarius" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_maleRank" text="Imperator" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_titleName" text="Imperium" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_childRank" text="Princeps" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleChildRank" text="Principissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleHeirRank" text="Principissa Hereditaria" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleNobleRank" text="Domina" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRank" text="Regina" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_heirRank" text="Princeps Hereditarius" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_maleRank" text="Rex" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_nobleRank" text="Dominus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_titleFormat" text="{TITLE_NOUN} {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_titleName" text="Regnum" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRank" text="Hypatissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_maleRank" text="Hypatos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_titleName" text="Politeia" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRank" text="Basilissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_maleRank" text="Basileus" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_titleName" text="Basileia" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_childRank" text="Porphyrogennetos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleChildRank" text="Porphyrogenneta" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleHeirRank" text="Kaisarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleNobleRank" text="Patrikia" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRank" text="Autokratorissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_heirRank" text="Kaisar" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_heldTitleFormat" text="{DISPLAY_TITLE} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_maleRank" text="Autokrator" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_nobleRank" text="Patrikios" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_titleName" text="Autokrateia" />
   </strings>
 </base>

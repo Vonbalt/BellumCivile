@@ -746,3 +746,4 @@ Fixed POC equipment lookups confusing parent and cadet houses with identical ban
 Made hostage-pact duration negotiable in peace treaties, replacing the MCM setting with duration-based war-score costs and balanced AI acceptance while preserving existing agreements.
 Fixed an inheritance crash where interrupted cadet-house formation could leave a clan without a leader.
 Fixed mercenary clans being unintentionally turned into vassals after succession rebellions and civil-war reunification.
+Improved localization support for realm names, titles, and ranks across all terminology presets, and fixed title patches to respect active mod load order.

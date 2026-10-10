@@ -721,6 +721,32 @@ Styles scope to kingdom, ruler culture, or holder culture, in that priority orde
 
 Extensions use settlement, title, kingdom, culture, and clan IDs. Use structured XML parsing; display-name matching is not a stable API.
 
+### Translating Names and Titles
+
+Bannerlord text uses `{=KEY}Fallback text`. Keep the key when translating its `<string id="KEY" text="..." />` entry in the target language's registered catalog. The inline fallback is used in English and when a translation is unavailable; changing only the fallback does not override an existing translation in another language. New keys must match between their references and catalog entries.
+
+Shipped title presets localize their labels, territorial roots, ranks, and formats. Unchanged Anglicized roots for Vlandia, Sturgia, Battania, and Khuzait reuse vanilla translation keys. Bellum-specific roots use `BC_TitleRoot_*`; terminology and formats use `BC_TitleStyle_*`. Preset and cultural contexts have separate keys so translating one does not change another. Preserve format variables such as `{TITLE_NOUN}`, `{TITLE_NAME}`, `{DISPLAY_TITLE}`, and `{HERO_NAME}`, while changing their order as the language requires.
+
+The active **Realm Name Display** mode determines which configuration supplies the name:
+
+- **Native:** the game's or conversion module's kingdom name and translation.
+- **Realm Identity:** `bellum_realm_names.xml` and its patches, unless the campaign has a remembered identity or player realm rename. The optional `nativeName` guard compares the translated native name. Keep it unchanged when replacing only `root`; omit it only when an unconditional identity override is intended.
+- **Sovereign Title:** the hierarchy title's root, including the selected title preset and `bellum_feudal_titles_patch.xml` overrides. Editing `bellum_realm_names.xml` does not affect this mode. Player title renames remain authoritative.
+
+For a custom localized Crown root in Sovereign Title mode, a title patch can contain:
+
+```xml
+<BellumFeudalTitles>
+  <TitleName id="bc_title_kingdom_vlandia" name="{=MyMod_Vlandia}My Vlandia" />
+</BellumFeudalTitles>
+```
+
+Register `<string id="MyMod_Vlandia" text="..." />` in the translation module's language catalog. Use a realm-name patch with `root="{=MyMod_Vlandia}My Vlandia"` instead for Realm Identity mode; its realm ID is `vlandia`, not the title ID or localization key.
+
+Title/style patches apply after the base hierarchy and selected preset, in active module order; later patches win. Bellum's own patch participates at its normal load position. Disabled modules' patches are ignored, and active modules outside the game's `Modules` directory are supported. This patch order is separate from preset discovery in MCM.
+
+Restart after editing configuration XML or translation catalogs. Displayed `TextObject` names and the realm-name cache respond to normal in-game language changes, but configuration files are not live-reloaded. `Tests/LocalizationCatalog.Tests.ps1` checks that all nonempty visible text in shipped presets has a key and that Bellum catalog fallbacks and variables agree; `--realm-names` also exercises real preset loading, translations, override order, and rename protections.
+
 ## Persistence and Recovery
 
 [BellumCivileSaveDefiner.cs](BellumCivileSaveDefiner.cs) reserves base ID **8456123**. Behaviors serialize through `SyncData`; records and nested containers need explicit registration.

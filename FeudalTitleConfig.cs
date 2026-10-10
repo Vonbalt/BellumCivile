@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using TaleWorlds.ModuleManager;
 
 namespace BellumCivile
 {
@@ -105,7 +106,7 @@ namespace BellumCivile
                     BellumCivileLogger.Log($"Loaded feudal title style preset '{selectedPreset.Id}' from {selectedPreset.Path}.");
                 }
 
-                foreach (string patchPath in FindPatchFiles(moduleRoot))
+                foreach (string patchPath in FindPatchFiles())
                     config.LoadFile(patchPath, replaceExisting: false);
 
                 BellumCivileLogger.Log($"Loaded feudal title config ({config._titles.Count} configured titles, {config._styles.Count} title styles).");
@@ -375,25 +376,19 @@ namespace BellumCivile
             return node?.Attributes?[name]?.Value?.Trim() ?? string.Empty;
         }
 
-        private static IEnumerable<string> FindPatchFiles(string moduleRoot)
+        private static IEnumerable<string> FindPatchFiles()
         {
             List<string> paths = new List<string>();
-            string ownPatchPath = Path.Combine(moduleRoot, "ModuleData", PatchFileName);
-            if (File.Exists(ownPatchPath))
-                paths.Add(ownPatchPath);
-
-            string modulesRoot = Directory.GetParent(moduleRoot)?.FullName;
-            if (string.IsNullOrEmpty(modulesRoot) || !Directory.Exists(modulesRoot))
-                return paths;
-
-            foreach (string moduleDirectory in Directory.GetDirectories(modulesRoot))
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // Include Bellum's own patch at its actual position in the active load order.
+            foreach (ModuleInfo module in ModuleHelper.GetActiveModules())
             {
-                string patchPath = Path.Combine(moduleDirectory, "ModuleData", PatchFileName);
-                if (File.Exists(patchPath)
-                    && !paths.Any(p => string.Equals(p, patchPath, StringComparison.OrdinalIgnoreCase)))
-                {
+                if (string.IsNullOrWhiteSpace(module?.FolderPath))
+                    continue;
+
+                string patchPath = Path.GetFullPath(Path.Combine(module.FolderPath, "ModuleData", PatchFileName));
+                if (File.Exists(patchPath) && seen.Add(patchPath))
                     paths.Add(patchPath);
-                }
             }
 
             return paths;

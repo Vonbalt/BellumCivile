@@ -131,4 +131,31 @@ foreach ($node in $mercenaries.SelectNodes('//Name')) {
     if (!$node.text.StartsWith('{=BC_MercenaryName_')) { throw "Unkeyed shipped mercenary name: $($node.text)" }
 }
 
-Write-Output "PASS: $($files.Count) production files, $($entries.Count) unique catalog entries, $($checked.Count) referenced IDs and $($states.Count) localized agenda states; variables, generated court IDs and XML fallbacks validated."
+# Unlike reference scanning, this also detects a missing localization token entirely.
+$nativeTitleRoots = @{
+    FjwRsf1C = 'Vlandia'; PjO7oY16 = 'Sturgia'; '0B27RrYJ' = 'Battania'; sZLd6VHi = 'Khuzait'
+}
+$presetFields = 0
+foreach ($file in Get-ChildItem (Join-Path $root 'ModuleData') -Filter 'bellum_title_styles_*.xml') {
+    $document = New-Object System.Xml.XmlDocument
+    $document.Load($file.FullName)
+    $displayFields = $document.SelectNodes('/BellumFeudalTitles/@presetName | /BellumFeudalTitles/TitleName/@name | /BellumFeudalTitles/Title/@name | /BellumFeudalTitles/TitleStyle/Rank/@*[name()!="tier"] | /BellumFeudalTitles/TitleStyle/CourtFactions/@* | /BellumFeudalTitles/TitleStyle/CouncilOffices/@*')
+    foreach ($attribute in $displayFields) {
+        $text = $attribute.Value
+        if ([string]::IsNullOrWhiteSpace($text)) { continue }
+        $source = "$($file.Name): $($attribute.OwnerElement.LocalName)/@$($attribute.LocalName)"
+        if ($text -notmatch '^\{=([A-Za-z0-9_]+)\}([\s\S]*)$') {
+            throw "Unkeyed shipped title preset text: $source = $text"
+        }
+        $id = $Matches[1]
+        $fallback = $Matches[2]
+        if ($id.StartsWith('BC_')) {
+            Check-Fallback $id $fallback $source $true
+        } elseif (!$nativeTitleRoots.ContainsKey($id) -or $nativeTitleRoots[$id] -cne $fallback) {
+            throw "Unknown native title preset localization ID or changed fallback: $source = $text"
+        }
+        $presetFields++
+    }
+}
+
+Write-Output "PASS: $($files.Count) production files, $($entries.Count) unique catalog entries, $($checked.Count) referenced IDs, $($states.Count) localized agenda states and $presetFields keyed title preset fields; variables, generated court IDs and XML fallbacks validated."
