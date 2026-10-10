@@ -745,3 +745,4 @@ Fixed Bellum’s realm names preventing POC from applying kingdom-specific color
 Fixed POC equipment lookups confusing parent and cadet houses with identical banners.
 Made hostage-pact duration negotiable in peace treaties, replacing the MCM setting with duration-based war-score costs and balanced AI acceptance while preserving existing agreements.
 Fixed an inheritance crash where interrupted cadet-house formation could leave a clan without a leader.
+Fixed mercenary clans being unintentionally turned into vassals after succession rebellions and civil-war reunification.

@@ -55,9 +55,7 @@ namespace BellumCivile.Behaviors
                     ReleaseMercenariesFromKingdom(loser.Realm);
                     foreach (var clan in record.LosingClans.Where(c => !c.IsEliminated && !c.IsUnderMercenaryService))
                     {
-                        if (clan.Kingdom == loser.Realm)
-                            winner.Faction.MoveClanToKingdomPreservingCivilWarInfluence(clan, winner.Realm,
-                                preserveCustomBanner: true, showNotification: false);
+                        TransferCivilWarClan(clan, loser.Realm, winner.Realm, winner.Faction);
                     }
                     if (loser.Realm.Clans.Any(c => !c.IsEliminated)) return;
                     record.Stage = 2;

@@ -89,6 +89,12 @@ internal static class Program
                 TestCivilWarCrownTransfer();
                 Console.WriteLine($"{_checks} civil-war identity and continuation checks passed.");
             }
+            else if (args.Contains("--civil-war-mercenaries"))
+            {
+                CivilWarMercenarySettlementTests.Run(Check);
+                FeudMercenaryTests.Run(Check);
+                Console.WriteLine($"{_checks} civil-war mercenary checks passed.");
+            }
             else if (args.Contains("--influence-budget"))
             {
                 NpcInfluenceBudgetTests.Run(Check);
@@ -805,6 +811,7 @@ internal static class Program
         TestElectiveContestPledges();
         TestCivilWarContinuation();
         CivilWarRealmIdentityTests.Run(Check);
+        CivilWarMercenarySettlementTests.Run(Check);
         TestCivilWarConflictJournal();
         TestCivilWarCrownTransfer();
         TestCivilWarRivalry();

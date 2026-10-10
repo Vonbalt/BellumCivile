@@ -483,22 +483,38 @@ namespace BellumCivile.Behaviors
 
         private static void TransferClansToKingdom(Kingdom sourceKingdom, Kingdom targetKingdom, Clan preferredRuler = null)
         {
-            if (sourceKingdom == null || targetKingdom == null) return;
+            if (sourceKingdom == null || targetKingdom == null || sourceKingdom == targetKingdom || targetKingdom.IsEliminated) return;
 
             RunWithRulerRepairSuppressed(sourceKingdom, () =>
             {
+                ReleaseMercenariesFromKingdom(sourceKingdom);
                 List<Clan> clansToTransfer = sourceKingdom.Clans.ToList();
                 if (preferredRuler != null && clansToTransfer.Remove(preferredRuler))
                 {
-                    KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(preferredRuler, targetKingdom, showNotification: false);
-                    EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: true);
+                    if (TransferCivilWarClan(preferredRuler, sourceKingdom, targetKingdom))
+                        EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: true);
                 }
 
                 foreach (Clan clan in clansToTransfer)
-                    KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(clan, targetKingdom, showNotification: false);
+                    TransferCivilWarClan(clan, sourceKingdom, targetKingdom);
 
                 EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: preferredRuler != null);
             });
+        }
+
+        private static bool TransferCivilWarClan(Clan clan, Kingdom sourceKingdom, Kingdom targetKingdom, FactionObject faction = null)
+        {
+            // A contract ending clears the mercenary flag, so stale rosters also need a realm check.
+            if (clan == null || clan.IsEliminated || sourceKingdom == null || targetKingdom == null
+                || sourceKingdom == targetKingdom || targetKingdom.IsEliminated || clan.Kingdom != sourceKingdom)
+                return false;
+            if (ReleaseCivilWarMercenary(clan, sourceKingdom)) return false;
+
+            if (faction != null)
+                faction.MoveClanToKingdomPreservingCivilWarInfluence(clan, targetKingdom, preserveCustomBanner: true, showNotification: false);
+            else
+                KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(clan, targetKingdom, showNotification: false);
+            return clan.Kingdom == targetKingdom;
         }
 
         private static string BuildCaptureResolutionKey(string parentKingdomId, string rebelKingdomId)
@@ -1744,7 +1760,7 @@ namespace BellumCivile.Behaviors
                         .ToList();
 
                     foreach (Clan rebelClan in rebelKingdom.Clans.ToList())
-                        faction.MoveClanToKingdomPreservingCivilWarInfluence(rebelClan, faction.ParentKingdom, preserveCustomBanner: true, showNotification: false);
+                        TransferCivilWarClan(rebelClan, rebelKingdom, faction.ParentKingdom, faction);
 
                     if (faction.IsHereditaryAbdication)
                         CrownAccessionBehavior.Instance.BeginForcedAbdication(faction.ParentKingdom,
@@ -1775,7 +1791,7 @@ namespace BellumCivile.Behaviors
                     List<Clan> coupLoyalists = faction.ParentKingdom.Clans.Where(c => !coupRebelClansSet.Contains(c)).ToList();
 
                     foreach (Clan rebelClan in rebelKingdom.Clans.ToList())
-                        faction.MoveClanToKingdomPreservingCivilWarInfluence(rebelClan, faction.ParentKingdom, preserveCustomBanner: true, showNotification: false);
+                        TransferCivilWarClan(rebelClan, rebelKingdom, faction.ParentKingdom, faction);
 
                     ClearSuccessionStateForKingdom(faction.ParentKingdom, "install-ruler victory");
                     faction.ParentKingdom.RulingClan = victoriousLeader;
@@ -1803,7 +1819,8 @@ namespace BellumCivile.Behaviors
                 case FactionType.Glory:
                 case FactionType.Nobility:
                 case FactionType.Liberty:
-                    foreach (Clan rebelClan in rebelKingdom.Clans.ToList()) faction.MoveClanToKingdomPreservingCivilWarInfluence(rebelClan, faction.ParentKingdom, preserveCustomBanner: true, showNotification: false);
+                    foreach (Clan rebelClan in rebelKingdom.Clans.ToList())
+                        TransferCivilWarClan(rebelClan, rebelKingdom, faction.ParentKingdom, faction);
                     DrainAndDestroyRebelKingdom(rebelKingdom, faction.ParentKingdom, reunification: true);
                     break;
             }
@@ -2975,8 +2992,18 @@ namespace BellumCivile.Behaviors
 
         private static void ReleaseMercenariesFromKingdom(Kingdom kingdom)
         {
-            foreach (Clan clan in kingdom.Clans.Where(c => c.IsUnderMercenaryService).ToList())
-                ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(clan, showNotification: false);
+            if (kingdom == null) return;
+            foreach (Clan clan in kingdom.Clans.Where(c => c != null && c.IsUnderMercenaryService).ToList())
+                ReleaseCivilWarMercenary(clan, kingdom);
+        }
+
+        private static bool ReleaseCivilWarMercenary(Clan clan, Kingdom kingdom)
+        {
+            if (clan == null || clan.Kingdom != kingdom || !clan.IsUnderMercenaryService) return false;
+            ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(clan, showNotification: false);
+            if (clan.Kingdom == kingdom)
+                throw new System.InvalidOperationException($"Civil-war mercenary dismissal did not release clan {clan.StringId} from {kingdom.StringId}.");
+            return true;
         }
 
         private Kingdom PromoteRebelKingdomToIndependentKingdom(FactionObject faction, Kingdom rebelKingdom, Clan victoriousLeader)
@@ -3094,13 +3121,13 @@ namespace BellumCivile.Behaviors
                 if (clans.Remove(group.Leader))
                 {
                     CourtPoliticalPositionBehavior.MoveToSuccessorRealm(group.Leader, faction.ParentKingdom, permanentKingdom,
-                        () => faction.MoveClanToKingdomPreservingCivilWarInfluence(group.Leader, permanentKingdom, preserveCustomBanner: true, showNotification: false));
+                        () => TransferCivilWarClan(group.Leader, rebelKingdom, permanentKingdom, faction));
                     EnsureValidRulingClan(permanentKingdom, group.Leader, forcePreferred: true);
                 }
 
                 foreach (Clan clan in clans)
                     CourtPoliticalPositionBehavior.MoveToSuccessorRealm(clan, faction.ParentKingdom, permanentKingdom,
-                        () => faction.MoveClanToKingdomPreservingCivilWarInfluence(clan, permanentKingdom, preserveCustomBanner: true, showNotification: false));
+                        () => TransferCivilWarClan(clan, rebelKingdom, permanentKingdom, faction));
 
                 EnsureValidRulingClan(permanentKingdom, group.Leader, forcePreferred: true);
             });
@@ -3246,7 +3273,7 @@ namespace BellumCivile.Behaviors
             ReleaseMercenariesFromKingdom(rebelKingdom);
             List<Clan> rebelClans = rebelKingdom.Clans.ToList();
             foreach (Clan rebelClan in rebelKingdom.Clans.ToList())
-                faction.MoveClanToKingdomPreservingCivilWarInfluence(rebelClan, faction.ParentKingdom, preserveCustomBanner: true, showNotification: false);
+                TransferCivilWarClan(rebelClan, rebelKingdom, faction.ParentKingdom, faction);
 
             DrainAndDestroyRebelKingdom(rebelKingdom, faction.ParentKingdom, reunification: true);
             faction.RestoreCivilWarInfluenceSnapshots(rebelClans);
@@ -3574,12 +3601,12 @@ namespace BellumCivile.Behaviors
 
                 if (preferredRuler != null && liveClans.Remove(preferredRuler))
                 {
-                    KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(preferredRuler, targetKingdom, showNotification: false);
-                    EnsureValidRulingClan(targetKingdom, preferredRuler);
+                    if (TransferCivilWarClan(preferredRuler, eliminatedKingdom, targetKingdom))
+                        EnsureValidRulingClan(targetKingdom, preferredRuler);
                 }
 
                 foreach (Clan clan in liveClans)
-                    KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(clan, targetKingdom, showNotification: false);
+                    TransferCivilWarClan(clan, eliminatedKingdom, targetKingdom);
 
                 EnsureValidRulingClan(targetKingdom, preferredRuler);
                 BellumCivileLogger.Log($"Moved live clans from eliminated kingdom {eliminatedKingdom.StringId} into {targetKingdom.StringId}.");

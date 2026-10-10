@@ -84,8 +84,9 @@ namespace BellumCivile.Behaviors
                     if (victor?.IsEliminated != false || (victor.Kingdom != realm && victor.Kingdom != record.WarShell)
                         || victor.Leader != record.Challenger || record.Challenger?.IsAlive != true) return;
                     if (realm.RulingClan != victor && realm.Leader != record.Sovereign) return;
+                    ReleaseMercenariesFromKingdom(record.WarShell);
                     foreach (Clan clan in record.WarShell?.Clans.ToList() ?? new List<Clan>())
-                        faction.MoveClanToKingdomPreservingCivilWarInfluence(clan, realm, preserveCustomBanner: true, showNotification: false);
+                        TransferCivilWarClan(clan, record.WarShell, realm, faction);
                     if (victor.Kingdom != realm) return;
                     if (realm.RulingClan != victor)
                     {

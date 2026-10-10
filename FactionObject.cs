@@ -1415,7 +1415,7 @@ namespace BellumCivile
 
         public void MoveClanToKingdomPreservingCivilWarInfluence(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner = true, bool showNotification = false)
         {
-            if (clan == null || targetKingdom == null)
+            if (clan == null || targetKingdom == null || clan.IsUnderMercenaryService)
                 return;
 
             CaptureCivilWarStartInfluence(clan);
