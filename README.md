@@ -582,7 +582,11 @@ Dungeon dialogue permits honorable early return or dishonorable execution with c
 
 ### Client Kingdoms
 
-Clients maintain a forced alliance/trade agreement, follow their suzerain into wars/peace, and cannot independently pursue conflicting diplomacy or ordinary wars. Liberation requires the clientage's one-year cooldown to expire, realm and proposing-clan Liberty Desire of at least 60, and at least 100% strength readiness. Readiness uses clan military strength plus influence: client clans contribute 50%, 75%, or 100% at desire below 40, 40-59, or 60+, against the suzerain plus half the power of its other clients and allies, counted once each. The required client-to-bloc ratio starts at 80% and follows the existing ruler-personality adjustments. Suzerain collapse releases clients.
+Map and conversion mods can declare historical clientage with top-level `StartingClientage` entries in `bellum_feudal_titles.xml` or active-module `bellum_feudal_titles_patch.xml` files. These require exact client/suzerain kingdom IDs and `submission="Voluntary"` or `"Forced"`; optional `liberationCooldownDays` defaults to 0 and delays liberation rather than expiring clientage. Later patches replace the whole entry by client ID; `remove="true"` cancels an earlier declaration. Both shipped XML files contain commented examples. Terminology presets cannot create clientage.
+
+Only a new-game event arms initialization, which runs after session setup. It validates permanent realms and a flat client/suzerain graph before changing diplomacy. Starting clients follow the suzerains' wars, including across opposing client blocs; their independent wars and incompatible commitments are cleared before protected alliance/trade creation. No title transfers, submission relation rewards/penalties, notifications of a new submission, or court agenda credit are generated. Existing saves are untouched. Interrupted initialization retains the chosen declarations and cooldown dates; completion consumes the pending plan, so subsequent loads cannot recreate a liberated client. Native call-to-war votes are suppressed only during this startup alignment.
+
+Clients maintain a forced alliance/trade agreement, follow their suzerain into wars/peace, and cannot independently pursue conflicting diplomacy or ordinary wars. Liberation requires the clientage's binding period to expire (one year for clientage created during gameplay), realm and proposing-clan Liberty Desire of at least 60, and at least 100% strength readiness. Readiness uses clan military strength plus influence: client clans contribute 50%, 75%, or 100% at desire below 40, 40-59, or 60+, against the suzerain plus half the power of its other clients and allies, counted once each. The required client-to-bloc ratio starts at 80% and follows the existing ruler-personality adjustments. Suzerain collapse releases clients.
 
 Liberty Desire combines submission type, lawful suzerainty through the title hierarchy, culture, opinion, marriage ties, court faction, personality, and active Crown preparations. The realm average is weighted by clan military strength plus influence. For liberation proposals and council votes, each clan gains 0.75 resolve per personal desire point above 60, capped at +30. Effective willingness is War Will plus resolve, capped at 100; proposals require 75. Resolve is calculated on demand and does not alter stored War Will or peace evaluations. NPC preparation viability uses the same formula with the projected +20 desire bonus. Influence costs, reserves, strategic target requirements, and the declaration vote still apply. `BuildDebugReport` lists actual War Will, resolve, and effective willingness for each clan.
 
@@ -706,7 +710,7 @@ Some saved/internal names retain older terminology, such as `EnableDynamicRelati
 | --- | --- |
 | `bellum_feudal_titles.xml` | Base hierarchy, records, and default styles |
 | `bellum_title_styles_*.xml` | Selectable presentation presets |
-| `bellum_feudal_titles_patch.xml` | Title/style overrides from loaded modules |
+| `bellum_feudal_titles_patch.xml` | Title/style and new-campaign clientage overrides from loaded modules |
 | `bellum_policy_agendas.xml` / `bellum_policy_agendas_patch.xml` | Crown interests and bloc stances |
 | `bellum_laws.xml` | Grouped law definitions |
 | `succession_config.xml` | Realm/cultural succession defaults |
@@ -866,6 +870,7 @@ dotnet build Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj -p:Gam
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game"
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --title-name-cache
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-names
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --starting-clientage
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 ```
 
@@ -874,6 +879,8 @@ Keep name-cache checks isolated because Harmony/JIT fixtures can affect other ch
 The engine harness accepts an installation path as its first positional argument, ahead of the `GameFolder` environment variable and the standard Steam default. `ChildhoodEducation.Tests.ps1` accepts `-GameFolder` with the same precedence. Court prototypes resolve Sandbox data through `GameFolder`; their existing `-ModuleData` parameter overrides that location. Prototypes supporting `-SyntheticOnly` can run without game data.
 
 `--realm-names` checks MCM preference migration and roundtrips, full/short/formal names, translated roots and word order, renames, cache invalidation, native save collector/value identity, and the optional Artem adapter against a minimal label-view double. It does not replace an in-game save/load and map-label check with the installed third-party mod.
+
+`--starting-clientage` checks real XML parsing/overrides, the new-game gate, graph validation, complete bloc diplomacy, scoped native alliance-event suppression, interrupted initialization, save compatibility, and prevention of reapplication after independence. War/peace actions and agreement delivery use test doubles; test a new campaign and save/reload with the intended conversion mod as well.
 
 `Tests/EncyclopediaConcepts.Tests.ps1` also compares text with the manuscript through `Tests/ConceptArticleSource.ps1`. It needs `docs/encyclopedia-articles-draft.md` and **cannot run unchanged in a clean clone without that private file**. The engine harness separately checks shipped Concepts XML/filter. Runtime has no manuscript dependency.
 

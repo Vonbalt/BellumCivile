@@ -10,7 +10,7 @@
 
   Selectable terminology presets use bellum_title_styles_*.xml instead. Their
   load order is main hierarchy, selected style preset, then every compatibility
-  patch, so this file always has final authority.
+  patch in active module order. Later patches win, including over this one.
 
   Presets and patches may rename an individual title without redefining its
   structure:
@@ -42,6 +42,39 @@
   notables, ordinary members and spouses do not. Omitted fields retain names.
 -->
 <BellumFeudalTitles>
+  <!--
+    Starting clientage examples for conversion/map mods (all commented out).
+    Add entries directly under BellumFeudalTitles. Use exact, case-sensitive
+    kingdom IDs, not title IDs or translated names. Applied only to NEW games
+    after campaign initialization; existing saves and later independence stay
+    untouched. Title hierarchy and clan ownership are not changed.
+
+    A later entry replaces the entire earlier entry for the same client:
+    <StartingClientage client="border_principality" suzerain="great_empire"
+                      submission="Voluntary" />
+    <StartingClientage client="conquered_kingdom" suzerain="great_empire"
+                      submission="Forced" liberationCooldownDays="100" />
+
+    Required submission: Voluntary or Forced (normal Liberty Desire rules).
+    Optional liberationCooldownDays: nonnegative whole days, default 0.
+    This only delays liberation; it does NOT make the clientage expire.
+    Omitting it in an override resets the configured initial lock to 0.
+    Lawfulness comes separately from the de jure hierarchy.
+
+    To cancel a declaration made by an earlier-loaded module:
+    <StartingClientage client="border_principality" remove="true" />
+
+    Each client has one suzerain; several clients may share that suzerain.
+    Self-clientage, chains/cycles, and pre-existing clientage conflicts are
+    rejected. Invalid kingdom IDs or graph conflicts stop the startup batch;
+    malformed entries are logged and ignored (they also discard an earlier
+    declaration for the same client). Check Bellum's log for the source file.
+    Clients follow their suzerain's starting wars and are at peace within the
+    bloc. Independent client wars and incompatible diplomacy are cleared,
+    then protected alliance/trade agreements are established with the suzerain.
+    Use this patch filename, not a bellum_title_styles_*.xml terminology preset.
+    Restart the game after editing configuration.
+  -->
   <!--
   <TitleStyle culture="Vlandia">
     <CouncilOffices name="Privy Council" marshal="Marshal" chancellor="Chancellor" seneschal="Seneschal" spymaster="Spymaster" firstAdvisor="First Advisor" secondAdvisor="Second Advisor" />

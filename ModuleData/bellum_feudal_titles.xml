@@ -68,6 +68,42 @@
 -->
 <BellumFeudalTitles>
   <!--
+    Optional starting client kingdoms (NEW CAMPAIGNS ONLY).
+    Place StartingClientage directly under BellumFeudalTitles, beside Title
+    entries. Use exact, case-sensitive kingdom IDs from your map's kingdom XML,
+    not display names, localization keys, or Bellum title IDs.
+
+    Uncomment and replace these placeholder IDs to use:
+    <StartingClientage client="border_principality" suzerain="great_empire"
+                      submission="Voluntary" />
+    <StartingClientage client="conquered_kingdom" suzerain="great_empire"
+                      submission="Forced" liberationCooldownDays="100" />
+
+    submission is required: Voluntary or Forced. Forced adds the normal forced
+    submission Liberty Desire modifier; lawful suzerainty is still determined
+    independently by the de jure hierarchy. No title or clan is transferred.
+
+    liberationCooldownDays is optional: a nonnegative whole number, default 0.
+    It is the remaining initial lock on liberation, NOT a clientage duration.
+    Clientage persists until ended through gameplay. Normal clientages created
+    during play retain their standard one-year liberation lock.
+
+    Several clients may share a suzerain. A client cannot itself have clients;
+    self-clientage, chains, cycles, and existing-client conflicts are rejected.
+    Invalid IDs or an unsafe combined graph prevent the startup batch applying;
+    malformed declarations are ignored with diagnostics in Bellum's log.
+    Clients start at peace within their bloc, follow their suzerain's wars,
+    and receive its protected alliance/trade agreement. Their independent
+    wars and incompatible alliances/trade/Diplomacy pacts are cleared.
+
+    Loaded modules can override these in bellum_feudal_titles_patch.xml:
+    a later declaration replaces the WHOLE entry for that client ID.
+    <StartingClientage client="border_principality" remove="true" />
+    removes an earlier declaration. Terminology presets ignore this element.
+    No active declarations are shipped here. Changes need a restart and a new
+    campaign; loading saves never reapplies or resets starting clientage.
+  -->
+  <!--
     TitleStyle entries in this file are the embedded compatibility fallback.
     The MCM-selected bellum_title_styles_*.xml preset is merged over them, then
     bellum_feudal_titles_patch.xml files from loaded modules are applied last.

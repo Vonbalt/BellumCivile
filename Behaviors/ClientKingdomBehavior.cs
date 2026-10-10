@@ -11,7 +11,7 @@ using C = BellumCivile.BellumCivileConstants;
 
 namespace BellumCivile.Behaviors
 {
-    public sealed class ClientKingdomBehavior : CampaignBehaviorBase
+    public sealed partial class ClientKingdomBehavior : CampaignBehaviorBase
     {
         private List<ClientKingdomRecord> _clients = new List<ClientKingdomRecord>();
         private int _diplomaticSyncDepth;
@@ -24,7 +24,9 @@ namespace BellumCivile.Behaviors
         public override void RegisterEvents()
         {
             Instance = this;
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, OnNewGameCreated);
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+            CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, OnAfterSessionLaunched);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(this, OnKingdomDestroyed);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, OnWarDeclared);
@@ -35,6 +37,8 @@ namespace BellumCivile.Behaviors
         {
             Instance = this;
             dataStore.SyncData("BellumCivile_ClientKingdoms", ref _clients);
+            dataStore.SyncData("BellumCivile_StartingClientagePending", ref _startingClientagePending);
+            dataStore.SyncData("BellumCivile_PendingStartingClientages", ref _pendingStartingClientages);
             EnsureCollectionsInitialized();
         }
 
@@ -607,12 +611,15 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
+            if (_startingClientagePending) return;
             ReconcileClientKingdoms();
             ReconcileDiplomacyNonAggressionPacts();
         }
 
         private void OnDailyTick()
         {
+            ApplyStartingClientages();
+            if (_startingClientagePending) return;
             ReconcileClientKingdoms();
             AdvanceRuntimeRevision();
         }

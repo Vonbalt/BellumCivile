@@ -16,6 +16,7 @@ namespace BellumCivile.Patches
         [HarmonyFinalizer]
         private static Exception Finalizer(IFaction __0, IFaction __1, Exception __exception)
         {
+            if (ClientKingdomBehavior.Instance?.IsApplyingStartingClientage == true) return __exception;
             try { CourtAgendaBehavior.Current?.RecordCourtLiberationWar(__0 as Kingdom, __1 as Kingdom); }
             catch (Exception ex) { BellumCivileLogger.Log("Court liberation war receipt failed: " + ex); }
             try
@@ -73,6 +74,18 @@ namespace BellumCivile.Patches
 
             BellumCivileLogger.Log($"Blocked independent client peace; first={first?.StringId}; second={second?.StringId}; reason={reason}.");
             return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(AllianceCampaignBehavior), "OnWarDeclared")]
+    internal static class StartingClientageAllianceWarPatch
+    {
+        [HarmonyPrefix]
+        private static bool Prefix()
+        {
+            // Startup sets the entire bloc's stances before creating its alliances.
+            // These historical wars must not enqueue fresh call-to-war votes or penalties.
+            return ClientKingdomBehavior.Instance?.IsApplyingStartingClientage != true;
         }
     }
 

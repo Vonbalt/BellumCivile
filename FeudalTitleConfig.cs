@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,15 @@ namespace BellumCivile
 {
     internal class FeudalTitleConfig
     {
+        public sealed class StartingClientage
+        {
+            public string ClientId;
+            public string SuzerainId;
+            public bool Voluntary;
+            public int LiberationCooldownDays;
+            public string Source;
+        }
+
         public sealed class ConfiguredTitle
         {
             public string Id;
@@ -76,10 +86,12 @@ namespace BellumCivile
 
         private readonly List<ConfiguredTitle> _titles = new List<ConfiguredTitle>();
         private readonly List<TitleStyle> _styles = new List<TitleStyle>();
+        private readonly List<StartingClientage> _startingClientages = new List<StartingClientage>();
         private readonly Dictionary<string, string> _titleNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public IReadOnlyList<ConfiguredTitle> Titles => _titles;
         public IReadOnlyList<TitleStyle> Styles => _styles;
+        public IReadOnlyList<StartingClientage> StartingClientages => _startingClientages;
         public IReadOnlyDictionary<string, string> TitleNames => _titleNames;
 
         private static FeudalTitleConfig Load()
@@ -109,7 +121,7 @@ namespace BellumCivile
                 foreach (string patchPath in FindPatchFiles())
                     config.LoadFile(patchPath, replaceExisting: false);
 
-                BellumCivileLogger.Log($"Loaded feudal title config ({config._titles.Count} configured titles, {config._styles.Count} title styles).");
+                BellumCivileLogger.Log($"Loaded feudal title config ({config._titles.Count} configured titles, {config._styles.Count} title styles, {config._startingClientages.Count} starting clientages).");
             }
             catch (Exception ex)
             {
@@ -126,6 +138,9 @@ namespace BellumCivile
 
             if (!stylesOnly)
             {
+                foreach (XmlNode node in doc.SelectNodes("/BellumFeudalTitles/StartingClientage") ?? (XmlNodeList)new EmptyNodeList())
+                    ReadStartingClientage(node, path);
+
                 foreach (XmlNode node in doc.SelectNodes("/BellumFeudalTitles/Title") ?? (XmlNodeList)new EmptyNodeList())
                 {
                     ConfiguredTitle title = ReadTitle(node);
@@ -177,6 +192,49 @@ namespace BellumCivile
                 else
                     _styles.Add(style);
             }
+        }
+
+        private void ReadStartingClientage(XmlNode node, string path)
+        {
+            string client = Attr(node, "client");
+            if (string.IsNullOrWhiteSpace(client))
+            {
+                BellumCivileLogger.Log($"Invalid StartingClientage in {path}: missing client kingdom ID.");
+                return;
+            }
+
+            // A malformed override must not silently revive the earlier relationship.
+            _startingClientages.RemoveAll(entry => entry.ClientId == client);
+            string remove = Attr(node, "remove");
+            if (!string.IsNullOrEmpty(remove))
+            {
+                if (!bool.TryParse(remove, out bool removed))
+                {
+                    BellumCivileLogger.Log($"Invalid StartingClientage for '{client}' in {path}: remove must be true or false.");
+                    return;
+                }
+                if (removed) return;
+            }
+
+            string suzerain = Attr(node, "suzerain");
+            string submission = Attr(node, "submission");
+            bool voluntary = string.Equals(submission, "Voluntary", StringComparison.OrdinalIgnoreCase);
+            string cooldownText = Attr(node, "liberationCooldownDays");
+            int cooldown = 0;
+            if (string.IsNullOrWhiteSpace(suzerain)
+                || (!voluntary && !string.Equals(submission, "Forced", StringComparison.OrdinalIgnoreCase))
+                || (!string.IsNullOrEmpty(cooldownText)
+                    && (!int.TryParse(cooldownText, NumberStyles.None, CultureInfo.InvariantCulture, out cooldown) || cooldown < 0)))
+            {
+                BellumCivileLogger.Log($"Invalid StartingClientage for '{client}' in {path}: supply suzerain ID, submission=Voluntary or Forced, and an optional nonnegative whole liberationCooldownDays.");
+                return;
+            }
+
+            _startingClientages.Add(new StartingClientage
+            {
+                ClientId = client, SuzerainId = suzerain, Voluntary = voluntary,
+                LiberationCooldownDays = cooldown, Source = path
+            });
         }
 
         private static void MergeStyle(TitleStyle target, TitleStyle source)

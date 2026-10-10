@@ -747,3 +747,4 @@ Made hostage-pact duration negotiable in peace treaties, replacing the MCM setti
 Fixed an inheritance crash where interrupted cadet-house formation could leave a clan without a leader.
 Fixed mercenary clans being unintentionally turned into vassals after succession rebellions and civil-war reunification.
 Improved localization support for realm names, titles, and ranks across all terminology presets, and fixed title patches to respect active mod load order.
+Added a modder resource to configure voluntary or forced starting client states through XML, requiring a new save to take effect.
