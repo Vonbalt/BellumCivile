@@ -237,6 +237,7 @@
                                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginRight="10" Brush="Info.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" IsVisible="@IsPlainOption" Text="@CostText" />
                                               </Children>
                                             </EncyclopediaFilterListItemButtonWidget>
+                                            <HintWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="@ToggleRightMargin" IsVisible="@IsDisabled" IsDisabled="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
                                             <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="136" HorizontalAlignment="Right" IsVisible="@HasDurationControls" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                               <Children>
                                                 <ButtonWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="35" SuggestedHeight="35" VerticalAlignment="Center" MarginRight="4" Brush="GameMenu.ManageHideoutTroops.MinusButton" IsDisabled="@IsDurationDecreaseDisabled" Command.Click="ExecuteDecreaseDuration" UpdateChildrenStates="true" />

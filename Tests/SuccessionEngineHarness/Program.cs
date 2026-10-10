@@ -216,6 +216,7 @@ internal static class Program
                 HostageTreatyTermTests.Run(Check);
                 HostageDeliveryTests.Run(Check);
                 HostagePresentationTests.Run(Check);
+                HostageOptionAvailabilityTests.Run(Check);
                 HostageCustodyGuardTests.Run(Check);
                 HostageTerminationTests.Run(Check);
                 HostagePoliticsTests.Run(Check);
@@ -688,6 +689,7 @@ internal static class Program
         HostagePactDurationTests.Run(Check);
         HostageCustodyGuardTests.Run(Check);
         HostagePresentationTests.Run(Check);
+        HostageOptionAvailabilityTests.Run(Check);
         DiplomacyOverviewTests.Run(Check, _game);
         DiplomacyPactSettingsTests.Run(Check);
         HostageTerminationTests.Run(Check);

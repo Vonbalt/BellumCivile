@@ -6,6 +6,12 @@ if ($row.SuggestedHeight -ne '@RowHeight') { throw 'Politics rows must use their
 $toggle = $row.SelectSingleNode('Children/EncyclopediaFilterListItemButtonWidget')
 $controls = $row.SelectSingleNode('Children/ListPanel[@IsVisible="@HasDurationControls"]')
 if (!$controls -or $toggle.MarginRight -ne '@ToggleRightMargin') { throw 'Duration controls must sit outside the toggle hit area.' }
+$hint = $row.SelectSingleNode('Children/HintWidget')
+if (!$hint -or $hint.IsVisible -ne '@IsDisabled' -or $hint.IsDisabled -ne 'true' -or
+    $hint.MarginRight -ne '@ToggleRightMargin' -or $hint.GetAttribute('Command.HoverBegin') -ne 'ExecuteBeginHint' -or
+    $hint.GetAttribute('Command.HoverEnd') -ne 'ExecuteEndHint') {
+    throw 'Disabled politics rows need a sibling hover hint outside the disabled toggle and duration controls.'
+}
 if ($controls.SuggestedWidth -ne '136') { throw 'Inline controls need their reserved 136-unit column.' }
 $buttons = $controls.SelectNodes('Children/ButtonWidget')
 if ($buttons.Count -ne 2) { throw 'Expected minus and plus controls.' }
@@ -32,3 +38,12 @@ foreach ($attribute in $row.SelectNodes('.//@*')) {
     }
 }
 'PASS: inline hostage layout, separate click areas, Wealth styling, bindings and removed header.'
+[xml]$strings = Get-Content -LiteralPath (Join-Path $root 'ModuleData/Languages/EN/strings.xml') -Raw
+$parley = Get-Content -LiteralPath (Join-Path $root 'UI/Parley/PeaceParleyVM.cs') -Raw
+foreach ($id in @('BC_Parley_HostageNoCandidates', 'BC_Parley_HostageWinnerRequired', 'BC_Parley_HostageDurationRequired', 'BC_Parley_HostageNoHolding')) {
+    $entries = @($strings.base.strings.string | Where-Object id -eq $id)
+    if ($entries.Count -ne 1 -or !$parley.Contains(('{=' + $id + '}' + $entries[0].text))) {
+        throw "Missing, duplicate or mismatched hostage requirement localization: $id"
+    }
+}
+'PASS: disabled hostage explanations have unique localization entries matching their fallbacks.'

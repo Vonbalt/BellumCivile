@@ -34,17 +34,22 @@ namespace BellumCivile.UI.Parley
             var existing = _proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace && t.FromKingdomId == supplier.StringId);
             int durationDays = TreatyHostageTerms.DurationForDraft(_proposal.Terms);
             bool durationPriced = !_proposal.Terms.Any(t => t.Type == TreatyTermType.HostagePeace && !t.HostageDurationPriced);
-            var candidates = TreatyHostageTerms.Available(supplier, receiver, durationDays);
-            if (existing == null && candidates.Count == 0) return;
-            if (supplier.StringId == _proposal.WinnerKingdomId && !IsOfferingsMode) return;
-            var hero = Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == existing?.HeroId);
+            var candidates = TreatyHostageTerms.Available(supplier, receiver, out string unavailableReason, durationDays);
+            if (unavailableReason == null && supplier.StringId == _proposal.WinnerKingdomId && !IsOfferingsMode)
+                unavailableReason = "a hostage cannot be demanded from the winning realm";
+            var hero = existing == null ? null : Hero.AllAliveHeroes.FirstOrDefault(h => h.StringId == existing.HeroId);
             var label = existing == null ? new TextObject("{=BC_Parley_HostageOption}Secure peace with a royal hostage")
                 : new TextObject("{=BC_Parley_HostageSelectedDuration}Hostage for peace: {HERO}, {DAYS} days")
                     .SetTextVariable("HERO", hero?.Name ?? TextObject.GetEmpty()).SetTextVariable("DAYS", durationDays);
+            // A selected pledge must remain removable even if it has become unavailable.
+            bool unavailable = existing == null && unavailableReason != null;
+            var hint = unavailable ? new TextObject(LocalizeActionReport(unavailableReason))
+                : new TextObject("{=BC_Parley_HostageHint}A blood relative of the ruler remains in the other house's custody for {DAYS} days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it.")
+                    .SetTextVariable("DAYS", durationDays);
             var option = new TreatyClaimDraftOptionVM("hostage_peace", label.ToString(),
-                existing?.WarScoreCost ?? candidates.Min(c => durationPriced ? HostagePactRules.GetNegotiatedCost(c.Tier, durationDays) : c.Cost), existing != null, IsDraftEditingDisabled,
-                ToggleHostageTerm, new TextObject("{=BC_Parley_HostageHint}A blood relative of the ruler remains in the other house's custody for {DAYS} days, securing the peace. Ordinary ransom and escape cannot end the pledge. Breaking it may cost the hostage their life. Select a relative to review the cost; select an existing pledge to remove it.")
-                    .SetTextVariable("DAYS", durationDays));
+                existing?.WarScoreCost ?? candidates.Select(c => durationPriced ? HostagePactRules.GetNegotiatedCost(c.Tier, durationDays) : c.Cost).DefaultIfEmpty(0).Min(),
+                existing != null, IsDraftEditingDisabled || unavailable, ToggleHostageTerm, hint);
+            if (existing == null && candidates.Count == 0) option.CostText = string.Empty;
             if (existing != null)
                 option.ConfigureDurationControls(ExecuteDecreaseHostageDuration, ExecuteIncreaseHostageDuration,
                     IsHostageDecreaseDisabled, IsHostageIncreaseDisabled);

@@ -38,15 +38,25 @@ namespace BellumCivile
                 ?? HostagePactRules.DefaultDurationDays;
 
         internal static IReadOnlyList<TreatyHostageCandidate> Available(Kingdom supplier, Kingdom receiver, int? durationDays = null)
+            => Available(supplier, receiver, out _, durationDays);
+
+        internal static IReadOnlyList<TreatyHostageCandidate> Available(Kingdom supplier, Kingdom receiver, out string reason, int? durationDays = null)
         {
+            reason = null;
             int duration = durationDays ?? HostagePactRules.DefaultDurationDays;
-            if (duration <= 0 || !HostagePactRules.IsValidDuration(duration)
-                || !BellumCivileOptions.EnableWarPeaceLogicRevamp || supplier == null || receiver == null || supplier == receiver
-                || supplier.IsEliminated || receiver.IsEliminated || receiver.RulingClan == null
+            if (duration <= 0 || !HostagePactRules.IsValidDuration(duration))
+            { reason = "hostage selection requires a valid positive pact duration"; return new List<TreatyHostageCandidate>(); }
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || supplier == null || receiver == null || supplier == receiver
+                || supplier.IsEliminated || receiver.IsEliminated || supplier.RulingClan == null || receiver.RulingClan == null
+                || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(supplier)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(receiver)
-                || CivilWarConflictBehavior.IsRealmTransferPending(receiver)
-                || HostagePactBehavior.SelectHolding(receiver.RulingClan) == null) return new List<TreatyHostageCandidate>();
-            return TreatyHostageEligibility.GetCandidates(supplier);
+                || CivilWarConflictBehavior.IsRealmTransferPending(supplier) || CivilWarConflictBehavior.IsRealmTransferPending(receiver))
+            { reason = "hostage peace requires two established sovereign realms"; return new List<TreatyHostageCandidate>(); }
+            if (HostagePactBehavior.SelectHolding(receiver.RulingClan) == null)
+            { reason = "the receiving ruling house has no town or castle free of siege for the hostage"; return new List<TreatyHostageCandidate>(); }
+            var candidates = TreatyHostageEligibility.GetCandidates(supplier);
+            if (candidates.Count == 0) reason = "the supplying ruler has no eligible relative available as a hostage";
+            return candidates;
         }
         internal static TreatyTermRecord Create(Kingdom supplier, Kingdom receiver, TreatyHostageCandidate candidate, bool offering,
             int? durationDays = null, bool durationPriced = true)

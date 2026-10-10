@@ -1357,6 +1357,15 @@ namespace BellumCivile.UI.Parley
                 case "the selected relative is no longer available as a hostage":
                     template = "{=BC_Parley_HostageUnavailable}The selected relative is no longer eligible or available for delivery as a hostage. Select another relative.";
                     break;
+                case "the supplying ruler has no eligible relative available as a hostage":
+                    template = "{=BC_Parley_HostageNoCandidates}No eligible blood relative in the supplying ruler's clan is currently available as a hostage.";
+                    break;
+                case "a hostage cannot be demanded from the winning realm":
+                    template = "{=BC_Parley_HostageWinnerRequired}A hostage cannot be demanded from the realm treated as the winner of this treaty. That realm may offer one voluntarily.";
+                    break;
+                case "hostage selection requires a valid positive pact duration":
+                    template = "{=BC_Parley_HostageDurationRequired}Choose a valid, positive pact duration before selecting a hostage.";
+                    break;
                 case "the hostage succession rank has changed; select the relative again":
                     template = "{=BC_Parley_HostageRankChanged}This relative's place in succession has changed. Select them again to update the pledge's war-score cost.";
                     break;

@@ -2510,6 +2510,9 @@
     <string id="BC_Parley_HostageForeignOnly" text="Hostage peace is only available in foreign wars, not civil wars or private feuds." />
     <string id="BC_Parley_HostageHouseChanged" text="One of the ruling houses has changed. Remove the old pledge and select a hostage from the current ruling house." />
     <string id="BC_Parley_HostageUnavailable" text="The selected relative is no longer eligible or available for delivery as a hostage. Select another relative." />
+    <string id="BC_Parley_HostageNoCandidates" text="No eligible blood relative in the supplying ruler's clan is currently available as a hostage." />
+    <string id="BC_Parley_HostageWinnerRequired" text="A hostage cannot be demanded from the realm treated as the winner of this treaty. That realm may offer one voluntarily." />
+    <string id="BC_Parley_HostageDurationRequired" text="Choose a valid, positive pact duration before selecting a hostage." />
     <string id="BC_Parley_HostageRankChanged" text="This relative's place in succession has changed. Select them again to update the pledge's war-score cost." />
     <string id="BC_Parley_HostageNoHolding" text="The receiving ruling house must own a town or castle that is not under siege to hold the hostage." />
     <string id="BC_Parley_HostageHoldingLost" text="No suitable town or castle will remain with the receiving ruling house after these terms are applied. Its available holdings would be returned or ceded under this peace." />
