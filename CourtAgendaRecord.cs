@@ -63,6 +63,7 @@ namespace BellumCivile
         [SaveableField(49)] public int SelectedPolicyStance;
         // Zero denotes legacy records; new payments store expense kind plus one.
         [SaveableField(50)] public int PaymentExpenseCode;
+        [SaveableField(51)] internal string IntegrationId = System.Guid.NewGuid().ToString("N");
 
         internal void CapturePolicyStance()
         {

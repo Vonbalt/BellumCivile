@@ -187,6 +187,8 @@ namespace BellumCivile.Behaviors
             }
 
             claimantHero = entry.ClaimantHero ?? ResolveHero(entry.HeroId);
+            if (BellumIntegrationBehavior.IsBarred(claimantHero))
+            { claimantHero = null; return false; }
             originDynastyClanId = entry.OriginDynastyClanId;
             source = entry.Source;
             return true;

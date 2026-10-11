@@ -28,6 +28,7 @@ namespace BellumCivile
         [SaveableField(16)] public System.Collections.Generic.List<CrossClanEstateShare> EstateShares;
         [SaveableField(17)] public bool CrownRoutingRequested;
         [SaveableField(18)] public string CrownRoutingFailure;
+        [SaveableField(19)] internal bool IntegrationPublished;
 
         public string DeadLeaderId => _deadLeaderId;
         public string ParentClanId => _parentClanId;

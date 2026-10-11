@@ -748,3 +748,7 @@ Fixed an inheritance crash where interrupted cadet-house formation could leave a
 Fixed mercenary clans being unintentionally turned into vassals after succession rebellions and civil-war reunification.
 Improved localization support for realm names, titles, and ranks across all terminology presets, and fixed title patches to respect active mod load order.
 Added a modder resource to configure voluntary or forced starting client states through XML, requiring a new save to take effect.
+
+1.4.3 CHANGELOG
+
+Added a public compatibility API for other mods to query Bellum’s political systems, manage vote pledges, track completed inheritances, and explicitly mark or legitimize heirs.

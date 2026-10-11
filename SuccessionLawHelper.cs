@@ -67,6 +67,7 @@ namespace BellumCivile
             legalHeir = null;
             usedFallbackCandidatePool = false;
 
+            if (BellumIntegrationBehavior.IsBarred(selectedHeir)) return false;
             if (!BellumCivileOptions.EnforcePlayerSuccessionLaw)
                 return true;
 
@@ -89,6 +90,8 @@ namespace BellumCivile
 
         public static TextObject BuildInvalidPlayerHeirHint(Hero selectedHeir)
         {
+            if (BellumIntegrationBehavior.IsBarred(selectedHeir))
+                return new TextObject("{=BC_Integration_IllegitimateHeir}This person is excluded from hereditary inheritance by illegitimacy.");
             if (CanConfirmSelectedPlayerHeir(
                     selectedHeir,
                     out Hero legalHeir,
@@ -784,6 +787,7 @@ namespace BellumCivile
         {
             return hero != null
                 && hero != successionRoot
+                && !BellumIntegrationBehavior.IsBarred(hero)
                 && hero.IsAlive
                 && hero.DeathMark == TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail.None
                 && !hero.IsDisabled
@@ -800,6 +804,7 @@ namespace BellumCivile
         private static bool IsValidPlayerHeirCandidate(Hero hero)
         {
             return hero != null && hero.Clan == Clan.PlayerClan && hero != Hero.MainHero
+                && !BellumIntegrationBehavior.IsBarred(hero)
                 && hero.IsAlive && !hero.IsNotSpawned && !hero.IsDisabled
                 && !hero.IsWanderer && !hero.IsNotable
                 && hero.Age >= Campaign.Current.Models.AgeModel.HeroComesOfAge;
@@ -812,6 +817,7 @@ namespace BellumCivile
             bool includeUnderage = false)
         {
             return hero != null && clan != null && hero.Clan == clan && hero != successionRoot
+                && !BellumIntegrationBehavior.IsBarred(hero)
                 && hero.IsAlive
                 && hero.DeathMark == TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail.None
                 && (!hero.IsNotSpawned || (includeUnderage && hero.IsChild))

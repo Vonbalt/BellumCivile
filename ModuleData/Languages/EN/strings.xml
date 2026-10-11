@@ -6920,5 +6920,7 @@
     <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_nobleRank" text="Patrikios" />
     <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_titleFormat" text="{TITLE_NOUN} tōn {TITLE_NAME}" />
     <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_titleName" text="Autokrateia" />
+    <string id="BC_Integration_VoteUnavailable" text="This vote or its requested choice is no longer available, or this house has already promised its vote." />
+    <string id="BC_Integration_IllegitimateHeir" text="This person is excluded from hereditary inheritance by illegitimacy." />
   </strings>
 </base>

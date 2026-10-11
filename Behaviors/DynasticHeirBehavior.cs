@@ -95,6 +95,14 @@ namespace BellumCivile.Behaviors
                 RecalculateHeirForKingdom(kingdom);
         }
 
+        internal void RefreshLegitimacy()
+        {
+            foreach (var realm in Kingdom.All.Where(k => !k.IsEliminated))
+                if (CrownAccessionBehavior.Instance?.IsPending(realm) != true)
+                    RecalculateHeirForKingdom(realm);
+            _displayHeirIndexDirty = true;
+        }
+
         // ------------------------------------------------------------
         // EVENT HANDLERS
         // -------------------- EVENT HANDLERS --------------------
@@ -487,6 +495,7 @@ namespace BellumCivile.Behaviors
                 {
                     if (cached == null) return false;
                     if (cached.IsAlive && !cached.IsDisabled
+                        && !BellumIntegrationBehavior.IsBarred(cached)
                         && RegencyBehavior.Instance?.IsGeneratedRegent(cached) != true
                         && HereditaryRealmSuccession.IsBloodRelative(cached, sovereign)
                         && HereditaryRealmSuccession.CanConsiderClan(cached.Clan, kingdom)
@@ -508,6 +517,7 @@ namespace BellumCivile.Behaviors
                 || cachedHeir == null
                 || !cachedHeir.IsAlive
                 || cachedHeir.IsDisabled
+                || BellumIntegrationBehavior.IsBarred(cachedHeir)
                 || cachedHeir == successionRoot
                 || !SuccessionLawHelper.IsEligibleUnderSuccessionLaws(
                     cachedHeir,
@@ -572,7 +582,7 @@ namespace BellumCivile.Behaviors
 
         private Hero ResolveDynasticSuccessionCandidate(Kingdom kingdom, Hero dynasticHeir)
         {
-            if (dynasticHeir?.Clan == null)
+            if (dynasticHeir?.Clan == null || BellumIntegrationBehavior.IsBarred(dynasticHeir))
                 return null;
             if (!SuccessionLawHelper.IsEligibleUnderSuccessionLaws(
                     dynasticHeir,
@@ -641,6 +651,7 @@ namespace BellumCivile.Behaviors
                 return false;
 
             hero = ResolveHeroById(state.HeirHeroId);
+            if (BellumIntegrationBehavior.IsBarred(hero)) { hero = null; return false; }
             if (hero == null || !hero.IsAlive || hero.IsDisabled
                 || RegencyBehavior.Instance?.IsGeneratedRegent(hero) == true)
             {

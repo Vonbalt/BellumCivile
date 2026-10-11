@@ -48,6 +48,11 @@ namespace BellumCivile.Patches
                 {
                     __result = candidates;
                 }
+                else if (__result != null)
+                {
+                    foreach (Hero hero in __result.Keys.Where(BellumIntegrationBehavior.IsBarred).ToList())
+                        __result.Remove(hero);
+                }
             }
             catch (Exception ex)
             {

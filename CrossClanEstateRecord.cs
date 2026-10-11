@@ -18,6 +18,7 @@ namespace BellumCivile
         [SaveableField(10)] public bool GoldPrepared;
         [SaveableField(11)] public string PreferredPrimaryTitleId;
         [SaveableField(12)] public string RealmCrownTitleId;
+        [SaveableField(13)] internal bool IntegrationPublished;
     }
 
     public class CrossClanEstateShare

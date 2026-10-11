@@ -6723,6 +6723,9 @@ namespace BellumCivile.Behaviors
             if (claim == null || !claim.IsActive)
                 return false;
 
+            if (IsHereditaryClaim(claim) && BellumIntegrationBehavior.IsBarredId(
+                string.IsNullOrEmpty(claim.CarrierHeroId) ? claim.SourceHeroId : claim.CarrierHeroId)) return false;
+
             return claim.ExpiresDay < 0f || claim.ExpiresDay > CurrentDay;
         }
 
@@ -6809,6 +6812,7 @@ namespace BellumCivile.Behaviors
         internal static bool IsEligibleClaimHeir(Hero hero)
         {
             return hero != null
+                && !BellumIntegrationBehavior.IsBarred(hero)
                 && hero.Clan != null
                 && !hero.Clan.IsEliminated
                 && hero.IsAlive

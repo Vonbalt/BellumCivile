@@ -27,10 +27,10 @@ namespace BellumCivile.Behaviors
         private List<Hero> _candidates = new List<Hero>();
         private int _page, _used;
         private bool _persuading;
+        private ElectionPersuasionAttempt _attempt;
         internal bool BribeCommitted;
         private ElectiveSuccessionBehavior Elections => ElectiveSuccessionBehavior.Instance;
         private ElectiveCommitment Vote => Elections?.Get(_realm)?.Votes.FirstOrDefault(v => v.Speaker == _speaker);
-        private string AttemptKey => _realm.StringId + "|" + _speaker.StringId;
         private int Relation => Hero.MainHero?.GetRelation(_speaker) ?? 0;
         private bool SelfVoting => _candidate != _speaker && Vote?.Supported == _speaker;
         private double Gap => Vote?.Preferences.Any(p => p.Candidate == _candidate) == true
@@ -80,10 +80,7 @@ namespace BellumCivile.Behaviors
         private bool Persuadable(out TextObject hint)
         {
             if (!Negotiable(out hint)) return false;
-            if (Relation < 30) { hint = new TextObject("{=BC_EL_TrustGate}They do not trust you enough to hear your appeal. Relation required: 30."); return false; }
-            if (_attempts.TryGetValue(AttemptKey, out var expiry) && expiry.ToDays > CampaignTime.Now.ToDays)
-            { hint = new TextObject("{=BC_EL_AttemptSpent}They have heard your arguments for this court year."); return false; }
-            return true;
+            return CanBeginAttempt(_realm, _speaker, _candidate, out hint);
         }
         internal static double BribeOpenness(Hero speaker, double gap) => ElectionLobbyingRules.Openness(
             Hero.MainHero.GetRelation(speaker), gap, speaker.GetTraitLevel(DefaultTraits.Honor), speaker.GetTraitLevel(DefaultTraits.Mercy),
@@ -104,13 +101,15 @@ namespace BellumCivile.Behaviors
         }
         private void EndPersuasion(bool success)
         {
-            if (success && Ready()) Elections.TryCommitPromise(_realm, _speaker, _candidate, false);
+            CompleteAttempt(_attempt, success && Ready());
+            _attempt = null;
             if (_persuading) ConversationManager.EndPersuasion();
             _persuading = false; _options.Clear();
         }
         private void UseArgument(int argument)
         {
-            _attempts[AttemptKey] = _until;
+            if (_attempt == null && !TryBeginAttempt(_realm, _speaker, _candidate, out _attempt, out _))
+            { EndPersuasion(false); return; }
             _used++;
             Option(argument).BlockTheOption(true);
         }

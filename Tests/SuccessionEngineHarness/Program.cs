@@ -50,7 +50,30 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            if (args.Contains("--integration"))
+            {
+                IntegrationTests.Run(Check);
+                IntegrationSaveDefinitionTests.Run(Check);
+                Console.WriteLine($"{_checks} integration checks passed.");
+            }
+            else if (args.Contains("--inheritance-regression"))
+            {
+                TestHereditaryRealmLine();
+                TestRegencyContinuity();
+                TestStandingElections();
+                FeudalCrownPartitionPlanTests.Run(Check);
+                CrownPartitionCaptureTests.Run(Check);
+                CrownPartitionFinalizationTests.Run(Check);
+                PartitionClaimSnapshotTests.Run(Check);
+                PartitionEstateManifestTests.Run(Check);
+                PartitionEstateSettlementTests.Run(Check);
+                CrownPartitionBatchTests.Run(Check);
+                CrownPartitionReconciliationTests.Run(Check);
+                CrownEstateDeliveryTests.Run(Check);
+                EstateSovereignRoutingTests.Run(Check);
+                Console.WriteLine($"{_checks} inheritance regression checks passed.");
+            }
+            else if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
             else if (args.Contains("--marriage-dowry-simulation"))
             {
                 MarriageDowrySimulation.Run(Check);

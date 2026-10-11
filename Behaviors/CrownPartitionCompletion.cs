@@ -24,6 +24,7 @@ namespace BellumCivile.Behaviors
             var batch = pending.CrownBatch;
             if (batch.Completed)
             {
+                PublishCrownPartition(pending);
                 _pendingPartitions.Remove(pending);
                 reason = null;
                 return true;
@@ -55,6 +56,7 @@ namespace BellumCivile.Behaviors
                 pending.GoldPayments.Sum(p => p.DeliveredGold)), out reason)) return false;
             if (!TryVerifyCrownBatchWorld(pending, out reason) || !TryVerifyCrownBatchObligations(pending, out reason)
                 || !PartitionBatchCompletion.TryComplete(pending, true, out reason)) return false;
+            PublishCrownPartition(pending);
             _pendingPartitions.Remove(pending);
             return true;
         }

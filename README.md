@@ -769,6 +769,68 @@ Union and Crown-partition journals are especially sensitive: native clan moves, 
 
 ## Optional Integrations
 
+### Supported Mod API
+
+`BellumCivile.BellumIntegration` exposes the supported integration surface (`ApiVersion = 1`).
+It has no dependency on a particular companion mod. Call it on the **active campaign thread**, including
+when applying an asynchronously generated chat result. Calls without a campaign or from another thread
+throw `InvalidOperationException`; do not interpret that as permission to run a competing system.
+Optional integrations can discover this type and its methods by reflection and remain disabled when absent.
+
+| API | Contract |
+| --- | --- |
+| `ManagesRelationPair(first, second)` | Includes the enabled setting and Bellum's hero-pair eligibility. Temporary relation-patch suppression does not surrender ownership. |
+| `GetHostageStatus(hero)` | Returns a copied status, or null when no relevant reservation/captivity remains. Distinguishes reserved, active peace pledge, awaiting disposition and ordinary retained prisoner; also exposes expiry, agreement validity, protection and actual treaty custody. |
+| `GetCourtAgendas(realm)` | Copies current/retained agendas with persistent IDs, objective kind/target/action, enact/repeal direction, state and dates. Session dates are scheduling data, not record identity. |
+| `TryPledgePolicyVote`, `TryPledgeExpulsionVote`, `TryPledgeFiefVote`, `TryPledgeCouncilVote` | Validate a pending Bellum ballot, eligible choice and influence reservation before calling the existing setters. Return false with a localized reason when unavailable; existing promises are not overwritten. |
+| `CanBeginElectionPersuasion`, `TryBeginElectionPersuasion`, `CompleteElectionPersuasion` | Share native dialogue's relation requirement and once-per-speaker/realm court-term attempt limit. The returned attempt binds completion to the original election and term. |
+| `IsIllegitimate`, `MarkIllegitimate`, `Legitimize` | Explicit, saved, idempotent legitimacy support for companion mods. No hero is marked automatically. |
+| `PartitionCompleted`, `GetRecentPartitions()` | Committed inheritance notifications and a saved recent history, described below. |
+
+The influence pledge methods record an already negotiated agreement; the caller owns persuasion, payment
+and dialogue. Invoke the checked setter **before** taking payment and honor its return value. Policy
+`support` means support enforcing the proposed decision, including a proposed repeal; expulsion's
+`expel` means support expelling the target. Fief/council promises name a clan. Eligibility or actual
+influence can still change before voting; a promise cannot guarantee a future shortlist or funds.
+The older public setters remain available, but bypass these additional integration checks.
+
+For a crown-election chat appeal, checking availability does not spend an attempt. Call `TryBegin...`
+when the player actually makes the appeal, then report its result:
+
+```csharp
+if (BellumIntegration.TryBeginElectionPersuasion(realm, lord, candidate, out var attempt, out var reason))
+{
+    // Return to the campaign thread after any external conversation processing.
+    bool pledged = BellumIntegration.CompleteElectionPersuasion(attempt, persuasionSucceeded);
+}
+```
+
+Unsuccessful or abandoned appeals consume the same saved allowance as Bellum's first dialogue argument.
+Attempt objects are session-only: do not serialize them, reuse them, or complete them after reloading.
+A changed mandate, expired term, existing promise or closed election prevents completion. This API
+does not spend influence or pay a bribe; standing crown elections and influence ballots are separate.
+
+Illegitimacy excludes the marked person from future hereditary Crown/clan succession, partition
+inheritance and blood-based claims through either parent. Descendants are assessed independently;
+elective Crown candidacy remains separate. Existing rulers, property, wards and recorded estate
+allocations are not confiscated or rewritten. Legitimation restores future eligibility and any
+otherwise-valid suspended blood claims. Heir/claim displays refresh when the marker changes.
+The native parent-child graph is untouched: companion mods must retain biological-parentage records
+separately. No additional mercenary-departure bonus is applied.
+
+Subscribe to `PartitionCompleted` each campaign session. Notifications describe completed ordinary,
+Crown and cross-clan partitions involving multiple recipient houses, with deceased, origin house/realm
+and recipient snapshots. Callbacks run on a subsequent campaign tick, outside inheritance execution;
+one failing subscriber does not interrupt settlement or other subscribers. The latest **100** results
+are retained after delivery. Read `GetRecentPartitions()` on session launch and deduplicate by `Id`
+against the bridge's own campaign-scoped history. Events already dispatched are not replayed after
+loading; queued, undispatched events are retained. Pre-update completed estates are not reconstructed.
+
+Agenda snapshots likewise retain the scheduler's existing lifetime, not a permanent archive. Resolved
+agendas generally disappear at the next term; reaction entries last until `ResultVisibleUntilDay`,
+and ongoing proceedings can last longer. Persist external narrative history independently. New IDs
+are backfilled for surviving old-save agendas and become durable when that campaign is saved.
+
 ### Diplomacy
 
 Diplomacy is a soft integration and should load above Bellum. Bellum redirects its Factions button and supersedes the overlapping Overview while retaining compatible statistics/actions.
@@ -871,6 +933,8 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --title-name-cache
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-names
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --starting-clientage
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --integration
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --inheritance-regression
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 ```
 

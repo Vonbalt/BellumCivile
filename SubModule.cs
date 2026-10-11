@@ -267,6 +267,7 @@ namespace BellumCivile
                 ClanPoliticsModel baseClanPoliticsModel = campaignStarter.GetModel<ClanPoliticsModel>() ?? new DefaultClanPoliticsModel();
                 campaignStarter.AddModel(new BellumClanPoliticsModel(baseClanPoliticsModel));
 
+                campaignStarter.AddBehavior(new BellumIntegrationBehavior());
                 campaignStarter.AddBehavior(new FactionManagerBehavior());
                 campaignStarter.AddBehavior(new InfluenceBudgetTelemetryBehavior());
                 campaignStarter.AddBehavior(new CivilWarInterventionBehavior());

@@ -174,6 +174,7 @@ namespace BellumCivile.Behaviors
 
                 if (record.CrownBatch?.Completed == true)
                 {
+                    PublishCrownPartition(record);
                     _pendingPartitions.Remove(record);
                     continue;
                 }
@@ -359,6 +360,12 @@ namespace BellumCivile.Behaviors
                 int transferredGold = DistributePartitionGold(parentClan, createdCadets);
                 Campaign.Current.GetCampaignBehavior<SuccessionYearlySummaryBehavior>()?.RecordPartitionGoldTransfer(transferredGold);
                 Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(kingdom);
+                if (!record.IntegrationPublished && BellumIntegrationBehavior.Current != null)
+                {
+                    BellumIntegrationBehavior.Current.RecordPartition(deadLeader, parentClan, kingdom,
+                        partitionBranches.Select(b => new PartitionRecipientRecord(b.Item2, b.Item1, b.Item1 == parentClan)));
+                    record.IntegrationPublished = true;
+                }
             }
 
             return true;

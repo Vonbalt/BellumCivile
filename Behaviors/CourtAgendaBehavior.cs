@@ -127,6 +127,7 @@ namespace BellumCivile.Behaviors
             _decreeCases = _decreeCases ?? new List<CourtDecreeCase>();
             _agendas = _agendas ?? new List<CourtAgendaRecord>();
             SyncReactionHistory(dataStore);
+            RestoreIntegrationIds();
             _nextTerms = _nextTerms ?? new Dictionary<string, CampaignTime>();
             _reconsiderAfter = _reconsiderAfter ?? new Dictionary<string, CampaignTime>();
             _emergencyAfter = _emergencyAfter ?? new Dictionary<string, CampaignTime>();

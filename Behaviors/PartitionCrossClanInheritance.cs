@@ -220,6 +220,7 @@ namespace BellumCivile.Behaviors
                             .Where(t => t != null).ToList());
                 record.Completed = record.Shares.All(s => s.Completed);
                 if (record.Completed) record.Failure = null;
+                PublishCrossClanPartition(record);
                 if (record.Completed && !record.Source.IsEliminated && record.Source.Leader?.IsAlive != true
                     && record.Source.Kingdom?.RulingClan != record.Source)
                     DestroyClanAction.ApplyByClanLeaderDeath(record.Source);

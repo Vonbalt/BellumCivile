@@ -3,6 +3,7 @@ $root = Split-Path $PSScriptRoot -Parent
 function Read($path) { Get-Content -Raw (Join-Path $root $path) }
 function Check($condition, $message) { if (!$condition) { throw $message }; Write-Output "PASS: $message" }
 $behavior = Read 'Behaviors/ElectionLobbyingBehavior.cs'
+$integration = Read 'Behaviors/ElectionLobbyingIntegration.cs'
 $dialogue = Read 'Behaviors/ElectionLobbyingDialogues.cs'
 $barter = Read 'ElectionVoteBribeBarterable.cs'
 $patch = Read 'Patches/ElectionVoteBarterPatch.cs'
@@ -12,9 +13,9 @@ Check ($behavior.Contains('_candidates[index] == Hero.MainHero') -and
     $behavior.Contains('{=BC_Fief_Delib_PushPlayer}I would like to nominate myself for such an honor.') -and
     $behavior.Contains(': _candidates[index].Name')) 'Self-nomination reuses the existing localized first-person line; other candidates retain their names.'
 Check ($dialogue.Contains('i < 6') -and $behavior.Contains('_used >= 3') -and $behavior.Contains('BlockTheOption(true)')) 'Six arguments, at most three distinct attempts.'
-Check ($behavior.Contains('Relation < 30') -and $behavior.Contains('argument == 5 && Relation < 60')) 'General persuasion and personal-trust gates differ.'
-Check ($behavior.Contains('SyncData("BC_ElectionLobbyingAttempts"') -and $behavior.Contains('_attempts[AttemptKey] = _until') -and
-    $behavior.Contains('_realm.StringId + "|" + _speaker.StringId')) 'Attempts persist across conversations and candidate changes.'
+Check ($integration.Contains('Hero.MainHero.GetRelation(speaker) < 30') -and $behavior.Contains('argument == 5 && Relation < 60')) 'General persuasion and personal-trust gates differ.'
+Check ($behavior.Contains('SyncData("BC_ElectionLobbyingAttempts"') -and $integration.Contains('_attempts[AttemptKeyFor(realm, speaker)] = until') -and
+    $integration.Contains('realm.StringId + "|" + speaker.StringId') -and $behavior.Contains('TryBeginAttempt(')) 'Attempts persist across conversations, integration chats and candidate changes.'
 Check ($behavior.Contains('C.FiefPersuasionCriticalFailValue, 0, PersuasionDifficulty.Medium')) 'Native automatic relation progress is suppressed.'
 Check ($dialogue.IndexOf('"el_success"') -lt $dialogue.IndexOf('"el_failed"')) 'A successful third argument takes precedence over exhausted attempts.'
 Check ($election.Contains('NextEvaluation(realm)') -and $election.Contains('vote.Until = until;') -and
@@ -29,7 +30,7 @@ Check ($barter.Contains('until != _until') -and $barter.Contains('CanCommitPromi
 Check (!$behavior.Contains('DailyTickEvent') -and !$behavior.Contains('TickEvent')) 'Lobbying adds no recurring campaign scan.'
 Check ((Read 'SubModule.cs').Contains('AddBehavior(new ElectionLobbyingBehavior())')) 'Lobbying behavior is registered.'
 [xml]$xml = Read 'ModuleData/Languages/EN/strings.xml'
-$all = $behavior + $dialogue + $barter
+$all = $behavior + $dialogue + $barter + $integration
 foreach ($match in [regex]::Matches($all, '\{=(BC_EL_[A-Za-z0-9_]+)\}([^"\r\n]*)')) {
     $id = $match.Groups[1].Value
     $nodes = $xml.SelectNodes("//string[@id='$id']")

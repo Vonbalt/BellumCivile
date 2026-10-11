@@ -22,6 +22,25 @@ namespace BellumCivile.Behaviors
             if (_pacts == null) _pacts = new List<HostagePactRecord>();
         }
         internal bool IsProtectedHostage(Hero hero) => hero != null && _pacts.Any(p => p?.Protects(hero) == true);
+        internal HostageStatusSnapshot GetStatusSnapshot(Hero hero)
+        {
+            if (hero == null) return null;
+            foreach (var pact in _pacts.Where(p => p != null).Reverse())
+            {
+                var slot = pact.FirstHostage?.Hero == hero ? pact.FirstHostage
+                    : pact.SecondHostage?.Hero == hero ? pact.SecondHostage : null;
+                if (slot == null) continue;
+                bool custody = slot.CustodyEstablished && InTreatyCustody(slot);
+                if (pact.Phase == HostagePactPhase.Preparing && !slot.CustodyEstablished)
+                    return new HostageStatusSnapshot(pact, slot, HostageStatus.Reserved, false, false);
+                if (!IsContinuingCustody(slot, hero)) continue;
+                bool active = GetActivePacts(pact.FirstRealm).Contains(pact);
+                var status = !pact.Protects(hero) ? HostageStatus.OrdinaryPrisoner
+                    : active && custody ? HostageStatus.PeacePledge : HostageStatus.AwaitingDisposition;
+                return new HostageStatusSnapshot(pact, slot, status, active, custody);
+            }
+            return null;
+        }
         internal bool HasPendingPartitionCustody(Kingdom realm) => realm != null && _pacts.Any(p => p != null
             && p.Phase != HostagePactPhase.Ended && (p.FirstRealm == realm || p.SecondRealm == realm));
         internal HostagePactRecord GetProtectedPact(Hero hero)

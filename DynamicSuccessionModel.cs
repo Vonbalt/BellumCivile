@@ -12,12 +12,14 @@ namespace BellumCivile
         private GenderSuccessionLaw _cachedGenderLaw;
         private HouseSuccessionLaw _cachedSuccessionLaw;
         private Dictionary<Hero, int> _cachedScores;
+        private int _cachedLegitimacyRevision;
 
         public override int CalculateHeirSelectionPoint(
             Hero candidateHeir,
             Hero deadHero,
             ref Hero maxSkillHero)
         {
+            if (Behaviors.BellumIntegrationBehavior.IsBarred(candidateHeir)) return int.MinValue / 4;
             try
             {
                 if (candidateHeir?.Clan == null || deadHero?.Clan == null)
@@ -41,6 +43,7 @@ namespace BellumCivile
                 && _cachedDeadHero == deadHero
                 && _cachedCandidateClan == candidateClan
                 && _cachedGenderLaw == laws.GenderLaw
+                && _cachedLegitimacyRevision == (Behaviors.BellumIntegrationBehavior.Current?.LegitimacyRevision ?? 0)
                 && _cachedSuccessionLaw == laws.SuccessionLaw)
             {
                 return;
@@ -55,6 +58,7 @@ namespace BellumCivile
                 _cachedScores[ordered[index]] = 1000000 - index;
 
             _cachedDeadHero = deadHero;
+            _cachedLegitimacyRevision = Behaviors.BellumIntegrationBehavior.Current?.LegitimacyRevision ?? 0;
             _cachedCandidateClan = candidateClan;
             _cachedGenderLaw = laws.GenderLaw;
             _cachedSuccessionLaw = laws.SuccessionLaw;

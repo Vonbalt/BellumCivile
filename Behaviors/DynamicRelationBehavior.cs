@@ -1282,6 +1282,9 @@ namespace BellumCivile.Behaviors
             return result;
         }
 
+        internal bool ManagesPair(Hero firstHero, Hero secondHero) =>
+            BellumCivileOptions.EnableDynamicRelationDrift && ShouldAffectPair(firstHero, secondHero);
+
         private static bool ShouldAffectPair(Hero firstHero, Hero secondHero)
         {
             if (firstHero == null || secondHero == null || firstHero == secondHero || !IsEligibleHero(firstHero) || !IsEligibleHero(secondHero))
