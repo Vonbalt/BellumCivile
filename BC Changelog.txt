@@ -738,7 +738,7 @@ Fixed neutrality penalties during internal wars and restored the player’s prev
 Improved marriage logic with matrilineal arrangements to protect clan and crown heiresses, explicit household choices and clearer offers for the player, and rebalanced costs based on heir status and family health.
 Replaces language-dependent clan and capital names with stable IDs, correcting title initialization in non-English games. (credits and thanks to OhMyMike57/Cartoonist57 for the fix)
 Restores missing relation and faction-mood tooltip rows, including translations using full-width colons. (credits and thanks to OhMyMike57/Cartoonist57 for the fix)
-Captured councillors now retain their offices, gradually accumulating controversy and losing support while their duties remain suspended until release.
+Captured councilors now retain their offices, gradually accumulating controversy and losing support while their duties remain suspended until release.
 Cadet branches now inherit custom family banners exactly, preserving all colors, layers and details.
 Improved recognition and preservation of custom banners during kingdom transfers and color synchronization.
 Fixed Bellum’s realm names preventing POC from applying kingdom-specific colors and shield patterns.
