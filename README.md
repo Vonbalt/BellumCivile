@@ -688,6 +688,8 @@ Use `BellumCivileNotifications` for optional political chat messages. Its Disabl
 
 [BellumCivileSettings.cs](BellumCivileSettings.cs) declares MCM. Runtime callers use [BellumCivileOptions.cs](BellumCivileOptions.cs) for safe access/defaults. [BellumCivileConstants.cs](BellumCivileConstants.cs) contains compiled balance values. Do not expose a toggle solely to preserve an obsolete implementation detail.
 
+MCM hints compare Bellum and unmodded defaults where there is a meaningful counterpart; Bellum-only mechanics keep their own defaults. The comparisons were checked against Bannerlord **1.4.8**: `PrisonerReleaseCampaignBehavior.DailyHeroTick` uses 4% in settlements and `4% * (5 - min(81, healthy members)^0.25)` in travelling parties (8-20%), before the player-captor reduction and perks. Vanilla normally releases prisoners at peace. `DefaultAgeModel`, `DefaultMarriageModel` and `EducationCampaignBehavior.ChildStateToAge` supply the age comparisons. Bellum's deliberation delay is additional to, not a replacement for, `KingdomDecision`'s 48-hour response window. Recheck these references when updating the target game version, and keep attribute fallbacks and English localization entries synchronized.
+
 | Group | Important defaults |
 | --- | --- |
 | Presentation | Anglicized titles; Sovereign Title name display; both widgets on |

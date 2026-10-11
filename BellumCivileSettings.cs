@@ -47,7 +47,7 @@ namespace BellumCivile
         [SettingPropertyGroup(FeudalTitles, GroupOrder = FeudalTitlesGroupOrder)]
         public Dropdown<string> TitleStylePreset { get; set; } = FeudalTitleStylePresetCatalog.CreateDropdown();
 
-        [SettingPropertyDropdown("{=BC_MCM_RealmNameDisplay}Realm Name Display", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_RealmNameDisplay_Hint}Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default: Sovereign Title.")]
+        [SettingPropertyDropdown("{=BC_MCM_RealmNameDisplay}Realm Name Display", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_RealmNameDisplay_Hint}Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default values: Bellum: Sovereign Title; Vanilla: Native.")]
         [SettingPropertyGroup(FeudalTitles, GroupOrder = FeudalTitlesGroupOrder)]
         public Dropdown<string> RealmNameDisplay { get; set; } = new Dropdown<string>(new[]
         {
@@ -92,11 +92,11 @@ namespace BellumCivile
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int TreatyDailyTributePerWarScore { get; set; } = C.TreatyDailyTributePerWarScore;
 
-        [SettingPropertyFloatingInteger("{=BC_MCM_RetainedPrisonerDungeonEscape}Retained Prisoner Dungeon Escape Chance", 0f, 25f, "0.00", Order = 30, RequireRestart = false, HintText = "{=BC_MCM_RetainedPrisonerDungeonEscape_Hint}Base daily escape chance, as a percentage, for nobles retained in a settlement dungeon after a Bellum peace treaty. Governor and captor perks still apply. Default: 1%.")]
+        [SettingPropertyFloatingInteger("{=BC_MCM_RetainedPrisonerDungeonEscape}Retained Prisoner Dungeon Escape Chance", 0f, 25f, "0.00", Order = 30, RequireRestart = false, HintText = "{=BC_MCM_RetainedPrisonerDungeonEscape_Hint}Base daily escape chance for nobles retained after a Bellum peace treaty, in a settlement dungeon or a party staying in a settlement. The vanilla 50% player-captor reduction and relevant perks still apply. Vanilla normally releases nobles at peace. Default values: Bellum: 1%; Vanilla: 4% before modifiers.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public float RetainedPrisonerDungeonEscapeChancePercent { get; set; } = C.RetainedPrisonerDungeonEscapeChancePercent;
 
-        [SettingPropertyFloatingInteger("{=BC_MCM_RetainedPrisonerMobileEscape}Retained Prisoner Mobile Escape Chance", 0f, 25f, "0.00", Order = 40, RequireRestart = false, HintText = "{=BC_MCM_RetainedPrisonerMobileEscape_Hint}Base daily escape chance, as a percentage, for nobles retained in a mobile party after a Bellum peace treaty. Prisoner and captor perks still apply. Default: 3%.")]
+        [SettingPropertyFloatingInteger("{=BC_MCM_RetainedPrisonerMobileEscape}Retained Prisoner Mobile Escape Chance", 0f, 25f, "0.00", Order = 40, RequireRestart = false, HintText = "{=BC_MCM_RetainedPrisonerMobileEscape_Hint}Base daily escape chance for nobles retained after a Bellum peace treaty, in a travelling party. The vanilla 50% player-captor reduction and relevant perks still apply. Vanilla normally releases nobles at peace. Default values: Bellum: 3%; Vanilla: 8-20% depending on healthy party members, before modifiers.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public float RetainedPrisonerMobileEscapeChancePercent { get; set; } = C.RetainedPrisonerMobileEscapeChancePercent;
 
@@ -114,7 +114,7 @@ namespace BellumCivile
 
 
 
-        [SettingPropertyInteger("{=BC_MCM_DeliberationDays}Political Deliberation Days", 0, 30, Order = 40, RequireRestart = false, HintText = "{=BC_MCM_DeliberationDays_Hint}Days before delayed policy, fief, and expulsion votes fire. One shared value keeps major votes paced consistently. Default: 5.")]
+        [SettingPropertyInteger("{=BC_MCM_DeliberationDays}Political Deliberation Days", 0, 30, Order = 40, RequireRestart = false, HintText = "{=BC_MCM_DeliberationDays_Hint}Days of deliberation before Bellum submits policy, fief, and expulsion votes. The separate vanilla decision response window is 48 hours. Default values: Bellum: 5 days; Vanilla: no added deliberation period.")]
         [SettingPropertyGroup(CourtPolitics, GroupOrder = CourtPoliticsGroupOrder)]
         public int PoliticalDeliberationDays { get; set; } = C.PolicyDeliberationDays;
 
@@ -134,7 +134,7 @@ namespace BellumCivile
         [SettingPropertyGroup(WarAftermath, GroupOrder = WarAftermathGroupOrder)]
         public bool EnableAutomaticTreasonIndictments { get; set; } = true;
 
-        [SettingPropertyBool("{=BC_MCM_EnablePartitionSuccession}Enable Partition Succession", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnablePartitionSuccession_Hint}When enabled, large noble clans, including the player clan, can split spare inherited fiefs into cadet branches after clan succession.")]
+        [SettingPropertyBool("{=BC_MCM_EnablePartitionSuccession}Enable Partition Succession", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnablePartitionSuccession_Hint}When enabled, large noble clans, including the player clan, can split spare inherited fiefs into cadet branches after clan succession. Default: On.")]
         [SettingPropertyGroup(Succession, GroupOrder = SuccessionGroupOrder)]
         public bool EnablePartitionSuccession { get; set; } = true;
 
@@ -146,36 +146,36 @@ namespace BellumCivile
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public bool EnableCustomAdulthoodAge { get; set; } = true;
 
-        [SettingPropertyInteger("{=BC_MCM_AdulthoodAge}Adulthood Age", 16, 21, Order = 8, RequireRestart = true, HintText = "{=BC_MCM_AdulthoodAge_Hint}Global age at which heroes become adults, can leave regency, lead clans and parties, and become eligible for marriage. Used only when custom adulthood is enabled. Default: 16.")]
+        [SettingPropertyInteger("{=BC_MCM_AdulthoodAge}Adulthood Age", 16, 21, Order = 8, RequireRestart = true, HintText = "{=BC_MCM_AdulthoodAge_Hint}Global age at which heroes become adults, can leave regency, lead clans and parties, and become eligible for marriage. Used only when custom adulthood is enabled. Bellum's strategic matchmaking also applies its separate marriage age settings. Default values: Bellum: 16 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int AdulthoodAge { get; set; } = 16;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge1}Education Milestone 1 Age", 1, 15, Order = 10, RequireRestart = true, HintText = "{=BC_MCM_EducationAge1_Hint}Age for childhood education stage 1. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 2.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge1}Education Milestone 1 Age", 1, 15, Order = 10, RequireRestart = true, HintText = "{=BC_MCM_EducationAge1_Hint}Age for childhood education stage 1. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 2 years; Vanilla: 2 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge1 { get => GetEducationAge(0); set => _educationAge1 = value; }
         private int _educationAge1 = 2;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge2}Education Milestone 2 Age", 2, 16, Order = 11, RequireRestart = true, HintText = "{=BC_MCM_EducationAge2_Hint}Age for childhood education stage 2. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 5.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge2}Education Milestone 2 Age", 2, 16, Order = 11, RequireRestart = true, HintText = "{=BC_MCM_EducationAge2_Hint}Age for childhood education stage 2. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 5 years; Vanilla: 5 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge2 { get => GetEducationAge(1); set => _educationAge2 = value; }
         private int _educationAge2 = 5;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge3}Education Milestone 3 Age", 3, 17, Order = 12, RequireRestart = true, HintText = "{=BC_MCM_EducationAge3_Hint}Age for childhood education stage 3. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 8.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge3}Education Milestone 3 Age", 3, 17, Order = 12, RequireRestart = true, HintText = "{=BC_MCM_EducationAge3_Hint}Age for childhood education stage 3. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 8 years; Vanilla: 8 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge3 { get => GetEducationAge(2); set => _educationAge3 = value; }
         private int _educationAge3 = 8;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge4}Education Milestone 4 Age", 4, 18, Order = 13, RequireRestart = true, HintText = "{=BC_MCM_EducationAge4_Hint}Age for childhood education stage 4. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 10.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge4}Education Milestone 4 Age", 4, 18, Order = 13, RequireRestart = true, HintText = "{=BC_MCM_EducationAge4_Hint}Age for childhood education stage 4. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 10 years; Vanilla: 11 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge4 { get => GetEducationAge(3); set => _educationAge4 = value; }
         private int _educationAge4 = 10;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge5}Education Milestone 5 Age", 5, 19, Order = 14, RequireRestart = true, HintText = "{=BC_MCM_EducationAge5_Hint}Age for childhood education stage 5. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 13.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge5}Education Milestone 5 Age", 5, 19, Order = 14, RequireRestart = true, HintText = "{=BC_MCM_EducationAge5_Hint}Age for childhood education stage 5. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 13 years; Vanilla: 14 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge5 { get => GetEducationAge(4); set => _educationAge5 = value; }
         private int _educationAge5 = 13;
 
-        [SettingPropertyInteger("{=BC_MCM_EducationAge6}Education Milestone 6 Age", 6, 20, Order = 15, RequireRestart = true, HintText = "{=BC_MCM_EducationAge6_Hint}Age for childhood education stage 6. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 15.")]
+        [SettingPropertyInteger("{=BC_MCM_EducationAge6}Education Milestone 6 Age", 6, 20, Order = 15, RequireRestart = true, HintText = "{=BC_MCM_EducationAge6_Hint}Age for childhood education stage 6. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 15 years; Vanilla: 16 years.")]
         [SettingPropertyGroup(Childhood, GroupOrder = 7)]
         public int EducationAge6 { get => GetEducationAge(5); set => _educationAge6 = value; }
         private int _educationAge6 = 15;
@@ -205,7 +205,7 @@ namespace BellumCivile
         [SettingPropertyGroup(Succession, GroupOrder = SuccessionGroupOrder)]
         public float FeudalClaimFabricationBaseDiscoveryChance { get; set; } = C.FeudalClaimFabricationBaseDiscoveryChance;
 
-        [SettingPropertyBool("{=BC_MCM_EnableArmyRefusal}Enable Rebellious Army Refusal", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableArmyRefusal_Hint}When enabled, openly rebellious court factions and vassals with very poor relations refuse calls to arms.")]
+        [SettingPropertyBool("{=BC_MCM_EnableArmyRefusal}Enable Rebellious Army Refusal", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableArmyRefusal_Hint}When enabled, openly rebellious court factions and vassals with very poor relations refuse calls to arms. Default: On.")]
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public bool EnableRebelliousArmyRefusal { get; set; } = true;
 
@@ -213,7 +213,7 @@ namespace BellumCivile
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public float ArmyRefusalMoodThreshold { get; set; } = C.ArmyMoodFurious;
 
-        [SettingPropertyBool("{=BC_MCM_EnableFeudalArmySummons}Restrict Army Calls to Vassals", Order = 20, RequireRestart = false, HintText = "{=BC_MCM_EnableFeudalArmySummons_Hint}When enabled, non-ruler nobles can only summon clans within their de facto title authority. Rulers and temporary Bellum war leaders can still summon their full side. Disable this to keep vanilla-style army pooling.")]
+        [SettingPropertyBool("{=BC_MCM_EnableFeudalArmySummons}Restrict Army Calls to Vassals", Order = 20, RequireRestart = false, HintText = "{=BC_MCM_EnableFeudalArmySummons_Hint}When enabled, non-ruler nobles can only summon clans within their de facto title authority. Rulers and temporary Bellum war leaders can still summon their full side. Disable this to keep vanilla-style army pooling. Default: On.")]
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public bool EnableFeudalArmySummons { get; set; } = true;
 
@@ -221,23 +221,23 @@ namespace BellumCivile
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public int ArmyPersonalFriendRelationThreshold { get; set; } = C.ArmyPersonalFriendRelationThreshold;
 
-        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this if you want vanilla or another mod to fully control NPC marriages.")]
+        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public bool EnableBellumStrategicMarriageLogic { get; set; } = true;
 
-        [SettingPropertyBool("{=BC_MCM_BellumOnlyMarriage}Block Vanilla Dice-Roll Marriage Logic", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_BellumOnlyMarriage_Hint}When enabled, Bellum blocks vanilla NPC-to-NPC marriage rolls so only Bellum's strategic marriage logic handles NPC marriages. Useful for testing and for players who want marriage to follow Bellum's political and dynastic scoring.")]
+        [SettingPropertyBool("{=BC_MCM_BellumOnlyMarriage}Block Vanilla Dice-Roll Marriage Logic", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_BellumOnlyMarriage_Hint}When enabled alongside Strategic Marriage Logic, Bellum replaces vanilla NPC marriage rolls and automatic offers to the player clan with its strategic matchmaking. Disable this to allow vanilla rolls alongside Bellum's matches. Default: On.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public bool UseBellumStrategicNpcMarriagesOnly { get; set; } = true;
 
-        [SettingPropertyInteger("{=BC_MCM_MarriageMaleMinAge}Male Minimum Marriage Age", 16, 80, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_MarriageMaleMinAge_Hint}Minimum age for male nobles to be considered by Bellum's strategic NPC marriage logic. This cannot fall below the active adulthood age. Default: 25.")]
+        [SettingPropertyInteger("{=BC_MCM_MarriageMaleMinAge}Male Minimum Marriage Age", 16, 80, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_MarriageMaleMinAge_Hint}Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageMaleMinimumAge { get; set; } = C.MarriageMaleMinimumAge;
 
-        [SettingPropertyInteger("{=BC_MCM_MarriageFemaleMinAge}Female Minimum Marriage Age", 16, 80, Order = 30, RequireRestart = false, HintText = "{=BC_MCM_MarriageFemaleMinAge_Hint}Minimum age for female nobles to be considered by Bellum's strategic NPC marriage logic. This cannot fall below the active adulthood age. Default: 25.")]
+        [SettingPropertyInteger("{=BC_MCM_MarriageFemaleMinAge}Female Minimum Marriage Age", 16, 80, Order = 30, RequireRestart = false, HintText = "{=BC_MCM_MarriageFemaleMinAge_Hint}Minimum age for female nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageFemaleMinimumAge { get; set; } = C.MarriageFemaleMinimumAge;
 
-        [SettingPropertyInteger("{=BC_MCM_MarriageFemaleMaxAge}Female Maximum Marriage Age", 16, 80, Order = 40, RequireRestart = false, HintText = "{=BC_MCM_MarriageFemaleMaxAge_Hint}Maximum age for female nobles to be considered by Bellum's strategic NPC marriage logic. Default: 41.")]
+        [SettingPropertyInteger("{=BC_MCM_MarriageFemaleMaxAge}Female Maximum Marriage Age", 16, 80, Order = 40, RequireRestart = false, HintText = "{=BC_MCM_MarriageFemaleMaxAge_Hint}Maximum age for female nobles to be considered by Bellum's strategic matchmaking. This does not change fertility or eligibility for player-arranged marriages. Default values: Bellum: 41 years; Vanilla: no fixed maximum marriage age.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageFemaleMaximumAge { get; set; } = C.MarriageFemaleMaximumAge;
 
@@ -257,7 +257,7 @@ namespace BellumCivile
         [SettingPropertyGroup(Mercenaries, GroupOrder = MercenariesGroupOrder)]
         public int DynamicMercenaryStartingTier { get; set; } = C.DynamicMercenaryStartingTier;
 
-        [SettingPropertyBool("{=BC_MCM_EnableDynamicRelationDrift}Enable Relationship Memory", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableDynamicRelationDrift_Hint}When enabled, noble relations combine a natural political baseline with lasting, timed memories of favors and grievances. Hero encyclopedia pages show the full breakdown.")]
+        [SettingPropertyBool("{=BC_MCM_EnableDynamicRelationDrift}Enable Relationship Memory", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableDynamicRelationDrift_Hint}When enabled, noble relations combine a natural political baseline with lasting, timed memories of favors and grievances. Hero encyclopedia pages show the full breakdown. Default: On.")]
         [SettingPropertyGroup(Relationships, GroupOrder = RelationshipsGroupOrder)]
         public bool EnableDynamicRelationDrift { get; set; } = true;
 
@@ -268,7 +268,7 @@ namespace BellumCivile
         // Retained without an MCM attribute so old campaigns can migrate their configured drift speed exactly.
         public float DynamicRelationWeeklyDrift { get; set; } = C.DynamicRelationWeeklyDrift;
 
-        [SettingPropertyDropdown("{=BC_MCM_Notifications}Bellum Civile Notifications", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_Notifications_Hint}Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms.")]
+        [SettingPropertyDropdown("{=BC_MCM_Notifications}Bellum Civile Notifications", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_Notifications_Hint}Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms. Default: Kingdom Only.")]
         [SettingPropertyGroup(Notifications, GroupOrder = NotificationsGroupOrder)]
         public Dropdown<string> BellumCivileNotifications { get; set; } = new Dropdown<string>(new string[]
         {
@@ -277,7 +277,7 @@ namespace BellumCivile
             "{=BC_MCM_NotifGlobal}Global"
         }, selectedIndex: 1);
 
-        [SettingPropertyBool("{=BC_MCM_ShowDebug}Show Debug Messages In Game", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_ShowDebug_Hint}Shows Bellum Civile debug traces in the in-game message feed when those traces request visible output.")]
+        [SettingPropertyBool("{=BC_MCM_ShowDebug}Show Debug Messages In Game", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_ShowDebug_Hint}Shows Bellum Civile debug traces in the in-game message feed when those traces request visible output. Default: Off.")]
         [SettingPropertyGroup(Debugging, GroupOrder = DebuggingGroupOrder)]
         public bool ShowDebugMessagesInGame { get; set; } = false;
     }

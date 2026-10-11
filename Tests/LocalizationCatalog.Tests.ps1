@@ -117,10 +117,19 @@ foreach ($file in @('Behaviors/CourtAgendaBehavior.cs', 'Behaviors/CourtActivity
 
 foreach ($file in @('BellumCivileSettings.cs', 'CourtInstitutionDisplayHelper.cs', 'DynamicMercenaryNameConfig.cs')) {
     $source = [System.IO.File]::ReadAllText((Join-Path $root $file))
-    foreach ($match in [regex]::Matches($source, '"\{=(BC_(?:MCM_CourtTerm\w*|FacName_(?:Glory|Nobility|Liberty)|MercenaryName_\w+))\}([^"\r\n]*)"')) {
+    foreach ($match in [regex]::Matches($source, '"\{=(BC_(?:MCM_\w+|FacName_(?:Glory|Nobility|Liberty)|MercenaryName_\w+))\}([^"\r\n]*)"')) {
         Check-Fallback $match.Groups[1].Value $match.Groups[2].Value $file $true
     }
 }
+
+$settings = [System.IO.File]::ReadAllText((Join-Path $root 'BellumCivileSettings.cs'))
+$settingHints = [regex]::Matches($settings, 'HintText = "\{=(BC_MCM_\w+)\}([^"\r\n]*)"')
+foreach ($hint in $settingHints) {
+    if ($hint.Groups[2].Value -notmatch 'Default(?: values)?:') {
+        throw "MCM description omits its default: $($hint.Groups[1].Value)"
+    }
+}
+Write-Output "PASS: $($settingHints.Count) MCM descriptions state their defaults and match the English catalog."
 $parley = [System.IO.File]::ReadAllText((Join-Path $root 'UI/Parley/TreatyCouncilMemberVM.cs'))
 if ($parley.Contains('{=BC_Parley_Enthusiasm}Enthusiasm"') -or !$parley.Contains('{=BC_Parley_EnthusiasmLabel}Enthusiasm')) {
     throw 'Parley tooltip label reuses the value-bearing enthusiasm string.'

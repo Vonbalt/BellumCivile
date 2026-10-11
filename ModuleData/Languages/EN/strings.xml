@@ -5,7 +5,7 @@
   </tags>
   <strings>
     <string id="BC_MCM_RealmNameDisplay" text="Realm Name Display" />
-    <string id="BC_MCM_RealmNameDisplay_Hint" text="Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default: Sovereign Title." />
+    <string id="BC_MCM_RealmNameDisplay_Hint" text="Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default values: Bellum: Sovereign Title; Vanilla: Native." />
     <string id="BC_MCM_RealmNameNative" text="Native" />
     <string id="BC_MCM_RealmNameIdentity" text="Realm Identity" />
     <string id="BC_MCM_RealmNameSovereign" text="Sovereign Title" />
@@ -95,7 +95,7 @@
     <string id="BC_MCM_Group_Economy" text="Political Economy" />
     <string id="BC_MCM_Group_Debugging" text="Debugging" />
     <string id="BC_MCM_ShowDebug" text="Show Debug Messages In Game" />
-    <string id="BC_MCM_ShowDebug_Hint" text="Shows Bellum Civile debug traces in the in-game message feed when those traces request visible output." />
+    <string id="BC_MCM_ShowDebug_Hint" text="Shows Bellum Civile debug traces in the in-game message feed when those traces request visible output. Default: Off." />
     <string id="BC_MCM_RebellionThreshold" text="Rebellious Intent Threshold" />
     <string id="BC_MCM_RebellionThreshold_Hint" text="The rebellious intent a clan needs to form or join a rebel faction. Leaders disband and members reconsider their commitment below half this value. Higher values make conspiracies slower and rarer. Default: 100." />
     <string id="BC_MCM_DiscontentGain" text="Rebellious Intent Gain" />
@@ -173,9 +173,9 @@
     <string id="BC_MCM_WarWillCaptivityMultiplier" text="Captivity Shock Multiplier" />
     <string id="BC_MCM_WarWillCaptivityMultiplier_Hint" text="Multiplier applied to War Will shocks from captured nobles, heirs, and rulers. Default: 1." />
     <string id="BC_MCM_RetainedPrisonerDungeonEscape" text="Retained Prisoner Dungeon Escape Chance" />
-    <string id="BC_MCM_RetainedPrisonerDungeonEscape_Hint" text="Base daily escape chance, as a percentage, for nobles retained in a settlement dungeon after a Bellum peace treaty. Governor and captor perks still apply. Default: 1%." />
+    <string id="BC_MCM_RetainedPrisonerDungeonEscape_Hint" text="Base daily escape chance for nobles retained after a Bellum peace treaty, in a settlement dungeon or a party staying in a settlement. The vanilla 50% player-captor reduction and relevant perks still apply. Vanilla normally releases nobles at peace. Default values: Bellum: 1%; Vanilla: 4% before modifiers." />
     <string id="BC_MCM_RetainedPrisonerMobileEscape" text="Retained Prisoner Mobile Escape Chance" />
-    <string id="BC_MCM_RetainedPrisonerMobileEscape_Hint" text="Base daily escape chance, as a percentage, for nobles retained in a mobile party after a Bellum peace treaty. Prisoner and captor perks still apply. Default: 3%." />
+    <string id="BC_MCM_RetainedPrisonerMobileEscape_Hint" text="Base daily escape chance for nobles retained after a Bellum peace treaty, in a travelling party. The vanilla 50% player-captor reduction and relevant perks still apply. Vanilla normally releases nobles at peace. Default values: Bellum: 3%; Vanilla: 8-20% depending on healthy party members, before modifiers." />
     <!-- Household ransom broker -->
     <string id="BC_HouseholdRansom_Request" text="I wish to arrange the ransom of a member of my household." />
     <string id="BC_HouseholdRansom_BrokerAccepts" text="Of course, my {?PLAYER.GENDER}lady{?}lord{\?}. Let us discuss the terms, and I'll dispatch one of my associates to deliver your ransom offer." />
@@ -295,7 +295,7 @@
     <string id="BC_MCM_MandateDays" text="Policy Mandate Days" />
     <string id="BC_MCM_MandateDays_Hint" text="Days a player faction leader has to propose an aligned policy after forcing a policy mandate. Default: 5." />
     <string id="BC_MCM_DeliberationDays" text="Political Deliberation Days" />
-    <string id="BC_MCM_DeliberationDays_Hint" text="Days before delayed policy, fief, and expulsion votes fire. One shared value keeps major votes paced consistently. Default: 5." />
+    <string id="BC_MCM_DeliberationDays_Hint" text="Days of deliberation before Bellum submits policy, fief, and expulsion votes. The separate vanilla decision response window is 48 hours. Default values: Bellum: 5 days; Vanilla: no added deliberation period." />
     <string id="BC_MCM_RebellionSuppressMin" text="Rebellion Suppression Minimum Cost" />
     <string id="BC_MCM_RebellionSuppressMin_Hint" text="Influence needed to restrain a faction at the start of rebellious mood. Default: 100." />
     <string id="BC_MCM_RebellionSuppressMax" text="Rebellion Suppression Maximum Cost" />
@@ -311,7 +311,7 @@
     <string id="BC_MCM_EnableAutomaticTreasonIndictments" text="Enable Indictments of Treason" />
     <string id="BC_MCM_TermTreason_Hint" text="Enables new automatic Crown treason agendas from -60 relations and scheduled royal decree cases at -100. Turning this off does not cancel existing agendas or deferred decree cases, or change their saved dates. Existing proceedings remain subject to normal validity checks. Manual player nominations remain available. Default: On." />
     <string id="BC_MCM_EnablePartitionSuccession" text="Enable Partition Succession" />
-    <string id="BC_MCM_EnablePartitionSuccession_Hint" text="When enabled, large noble clans, including the player clan, can split spare inherited fiefs into cadet branches after clan succession." />
+    <string id="BC_MCM_EnablePartitionSuccession_Hint" text="When enabled, large noble clans, including the player clan, can split spare inherited fiefs into cadet branches after clan succession. Default: On." />
     <string id="BC_MCM_PartitionMainHeirFiefs" text="Main Heir Reserved Personal Holdings" />
     <string id="BC_MCM_PartitionMainHeirFiefs_Hint" text="Number of personal barony-level holdings the main heir keeps after the primary title chain is preserved. Spare title packages and fiefs can split into cadet branches. Default: 1." />
     <string id="BC_MCM_FeudalTitleMinimumChildren" text="Minimum Titles to Form Higher Title" />
@@ -378,25 +378,25 @@
     <string id="BC_CadetName_Numbered" text="{BASE_NAME} {NUMBER}" />
     <string id="BC_DynasticHeiress_CadetName" text="{DYNASTY_NAME}-{BRANCH_NAME}" />
     <string id="BC_MCM_EnableArmyRefusal" text="Enable Rebellious Army Refusal" />
-    <string id="BC_MCM_EnableArmyRefusal_Hint" text="When enabled, openly rebellious court factions and vassals with very poor relations refuse calls to arms." />
+    <string id="BC_MCM_EnableArmyRefusal_Hint" text="When enabled, openly rebellious court factions and vassals with very poor relations refuse calls to arms. Default: On." />
     <string id="BC_MCM_ArmyRefusalMood" text="Army Refusal Threshold" />
     <string id="BC_MCM_ArmyRefusalMood_Hint" text="Court faction mood or vassal relation at or below this value refuses calls to arms. Default: -60." />
     <string id="BC_MCM_EnableFeudalArmySummons" text="Restrict Army Calls to Vassals" />
-    <string id="BC_MCM_EnableFeudalArmySummons_Hint" text="When enabled, non-ruler nobles can only summon clans within their de facto title authority. Rulers and temporary Bellum war leaders can still summon their full side. Disable this to keep vanilla-style army pooling." />
+    <string id="BC_MCM_EnableFeudalArmySummons_Hint" text="When enabled, non-ruler nobles can only summon clans within their de facto title authority. Rulers and temporary Bellum war leaders can still summon their full side. Disable this to keep vanilla-style army pooling. Default: On." />
     <string id="BC_MCM_ArmyPersonalFriendRelation" text="Personal Army Favor Relation" />
     <string id="BC_MCM_ArmyPersonalFriendRelation_Hint" text="Minimum relation at which a lord outside your de facto authority may answer your call for friendship's sake, either through the army menu or in person. Default: 60." />
     <string id="BC_MCM_EnableBellumMarriage" text="Enable Strategic Marriage Logic" />
-    <string id="BC_MCM_EnableBellumMarriage_Hint" text="When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this if you want vanilla or another mod to fully control NPC marriages." />
+    <string id="BC_MCM_EnableBellumMarriage_Hint" text="When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On." />
     <string id="BC_MCM_BellumOnlyMarriage" text="Block Vanilla Dice-Roll Marriage Logic" />
-    <string id="BC_MCM_BellumOnlyMarriage_Hint" text="When enabled, Bellum blocks vanilla NPC-to-NPC marriage rolls so only Bellum's strategic marriage logic handles NPC marriages. Default: enabled." />
+    <string id="BC_MCM_BellumOnlyMarriage_Hint" text="When enabled alongside Strategic Marriage Logic, Bellum replaces vanilla NPC marriage rolls and automatic offers to the player clan with its strategic matchmaking. Disable this to allow vanilla rolls alongside Bellum's matches. Default: On." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />
-    <string id="BC_MCM_MarriageMaleMinAge_Hint" text="Minimum age for male nobles to be considered by Bellum's strategic NPC marriage logic. This cannot fall below the active adulthood age. Default: 25." />
+    <string id="BC_MCM_MarriageMaleMinAge_Hint" text="Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years." />
     <string id="BC_MCM_MarriageFemaleMinAge" text="Female Minimum Marriage Age" />
-    <string id="BC_MCM_MarriageFemaleMinAge_Hint" text="Minimum age for female nobles to be considered by Bellum's strategic NPC marriage logic. This cannot fall below the active adulthood age. Default: 25." />
+    <string id="BC_MCM_MarriageFemaleMinAge_Hint" text="Minimum age for female nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years." />
     <string id="BC_MCM_MarriageFemaleMaxAge" text="Female Maximum Marriage Age" />
-    <string id="BC_MCM_MarriageFemaleMaxAge_Hint" text="Maximum age for female nobles to be considered by Bellum's strategic NPC marriage logic. Default: 41." />
+    <string id="BC_MCM_MarriageFemaleMaxAge_Hint" text="Maximum age for female nobles to be considered by Bellum's strategic matchmaking. This does not change fertility or eligibility for player-arranged marriages. Default values: Bellum: 41 years; Vanilla: no fixed maximum marriage age." />
     <string id="BC_MCM_EnableDynamicRelationDrift" text="Enable Relationship Memory" />
-    <string id="BC_MCM_EnableDynamicRelationDrift_Hint" text="When enabled, noble relations combine a natural political baseline with lasting, timed memories of favors and grievances. Hero encyclopedia pages show the full breakdown." />
+    <string id="BC_MCM_EnableDynamicRelationDrift_Hint" text="When enabled, noble relations combine a natural political baseline with lasting, timed memories of favors and grievances. Hero encyclopedia pages show the full breakdown. Default: On." />
     <string id="BC_MCM_DynamicRelationWeeklyDrift" text="Legacy Relation Fade" />
     <string id="BC_MCM_DynamicRelationWeeklyDrift_Hint" text="Migration-only rate used to preserve the former weekly drift of relationship history stored in older saves." />
     <string id="BC_RelationThreshold_Label" text="Relation Threshold:" />
@@ -1507,7 +1507,7 @@
     <string id="BC_MCM_EnableCustomAdulthoodAge" text="Use Custom Adulthood Age" />
     <string id="BC_MCM_EnableCustomAdulthoodAge_Hint" text="When enabled, Bellum changes the global age at which heroes become adults and may assume clan leadership or marry. This affects the entire campaign and requires a restart. Default: On." />
     <string id="BC_MCM_AdulthoodAge" text="Adulthood Age" />
-    <string id="BC_MCM_AdulthoodAge_Hint" text="Global age at which heroes become adults, can leave regency, lead clans and parties, and become eligible for marriage. Used only when custom adulthood is enabled. Default: 16." />
+    <string id="BC_MCM_AdulthoodAge_Hint" text="Global age at which heroes become adults, can leave regency, lead clans and parties, and become eligible for marriage. Used only when custom adulthood is enabled. Bellum's strategic matchmaking also applies its separate marriage age settings. Default values: Bellum: 16 years; Vanilla: 18 years." />
     <string id="BC_SuccessionPanel_CrownHeir" text="Heir Apparent" />
     <string id="BC_SuccessionPanel_LawfulHeir" text="Crown Heir" />
     <string id="BC_SuccessionPanel_PretenderLine" text="Line of Succession and Pretenders" />
@@ -2526,7 +2526,7 @@
     <!-- Release localization audit additions -->
     <string id="BC_MCM_Group_Notifications" text="Notifications" />
     <string id="BC_MCM_Notifications" text="Bellum Civile Notifications" />
-    <string id="BC_MCM_Notifications_Hint" text="Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms." />
+    <string id="BC_MCM_Notifications_Hint" text="Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms. Default: Kingdom Only." />
     <string id="BC_MCM_NotifDisabled" text="Disabled" />
     <string id="BC_MCM_NotifKingdomOnly" text="Kingdom Only" />
     <string id="BC_MCM_NotifGlobal" text="Global" />
@@ -4101,17 +4101,17 @@
     <string id="BC_MCM_Group_Childhood" text="Custom Adulthood and Education" />
     <string id="BC_MCM_CustomEducationToggle_Hint" text="Customize adulthood and the six childhood education ages. When disabled, vanilla adulthood and education ages are restored. Requires a restart. Default: On." />
     <string id="BC_MCM_EducationAge1" text="Education Milestone 1 Age" />
-    <string id="BC_MCM_EducationAge1_Hint" text="Age for childhood education stage 1. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 2." />
+    <string id="BC_MCM_EducationAge1_Hint" text="Age for childhood education stage 1. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 2 years; Vanilla: 2 years." />
     <string id="BC_MCM_EducationAge2" text="Education Milestone 2 Age" />
-    <string id="BC_MCM_EducationAge2_Hint" text="Age for childhood education stage 2. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 5." />
+    <string id="BC_MCM_EducationAge2_Hint" text="Age for childhood education stage 2. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 5 years; Vanilla: 5 years." />
     <string id="BC_MCM_EducationAge3" text="Education Milestone 3 Age" />
-    <string id="BC_MCM_EducationAge3_Hint" text="Age for childhood education stage 3. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 8." />
+    <string id="BC_MCM_EducationAge3_Hint" text="Age for childhood education stage 3. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 8 years; Vanilla: 8 years." />
     <string id="BC_MCM_EducationAge4" text="Education Milestone 4 Age" />
-    <string id="BC_MCM_EducationAge4_Hint" text="Age for childhood education stage 4. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 10." />
+    <string id="BC_MCM_EducationAge4_Hint" text="Age for childhood education stage 4. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 10 years; Vanilla: 11 years." />
     <string id="BC_MCM_EducationAge5" text="Education Milestone 5 Age" />
-    <string id="BC_MCM_EducationAge5_Hint" text="Age for childhood education stage 5. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 13." />
+    <string id="BC_MCM_EducationAge5_Hint" text="Age for childhood education stage 5. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 13 years; Vanilla: 14 years." />
     <string id="BC_MCM_EducationAge6" text="Education Milestone 6 Age" />
-    <string id="BC_MCM_EducationAge6_Hint" text="Age for childhood education stage 6. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default: 15." />
+    <string id="BC_MCM_EducationAge6_Hint" text="Age for childhood education stage 6. Ages are kept in increasing order and below adulthood; conflicting values are adjusted automatically. Choices and rewards remain unchanged. Requires a restart. Default values: Bellum: 15 years; Vanilla: 16 years." />
     <string id="BC_Education_BirthdayGift" text="When {CHILD.NAME} turned {EDUCATION_AGE}, you gave {?CHILD.GENDER}her{?}him{\?} a special present. You have seen {?CHILD.GENDER}her{?}him{\?} treasure it and believe it will shape who {?CHILD.GENDER}she{?}he{\?} is. You gave {?CHILD.GENDER}her{?}him{\?}..." />
     <string id="BC_RealmRoot_NorthernCalradia" text="Northern Calradia" />
     <string id="BC_RealmRoot_WesternCalradia" text="Western Calradia" />

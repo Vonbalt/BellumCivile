@@ -752,3 +752,4 @@ Added a modder resource to configure voluntary or forced starting client states 
 1.4.3 CHANGELOG
 
 Added a public compatibility API for other mods to query Bellum’s political systems, manage vote pledges, track completed inheritances, and explicitly mark or legitimize heirs.
+Improved MCM setting descriptions with clearer explanations and Bellum-versus-vanilla default comparisons where applicable.
