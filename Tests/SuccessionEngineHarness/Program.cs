@@ -94,6 +94,21 @@ internal static class Program
                 Console.WriteLine($"{_checks} encyclopedia inheritance layout checks passed.");
             }
             else if (args.Contains("--campaign-ui-startup")) CampaignUiStartupProbe.Run(Check);
+            else if (args.Contains("--map-widget-tooltips"))
+            {
+                MapWidgetTooltipTests.Run(Check);
+                Console.WriteLine($"{_checks} map widget tooltip checks passed.");
+            }
+            else if (args.Contains("--council-competence"))
+            {
+                CouncilCompetencePresentationTests.Run(Check);
+                Console.WriteLine($"{_checks} council competence checks passed.");
+            }
+            else if (args.Contains("--game-version-compatibility"))
+            {
+                GameVersionCompatibilityTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} game-version compatibility checks passed.");
+            }
             else if (args.Contains("--marriage-dowry-simulation"))
             {
                 MarriageDowrySimulation.Run(Check);
@@ -295,7 +310,13 @@ internal static class Program
             else Run();
             return 0;
         }
-        catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            if (ex is ReflectionTypeLoadException load)
+                foreach (var error in load.LoaderExceptions) Console.Error.WriteLine(error);
+            return 1;
+        }
     }
 
     private static void TestCourtActivityReceipts()
@@ -641,12 +662,12 @@ internal static class Program
             var helper = type.Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper");
             var resolve = AccessTools.Method(helper, "ResolveKingdomRankStyle");
             var rank = resolve.Invoke(null, new object[] { FeudalTitleType.Kingdom, realm });
-            Check((string)AccessTools.Field(rank.GetType(), "MaleRank").GetValue(rank) == "Autokrator",
+            Check(new TaleWorlds.Localization.TextObject((string)AccessTools.Field(rank.GetType(), "MaleRank").GetValue(rank)).ToString() == "Autokrator",
                 "Compiled title resolver restores the actual Western Empire XML rank");
             AccessTools.Property(typeof(Kingdom), "StringId").SetValue(realm, "empire_s");
             sources["empire_s"] = "empire_w";
             rank = resolve.Invoke(null, new object[] { FeudalTitleType.Kingdom, realm });
-            Check((string)AccessTools.Field(rank.GetType(), "MaleRank").GetValue(rank) != "Autokrator",
+            Check(new TaleWorlds.Localization.TextObject((string)AccessTools.Field(rank.GetType(), "MaleRank").GetValue(rank)).ToString() != "Autokrator",
                 "Direct kingdom preset outranks an inherited style");
         }
         finally { configField.SetValue(null, oldConfig); instance.SetValue(null, oldBehavior); }

@@ -6,7 +6,6 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.SceneInformationPopupTypes;
 using TaleWorlds.Localization;
 
 namespace BellumCivile.Patches
@@ -16,7 +15,7 @@ namespace BellumCivile.Patches
         private const string ViewTypeName = "ArtemsBetterUIVisuals.BetterUIVisualsKingdomLabelsView";
         private const string LabelTypeName = "ArtemsBetterUIVisuals.BetterUIVisualsKingdomLabelVM";
         private static readonly ConditionalWeakTable<object, ViewLabels> Views = new ConditionalWeakTable<object, ViewLabels>();
-        private static readonly MethodInfo FormalName = AccessTools.Method(typeof(CampaignSceneNotificationHelper), "GetFormalNameForKingdom");
+        private static readonly MethodInfo FormalName = AccessTools.PropertyGetter(typeof(Kingdom), nameof(Kingdom.FormalName));
         private static readonly MethodInfo NameGetter = AccessTools.PropertyGetter(typeof(Kingdom), "Name");
         private static bool _attempted;
         private static PropertyInfo _labelName;
@@ -126,7 +125,7 @@ namespace BellumCivile.Patches
 
         private static TextObject ReadFormalName(Kingdom kingdom)
         {
-            TextObject result = CampaignSceneNotificationHelper.GetFormalNameForKingdom(kingdom);
+            TextObject result = kingdom.FormalName;
             CaptureRealm(kingdom, false);
             return result;
         }
@@ -188,7 +187,7 @@ namespace BellumCivile.Patches
             // In Native mode (or without a Bellum name), preserve Artem's own choice.
             return alternate
                 ? new TextObject("{=ABUV16}Kingdom of {KINGDOM_NAME}").SetTextVariable("KINGDOM_NAME", kingdom.Name).ToString()
-                : CampaignSceneNotificationHelper.GetFormalNameForKingdom(kingdom).ToString();
+                : kingdom.FormalName.ToString();
         }
     }
 }

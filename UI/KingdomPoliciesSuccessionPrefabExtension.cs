@@ -23,7 +23,7 @@ namespace BellumCivile.ViewModelMixin
                     StackLayout.LayoutMethod='VerticalTopToBottom' />");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -56,7 +56,7 @@ namespace BellumCivile.ViewModelMixin
                 </ButtonWidget>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -75,7 +75,7 @@ namespace BellumCivile.ViewModelMixin
             _document.LoadXml("<BellumSuccessionPolicyPanel />");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

@@ -15,7 +15,7 @@ namespace BellumCivile
     {
         Name,
         InformalName,
-        EncyclopediaTitle
+        FormalName
     }
 
     internal static class DynamicKingdomTitleNameHelper
@@ -70,7 +70,7 @@ namespace BellumCivile
         {
             public TextObject Name;
             public TextObject InformalName;
-            public TextObject EncyclopediaTitle;
+            public TextObject FormalName;
         }
 
         private sealed class NativeNameReadScope : IDisposable
@@ -130,19 +130,19 @@ namespace BellumCivile
             {
                 TextObject nativeName;
                 TextObject nativeInformalName;
-                TextObject nativeEncyclopediaTitle;
+                TextObject nativeFormalName;
                 using (BeginRawNameReadScope())
                 {
                     nativeName = kingdom.Name;
                     nativeInformalName = kingdom.InformalName;
-                    nativeEncyclopediaTitle = kingdom.EncyclopediaTitle;
+                    nativeFormalName = kingdom.FormalName;
                 }
 
                 RecordLoadedNativeNames(
                     kingdom,
                     nativeName,
                     nativeInformalName,
-                    nativeEncyclopediaTitle);
+                    nativeFormalName);
             }
         }
 
@@ -150,7 +150,7 @@ namespace BellumCivile
             Kingdom kingdom,
             TextObject name,
             TextObject informalName,
-            TextObject encyclopediaTitle)
+            TextObject formalName)
         {
             if (kingdom == null)
                 return;
@@ -167,18 +167,18 @@ namespace BellumCivile
                 xmlNames?.InformalName,
                 KingdomDisplayNameField.InformalName,
                 compareWithKingdomId: false);
-            TextObject recoveredEncyclopediaTitle = SelectLoadedNativeText(
+            TextObject recoveredFormalName = SelectLoadedNativeText(
                 kingdom,
-                encyclopediaTitle,
-                xmlNames?.EncyclopediaTitle,
-                KingdomDisplayNameField.EncyclopediaTitle);
+                formalName,
+                xmlNames?.FormalName,
+                KingdomDisplayNameField.FormalName);
 
             lock (CacheLock)
             {
                 NativeRealmNames nativeNames = GetOrCreateNativeNames(kingdom);
                 nativeNames.Name = Copy(recoveredName);
                 nativeNames.InformalName = Copy(recoveredInformalName);
-                nativeNames.EncyclopediaTitle = Copy(recoveredEncyclopediaTitle);
+                nativeNames.FormalName = Copy(recoveredFormalName);
                 NameCache.Remove(kingdom);
             }
         }
@@ -251,7 +251,7 @@ namespace BellumCivile
             }
         }
 
-        public static void RecordNativeNameChange(Kingdom kingdom, TextObject name, TextObject informalName, bool projectedNameReadback = false)
+        public static void RecordNativeNameChange(Kingdom kingdom, TextObject name, TextObject informalName, TextObject formalName, bool projectedNameReadback = false)
         {
             if (kingdom == null)
                 return;
@@ -266,6 +266,8 @@ namespace BellumCivile
                     FeudalTitleBehavior.Instance?.RecordRealmIdentityRename(kingdom, name);
                 if (!IsProjectedReadback(kingdom, informalName))
                     nativeNames.InformalName = Copy(informalName);
+                if (!IsProjectedReadback(kingdom, formalName))
+                    nativeNames.FormalName = Copy(formalName == null || formalName.IsEmpty() ? name : formalName);
                 NameCache.Remove(kingdom);
             }
         }
@@ -273,7 +275,7 @@ namespace BellumCivile
         private static bool IsProjectedReadback(Kingdom kingdom, TextObject value) => value != null
             && _projections.TryGetValue(value, out ProjectionOrigin origin) && origin.Kingdom == kingdom;
 
-        public static bool RestoreNativeRenameArguments(Kingdom kingdom, ref TextObject name, ref TextObject informalName)
+        public static bool RestoreNativeRenameArguments(Kingdom kingdom, ref TextObject name, ref TextObject informalName, ref TextObject formalName)
         {
             // A caller may pass a displayed name back into ChangeKingdomName. Do not
             // let a presentation-only value become the native backing field.
@@ -282,6 +284,8 @@ namespace BellumCivile
                 name = ResolveRecordedNativeText(kingdom, KingdomDisplayNameField.Name) ?? name;
             if (IsProjectedReadback(kingdom, informalName))
                 informalName = ResolveRecordedNativeText(kingdom, KingdomDisplayNameField.InformalName) ?? informalName;
+            if (IsProjectedReadback(kingdom, formalName) || (projectedName && formalName == null))
+                formalName = ResolveRecordedNativeText(kingdom, KingdomDisplayNameField.FormalName) ?? formalName;
             return projectedName;
         }
 
@@ -289,7 +293,7 @@ namespace BellumCivile
             Kingdom kingdom,
             TextObject name,
             TextObject informalName,
-            TextObject encyclopediaTitle)
+            TextObject formalName)
         {
             if (kingdom == null)
                 return;
@@ -301,8 +305,8 @@ namespace BellumCivile
                     nativeNames.Name = Copy(name);
                 if (nativeNames.InformalName == null)
                     nativeNames.InformalName = Copy(informalName);
-                if (nativeNames.EncyclopediaTitle == null)
-                    nativeNames.EncyclopediaTitle = Copy(encyclopediaTitle);
+                if (nativeNames.FormalName == null)
+                    nativeNames.FormalName = Copy(formalName);
                 NameCache.Remove(kingdom);
             }
         }
@@ -396,7 +400,7 @@ namespace BellumCivile
             try
             {
                 using (BeginRawNameReadScope())
-                    RecordNativeInitialization(kingdom, kingdom.Name, kingdom.InformalName, kingdom.EncyclopediaTitle);
+                    RecordNativeInitialization(kingdom, kingdom.Name, kingdom.InformalName, kingdom.FormalName);
                 FeudalTitleRecord sovereignTitle = titleBehavior.GetRealmSovereignTitle(kingdom, FeudalHierarchyMode.DeFacto);
                 if (sovereignTitle == null
                     || !sovereignTitle.IsActive
@@ -509,8 +513,8 @@ namespace BellumCivile
                         nativeNames.Name = Copy(currentValue);
                     else if (field == KingdomDisplayNameField.InformalName && nativeNames.InformalName == null)
                         nativeNames.InformalName = Copy(currentValue);
-                    else if (field == KingdomDisplayNameField.EncyclopediaTitle && nativeNames.EncyclopediaTitle == null)
-                        nativeNames.EncyclopediaTitle = Copy(currentValue);
+                    else if (field == KingdomDisplayNameField.FormalName && nativeNames.FormalName == null)
+                        nativeNames.FormalName = Copy(currentValue);
                 }
             }
 
@@ -526,8 +530,8 @@ namespace BellumCivile
                 if (!NativeNameRegistry.TryGetValue(kingdom, out NativeRealmNames nativeNames))
                     return null;
 
-                return field == KingdomDisplayNameField.EncyclopediaTitle
-                    ? nativeNames.EncyclopediaTitle
+                return field == KingdomDisplayNameField.FormalName
+                    ? nativeNames.FormalName
                     : field == KingdomDisplayNameField.InformalName ? nativeNames.InformalName : nativeNames.Name;
             }
         }
@@ -614,7 +618,7 @@ namespace BellumCivile
 
                         MergeXmlText(node, "name", value => names.Name = value);
                         MergeXmlText(node, "short_name", value => names.InformalName = value);
-                        MergeXmlText(node, "title", value => names.EncyclopediaTitle = value);
+                        MergeXmlText(node, "title", value => names.FormalName = value);
                     }
                 }
             }

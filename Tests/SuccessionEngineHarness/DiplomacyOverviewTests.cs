@@ -124,7 +124,7 @@ internal static class DiplomacyOverviewTests
         var harmony = new Harmony("bellum.tests.overview");
         try
         {
-            foreach (var property in new[] { "Name", "EncyclopediaTitle" })
+            foreach (var property in new[] { "Name", "FormalName" })
                 harmony.Patch(AccessTools.PropertyGetter(typeof(Kingdom), property), prefix: new HarmonyMethod(typeof(DiplomacyOverviewTests), "RealmName"));
             var war = new WarScoreRecord("first|second", "first", "second", 0, null);
             AccessTools.Field(typeof(WarScoreRecord), "_score").SetValue(war, 18f);

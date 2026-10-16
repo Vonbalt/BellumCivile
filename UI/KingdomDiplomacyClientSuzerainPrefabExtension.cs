@@ -45,7 +45,7 @@ namespace BellumCivile.ViewModelMixin
                 </Widget>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -80,7 +80,7 @@ namespace BellumCivile.ViewModelMixin
                 </Widget>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

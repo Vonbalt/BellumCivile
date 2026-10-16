@@ -55,9 +55,9 @@ Check (([regex]::Matches($refresh, 'EstateInheritanceDisplay.BuildHeroEntries\(_
         $refresh.IndexOf('if (_hero?.Clan == null || _hero.Clan.Leader != _hero)')) 'Inheritance is built once per refresh before the clan-leader-only guard.'
 Check ($refresh.Contains('BellumInheritance.Clear()') -and $refresh.Contains('HasBellumInheritance = BellumInheritance.Count > 0')) 'Refresh clears old inheritance rows and updates empty-state visibility.'
 Check ($xml.SelectNodes("//ListPanel[@IsVisible='@HasBellumInheritance']").Count -eq 1 -and
-    $xml.SelectNodes("//ListPanel[@DataSource='{BellumInheritance}']").Count -eq 1 -and
-    $xml.SelectNodes("//*[@Text='@BellumInheritanceCaveat']").Count -eq 1) 'Prefab binds the inheritance visibility, list and caveat.'
-$labels = $xml.SelectNodes("//ListPanel[@DataSource='{BellumInheritance}']//TextWidget")
+    $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}'][@ColumnCount='2'][@UseDynamicCellHeight='true']").Count -eq 1 -and
+    $xml.SelectNodes("//*[@Text='@BellumInheritanceCaveat']").Count -eq 0) 'Prefab binds the two-column inheritance grid without repeating the tooltip caveat.'
+$labels = $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}']//TextWidget")
 Check ($labels.Count -eq 2 -and @($labels | Where-Object {
     $_.WidthSizePolicy -ne 'StretchToParent' -or $_.HeightSizePolicy -ne 'CoverChildren'
 }).Count -eq 0) 'Title and provenance occupy separate full-width wrapping rows without fixed-height cells.'

@@ -87,7 +87,7 @@ namespace BellumCivile.ViewModelMixin
                 </ListPanel>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

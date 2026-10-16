@@ -322,7 +322,7 @@ namespace BellumCivile
         }
 
         public override float GetStrengthThresholdForNonMutualWarsToBeIgnoredToJoinKingdom(Kingdom kingdomToJoin) => _baseModel.GetStrengthThresholdForNonMutualWarsToBeIgnoredToJoinKingdom(kingdomToJoin);
-        public override float GetRelationIncreaseFactor(Hero hero1, Hero hero2, float relationValue) => _baseModel.GetRelationIncreaseFactor(hero1, hero2, relationValue);
+        public override int GetEffectiveRelationChange(Hero hero1, Hero hero2, int relationChange) => _baseModel.GetEffectiveRelationChange(hero1, hero2, relationChange);
         public override int GetInfluenceAwardForSettlementCapturer(Settlement settlement) => _baseModel.GetInfluenceAwardForSettlementCapturer(settlement);
         public override float GetHourlyInfluenceAwardForRaidingEnemyVillage(MobileParty mobileParty) => _baseModel.GetHourlyInfluenceAwardForRaidingEnemyVillage(mobileParty);
         public override float GetHourlyInfluenceAwardForBesiegingEnemyFortification(MobileParty mobileParty) => _baseModel.GetHourlyInfluenceAwardForBesiegingEnemyFortification(mobileParty);

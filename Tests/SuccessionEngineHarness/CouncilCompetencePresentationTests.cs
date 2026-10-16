@@ -24,6 +24,7 @@ internal static class CouncilCompetencePresentationTests
     private static bool SkillValue(SkillObject skill, ref int __result)
     { Values.TryGetValue(skill.StringId, out __result); return false; }
     private static bool AttributeValue(ref int __result) { __result = _attribute; return false; }
+    private static void CompetencePostfix() { }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -43,6 +44,9 @@ internal static class CouncilCompetencePresentationTests
             harmony.Patch(AccessTools.PropertyGetter(typeof(PropertyObject), "Name"), prefix: new HarmonyMethod(typeof(CouncilCompetencePresentationTests), nameof(SkillName)));
             harmony.Patch(AccessTools.Method(typeof(Hero), "GetSkillValue"), prefix: new HarmonyMethod(typeof(CouncilCompetencePresentationTests), nameof(SkillValue)));
             harmony.Patch(AccessTools.Method(typeof(Hero), "GetAttributeValue"), prefix: new HarmonyMethod(typeof(CouncilCompetencePresentationTests), nameof(AttributeValue)));
+            // Re-emit the caller after installing mocks, undoing native getter inlining from earlier fixtures.
+            harmony.Patch(AccessTools.Method(typeof(PrivyCouncilBehavior), "CalculateCompetence"),
+                postfix: new HarmonyMethod(typeof(CouncilCompetencePresentationTests), nameof(CompetencePostfix)));
             var hero = (Hero)FormatterServices.GetUninitializedObject(typeof(Hero));
             var presentation = typeof(CourtAgendaRecord).Assembly.GetType("BellumCivile.CouncilCompetencePresentation");
             foreach (var row in new[] {
@@ -61,8 +65,11 @@ internal static class CouncilCompetencePresentationTests
                 {
                     Values.Clear(); Values[row[1]] = first; Values[row[2]] = 150; _attribute = 5;
                     float expected = Math.Max(0, Math.Min(300, first)) / 300f * 40 + 20 + 10;
-                    check(Math.Abs(PrivyCouncilBehavior.CalculateCompetence(hero, office) - expected) < .001,
-                        "Shared factor extraction preserves competence arithmetic and caps for " + office);
+                    // Avoid JIT-inlining an earlier fixture's temporary competence stub.
+                    float actual = (float)AccessTools.Method(typeof(PrivyCouncilBehavior), "CalculateCompetence")
+                        .Invoke(null, new object[] { hero, office });
+                    check(Math.Abs(actual - expected) < .001,
+                        $"Shared factor extraction preserves competence arithmetic and caps for {office}: {actual} / {expected}");
                     string candidate = AccessTools.Method(presentation, "Candidate").Invoke(null, new object[] { hero, office }).ToString();
                     check(candidate.Contains("(" + expected.ToString("0") + ")"), "Ballot displays candidate personal score for the correct office");
                 }

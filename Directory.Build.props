@@ -1,5 +1,8 @@
 <Project>
   <PropertyGroup>
     <GameFolder Condition="'$(GameFolder)' == ''">$([System.Environment]::GetFolderPath(SpecialFolder.ProgramFilesX86))\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</GameFolder>
+    <!-- Nested test outputs must never override the selected game's DLLs. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**</DefaultItemExcludes>
+    <AssemblySearchPath_UseCandidateAssemblyFiles>false</AssemblySearchPath_UseCandidateAssemblyFiles>
   </PropertyGroup>
 </Project>

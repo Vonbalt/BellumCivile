@@ -11,7 +11,7 @@ namespace BellumCivile.ViewModelMixin
     internal sealed class MarriageOfferHouseholdPrefabExtension : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Replace;
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         public XmlDocument GetPrefabExtension()
         {
             var xml = new XmlDocument();

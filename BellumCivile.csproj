@@ -18,7 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bannerlord.MCM" Version="5.11.4" IncludeAssets="compile" />
+    <Reference Include="MCMv5">
+      <HintPath>$(GameFolder)\Modules\Bannerlord.MBOptionScreen\bin\Win64_Shipping_Client\MCMv5.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
 
     <Reference Include="0Harmony">
       <HintPath>$(GameFolder)\Modules\Bannerlord.Harmony\bin\Win64_Shipping_Client\0Harmony.dll</HintPath>

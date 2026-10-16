@@ -21,7 +21,7 @@ namespace BellumCivile.ViewModelMixin
                 "Kingdom.Policy.Active.Tuple");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -42,7 +42,7 @@ namespace BellumCivile.ViewModelMixin
                 "Kingdom.Policy.Other.Tuple");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

@@ -19,8 +19,13 @@ internal static class HostageTerminationTests
     private static bool Protected(Hero hero, ref bool __result) { __result = hero != null && hero == _victim; return false; }
     private static bool Relation(int relationChange, string sourceId) { Events.Add(sourceId + ":" + relationChange); return false; }
     private static bool Incident(int xpValue) { Events.Add("honor:" + xpValue); return false; }
-    private static bool ExecutionXp() { Events.Add("honor:-1000"); return false; }
     private static bool Honor(ref TraitObject __result) { __result = null; return false; }
+    private static int _honor;
+    private static bool _bloodFeud;
+    private static Clan _victimClan;
+    private static bool HonorLevel(ref int __result) { __result = _honor; return false; }
+    private static bool BloodFeud(ref bool __result) { __result = _bloodFeud; return false; }
+    private static bool VictimClan(ref Clan __result) { __result = _victimClan; return false; }
     private static bool Leader(ref Hero __result) { __result = _leader; return false; }
     private static bool Finish(TreatyHostageRecord record) { record.ActionCompleted = true; return false; }
     private static bool Respond() { Events.Add("response"); return false; }
@@ -43,7 +48,18 @@ internal static class HostageTerminationTests
             harmony.Patch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), prefix: new HarmonyMethod(typeof(HostageTerminationTests), "Leader"));
             Patch(typeof(RelationMemoryService), "ApplyChange", "Relation");
             Patch(typeof(TraitLevelingHelper), "OnIncidentResolved", "Incident");
-            Patch(typeof(TraitLevelingHelper), "OnLordExecuted", "ExecutionXp");
+            Patch(typeof(Hero), "GetTraitLevel", "HonorLevel");
+            harmony.Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), prefix: new HarmonyMethod(typeof(HostageTerminationTests), "VictimClan"));
+            harmony.Patch(AccessTools.PropertyGetter(typeof(Clan), "HasBloodFeudWithPlayer"), prefix: new HarmonyMethod(typeof(HostageTerminationTests), "BloodFeud"));
+            _victimClan = Empty<Clan>();
+            foreach (int honor in new[] { -1, 0, 1 })
+            foreach (bool feud in new[] { false, true })
+            {
+                _honor = honor; _bloodFeud = feud;
+                check((bool)Call("NeedsHostageBetrayalHonorPenalty", _victim) == (honor < 0 || feud),
+                    $"Hostage betrayal fills only missing native Honor penalty: honor={honor}, feud={feud}");
+            }
+            _victimClan = null;
             var assembly = behavior.Assembly;
             Patch(assembly.GetType("BellumCivile.HostageCustodyGuard"), "IsProtected", "Protected");
             var condition = AccessTools.Method(assembly.GetType("BellumCivile.Patches.HostageReleaseDialogueConditionPatch"), "Postfix");

@@ -198,7 +198,7 @@ namespace BellumCivile
             string id,
             string assignmentId,
             PrivyCouncilOffice office,
-            IncidentsCampaignBehaviour.IncidentType incidentType,
+            string incidentType,
             float selectionWeight,
             Func<CouncilIncidentContext, TextObject> titleFactory,
             Func<CouncilIncidentContext, TextObject> descriptionFactory,
@@ -217,7 +217,7 @@ namespace BellumCivile
         public string Id { get; }
         public string AssignmentId { get; }
         public PrivyCouncilOffice Office { get; }
-        public IncidentsCampaignBehaviour.IncidentType IncidentType { get; }
+        public string IncidentType { get; }
         public float SelectionWeight { get; }
 
         public TextObject GetTitle(CouncilIncidentContext context)

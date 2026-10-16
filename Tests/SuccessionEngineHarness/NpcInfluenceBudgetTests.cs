@@ -107,7 +107,7 @@ internal static class NpcInfluenceBudgetTests
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsEliminated"), nameof(DeadRealm));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsMinorFaction"), nameof(MinorRealm));
             Patch(AccessTools.Method(typeof(FactionManager), "IsAtWarAgainstFaction"), nameof(War));
-            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue"), nameof(No));
+            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue", new[] { typeof(TaleWorlds.CampaignSystem.CharacterDevelopment.PerkObject) }), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(DefaultPerks.Charm), "FlexibleEthics"), nameof(Perk));
             Patch(AccessTools.Method(typeof(ChangeClanInfluenceAction), "Apply"), nameof(Spend));
 

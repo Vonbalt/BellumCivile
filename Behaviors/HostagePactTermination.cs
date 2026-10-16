@@ -24,8 +24,9 @@ namespace BellumCivile.Behaviors
                     || CivilWarConflictBehavior.IsRealmTransferPending(pact.FirstRealm)
                     || CivilWarConflictBehavior.IsRealmTransferPending(pact.SecondRealm))
                 { CancelHostageJudgment(pact, victim); return false; }
-                // Native execution already penalizes player Honor for non-dishonorable victims.
-                pact.ExecutionNeedsHonorPenalty = victim.Hero.GetTraitLevel(DefaultTraits.Honor) < 0;
+                // Beta vanilla penalizes Honor only when execution starts a new blood
+                // feud against an honorable victim. Breaking a pledge always costs Honor.
+                pact.ExecutionNeedsHonorPenalty = NeedsHostageBetrayalHonorPenalty(victim.Hero);
                 victim.ActionStarted = true;
                 KillCharacterAction.ApplyByExecution(victim.Hero, pact.TerminatingRuler, true, false);
             }
@@ -43,6 +44,9 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
+        private static bool NeedsHostageBetrayalHonorPenalty(Hero victim) =>
+            victim.GetTraitLevel(DefaultTraits.Honor) < 0 || victim.Clan?.HasBloodFeudWithPlayer == true;
+
         private static void ApplyBetrayalConsequences(HostagePactRecord pact, TreatyHostageRecord victim)
         {
             if (!victim.ExecutionSucceeded) return;
@@ -56,7 +60,7 @@ namespace BellumCivile.Behaviors
             {
                 pact.TerminationTraitApplied = true;
                 if (pact.ExecutionNeedsHonorPenalty && pact.TerminatingRuler == Hero.MainHero)
-                    TraitLevelingHelper.OnLordExecuted();
+                    TraitLevelingHelper.OnIncidentResolved(DefaultTraits.Honor, -1000);
             }
         }
 

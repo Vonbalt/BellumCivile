@@ -536,7 +536,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private static string BuildSovereignDisplayName(FeudalTitleRecord root, Kingdom kingdom, bool isHistorical)
         {
-            string nativeTitle = isHistorical ? null : kingdom?.EncyclopediaTitle?.ToString();
+            string nativeTitle = isHistorical ? null : kingdom?.FormalName?.ToString();
             if (!string.IsNullOrWhiteSpace(nativeTitle))
                 return nativeTitle;
 

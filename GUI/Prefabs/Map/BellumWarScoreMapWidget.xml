@@ -4,7 +4,7 @@
       <Children>
         <ListPanel DataSource="{Clients}" DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="100" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="10" MarginTop="8" StackLayout.LayoutMethod="HorizontalLeftToRight">
           <ItemTemplate>
-            <HintWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginLibertyHint" Command.HoverEnd="ExecuteEndLibertyHint">
+            <Widget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginLibertyHint" Command.HoverEnd="ExecuteEndLibertyHint">
               <Children>
                 <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
@@ -15,12 +15,12 @@
                   </Children>
                 </Widget>
               </Children>
-            </HintWidget>
+            </Widget>
           </ItemTemplate>
         </ListPanel>
         <ListPanel DataSource="{Wars}" DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="100" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="10" MarginTop="8" StackLayout.LayoutMethod="HorizontalRightToLeft">
           <ItemTemplate>
-            <HintWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginWarScoreHint" Command.HoverEnd="ExecuteEndWarScoreHint">
+            <Widget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="96" MarginLeft="5" MarginRight="5" Command.HoverBegin="ExecuteBeginWarScoreHint" Command.HoverEnd="ExecuteEndWarScoreHint">
               <Children>
                 <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
@@ -32,7 +32,7 @@
                   </Children>
                 </Widget>
               </Children>
-            </HintWidget>
+            </Widget>
           </ItemTemplate>
         </ListPanel>
       </Children>

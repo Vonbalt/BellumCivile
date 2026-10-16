@@ -6,7 +6,7 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
-using TaleWorlds.Core;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 
 namespace BellumCivile.Patches
 {
@@ -32,13 +32,13 @@ namespace BellumCivile.Patches
     {
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var rounding = AccessTools.Method(typeof(MBRandom), nameof(MBRandom.RoundRandomized), new[] { typeof(float) });
+            var effectiveChange = AccessTools.Method(typeof(DiplomacyModel), nameof(DiplomacyModel.GetEffectiveRelationChange));
             var limiter = AccessTools.Method(typeof(PrisonerDonationFinalGainPatch), nameof(LimitGain));
             int matches = 0;
             foreach (CodeInstruction instruction in instructions)
             {
                 yield return instruction;
-                if (instruction.Calls(rounding))
+                if (instruction.Calls(effectiveChange))
                 {
                     // Leave vanilla bonuses, rounding, notifications and relation events intact.
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
@@ -48,7 +48,7 @@ namespace BellumCivile.Patches
                 }
             }
             if (matches != 1)
-                throw new InvalidOperationException("Prisoner donation cap expected one rounded relation gain in ChangeRelationAction.ApplyInternal.");
+                throw new InvalidOperationException("Prisoner donation cap expected one effective relation change in ChangeRelationAction.ApplyInternal.");
         }
 
         private static int LimitGain(int gain, Hero firstHero, Hero secondHero)

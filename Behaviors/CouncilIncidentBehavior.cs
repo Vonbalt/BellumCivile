@@ -551,7 +551,7 @@ namespace BellumCivile.Behaviors
             incident.Initialize(
                 definition.GetTitle(context).ToString(),
                 definition.GetDescription(context).ToString(),
-                (IncidentsCampaignBehaviour.IncidentTrigger)0,
+                new Incident.IncidentTrigger(),
                 definition.IncidentType,
                 CampaignTime.Zero,
                 description => true);
@@ -563,10 +563,11 @@ namespace BellumCivile.Behaviors
                     capturedOption.Text.ToString(),
                     new List<IncidentEffect>
                     {
-                        IncidentEffect.Custom(
+                        new IncidentEffect(
                             () => true,
                             () => ApplyOptionSafely(capturedOption, context),
-                            effect => capturedOption.GetHints(context))
+                            effect => new IncidentHint(new TextObject("{=!}{HINTS}")
+                                .SetTextVariable("HINTS", string.Join("\n", capturedOption.GetHints(context)))))
                     },
                     condition: null,
                     consequence: CompletePendingIncident);

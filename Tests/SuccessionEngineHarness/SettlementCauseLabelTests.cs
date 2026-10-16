@@ -39,7 +39,7 @@ internal static class SettlementCauseLabelTests
         {
             foreach (string name in new[] { "SettlementRescueRelationMemoryPatch", "SiegeAftermathRelationMemoryPatch", "DaughterQuestRelationMemoryPatch" })
                 check(harmony.CreateClassProcessor(assembly.GetType("BellumCivile.Patches." + name)).Patch().Count == 1, "Native event patch attaches: " + name);
-            var battle = PatchProcessor.GetCurrentInstructions(AccessTools.Method(typeof(CharacterRelationCampaignBehavior), "MapEventEnded"));
+            var battle = PatchProcessor.GetCurrentInstructions(AccessTools.Method(typeof(CharacterRelationCampaignBehavior), "OnMapEventEnded"));
             check(battle.Count(i => i.Calls(native)) == 2 && battle.Count(i => i.Calls(wrapper)) == 4,
                 "Battle perks remain native while exactly four rescue reward calls are labeled");
             var sources = battle.Where(i => i.opcode == OpCodes.Ldstr).Select(i => i.operand as string).ToList();

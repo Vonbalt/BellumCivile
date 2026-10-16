@@ -1,8 +1,11 @@
+using System;
+using System.Linq;
 using System.Reflection;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement;
 
 namespace BellumCivile.Patches
 {
@@ -17,11 +20,8 @@ namespace BellumCivile.Patches
     [HarmonyPatch]
     public class GrantFiefDeliberationPatch
     {
-        private static readonly FieldInfo SettlementField = AccessTools.Field(
-            "TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.KingdomManagementVM+<>c__DisplayClass21_0:settlement");
-
-        private static readonly FieldInfo ViewModelField = AccessTools.Field(
-            "TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.KingdomManagementVM+<>c__DisplayClass21_0:<>4__this");
+        private static FieldInfo SettlementField;
+        private static FieldInfo ViewModelField;
 
         private static readonly MethodInfo RefreshSettlementMethod = AccessTools.Method(
             "TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.KingdomManagementVM:OnSettlementGranted");
@@ -29,9 +29,18 @@ namespace BellumCivile.Patches
         private static readonly MethodInfo GetKingdomMethod = AccessTools.PropertyGetter(
             "TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.KingdomManagementVM:Kingdom");
 
-        static MethodBase TargetMethod() =>
-            AccessTools.Method(
-                "TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.KingdomManagementVM+<>c__DisplayClass21_0:<OnGrantFief>b__0");
+        static MethodBase TargetMethod()
+        {
+            // Compiler-generated closure numbers change when native VM members are added.
+            var callback = typeof(KingdomManagementVM).GetNestedTypes(BindingFlags.NonPublic)
+                .SelectMany(AccessTools.GetDeclaredMethods)
+                .Single(m => m.Name == "<OnGrantFief>b__0" && m.GetParameters().Length == 0);
+            SettlementField = AccessTools.Field(callback.DeclaringType, "settlement");
+            ViewModelField = AccessTools.Field(callback.DeclaringType, "<>4__this");
+            if (SettlementField?.FieldType != typeof(Settlement) || ViewModelField?.FieldType != typeof(KingdomManagementVM))
+                throw new InvalidOperationException("Unsupported grant-fief confirmation closure.");
+            return callback;
+        }
 
         public static bool Prefix(object __instance)
         {

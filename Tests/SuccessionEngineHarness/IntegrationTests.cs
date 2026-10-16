@@ -145,7 +145,7 @@ internal static class IntegrationTests
             Getter(typeof(CampaignTime), "Now", nameof(Now)); Getter(typeof(Hero), "IsPrisoner", nameof(Prisoner));
             Getter(typeof(Hero), "CaptivityStartTime", nameof(Captured)); Getter(typeof(Hero), "PartyBelongedToAsPrisoner", nameof(Prison));
             Getter(typeof(Settlement), "Party", nameof(Prison)); Getter(typeof(Settlement), "MapFaction", nameof(MapFaction));
-            Getter(typeof(DefaultPerks.Charm), "FlexibleEthics", nameof(Perk)); Patch(AccessTools.Method(typeof(Hero), "GetPerkValue"), nameof(No));
+            Getter(typeof(DefaultPerks.Charm), "FlexibleEthics", nameof(Perk)); Patch(AccessTools.Method(typeof(Hero), "GetPerkValue", new[] { typeof(PerkObject) }), nameof(No));
             Patch(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }), nameof(Relation));
             Patch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"), nameof(AtWar));
             var options = Mod.GetType("BellumCivile.BellumCivileOptions");

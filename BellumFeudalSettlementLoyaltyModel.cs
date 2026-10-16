@@ -23,8 +23,6 @@ namespace BellumCivile
         public override int MilitiaBoostPercentage => _baseModel.MilitiaBoostPercentage;
         public override float HighSecurityLoyaltyEffect => _baseModel.HighSecurityLoyaltyEffect;
         public override float LowSecurityLoyaltyEffect => _baseModel.LowSecurityLoyaltyEffect;
-        public override float GovernorSameCultureLoyaltyEffect => _baseModel.GovernorSameCultureLoyaltyEffect;
-        public override float GovernorDifferentCultureLoyaltyEffect => _baseModel.GovernorDifferentCultureLoyaltyEffect;
         public override float SettlementOwnerDifferentCultureLoyaltyEffect => _baseModel.SettlementOwnerDifferentCultureLoyaltyEffect;
         public override int ThresholdForTaxBoost => _baseModel.ThresholdForTaxBoost;
         public override int RebellionStartLoyaltyThreshold => _baseModel.RebellionStartLoyaltyThreshold;

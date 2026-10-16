@@ -7,7 +7,7 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 
 namespace BellumCivile.Patches
 {
-    [HarmonyPatch(typeof(CharacterRelationCampaignBehavior), "OnHeroKilled")]
+    [HarmonyPatch(typeof(ExecutionCampaignBehavior), "OnHeroKilled")]
     internal static class NativeExecutionRelationContextPatch
     {
         private static void Prefix(out IDisposable __state) => __state = DynamicRelationBehavior.Instance?.BeginNativeExecutionRelations();

@@ -39,7 +39,7 @@ namespace BellumCivile.ViewModelMixin
 
         public override InsertType Type => InsertType.Replace;
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

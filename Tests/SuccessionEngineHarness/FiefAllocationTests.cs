@@ -163,7 +163,7 @@ internal static class FiefAllocationTests
             Patch(AccessTools.PropertyGetter(typeof(Settlement), "All"), nameof(Settlements));
             Patch(AccessTools.Method(typeof(Settlement), "Find"), nameof(FindSettlement));
             Patch(AccessTools.Method(typeof(Hero), "FindFirst"), nameof(FindHero));
-            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue"), nameof(No));
+            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue", new[] { typeof(TaleWorlds.CampaignSystem.CharacterDevelopment.PerkObject) }), nameof(No));
             Patch(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }), nameof(Zero));
             Patch(AccessTools.PropertyGetter(typeof(DefaultPerks.Charm), "FlexibleEthics"), nameof(Perk));
             Patch(AccessTools.Method(typeof(FactionManager), "IsAtWarAgainstFaction"), nameof(No));

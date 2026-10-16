@@ -1486,7 +1486,7 @@ namespace BellumCivile.UI.Parley
                     return titleName;
             }
 
-            string encyclopediaTitle = kingdom.EncyclopediaTitle?.ToString();
+            string encyclopediaTitle = kingdom.FormalName?.ToString();
             return !string.IsNullOrWhiteSpace(encyclopediaTitle)
                 ? encyclopediaTitle
                 : kingdom.Name?.ToString() ?? string.Empty;

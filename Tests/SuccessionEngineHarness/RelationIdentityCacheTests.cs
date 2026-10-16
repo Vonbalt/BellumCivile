@@ -67,7 +67,7 @@ internal static class RelationIdentityCacheTests
                 "Native relation action rewrites exactly the identity lookup");
             check(PatchProcessor.GetCurrentInstructions(native).Count(i => i.Calls(AccessTools.Method(donationPatch, "LimitGain"))) == 1,
                 "Personal identity patch composes with existing prisoner-donation cap");
-            foreach (string method in new[] { "GetRelationIncreaseFactor", "SetPersonalRelation", "OnHeroRelationChanged" })
+            foreach (string method in new[] { "GetEffectiveRelationChange", "SetPersonalRelation", "OnHeroRelationChanged" })
                 check(PatchProcessor.GetCurrentInstructions(native).Count(i => (i.operand as MethodInfo)?.Name == method) == 1,
                     "Identity rewrite preserves exactly one native " + method + " call");
 

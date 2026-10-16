@@ -244,29 +244,24 @@ namespace BellumCivile.Behaviors
 
         private static void ApplyVanillaPerkModifiers(Hero hero, PartyBase captor, ref ExplainedNumber chance)
         {
-            if (captor.IsSettlement && captor.Settlement.Town?.Governor != null)
+            if (captor.IsSettlement && captor.Settlement.Town != null)
             {
                 Town town = captor.Settlement.Town;
-                Hero governor = town.Governor;
-                if (governor.GetPerkValue(DefaultPerks.Roguery.SweetTalker))
-                    chance.AddFactor(DefaultPerks.Roguery.SweetTalker.SecondaryBonus, DefaultPerks.Roguery.SweetTalker.Description);
-                if (governor.GetPerkValue(DefaultPerks.Engineering.DungeonArchitect))
-                    chance.AddFactor(DefaultPerks.Engineering.DungeonArchitect.SecondaryBonus, DefaultPerks.Engineering.DungeonArchitect.Description);
-                if (governor.GetPerkValue(DefaultPerks.Riding.MountedPatrols))
-                    chance.AddFactor(DefaultPerks.Riding.MountedPatrols.SecondaryBonus, DefaultPerks.Riding.MountedPatrols.Description);
+                PerkHelper.AddPerkBonusForTown(DefaultPerks.Roguery.SweetTalker, town, false, ref chance);
+                PerkHelper.AddPerkBonusForTown(DefaultPerks.Engineering.DungeonArchitect, town, false, ref chance);
+                PerkHelper.AddPerkBonusForTown(DefaultPerks.Riding.MountedPatrols, town, false, ref chance);
             }
 
             if (!captor.IsMobile)
                 return;
             MobileParty party = captor.MobileParty;
-            if (hero.GetPerkValue(DefaultPerks.Roguery.FleetFooted))
-                chance.AddFactor(DefaultPerks.Roguery.FleetFooted.SecondaryBonus);
-            if (party.HasPerk(DefaultPerks.Riding.MountedPatrols))
-                PerkHelper.AddPerkBonusForParty(DefaultPerks.Riding.MountedPatrols, party, true, ref chance);
-            if (party.HasPerk(DefaultPerks.Roguery.RansomBroker))
-                PerkHelper.AddPerkBonusForParty(DefaultPerks.Roguery.RansomBroker, party, false, ref chance);
-            if (!party.IsCurrentlyAtSea)
-                PerkHelper.AddPerkBonusForParty(DefaultPerks.Scouting.KeenSight, party, false, ref chance);
+            PerkHelper.AddPerkBonusForCharacter(DefaultPerks.Roguery.FleetFooted, BattleEnvironment.Any, hero.CharacterObject, false, ref chance);
+            PerkHelper.AddPerkBonusForParty(DefaultPerks.Riding.MountedPatrols, party, true, ref chance);
+            PerkHelper.AddPerkBonusForParty(DefaultPerks.Roguery.RansomBroker, party, false, ref chance);
+            PerkHelper.AddPerkBonusForParty(DefaultPerks.Scouting.KeenSight, party, false, ref chance);
+            Hero leader = party.Army?.LeaderParty?.LeaderHero ?? party.LeaderHero;
+            if (leader != null)
+                TraitEffectHelper.ApplyTraitEffect(leader, DefaultPersonalityTraitEffects.ValorPrisonerEscapeEffect, ref chance);
         }
 
         private static Hero ResolveHero(string heroId)

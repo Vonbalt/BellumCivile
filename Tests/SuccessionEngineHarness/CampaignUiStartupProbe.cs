@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,10 +22,20 @@ internal static class CampaignUiStartupProbe
             .Where(t => !(bool)AccessTools.Method(typeof(BellumCivile.SubModule), "ShouldSkipOptionalPatch")
                 .Invoke(null, new object[] { t })).ToArray();
         Console.WriteLine("Applying " + patchTypes.Length + " early patches before game-text initialization");
+        var failures = new List<string>();
         foreach (var type in patchTypes)
         {
-            harmony.CreateClassProcessor(type).Patch();
+            try
+            {
+                harmony.CreateClassProcessor(type).Patch();
+            }
+            catch (Exception ex)
+            {
+                failures.Add(type.FullName);
+                Console.Error.WriteLine("PATCH FAILED: " + type.FullName + "\n" + ex);
+            }
         }
+        check(failures.Count == 0, "Every early Harmony patch binds: " + string.Join(", ", failures));
         var hostagePatch = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.HostageEncyclopediaHistoryPatch");
         check(!patchTypes.Contains(hostagePatch), "Hostage encyclopedia patch is deferred beyond module load");
         GameTexts.Initialize(new GameTextManager());
@@ -39,6 +50,12 @@ internal static class CampaignUiStartupProbe
             "TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Pages.EncyclopediaHeroPageVM"), "Refresh");
         check(Harmony.GetPatchInfo(refresh).Postfixes.Count(p => p.PatchMethod.DeclaringType == hostagePatch) == 1,
             "Deferred hostage history patch installs only once across repeated game starts");
+        foreach (var name in new[] { "EncyclopediaHeroRelationThresholdPatch", "EncyclopediaClanSuccessionPatch" })
+        {
+            var type = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches." + name, true);
+            harmony.CreateClassProcessor(type).Patch();
+            check(true, "Deferred patch binds: " + name);
+        }
         var helper = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.CampaignUIHelper");
         RuntimeHelpers.RunClassConstructor(helper.TypeHandle);
         check(true, "Startup patches leave CampaignUIHelper usable after game-text initialization");

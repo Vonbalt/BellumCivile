@@ -127,7 +127,7 @@ internal static class CouncilNomineeBallotTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Influence"), nameof(Balance));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsDead"), nameof(No));
             Patch(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }), nameof(Relation));
-            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue"), nameof(No));
+            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue", new[] { typeof(TaleWorlds.CampaignSystem.CharacterDevelopment.PerkObject) }), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Supporter), "IsPlayer"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(DefaultPerks.Charm), "FlexibleEthics"), nameof(Perk));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Crown));

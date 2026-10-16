@@ -178,7 +178,7 @@ internal static class VotePledgeTests
             Patch(AccessTools.PropertyGetter(typeof(DefaultPerks.Charm), "FlexibleEthics"), nameof(Flexible));
             Patch(AccessTools.PropertyGetter(typeof(DefaultPerks.Charm), "GoodNatured"), nameof(GoodNatured));
             Patch(AccessTools.PropertyGetter(typeof(PerkObject), "PrimaryBonus"), nameof(Bonus));
-            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue"), nameof(HasPerk));
+            Patch(AccessTools.Method(typeof(Hero), "GetPerkValue", new[] { typeof(TaleWorlds.CampaignSystem.CharacterDevelopment.PerkObject) }), nameof(HasPerk));
             Patch(AccessTools.Method(typeof(ChangeClanInfluenceAction), "Apply"), nameof(Spend));
             Patch(AccessTools.Method(typeof(CouncilAppointmentDeliberationBehavior), "ResolveClan"), nameof(FindClan));
             Patch(AccessTools.Method(Mod.GetType("BellumCivile.CouncilAppointmentNominationHelper"), "ScoreCandidate",

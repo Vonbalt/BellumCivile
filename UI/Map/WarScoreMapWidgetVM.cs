@@ -479,7 +479,7 @@ namespace BellumCivile.UI.Map
 
         private static TextObject ResolveRealmName(Kingdom kingdom)
         {
-            TextObject encyclopediaName = kingdom?.EncyclopediaTitle;
+            TextObject encyclopediaName = kingdom?.FormalName;
             return encyclopediaName != null && !string.IsNullOrWhiteSpace(encyclopediaName.ToString())
                 ? encyclopediaName
                 : kingdom?.Name ?? new TextObject("{=BC_MapWarScore_UnknownRealm}Unknown realm");

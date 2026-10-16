@@ -46,7 +46,7 @@ namespace BellumCivile.Patches
         }
     }
 
-    [HarmonyPatch(typeof(CharacterRelationCampaignBehavior), "MapEventEnded")]
+    [HarmonyPatch(typeof(CharacterRelationCampaignBehavior), "OnMapEventEnded")]
     internal static class SettlementRescueRelationMemoryPatch
     {
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => NativeRelationCallLabels.Rewrite(
@@ -87,7 +87,7 @@ namespace BellumCivile.Patches
         }
     }
 
-    [HarmonyPatch(typeof(SandBox.Issues.NotableWantsDaughterFoundIssueBehavior.NotableWantsDaughterFoundIssueQuest), "ApplyDeliveryFailedDueToDuelLostConsequences")]
+    [HarmonyPatch(typeof(SandBox.Issues.NotableWantsDaughterFoundIssueBehavior.NotableWantsDaughterFoundIssueQuest), "OnMissionEnded")]
     internal static class DaughterQuestRelationMemoryPatch
     {
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) => NativeRelationCallLabels.Rewrite(

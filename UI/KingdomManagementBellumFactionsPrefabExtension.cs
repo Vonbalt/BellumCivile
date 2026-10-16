@@ -24,7 +24,7 @@ namespace BellumCivile.ViewModelMixin
                 </ButtonWidget>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -58,7 +58,7 @@ namespace BellumCivile.ViewModelMixin
                 </ButtonWidget>");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -77,7 +77,7 @@ namespace BellumCivile.ViewModelMixin
             _document.LoadXml("<BellumFactionsPanel />");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
@@ -96,7 +96,7 @@ namespace BellumCivile.ViewModelMixin
             _document.LoadXml("<BellumHierarchyPanel />");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }

@@ -36,6 +36,23 @@ internal static class HostageCustodyGuardTests
             }
             check((bool)Call("BlocksOrdinaryAction", _hostage) && !(bool)Call("BlocksOrdinaryAction", Empty<Hero>()),
                 "Only treaty hostage ordinary actions blocked");
+            foreach (var name in new[] { "HostageBloodFeudCapturePatch", "HostageBloodFeudDailyPatch" })
+            {
+                var prefix = AccessTools.Method(assembly.GetType("BellumCivile.Patches." + name), "Prefix");
+                check(!(bool)prefix.Invoke(null, new object[] { _hostage })
+                    && (bool)prefix.Invoke(null, new object[] { Empty<Hero>() }),
+                    "Automatic blood-feud execution exempts only treaty hostages: " + name);
+            }
+            var executionData = AccessTools.Method(assembly.GetType("BellumCivile.Patches.HostageBloodFeudSettlementPatch"), "Prefix");
+            object[] executionArgs = { _hostage, Empty<Clan>(), true };
+            check(!(bool)executionData.Invoke(null, executionArgs) && executionArgs[1] == null && !(bool)executionArgs[2],
+                "Protected hostage cancels native settlement execution eligibility");
+            var ordinaryPrisoner = Empty<Hero>();
+            var queue = new System.Collections.Generic.List<Hero> { _hostage, ordinaryPrisoner, _otherHostage };
+            AccessTools.Method(assembly.GetType("BellumCivile.Patches.HostageBloodFeudQueuePatch"), "Prefix")
+                .Invoke(null, new object[] { queue });
+            check(queue.SequenceEqual(new[] { ordinaryPrisoner }),
+                "Queued blood-feud executions drop treaty hostages without blocking ordinary prisoners");
             using ((IDisposable)Call("Authorize", _hostage))
             {
                 using ((IDisposable)Call("Authorize", _hostage))

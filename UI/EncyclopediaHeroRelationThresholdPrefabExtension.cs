@@ -21,7 +21,7 @@ namespace BellumCivile.ViewModelMixin
                 <HintWidget DataSource='{Hint}' WidthSizePolicy='StretchToParent' HeightSizePolicy='StretchToParent' Command.HoverBegin='ExecuteBeginHint' Command.HoverEnd='ExecuteEndHint' />");
         }
 
-        [PrefabExtensionXmlDocument]
+        [PrefabExtensionXmlNode]
         [UsedImplicitly]
         public XmlDocument GetPrefabExtension() => _document;
     }
