@@ -442,18 +442,18 @@ namespace BellumCivile.Behaviors
             }
 
             ClaimFeudCandidate best = candidates[0];
-            string thresholdText = best.Score >= C.ClaimFeudStartThreshold
+            string thresholdText = best.Score >= BellumCivileOptions.ClaimFeudStartThreshold
                 ? "passes"
-                : $"fails by {C.ClaimFeudStartThreshold - best.Score:0}";
+                : $"fails by {BellumCivileOptions.ClaimFeudStartThreshold - best.Score:0}";
             report =
-                $"Best claim feud target for {clan.Name}: {FeudalTitleDisplayHelper.FormatTitleName(best.Title, clan)} against {best.Holder.Name}; strength={best.Strength}; score={best.Score:0}/{C.ClaimFeudStartThreshold:0} ({thresholdText}); qualifying starts are deterministic; reasons={string.Join(", ", best.Reasons)}.\n"
+                $"Best claim feud target for {clan.Name}: {FeudalTitleDisplayHelper.FormatTitleName(best.Title, clan)} against {best.Holder.Name}; strength={best.Strength}; score={best.Score:0}/{BellumCivileOptions.ClaimFeudStartThreshold:0} ({thresholdText}); qualifying starts are deterministic; reasons={string.Join(", ", best.Reasons)}.\n"
                 + "Top candidates:\n"
                 + string.Join("\n", candidates.Take(8).Select(candidate =>
                 {
-                    string status = candidate.Score >= C.ClaimFeudStartThreshold
+                    string status = candidate.Score >= BellumCivileOptions.ClaimFeudStartThreshold
                         ? "passes"
-                        : $"fails by {C.ClaimFeudStartThreshold - candidate.Score:0}";
-                    return $"- {FeudalTitleDisplayHelper.FormatTitleName(candidate.Title, clan)} vs {candidate.Holder.Name}: {candidate.Strength}; score={candidate.Score:0}/{C.ClaimFeudStartThreshold:0} ({status}); reasons={string.Join(", ", candidate.Reasons)}";
+                        : $"fails by {BellumCivileOptions.ClaimFeudStartThreshold - candidate.Score:0}";
+                    return $"- {FeudalTitleDisplayHelper.FormatTitleName(candidate.Title, clan)} vs {candidate.Holder.Name}: {candidate.Strength}; score={candidate.Score:0}/{BellumCivileOptions.ClaimFeudStartThreshold:0} ({status}); reasons={string.Join(", ", candidate.Reasons)}";
                 }));
 
             return true;
@@ -2910,6 +2910,7 @@ namespace BellumCivile.Behaviors
 
             RevocationCandidate best = candidates[0];
             float chance = Math.Min(0.50f, 0.10f + (best.Score - C.FeudalTitleRevocationAiThreshold) * 0.01f);
+            chance = (float)InternalInstabilityRules.ScaleChance(chance, BellumCivileOptions.ClaimedRevocationChancePercent);
             float roll = MBRandom.RandomFloat;
             if (roll >= chance)
             {
@@ -3238,10 +3239,10 @@ namespace BellumCivile.Behaviors
             }
 
             bestCandidate = candidates[0];
-            if (bestCandidate.Score < C.ClaimFeudStartThreshold)
+            if (bestCandidate.Score < BellumCivileOptions.ClaimFeudStartThreshold)
             {
                 _yearlyBelowThreshold++;
-                reason = $"best actionable claim scored {bestCandidate.Score:0}/{C.ClaimFeudStartThreshold:0}";
+                reason = $"best actionable claim scored {bestCandidate.Score:0}/{BellumCivileOptions.ClaimFeudStartThreshold:0}";
                 bestCandidate = null;
                 return false;
             }
@@ -3254,7 +3255,7 @@ namespace BellumCivile.Behaviors
         {
             IEnumerable<ClaimFeudCandidate> candidates = BuildFeudCandidates(titleBehavior, clan);
             if (requireThreshold)
-                candidates = candidates.Where(candidate => candidate.Score >= C.ClaimFeudStartThreshold);
+                candidates = candidates.Where(candidate => candidate.Score >= BellumCivileOptions.ClaimFeudStartThreshold);
 
             return candidates
                 .OrderByDescending(candidate => candidate.Score)

@@ -13,5 +13,10 @@ namespace BellumCivile
         [SaveableField(6)] public bool WarConfirmed;
         [SaveableField(7)] public bool Initiated;
         [SaveableField(8)] public double WarDay;
+        [SaveableField(9)] public bool HasWillingnessSnapshot;
+        [SaveableField(10)] public float WillingnessThreshold;
+
+        internal float RequiredWillingness => HasWillingnessSnapshot
+            ? WillingnessThreshold : BellumCivileConstants.WarPeaceRevampWarProposalThreshold;
     }
 }

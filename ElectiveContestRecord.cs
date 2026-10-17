@@ -42,6 +42,8 @@ namespace BellumCivile
         [SaveableField(22)] public FactionObject WarFaction;
         [SaveableField(23)] public Kingdom WarShell;
         [SaveableField(24)] public bool WarStarted;
+        [SaveableField(25)] public bool HasChallengeChanceSnapshot;
+        [SaveableField(26)] public int ChallengeChancePercent;
 
         internal void Decide(bool available, bool player, double roll)
         {
@@ -52,7 +54,9 @@ namespace BellumCivile
             if (!SuccessionChallengeRules.Finite(roll) || roll < 0 || roll >= 1)
                 throw new ArgumentOutOfRangeException(nameof(roll));
             Roll = roll;
-            Decision = roll * 100 < 100 - Acceptance ? ElectiveContestDecision.Contest : ElectiveContestDecision.Accept;
+            double chance = InternalInstabilityRules.ScaleChance((100 - Acceptance) / 100,
+                HasChallengeChanceSnapshot ? ChallengeChancePercent : 100);
+            Decision = roll < chance ? ElectiveContestDecision.Contest : ElectiveContestDecision.Accept;
         }
 
         internal void AnswerPlayer(bool contest)

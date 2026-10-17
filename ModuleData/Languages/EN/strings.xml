@@ -97,7 +97,7 @@
     <string id="BC_MCM_ShowDebug" text="Show Debug Messages In Game" />
     <string id="BC_MCM_ShowDebug_Hint" text="Shows Bellum Civile debug traces in the in-game message feed when those traces request visible output. Default: Off." />
     <string id="BC_MCM_RebellionThreshold" text="Rebellious Intent Threshold" />
-    <string id="BC_MCM_RebellionThreshold_Hint" text="The rebellious intent a clan needs to form or join a rebel faction. Leaders disband and members reconsider their commitment below half this value. Higher values make conspiracies slower and rarer. Default: 100." />
+    <string id="BC_MCM_RebellionThreshold_Hint" text="Intent needed to form or join a rebel conspiracy. Increasing this value reduces conspiracy instability; decreasing it increases instability. Existing leaders disband and members reconsider below half this threshold. Does not control court coalitions, heir challenges, election disputes or private feuds. Bellum default: 100." />
     <string id="BC_MCM_DiscontentGain" text="Rebellious Intent Gain" />
     <string id="BC_MCM_DiscontentGain_Hint" text="Base daily gain while a rebel faction is strong enough to pressure the crown. Default: 2." />
     <string id="BC_MCM_DiscontentDecay" text="Rebellious Intent Decay" />
@@ -6998,5 +6998,31 @@
     <string id="BC_EstateInheritance_NoRealm" text="an independent house" />
     <string id="BC_EstateInheritance_Treasury" text="a share of the family treasury" />
     <string id="BC_EstateInheritance_More" text="{TITLES} and {COUNT} further estates" />
+    <string id="BC_MCM_Group_InternalInstability" text="Internal Instability" />
+    <string id="BC_MCM_InstabilityPreset" text="Instability Preset to Apply" />
+    <string id="BC_MCM_InstabilityPreset_Hint" text="Standard uses Bellum's normal instability values. Reduced makes new internal conflicts less likely; Increased makes them more likely. Selection alone changes nothing: use Apply Instability Preset. This is a template, not an active difficulty mode; sliders remain individually editable. Bellum default: Standard." />
+    <string id="BC_MCM_InstabilityStandard" text="Standard" />
+    <string id="BC_MCM_InstabilityReduced" text="Reduced Instability" />
+    <string id="BC_MCM_InstabilityIncreased" text="Increased Instability" />
+    <string id="BC_MCM_ApplyInstabilityPreset" text="Apply Instability Preset" />
+    <string id="BC_MCM_Apply" text="Apply" />
+    <string id="BC_MCM_ApplyInstabilityPreset_Hint" text="Updates only the nine Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these nine sliders only. Bellum default: Standard." />
+    <string id="BC_MCM_InstabilityPresetUnavailable" text="Unable to apply the instability preset. Check the Bellum log or adjust the sliders manually." />
+    <string id="BC_MCM_CourtCrisisMood" text="AI Court Crisis Mood Threshold" />
+    <string id="BC_MCM_CourtCrisisMood_Hint" text="Court faction mood at or below which an AI faction may replace its ordinary agenda with a coalition challenge. Increasing the number toward zero increases instability; decreasing it toward -100 reduces instability. Emergency challenges at -100 use the separate per-term chance. Player choices and existing crises are unchanged. Bellum default: -60." />
+    <string id="BC_MCM_CourtChallengeChance" text="AI Court Challenge Chance per Term (%)" />
+    <string id="BC_MCM_CourtChallengeChance_Hint" text="Chance for an AI court faction to begin a new coalition challenge during a court term, shared by ordinary and -100 emergency routes. Increasing increases coalition instability; decreasing reduces it. Zero prevents new automatic challenges. The result is saved until the realm's scheduled next term, even after a settings change or reload. Term length therefore affects retry frequency. Player choices, announced crises and military requirements are unchanged. Bellum default: 100%." />
+    <string id="BC_MCM_HeirChallengeLoyalty" text="AI Heir Challenge Loyalty Threshold" />
+    <string id="BC_MCM_HeirChallengeLoyalty_Hint" text="Lawful heirs with loyalty below this value may initiate a hereditary succession challenge. Increasing increases heir instability; decreasing reduces it. Zero prevents new automatic heir challenges. Player challenges, existing appeals, military requirements and cooldowns are unchanged. Bellum default: 25." />
+    <string id="BC_MCM_ElectionChallengeChance" text="AI Election Challenge Chance Multiplier (%)" />
+    <string id="BC_MCM_ElectionChallengeChance_Hint" text="Scales each losing AI candidate's existing chance to contest an election, capped at 100% probability. Increasing increases election instability; decreasing reduces it. Zero prevents automatic challenges for new election snapshots. Player choices, saved election assessments and decisions, and military requirements are unchanged. Bellum default: 100% (original chance)." />
+    <string id="BC_MCM_ClaimFeudThreshold" text="AI Private Feud Initiation Threshold" />
+    <string id="BC_MCM_ClaimFeudThreshold_Hint" text="Minimum claim and motivation score for an AI clan to begin or reactivate private feud agitation. Increasing reduces private feud instability; decreasing increases it. This is a threshold, not a percentage. Player claims, existing feuds, pressure growth and the political review schedule are unchanged. Bellum default: 65." />
+    <string id="BC_MCM_ClaimedRevocationChance" text="AI Claimed-Title Revocation Chance Multiplier (%)" />
+    <string id="BC_MCM_ClaimedRevocationChance_Hint" text="Scales the chance that an eligible AI lord demands a claimed title back from its holder. Increasing increases opportunities for revocation conflicts; decreasing reduces them. Zero prevents new automatic claimed-title demands. Acceptance can still avoid war. Player demands, existing cases and other revocation systems are unchanged. Bellum default: 100% (original chance)." />
+    <string id="BC_MCM_TreasonResistanceChance" text="AI Spontaneous Expulsion Resistance Multiplier (%)" />
+    <string id="BC_MCM_TreasonResistanceChance_Hint" text="Scales an expelled AI lord's chance to start a new rebellion against the judgment, after personality and backing checks. Increasing increases expulsion-related instability; decreasing reduces it. Zero prevents spontaneous resistance, but existing conspiracy leaders can still defy expulsion. Does not change indictment frequency, ongoing rebellions or player choices. Bellum default: 100% (original chance)." />
+    <string id="BC_MCM_ClientLiberationWillingness" text="AI Client Liberation Willingness Threshold" />
+    <string id="BC_MCM_ClientLiberationWillingness_Hint" text="War Will plus liberation resolve required for AI liberation proposals and Crown preparations. Increasing reduces client liberation instability; decreasing increases it. Zero removes only this willingness check, not liberty desire, power, influence, cooldown or voting requirements. Player actions, existing proposals and foreign-war thresholds are unchanged. Bellum default: 75." />
   </strings>
 </base>

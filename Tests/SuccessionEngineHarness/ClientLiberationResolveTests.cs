@@ -32,6 +32,8 @@ internal static class ClientLiberationResolveTests
     private static Clan _clan;
     private static Hero _leader;
     private static float _desire;
+    private static float _willingnessThreshold;
+    private static bool Threshold(ref float __result) { __result = _willingnessThreshold; return false; }
     private static bool _eligible, _includeTarget;
     private static int _rankings;
     private static bool Yes(ref bool __result) { __result = true; return false; }
@@ -195,6 +197,29 @@ internal static class ClientLiberationResolveTests
             check(!(bool)AccessTools.Field(courtType, "Viable").GetValue(preparations),
                 "Preparations reaching only desire 60 still require ordinary War Will");
 
+            var thresholdGetter = AccessTools.PropertyGetter(assembly.GetType("BellumCivile.BellumCivileOptions"), "ClientLiberationWillingnessThreshold");
+            Patch(thresholdGetter, nameof(Threshold));
+            _willingnessThreshold = 85;
+            check(!CanPropose(80, 60), "Reduced liberation setting blocks a previously willing NPC proposer");
+            _desire = 60;
+            preparations = Activator.CreateInstance(courtType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { _client }, null);
+            check(!(bool)AccessTools.Field(courtType, "Viable").GetValue(preparations), "Reduced setting also applies to new Crown preparations");
+            _willingnessThreshold = 65;
+            check(CanPropose(80, 50) && !CanPropose(80, 49.9f), "Increased liberation setting uses the new exact willingness boundary");
+            wills[_clan.StringId] = 50; _desire = 60;
+            preparations = Activator.CreateInstance(courtType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { _client }, null);
+            check((bool)AccessTools.Field(courtType, "Viable").GetValue(preparations), "New preparations use the same lower boundary as the proposer");
+            _willingnessThreshold = 100;
+            preparations = Activator.CreateInstance(courtType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { _client, 65f }, null);
+            check((bool)AccessTools.Field(courtType, "Viable").GetValue(preparations), "Announced preparations can revalidate with their frozen threshold");
+            _willingnessThreshold = 0; _eligible = false;
+            check(!CanPropose(100, 100), "Zero willingness threshold cannot bypass binding or power restrictions");
+            _eligible = true;
+            harmony.Unpatch(thresholdGetter, HarmonyPatchType.Prefix, harmony.Id);
+            wills[_clan.StringId] = 60;
             _desire = 80;
             harmony.Unpatch(AccessTools.PropertyGetter(typeof(Kingdom), "UnresolvedDecisions"),
                 HarmonyPatchType.Prefix, harmony.Id);

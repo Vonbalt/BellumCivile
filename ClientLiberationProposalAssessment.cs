@@ -81,7 +81,7 @@ namespace BellumCivile
                 Budget = budget,
                 Blocker = entry.LibertyDesire < C.ClientClanLiberationDesireThreshold
                     ? ClientLiberationProposalBlocker.PersonalDesire
-                    : willingness < BellumCivileOptions.WarWillDeclareThreshold
+                    : willingness < ClientKingdomBehavior.LiberationWillingnessThreshold(entry.Clan)
                         ? ClientLiberationProposalBlocker.Willingness
                         : !budget.CanAfford ? ClientLiberationProposalBlocker.Influence
                         : ClientLiberationProposalBlocker.None

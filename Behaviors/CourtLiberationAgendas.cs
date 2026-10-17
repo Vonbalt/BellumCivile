@@ -62,7 +62,7 @@ namespace BellumCivile.Behaviors
                 || CrownActionCoolingDown(agenda.Realm, CourtLiberationRules.Kind)
                 || CampaignTime.Now.ToDays >= agenda.ObjectiveData.DeadlineDay)
             { FinishLiberation(agenda, "changed"); return; }
-            var facts = new CourtLiberationAssessment(agenda.Realm);
+            var facts = new CourtLiberationAssessment(agenda.Realm, agenda.Liberation.RequiredWillingness);
             if (!facts.Eligible || (agenda.Sponsor != Clan.PlayerClan && !facts.Viable))
             { FinishLiberation(agenda, "unready"); return; }
             if (!TryPay(agenda, CrownInitiativeCost))

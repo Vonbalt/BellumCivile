@@ -98,7 +98,9 @@ namespace BellumCivile
     {
         internal static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
         internal static bool CanInitiate(double loyalty, bool available, bool lawful, bool blocked) =>
-            available && lawful && !blocked && Finite(loyalty) && loyalty >= 0 && loyalty < 25;
+            CanInitiateAtThreshold(loyalty, available, lawful, blocked, 25);
+        internal static bool CanInitiateAtThreshold(double loyalty, bool available, bool lawful, bool blocked, int threshold) =>
+            available && lawful && !blocked && Finite(loyalty) && loyalty >= 0 && loyalty < Math.Max(0, Math.Min(50, threshold));
         internal static double InheritanceChance(double loyalty) => Math.Max(50, Math.Min(75, 50 + loyalty));
         internal static SuccessionChallengeDemand ChooseDemand(double loyalty, bool dependent, double roll)
         {

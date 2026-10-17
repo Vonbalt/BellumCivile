@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../BellumCivile.csproj" />
+    <Reference Include="MCMv5" HintPath="$(GameFolder)/Modules/Bannerlord.MBOptionScreen/bin/Win64_Shipping_Client/MCMv5.dll" />
     <Reference Include="0Harmony" HintPath="$(GameFolder)/Modules/Bannerlord.Harmony/bin/Win64_Shipping_Client/0Harmony.dll" />
     <Reference Include="Mono.Cecil" HintPath="$(GameFolder)/Modules/Bannerlord.Harmony/bin/Win64_Shipping_Client/Mono.Cecil.dll" />
     <Reference Include="TaleWorlds.CampaignSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.CampaignSystem.dll" />

@@ -26,7 +26,8 @@ namespace BellumCivile.Behaviors
                 foreach (Hero heir in loyalty.GetLine(realm))
                 {
                     if (heir == Hero.MainHero || !Available(heir) || heir.Clan?.Kingdom != realm) continue;
-                    if (loyalty.Get(realm, heir)?.IsDisloyal != true) continue;
+                    if (!SuccessionChallengeRules.CanInitiateAtThreshold(loyalty.Get(realm, heir)?.Total ?? double.NaN,
+                        true, true, false, BellumCivileOptions.HeirChallengeLoyaltyThreshold)) continue;
                     var record = TryBegin(realm, heir, MBRandom.RandomFloat);
                     if (record == null) continue;
                     ResolveAppeal(record);

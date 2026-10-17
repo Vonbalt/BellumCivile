@@ -94,6 +94,7 @@ namespace BellumCivile.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
+            SyncInstabilityData(dataStore);
             dataStore.SyncData("BC_CourtTrade_RepeatUntil", ref _tradeRepeatUntil);
             _tradeRepeatUntil = _tradeRepeatUntil ?? new Dictionary<string, double>();
             foreach (var agenda in _agendas) agenda.GetObjective();
@@ -364,6 +365,7 @@ namespace BellumCivile.Behaviors
                     string emergencyKey = realm.StringId + "|" + (int)faction.Type;
                     if (faction.Mood > -100) { _emergencyAfter.Remove(emergencyKey); continue; }
                     if (MemberCount(faction) < 2 || (_emergencyAfter.TryGetValue(emergencyKey, out var retry) && !retry.IsPast)) continue;
+                    if (!MayStartAutomaticCourtChallenge(faction, realm)) continue;
                     _emergencyAfter[emergencyKey] = CampaignTime.Now + CampaignTime.Days(7);
                     if (ideology.TryLaunchCourtChallenge(faction, realm))
                     {
@@ -383,6 +385,7 @@ namespace BellumCivile.Behaviors
             foreach (string key in _mandateSettledUntil.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _mandateSettledUntil.Remove(key);
             foreach (string key in _emergencyAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _emergencyAfter.Remove(key);
             var livingRealms = new HashSet<string>(Kingdom.All.Where(ValidRealm).Select(k => k.StringId));
+            PruneChallengeWindows(livingRealms);
             foreach (string key in _nextTerms.Keys.Where(k => !livingRealms.Contains(k)).ToList()) _nextTerms.Remove(key);
             _agendas.RemoveAll(a => !ValidRealm(a.Realm) && !a.IsFiled && !a.IsUnopened);
             SettleClosedExecutiveObjectives();
@@ -431,7 +434,7 @@ namespace BellumCivile.Behaviors
                     }
                 }
                 bool playerLed = owner != null && sponsor == Clan.PlayerClan;
-                if (!playerLed && owner?.Mood <= -60) { agenda.State = CourtAgendaState.Crisis; continue; }
+                if (!playerLed && ShouldStartCourtCrisis(owner, realm)) { agenda.State = CourtAgendaState.Crisis; continue; }
                 if (playerLed) agenda.State = CourtAgendaState.AwaitingPlayerDecision;
                 if (playerLed && owner.Mood <= -60) agenda.CrisisInterventionPending = true;
                 selecting.Add(agenda);
@@ -477,8 +480,8 @@ namespace BellumCivile.Behaviors
                 if (!Eligible(agenda.Sponsor, agenda.Realm)) { Cancel(agenda, "replacement_sponsor_ineligible"); return; }
                 if (!UpdatePlayerAgenda(agenda)) return;
                 if ((agenda.State == CourtAgendaState.Announced || agenda.State == CourtAgendaState.AwaitingNomination
-                    || agenda.State == CourtAgendaState.AwaitingPlayerDecision) && agenda.Faction?.Mood <= -60
-                    && !agenda.OrdinaryCrisisRestrained)
+                    || agenda.State == CourtAgendaState.AwaitingPlayerDecision) && !agenda.OrdinaryCrisisRestrained
+                    && ShouldStartCourtCrisis(agenda.Faction, agenda.Realm))
                 {
                     if (agenda.Faction.Leader == Clan.PlayerClan)
                     {

@@ -115,7 +115,8 @@ namespace BellumCivile.Behaviors
             {
                 if (blocked || HereditaryLoyaltyBehavior.Instance?.GetLine(realm).Contains(challenger) != true) return null;
             }
-            else if (!SuccessionChallengeRules.CanInitiate(score?.Total ?? double.NaN, true, score != null, blocked)) return null;
+            else if (!SuccessionChallengeRules.CanInitiateAtThreshold(score?.Total ?? double.NaN, true, score != null, blocked,
+                BellumCivileOptions.HeirChallengeLoyaltyThreshold)) return null;
             bool dependent = challenger.Clan == realm.RulingClan && challenger.Clan.Leader != challenger;
             // A married-out dependent needs its own donor/household plan, not a royal-clan split.
             if (!dependent && challenger.Clan.Leader != challenger) return null;

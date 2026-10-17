@@ -2559,8 +2559,9 @@ namespace BellumCivile.Behaviors
             }
 
             rebelChance += CalculateTreasonSolidarityRebellionBonus(originalKingdom, targetClan);
-            rebelChance = MathF.Clamp(rebelChance, 0f, 1f);
-            return MBRandom.RandomFloat <= rebelChance;
+            rebelChance = (float)InternalInstabilityRules.ScaleChance(rebelChance,
+                targetClan == Clan.PlayerClan ? 100 : BellumCivileOptions.TreasonResistanceChancePercent);
+            return rebelChance > 0 && MBRandom.RandomFloat <= rebelChance;
         }
 
         private FactionObject CreateExpelledLordRebelFaction(Clan targetClan, Kingdom originalKingdom, FactionManagerBehavior factionManager)

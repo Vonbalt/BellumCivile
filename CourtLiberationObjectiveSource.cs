@@ -17,6 +17,9 @@ namespace BellumCivile
         internal double Weight;
 
         internal CourtLiberationAssessment(Kingdom realm)
+            : this(realm, ClientKingdomBehavior.LiberationWillingnessThreshold(realm?.RulingClan)) { }
+
+        internal CourtLiberationAssessment(Kingdom realm, float requiredWillingness)
         {
             var clients = ClientKingdomBehavior.Instance;
             if (!WarPeaceRevampBehavior.IsRevampEnabled() || !CourtAgendaBehavior.ValidRealm(realm) || clients == null) return;
@@ -29,7 +32,7 @@ namespace BellumCivile
             float boostedCrown = Boosted?.Clans.FirstOrDefault(c => c.Clan == realm.RulingClan)?.LibertyDesire ?? 0;
             Eligible = Boosted?.CanAttemptLiberation == true && boostedCrown >= BellumCivileConstants.ClientClanLiberationDesireThreshold;
             float will = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>()?.GetWarWill(realm.RulingClan) ?? 0;
-            Viable = Eligible && ClientLiberationRules.EffectiveWarWill(will, boostedCrown) >= BellumCivileOptions.WarWillDeclareThreshold;
+            Viable = Eligible && ClientLiberationRules.EffectiveWarWill(will, boostedCrown) >= requiredWillingness;
             Weight = Eligible ? CourtLiberationRules.Weight(Boosted.LiberationReadiness, crown,
                 realm.RulingClan.Leader.GetTraitLevel(DefaultTraits.Valor), realm.RulingClan.Leader.GetTraitLevel(DefaultTraits.Calculating)) : 0;
         }
@@ -69,7 +72,8 @@ namespace BellumCivile
                     CourtAgendaRules.NominationDays(agenda.TermDays), CampaignTime.Now.ToDays, agenda.SessionDate.ToDays));
             }
             agenda.Liberation = new CourtLiberationRecord { Suzerain = CourtCampaignObjectiveSource.Target(choice.Candidate.TargetId),
-                Ruler = agenda.Realm.RulingClan.Leader, Clientage = ClientKingdomBehavior.Instance?.GetClientRecord(agenda.Realm) };
+                Ruler = agenda.Realm.RulingClan.Leader, Clientage = ClientKingdomBehavior.Instance?.GetClientRecord(agenda.Realm),
+                HasWillingnessSnapshot = true, WillingnessThreshold = ClientKingdomBehavior.LiberationWillingnessThreshold(agenda.Sponsor) };
             agenda.PolicyId = null;
         }
     }

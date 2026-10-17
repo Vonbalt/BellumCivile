@@ -9,7 +9,7 @@ namespace BellumCivile
 {
     internal sealed class BellumCivileSettings : AttributeGlobalSettings<BellumCivileSettings>
     {
-        private const string Rebellions = "{=BC_MCM_Group_Rebellions}Rebellions and Civil Wars";
+        private const string InternalInstability = "{=BC_MCM_Group_InternalInstability}Internal Instability";
         private const string CourtPolitics = "{=BC_MCM_Group_CourtPolitics}Court Politics";
         private const string War = "{=BC_MCM_Group_War}War and Peace";
         private const string WarAftermath = "{=BC_MCM_Group_WarAftermath}War Aftermath";
@@ -24,7 +24,7 @@ namespace BellumCivile
         private const string Notifications = "{=BC_MCM_Group_Notifications}Notifications";
         private const string Debugging = "{=BC_MCM_Group_Debugging}Debugging";
 
-        private const int RebellionsGroupOrder = 100;
+        private const int InternalInstabilityGroupOrder = 150;
         private const int CourtPoliticsGroupOrder = 200;
         private const int WarGroupOrder = 300;
         private const int EconomyGroupOrder = 400;
@@ -104,9 +104,59 @@ namespace BellumCivile
         [SettingPropertyGroup(CourtPolitics, GroupOrder = CourtPoliticsGroupOrder)]
         public bool EnableNpcSubterfugeMissions { get; set; } = true;
 
-        [SettingPropertyInteger("{=BC_MCM_RebellionThreshold}Rebellious Intent Threshold", 50, 1000, Order = 30, RequireRestart = false, HintText = "{=BC_MCM_RebellionThreshold_Hint}The rebellious intent a clan needs to form or join a rebel faction. Leaders disband and members reconsider their commitment below half this value. Higher values make conspiracies slower and rarer. Default: 100.")]
-        [SettingPropertyGroup(Rebellions, GroupOrder = RebellionsGroupOrder)]
+        [SettingPropertyDropdown("{=BC_MCM_InstabilityPreset}Instability Preset to Apply", Order = -20, RequireRestart = false, HintText = "{=BC_MCM_InstabilityPreset_Hint}Standard uses Bellum's normal instability values. Reduced makes new internal conflicts less likely; Increased makes them more likely. Selection alone changes nothing: use Apply Instability Preset. This is a template, not an active difficulty mode; sliders remain individually editable. Bellum default: Standard.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public Dropdown<string> InstabilityPreset { get; set; } = new Dropdown<string>(new[]
+        {
+            "{=BC_MCM_InstabilityStandard}Standard",
+            "{=BC_MCM_InstabilityReduced}Reduced Instability",
+            "{=BC_MCM_InstabilityIncreased}Increased Instability"
+        }, 0);
+
+        [SettingPropertyButton("{=BC_MCM_ApplyInstabilityPreset}Apply Instability Preset", Content = "{=BC_MCM_Apply}Apply", Order = -10, RequireRestart = false, HintText = "{=BC_MCM_ApplyInstabilityPreset_Hint}Updates only the nine Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these nine sliders only. Bellum default: Standard.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public System.Action ApplyInstabilityPreset
+        {
+            // MCM requires a setter. The UI patch applies through slider VMs so Save/Cancel track every edit.
+            get => InternalInstabilityPresets.ShowUnavailable;
+            set { }
+        }
+
+        [SettingPropertyInteger("{=BC_MCM_RebellionThreshold}Rebellious Intent Threshold", 50, 1000, Order = 0, RequireRestart = false, HintText = "{=BC_MCM_RebellionThreshold_Hint}Intent needed to form or join a rebel conspiracy. Increasing this value reduces conspiracy instability; decreasing it increases instability. Existing leaders disband and members reconsider below half this threshold. Does not control court coalitions, heir challenges, election disputes or private feuds. Bellum default: 100.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
         public int RebellionThreshold { get; set; } = (int)C.RebelliousIntentThreshold;
+
+        [SettingPropertyInteger("{=BC_MCM_CourtCrisisMood}AI Court Crisis Mood Threshold", -100, -25, Order = 10, RequireRestart = false, HintText = "{=BC_MCM_CourtCrisisMood_Hint}Court faction mood at or below which an AI faction may replace its ordinary agenda with a coalition challenge. Increasing the number toward zero increases instability; decreasing it toward -100 reduces instability. Emergency challenges at -100 use the separate per-term chance. Player choices and existing crises are unchanged. Bellum default: -60.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int CourtCrisisMoodThreshold { get; set; } = -60;
+
+        [SettingPropertyInteger("{=BC_MCM_CourtChallengeChance}AI Court Challenge Chance per Term (%)", 0, 100, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_CourtChallengeChance_Hint}Chance for an AI court faction to begin a new coalition challenge during a court term, shared by ordinary and -100 emergency routes. Increasing increases coalition instability; decreasing reduces it. Zero prevents new automatic challenges. The result is saved until the realm's scheduled next term, even after a settings change or reload. Term length therefore affects retry frequency. Player choices, announced crises and military requirements are unchanged. Bellum default: 100%.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int CourtChallengeChancePercent { get; set; } = 100;
+
+        [SettingPropertyInteger("{=BC_MCM_HeirChallengeLoyalty}AI Heir Challenge Loyalty Threshold", 0, 50, Order = 30, RequireRestart = false, HintText = "{=BC_MCM_HeirChallengeLoyalty_Hint}Lawful heirs with loyalty below this value may initiate a hereditary succession challenge. Increasing increases heir instability; decreasing reduces it. Zero prevents new automatic heir challenges. Player challenges, existing appeals, military requirements and cooldowns are unchanged. Bellum default: 25.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int HeirChallengeLoyaltyThreshold { get; set; } = 25;
+
+        [SettingPropertyInteger("{=BC_MCM_ElectionChallengeChance}AI Election Challenge Chance Multiplier (%)", 0, 200, Order = 40, RequireRestart = false, HintText = "{=BC_MCM_ElectionChallengeChance_Hint}Scales each losing AI candidate's existing chance to contest an election, capped at 100% probability. Increasing increases election instability; decreasing reduces it. Zero prevents automatic challenges for new election snapshots. Player choices, saved election assessments and decisions, and military requirements are unchanged. Bellum default: 100% (original chance).")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int ElectionChallengeChancePercent { get; set; } = 100;
+
+        [SettingPropertyInteger("{=BC_MCM_ClaimFeudThreshold}AI Private Feud Initiation Threshold", 25, 150, Order = 50, RequireRestart = false, HintText = "{=BC_MCM_ClaimFeudThreshold_Hint}Minimum claim and motivation score for an AI clan to begin or reactivate private feud agitation. Increasing reduces private feud instability; decreasing increases it. This is a threshold, not a percentage. Player claims, existing feuds, pressure growth and the political review schedule are unchanged. Bellum default: 65.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int ClaimFeudStartThreshold { get; set; } = (int)C.ClaimFeudStartThreshold;
+
+        [SettingPropertyInteger("{=BC_MCM_ClaimedRevocationChance}AI Claimed-Title Revocation Chance Multiplier (%)", 0, 200, Order = 60, RequireRestart = false, HintText = "{=BC_MCM_ClaimedRevocationChance_Hint}Scales the chance that an eligible AI lord demands a claimed title back from its holder. Increasing increases opportunities for revocation conflicts; decreasing reduces them. Zero prevents new automatic claimed-title demands. Acceptance can still avoid war. Player demands, existing cases and other revocation systems are unchanged. Bellum default: 100% (original chance).")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int ClaimedRevocationChancePercent { get; set; } = 100;
+
+        [SettingPropertyInteger("{=BC_MCM_TreasonResistanceChance}AI Spontaneous Expulsion Resistance Multiplier (%)", 0, 200, Order = 70, RequireRestart = false, HintText = "{=BC_MCM_TreasonResistanceChance_Hint}Scales an expelled AI lord's chance to start a new rebellion against the judgment, after personality and backing checks. Increasing increases expulsion-related instability; decreasing reduces it. Zero prevents spontaneous resistance, but existing conspiracy leaders can still defy expulsion. Does not change indictment frequency, ongoing rebellions or player choices. Bellum default: 100% (original chance).")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int TreasonResistanceChancePercent { get; set; } = 100;
+
+        [SettingPropertyInteger("{=BC_MCM_ClientLiberationWillingness}AI Client Liberation Willingness Threshold", 0, 100, Order = 80, RequireRestart = false, HintText = "{=BC_MCM_ClientLiberationWillingness_Hint}War Will plus liberation resolve required for AI liberation proposals and Crown preparations. Increasing reduces client liberation instability; decreasing increases it. Zero removes only this willingness check, not liberty desire, power, influence, cooldown or voting requirements. Player actions, existing proposals and foreign-war thresholds are unchanged. Bellum default: 75.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int ClientLiberationWillingnessThreshold { get; set; } = (int)C.WarPeaceRevampWarProposalThreshold;
 
         [SettingPropertyFloatingInteger("{=BC_MCM_CourtTerm}Court Term Length (Years)", 0.25f, 4f, "0.00", Order = 20, RequireRestart = false, HintText = "{=BC_MCM_CourtTerm_Hint}Time between public court agendas. Changes apply to the next term, not announced sessions or existing policy reconsideration dates. Default: 1 year.")]
         [SettingPropertyGroup(CourtPolitics, GroupOrder = CourtPoliticsGroupOrder)]

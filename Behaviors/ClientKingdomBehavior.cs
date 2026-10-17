@@ -422,6 +422,9 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
+        internal static float LiberationWillingnessThreshold(Clan proposer) => proposer != null && proposer == Clan.PlayerClan
+            ? C.WarPeaceRevampWarProposalThreshold : BellumCivileOptions.ClientLiberationWillingnessThreshold;
+
         public bool TryCanProposeLiberation(Clan proposer, out Kingdom suzerain, out string report)
         {
             suzerain = GetSuzerain(proposer?.Kingdom);
@@ -448,11 +451,12 @@ namespace BellumCivile.Behaviors
             float desire = clanAssessment.LibertyDesire;
             float resolve = ClientLiberationRules.ResolveBonus(desire);
             float willingness = ClientLiberationRules.EffectiveWarWill(warWill, desire);
-            if (willingness < BellumCivileOptions.WarWillDeclareThreshold)
+            float requiredWillingness = LiberationWillingnessThreshold(proposer);
+            if (willingness < requiredWillingness)
             {
                 report = new TextObject("{=BC_ClientLiberation_WillingnessLow}Insufficient willingness for liberation ({CURRENT}/{REQUIRED}; War Will {WILL}, resolve +{RESOLVE}).")
                     .SetTextVariable("CURRENT", willingness.ToString("0.#"))
-                    .SetTextVariable("REQUIRED", BellumCivileOptions.WarWillDeclareThreshold.ToString("0.#"))
+                    .SetTextVariable("REQUIRED", requiredWillingness.ToString("0.#"))
                     .SetTextVariable("WILL", warWill.ToString("0.#"))
                     .SetTextVariable("RESOLVE", resolve.ToString("0.#"))
                     .ToString();

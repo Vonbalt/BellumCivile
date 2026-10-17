@@ -59,6 +59,7 @@ namespace BellumCivile.Behaviors
                 result.Candidates.Add(new ElectiveContestCandidate
                 {
                     Candidate = hero, House = hero.Clan,
+                    HasChallengeChanceSnapshot = true, ChallengeChancePercent = BellumCivileOptions.ElectionChallengeChancePercent,
                     Support = ballot.TotalWeight > 0 ? ballot.Support(hero) * 100 / ballot.TotalWeight : 0,
                     HasAssessment = score != null && SuccessionChallengeRules.Finite(score.Total),
                     Acceptance = score?.Total ?? 100, Baseline = score?.Baseline ?? 0,
@@ -82,6 +83,15 @@ namespace BellumCivile.Behaviors
                 CampaignTime.Now.ToDays, hero => ElectiveSuccessionBehavior.Instance.Acceptance.Get(ballot, hero));
             snapshot.ManualTest = accession.ElectiveContestTest;
             snapshot.AutomaticChallengeEnabled = !snapshot.ManualTest;
+            if (previous != null)
+            {
+                foreach (var candidate in snapshot.Candidates)
+                {
+                    var saved = previous.Candidates.FirstOrDefault(c => c.Candidate == candidate.Candidate && c.House == candidate.House);
+                    if (saved == null) continue;
+                    candidate.ChallengeChancePercent = saved.HasChallengeChanceSnapshot ? saved.ChallengeChancePercent : 100;
+                }
+            }
             // Revalidated ballots may change before accession; replace only an unarmed snapshot.
             if (previous != null) _contests.Remove(previous);
             _contests.Add(snapshot);

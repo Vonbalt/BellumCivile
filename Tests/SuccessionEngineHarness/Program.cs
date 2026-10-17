@@ -50,7 +50,18 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--siege-ownership"))
+            if (args.Contains("--internal-instability"))
+            {
+                InternalInstabilityTests.Run(Check);
+                TestChallengeSchedule();
+                TestSuccessionChallenges();
+                TestElectiveContestFoundation();
+                TestElectiveContestPledges();
+                TestCourtAgendaDeadlines();
+                TestCoalitionSuccessionState();
+                Console.WriteLine($"{_checks} internal instability checks passed.");
+            }
+            else if (args.Contains("--siege-ownership"))
             {
                 SiegeOwnershipTests.Run(Check);
                 Console.WriteLine($"{_checks} siege ownership checks passed.");
