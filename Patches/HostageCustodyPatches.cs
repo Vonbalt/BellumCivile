@@ -78,6 +78,14 @@ namespace BellumCivile.Patches
     internal static class HostageAdulthoodRelocationGuardPatch
     {
         private static bool Prefix(Hero hero)
-            => Campaign.Current?.GetCampaignBehavior<HostagePactBehavior>()?.IsHostageOriginCaptive(hero) != true;
+        {
+            if (hero == null)
+            {
+                BellumCivileLogger.Log("Skipped adulthood relocation: HeroSpawnCampaignBehavior.OnHeroComesOfAge received a null hero.");
+                return false;
+            }
+            if (!hero.IsPrisoner) return true;
+            return Campaign.Current?.GetCampaignBehavior<HostagePactBehavior>()?.IsHostageOriginCaptive(hero) != true;
+        }
     }
 }

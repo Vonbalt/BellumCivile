@@ -770,3 +770,4 @@ Fixed displayed kingdom name for compatibility with the mod Rise of the Rhodoks 
 1.4.5 CHANGELOG
 
 Fix siege ownership crash when the capturing party owner has no party.
+Hardened coming-of-age hostage checks against null hero events while preserving existing custody behavior.

@@ -298,6 +298,11 @@ internal static class Program
                 TreatyWinnerLeverageTests.Run(Check);
                 Console.WriteLine($"{_checks} treaty balance checks passed.");
             }
+            else if (args.Contains("--hostage-adulthood"))
+            {
+                HostageAdulthoodGuardTests.Run(Check);
+                Console.WriteLine($"{_checks} hostage adulthood checks passed.");
+            }
             else if (args.Contains("--hostage-pacts"))
             {
                 HostagePactRulesTests.Run(Check);

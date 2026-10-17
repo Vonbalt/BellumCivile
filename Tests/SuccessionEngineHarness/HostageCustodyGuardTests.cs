@@ -19,6 +19,7 @@ internal static class HostageCustodyGuardTests
     private static bool Healthy(ref bool __result) { __result = false; return false; }
     internal static void Run(Action<bool, string> check)
     {
+        HostageAdulthoodGuardTests.Run(check);
         var assembly = typeof(HostagePactRecord).Assembly;
         var guard = assembly.GetType("BellumCivile.HostageCustodyGuard");
         object Call(string name, params object[] args) => AccessTools.Method(guard, name).Invoke(null, args);
