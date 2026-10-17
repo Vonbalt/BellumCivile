@@ -35,7 +35,7 @@ namespace BellumCivile
             Kingdom realm, SuccessionLawSet laws) => SuccessionLawHelper.OrderSuccessionCandidates(
                 candidates.Where(h => h != null && h != predecessor && !h.IsWanderer && !h.IsNotable
                     && IsDomesticHouse(h.Clan, realm) && SuccessionLawHelper.IsBloodRelative(h, predecessor)),
-                predecessor, laws, includeUnderage: true);
+                predecessor, laws, includeUnderage: true).Where(RegencyPolicy.CanReceiveCrown).ToList();
 
         internal static bool IsSovereignEstateRoot(FeudalTitleBehavior titles, FeudalTitleRecord title,
             Clan source, string politicalCrownId, bool hereditary)

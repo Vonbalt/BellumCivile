@@ -53,6 +53,13 @@ namespace BellumCivile.Behaviors
             };
             record.Heir = record.RegentReplacement ? sovereign : record.ElectiveElection ? null
                 : HereditaryRealmSuccession.GetLine(realm, victim, laws).FirstOrDefault();
+            if (record.RegentReplacement && !BellumCivileOptions.AllowNewRegencies
+                && sovereign.Age < SuccessionLawHelper.GetAgeOfMajority())
+            {
+                record.RegentReplacement = false;
+                record.Heir = HereditaryRealmSuccession.GetLine(realm, sovereign, laws).FirstOrDefault(h => h != victim);
+                record.Emergency = record.Heir == null;
+            }
             _accessions.Add(record);
         }
 
@@ -137,10 +144,19 @@ namespace BellumCivile.Behaviors
         {
             foreach (Clan house in record.DeferredHouseDestructions.ToList())
             {
-                if (house != null && !house.IsEliminated && house.Leader?.IsAlive != true)
+                if (house != null && !house.IsEliminated && (house.Leader?.IsAlive != true
+                    || !BellumCivileOptions.AllowNewRegencies
+                        && house.Leader.Age < SuccessionLawHelper.GetAgeOfMajority()
+                        && !RegencyPolicy.HasContinuingRegency(house.Leader)))
                 {
-                    if (record.Realm.RulingClan == house) continue;
-                    DestroyClanAction.ApplyByClanLeaderDeath(house);
+                    if (!record.Realm.IsEliminated && record.Realm.RulingClan == house) continue;
+                    if (!BellumCivileOptions.AllowNewRegencies && RegencyPolicy.TryRestoreAdultLeader(house))
+                    {
+                        record.DeferredHouseDestructions.Remove(house);
+                        continue;
+                    }
+                    if (house.Leader?.IsAlive == true) DestroyClanAction.Apply(house);
+                    else DestroyClanAction.ApplyByClanLeaderDeath(house);
                 }
                 record.DeferredHouseDestructions.Remove(house);
             }
@@ -200,6 +216,8 @@ namespace BellumCivile.Behaviors
                     if (ElectiveSuccessionBehavior.Instance?.SelectSuccessor(record) != true) return;
                     record.ElectiveSelected = true;
                 }
+                if (!ReconcileRegencyAvailability(record)) return;
+                if (record.Emergency) { EnsureEmergency(record); return; }
                 if (!ReconcileCrownHousehold(record)) return;
                 if (record.ForcedAbdication && !PrepareForcedAbdication(record)) return;
                 if (record.Emergency) { EnsureEmergency(record); return; }
@@ -272,7 +290,19 @@ namespace BellumCivile.Behaviors
                 record.Realm.RemoveDecision(record.EmergencyElection);
             }
             var candidates = EmergencyCandidates(record);
-            if (candidates.Count == 0) return;
+            if (candidates.Count == 0)
+            {
+                if (!BellumCivileOptions.AllowNewRegencies && !record.IsAbdication
+                    && !record.Realm.Clans.Any(c => !c.IsEliminated && c.Leader?.IsAlive == true
+                        && c.Leader.Age >= SuccessionLawHelper.GetAgeOfMajority()))
+                {
+                    DestroyKingdomAction.ApplyByKingdomLeaderDeath(record.Realm);
+                    record.Completed = true;
+                    ReleaseInterregnumHouse(record);
+                    BellumCivileLogger.Log($"Crown succession ended without an adult ruling house; realm={record.Realm.StringId}; new_regencies_disabled=true.");
+                }
+                return;
+            }
             if (record.Realm.UnresolvedDecisions.OfType<KingSelectionKingdomDecision>().Any()) return;
             Clan proposer = candidates.OrderBy(clan => clan.StringId, StringComparer.Ordinal).First();
             if (!NobleClanEligibilityHelper.IsValidRulingClan(record.Realm.RulingClan, record.Realm))

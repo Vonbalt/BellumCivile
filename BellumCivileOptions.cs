@@ -95,6 +95,7 @@ namespace BellumCivile
         public static bool EnableAutomaticTreasonIndictments => Settings?.EnableAutomaticTreasonIndictments ?? true;
 
         public static bool EnablePartitionSuccession => Settings?.EnablePartitionSuccession ?? true;
+        public static bool AllowNewRegencies => Settings?.AllowNewRegencies ?? true;
         public static bool EnforcePlayerSuccessionLaw => Settings?.EnforcePlayerSuccessionLaw ?? true;
         public static bool EnableCustomAdulthoodAge => Settings?.EnableCustomAdulthoodAge ?? true;
         public static int AdulthoodAge => EnableCustomAdulthoodAge

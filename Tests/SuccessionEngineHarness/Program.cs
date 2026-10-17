@@ -50,7 +50,13 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--internal-instability"))
+            if (args.Contains("--regency-settings"))
+            {
+                RegencySettingsTests.Run(Check);
+                TestRegencyContinuity();
+                Console.WriteLine($"{_checks} regency setting checks passed.");
+            }
+            else if (args.Contains("--internal-instability"))
             {
                 InternalInstabilityTests.Run(Check);
                 TestChallengeSchedule();

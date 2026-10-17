@@ -54,7 +54,7 @@ namespace BellumCivile.Behaviors
                 .Where(h => h != null && h != parent && h.Clan != null && !h.Clan.IsEliminated
                     && !h.IsWanderer && !h.IsNotable
                     && (descendants.Contains(h) || SuccessionLawHelper.IsBloodRelative(h, parent))),
-                parent, laws, includeUnderage: true);
+                parent, laws, includeUnderage: true).Where(RegencyPolicy.CanReceiveCrown).ToList();
         }
 
         public void CaptureCrossClanEstate(Hero victim)
@@ -176,6 +176,8 @@ namespace BellumCivile.Behaviors
                 RepairEstateFiefIds(record);
                 var titles = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>();
                 if (titles == null) return;
+                if (!ReconcileEstateRegencyAvailability(record)) return;
+                if (record.Completed) return;
                 if (TryHandleMixedEstate(record, titles)) return;
                 if (!CanStartDomesticEstateDelivery(record, titles)) return;
                 if (!record.GoldPrepared)
@@ -236,7 +238,8 @@ namespace BellumCivile.Behaviors
                 ReportEstateShare(record, share, "completed from existing delivery receipts");
                 return;
             }
-            if (record.PolicyVersion > 0 && share.DomesticOnly && !PrepareDomesticEstateShare(record, share)) return;
+            if ((share.IsEscheat || record.PolicyVersion > 0 && share.DomesticOnly)
+                && !PrepareDomesticEstateShare(record, share)) return;
             Hero heir = share.Heir;
             if (heir == null)
             { ReportEstateShare(record, share, "awaiting unresolved beneficiary reference"); return; }
@@ -380,7 +383,7 @@ namespace BellumCivile.Behaviors
                     IncomingSourceHead = record.GoldDonor,
                     GoldRecipient = recipient.Leader,
                     EndowmentGold = record.GoldDonor == recipient.Leader
-                        || record.PolicyVersion > 0 && !share.ReceivesGold ? 0 : record.GoldPerShare
+                        || share.IsEscheat || record.PolicyVersion > 0 && !share.ReceivesGold ? 0 : record.GoldPerShare
                 };
             if (!share.GoldPayment.GoldDebited && share.GoldPayment.EndowmentGold > 0
                 && share.GoldPayment.EndowmentDonor?.IsAlive != true)

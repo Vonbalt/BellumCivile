@@ -188,6 +188,10 @@ namespace BellumCivile
         [SettingPropertyGroup(Succession, GroupOrder = SuccessionGroupOrder)]
         public bool EnablePartitionSuccession { get; set; } = true;
 
+        [SettingPropertyBool("{=BC_MCM_AllowNewRegencies}Allow New Regencies", Order = 3, RequireRestart = false, HintText = "{=BC_MCM_AllowNewRegencies_Hint}Allows new regencies and replacement regents for underage heirs, including the player clan. When disabled, existing regencies continue until adulthood or the regent's death or departure, but no new regent is appointed. Without an eligible adult successor, clans may become extinct and the player's campaign may end. Crown succession falls back to an eligible successor or an emergency election. Other succession laws and adulthood settings remain unchanged. Default values: Bellum: On; Vanilla: no minor-heir regency protection.")]
+        [SettingPropertyGroup(Succession, GroupOrder = SuccessionGroupOrder)]
+        public bool AllowNewRegencies { get; set; } = true;
+
         [SettingPropertyBool("{=BC_MCM_EnforcePlayerSuccessionLaw}Respect Succession Law When Choosing Heir", Order = 5, RequireRestart = false, HintText = "{=BC_MCM_EnforcePlayerSuccessionLaw_Hint}When enabled, the playable heir selected after your character's death must follow your house's current gender and succession laws. Disable this to retain vanilla free heir selection without changing succession elsewhere. Default: On.")]
         [SettingPropertyGroup(Succession, GroupOrder = SuccessionGroupOrder)]
         public bool EnforcePlayerSuccessionLaw { get; set; } = true;

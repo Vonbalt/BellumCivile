@@ -4,6 +4,8 @@
     <tag language="English" />
   </tags>
   <strings>
+    <string id="BC_MCM_AllowNewRegencies" text="Allow New Regencies" />
+    <string id="BC_MCM_AllowNewRegencies_Hint" text="Allows new regencies and replacement regents for underage heirs, including the player clan. When disabled, existing regencies continue until adulthood or the regent's death or departure, but no new regent is appointed. Without an eligible adult successor, clans may become extinct and the player's campaign may end. Crown succession falls back to an eligible successor or an emergency election. Other succession laws and adulthood settings remain unchanged. Default values: Bellum: On; Vanilla: no minor-heir regency protection." />
     <string id="BC_MCM_RealmNameDisplay" text="Realm Name Display" />
     <string id="BC_MCM_RealmNameDisplay_Hint" text="Native keeps the original realm names. Realm Identity combines the current sovereign rank with the realm's established name, using bellum_realm_names.xml for configured realms. Sovereign Title uses the current sovereign title's territorial name and rank. Cultural terminology applies to both Bellum modes. Temporary rebellion and feud names remain unchanged. Default values: Bellum: Sovereign Title; Vanilla: Native." />
     <string id="BC_MCM_RealmNameNative" text="Native" />

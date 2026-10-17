@@ -54,6 +54,13 @@ namespace BellumCivile.Behaviors
 
             // Only an unexecuted household plan can be rebuilt. The lawful heir,
             // Crown, cause and succession laws remain those of the original journal.
+            ResetUncommittedCrownHousehold(record, current);
+            BellumCivileLogger.Log($"Crown household plan refreshed; realm={record.Realm?.StringId}; heir={record.Heir.StringId}; former_house={original.StringId}; current_house={current.StringId}; no_transfers_replayed=true.");
+            return true;
+        }
+
+        private static void ResetUncommittedCrownHousehold(CrownAccessionRecord record, Clan current)
+        {
             record.HeirHouse = current;
             record.ForcedPrepared = false;
             record.IncomingHousePrepared = false;
@@ -74,8 +81,6 @@ namespace BellumCivile.Behaviors
             record.HeirPartyCaptured = false;
             record.PreservedHeirParty = null;
             record.AbdicationFailure = null;
-            BellumCivileLogger.Log($"Crown household plan refreshed; realm={record.Realm?.StringId}; heir={record.Heir.StringId}; former_house={original.StringId}; current_house={current.StringId}; no_transfers_replayed=true.");
-            return true;
         }
     }
 }

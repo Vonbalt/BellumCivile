@@ -41,7 +41,8 @@ namespace BellumCivile.Behaviors
                 return DeferAbdication(record, "the targeted monarch died before the forced settlement was prepared");
             var laws = new SuccessionLawSet(record.GenderLaw, record.HouseLaw);
             Hero heir = record.Heir;
-            record.Heir = heir ?? HereditaryRealmSuccession.GetLine(record.Realm, record.Predecessor, laws).FirstOrDefault();
+            record.Heir = heir != null && RegencyPolicy.CanReceiveCrown(heir) ? heir
+                : HereditaryRealmSuccession.GetLine(record.Realm, record.Predecessor, laws).FirstOrDefault();
             record.Emergency = record.Heir == null;
             record.HeirHouse = record.Heir?.Clan;
             record.CreatesCadet = record.HeirHouse == record.PreviousHouse;

@@ -28,7 +28,8 @@ namespace BellumCivile.Behaviors
         private static bool Candidate(Hero hero, Kingdom realm, GenderSuccessionLaw gender, Hero excluded) =>
             hero != null && hero != excluded && Voter(hero.Clan, realm) && LegalHead(hero.Clan) == hero
             && hero.DeathMark == TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail.None
-            && !hero.IsDisabled && SuccessionLawHelper.IsEligibleUnderGenderLaw(hero, gender);
+            && !hero.IsDisabled && RegencyPolicy.CanReceiveCrown(hero)
+            && SuccessionLawHelper.IsEligibleUnderGenderLaw(hero, gender);
 
         public override void RegisterEvents()
         {

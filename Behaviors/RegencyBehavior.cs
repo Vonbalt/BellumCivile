@@ -106,8 +106,9 @@ namespace BellumCivile.Behaviors
 
         public bool EnsureCrownHeirRegency(Clan clan, Hero ward, Hero predecessor)
         {
-            if (GetWard(clan) == ward && GetRegent(clan)?.IsAlive == true
+            if (RegencyPolicy.HasContinuingRegency(ward) && ward.Clan == clan
                 && clan.Leader == GetRegent(clan)) return true;
+            if (!BellumCivileOptions.AllowNewRegencies) return false;
             if (!CanUseRegency(clan) || !IsUnderageWard(ward, clan)) return false;
             var line = SuccessionLawHelper.GetLegalSuccessionLine(clan, predecessor, SuccessionLawHelper.GetLawsForClan(clan));
             Hero regent = SelectRegent(clan, ward, predecessor, line, out bool generated);
@@ -197,7 +198,8 @@ namespace BellumCivile.Behaviors
             if (!BellumCivileOptions.EnforcePlayerSuccessionLaw && !hasActiveRegency)
                 return false;
 
-            if (_pendingPlayerSuccession?.DyingHeroId == dyingPlayer.StringId)
+            if (_pendingPlayerSuccession?.DyingHeroId == dyingPlayer.StringId
+                && (_pendingPlayerSuccession.Mode == PlayerSuccessionMode.WardSucceeds || BellumCivileOptions.AllowNewRegencies))
                 return true;
 
             EnsureCollectionsInitialized();
@@ -241,6 +243,13 @@ namespace BellumCivile.Behaviors
 
             List<Hero> candidates;
             Hero generatedRegent = null;
+            if (mode != PlayerSuccessionMode.WardSucceeds && !BellumCivileOptions.AllowNewRegencies)
+            {
+                DiscardUnusedGeneratedRegent(ResolveHero(_pendingPlayerSuccession?.GeneratedCandidateHeroId), true);
+                _pendingPlayerSuccession = null;
+                if (hasActiveRegency) EndRegencyWithoutReplacement(clan, activeRegency);
+                return false;
+            }
             if (mode == PlayerSuccessionMode.WardSucceeds)
             {
                 _playerRegencyHandoverPending = false;
@@ -290,6 +299,7 @@ namespace BellumCivile.Behaviors
             candidates = null;
             PendingPlayerSuccession pending = _pendingPlayerSuccession;
             if (pending == null
+                || pending.Mode != PlayerSuccessionMode.WardSucceeds && !BellumCivileOptions.AllowNewRegencies
                 || clan == null
                 || clan != Clan.PlayerClan
                 || pending.DyingHeroId != Hero.MainHero?.StringId)
@@ -484,6 +494,7 @@ namespace BellumCivile.Behaviors
             Hero ward = ResolveHero(pending?.WardHeroId);
             Hero dyingHero = ResolveHero(pending?.DyingHeroId);
             if (pending == null
+                || pending.Mode != PlayerSuccessionMode.WardSucceeds && !BellumCivileOptions.AllowNewRegencies
                 || clan == null
                 || ward == null
                 || dyingHero == null
@@ -556,6 +567,7 @@ namespace BellumCivile.Behaviors
 
             if (clan.Leader != victim || !CanUseRegency(clan))
                 return;
+            if (!BellumCivileOptions.AllowNewRegencies) return;
 
             SuccessionLawSet laws = SuccessionLawHelper.GetLawsForClan(clan);
             List<Hero> legalLine = SuccessionLawHelper.GetLegalSuccessionLine(clan, victim, laws);
@@ -891,6 +903,12 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
+            if (!BellumCivileOptions.AllowNewRegencies)
+            {
+                EndRegencyWithoutReplacement(clan, record);
+                return;
+            }
+
             SuccessionLawSet laws = SuccessionLawHelper.GetLawsForClan(clan);
             List<Hero> legalLine = SuccessionLawHelper.GetLegalSuccessionLine(clan, ward, laws);
             Hero replacement = SelectRegent(clan, ward, dyingRegent, legalLine, out bool generated);
@@ -965,6 +983,11 @@ namespace BellumCivile.Behaviors
                 : CanRetainRegent(regent, clan, successor);
             if (!regentCanRemain)
             {
+                if (!BellumCivileOptions.AllowNewRegencies)
+                {
+                    EndRegencyWithoutReplacement(clan, record);
+                    return;
+                }
                 if (clan == Clan.PlayerClan)
                 {
                     BellumCivileLogger.Log(
@@ -1039,6 +1062,25 @@ namespace BellumCivile.Behaviors
 
             BellumCivileLogger.Log(
                 $"Regency ended; clan={clan.StringId}; rightful_leader={rightfulLeader.StringId}; former_regent={formerRegent?.StringId ?? "none"}; adulthood={SuccessionLawHelper.GetAgeOfMajority()}.");
+        }
+
+        private void EndRegencyWithoutReplacement(Clan clan, RegencyRecord record)
+        {
+            _regencies.Remove(record);
+            if (clan == Clan.PlayerClan) _playerRegencyHandoverPending = false;
+            Patches.FeudalTitleHeroNamePatch.InvalidateCache();
+            Campaign.Current?.GetCampaignBehavior<SuccessionYearlySummaryBehavior>()?.RecordRegencyEnded();
+            Campaign.Current?.GetCampaignBehavior<DynasticHeirBehavior>()?
+                .RefreshSuccessionAfterLawChange(clan.Kingdom);
+            BellumCivileLogger.Log($"Regency ended without replacement; clan={clan.StringId}; ward={record.WardHeroId}; regent={record.RegentHeroId}; new_regencies_disabled=true.");
+            // During BeforeHeroKilled the native death action still owns succession.
+            // Maintenance also reaches this method after a saved regent has died or left.
+            if (clan != Clan.PlayerClan && !clan.IsEliminated
+                && (clan.Leader?.IsAlive != true || clan.Leader.Clan != clan))
+            {
+                if (!RegencyPolicy.TryRestoreAdultLeader(clan))
+                    DestroyClanAction.ApplyByClanLeaderDeath(clan);
+            }
         }
 
         private void ValidateRegencies(bool showNotifications)
@@ -1150,6 +1192,11 @@ namespace BellumCivile.Behaviors
 
             if (recordedRegent != player)
             {
+                if (!BellumCivileOptions.AllowNewRegencies)
+                {
+                    EndRegencyWithoutReplacement(clan, record);
+                    return;
+                }
                 bool oldRegentWasGenerated = record.RegentWasGenerated;
                 record.ReplaceRegent(player, wasGenerated: IsGeneratedRegent(player));
                 if (oldRegentWasGenerated)
@@ -1173,6 +1220,7 @@ namespace BellumCivile.Behaviors
             out bool generated)
         {
             generated = false;
+            if (!BellumCivileOptions.AllowNewRegencies) return null;
             Hero regent = legalLine?.FirstOrDefault(hero => IsSuitableRegent(hero, clan, ward, excludedHero));
             if (regent != null)
             {
@@ -1215,6 +1263,7 @@ namespace BellumCivile.Behaviors
 
         private static Hero CreateGeneratedRegent(Clan clan)
         {
+            if (!BellumCivileOptions.AllowNewRegencies) return null;
             MBReadOnlyList<CharacterObject> templates = clan?.Culture?.LordTemplates;
             if (clan == null || templates == null || templates.Count == 0)
                 return null;

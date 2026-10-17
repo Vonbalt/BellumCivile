@@ -518,6 +518,10 @@ namespace BellumCivile.Behaviors
             if (record == null) return false;
             if (record.Cadet == null && !string.IsNullOrWhiteSpace(record.CadetId))
                 record.Cadet = Clan.All.FirstOrDefault(clan => clan.StringId == record.CadetId);
+            if (!BellumCivileOptions.AllowNewRegencies && record.Heir != null
+                && record.Heir.Age < SuccessionLawHelper.GetAgeOfMajority()
+                && (record.Heir.Clan != record.Cadet || !RegencyPolicy.HasContinuingRegency(record.Heir)))
+                return DeferCadetPreparation(record, "new minor-heir regencies are disabled");
             // A resumed household may already exist even though its estate is still pending.
             PreservePendingCadetHead(record.Cadet, record.Heir);
             try { return PrepareAbdicationCadetCore(record); }

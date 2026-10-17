@@ -21,7 +21,8 @@ namespace BellumCivile
                 .SelectMany(clan => clan.Heroes)
                 .Where(hero => !hero.IsWanderer && !hero.IsNotable);
             return OrderLine(candidates, sovereign, laws ?? SuccessionLawHelper.GetLawsForKingdom(realm),
-                CrownAccessionBehavior.Instance?.GetAbdicatedMonarchs(realm));
+                CrownAccessionBehavior.Instance?.GetAbdicatedMonarchs(realm))
+                .Where(RegencyPolicy.CanReceiveCrown).ToList();
         }
 
         internal static List<Hero> OrderLine(IEnumerable<Hero> candidates, Hero sovereign,

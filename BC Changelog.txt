@@ -772,3 +772,4 @@ Fixed displayed kingdom name for compatibility with the mod Rise of the Rhodoks 
 Fix siege ownership crash when the capturing party owner has no party.
 Hardened coming-of-age hostage checks against null hero events while preserving existing custody behavior.
 Added individual MCM controls and Standard, Reduced, and Increased Instability presets for rebellions and internal conflicts, with tooltips explaining defaults and effects.
+Added an MCM toggle to disable new minor-heir regencies and replacement regents while preserving existing regencies and safely handling pending inheritances.
