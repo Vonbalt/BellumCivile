@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--integration"))
+            if (args.Contains("--siege-ownership"))
+            {
+                SiegeOwnershipTests.Run(Check);
+                Console.WriteLine($"{_checks} siege ownership checks passed.");
+            }
+            else if (args.Contains("--integration"))
             {
                 IntegrationTests.Run(Check);
                 IntegrationVoteTests.Run(Check);

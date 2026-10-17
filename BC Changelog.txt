@@ -766,3 +766,7 @@ Merged fix for localized cadet-clan name prefixes ending in punctuation. (credit
 Expanded the mod integration API with pending-vote queries, candidate information, and council appointment result notifications with saved recent history.
 Fixed dungeon confirmation being blocked by treaty hostages, allowing normal prisoner donations and management while preserving hostage protections.
 Fixed displayed kingdom name for compatibility with the mod Rise of the Rhodoks and bellum's title presets.
+
+1.4.5 CHANGELOG
+
+Fix siege ownership crash when the capturing party owner has no party.
