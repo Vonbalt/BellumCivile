@@ -130,12 +130,25 @@ namespace BellumCivile.Behaviors
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(parent)
                 || parent != RealmPeaceEnforcementBehavior.ResolveKingdomForFeud(feud)
                 || war.PendingResolutionOutcome != ClaimFeudWarOutcome.None
+                || !string.IsNullOrEmpty(war.PendingCaptureWinnerClanId)
                 || war.ClaimantLeaderClanId != feud.ClaimantClanId || war.HolderLeaderClanId != feud.HolderClanId
                 || war.TargetTitleId != feud.TargetTitleId) return false;
             var claimant = ResolveKingdom(war.ClaimantKingdomId);
             var holder = ResolveKingdom(war.HolderKingdomId);
             if (claimant == null || claimant.IsEliminated || holder == null || holder.IsEliminated
                 || claimant == parent || holder == parent || claimant == holder) return false;
+
+            var participants = new HashSet<Clan>(DecodeIds(war.ClaimantClanIds).Concat(DecodeIds(war.HolderClanIds))
+                .Select(ResolveClan).Concat(claimant.Clans).Concat(holder.Clans).Where(clan => clan != null));
+            if (MobileParty.All.Any(party => participants.Contains(party.ActualClan)
+                    && (party.MapEvent != null || party.SiegeEvent != null
+                        || party.Army?.LeaderParty?.MapEvent != null || party.Army?.LeaderParty?.SiegeEvent != null))
+                || participants.Any(clan => WithdrawalEstates(war, clan).Any(estate => estate.Key.SiegeEvent != null)))
+            {
+                report = new TextObject("{=BC_RoyalPeace_FeudBusy}The feuding houses' parties and affected estates must be clear of battles and sieges before they can be recalled.").ToString();
+                return false;
+            }
+
             report = null;
             return true;
         }
@@ -144,7 +157,7 @@ namespace BellumCivile.Behaviors
         {
             if (!CanEnforceRoyalPeace(feud, ruler, out report)) return false;
             var war = _wars.First(w => w != null && w.IsActive && w.FeudRecordId == feud.RecordId);
-            ResolveWar(war, ClaimFeudWarOutcome.WhitePeace, "peace imposed by the Crown during foreign war", peaceEnforcer: ruler);
+            ResolveWar(war, ClaimFeudWarOutcome.WhitePeace, "peace imposed by the Crown", peaceEnforcer: ruler);
             report = new TextObject("{=BC_ClaimFeud_ReportSuppressed}The feud was suppressed by the realm's peace.").ToString();
             return true;
         }
@@ -290,7 +303,7 @@ namespace BellumCivile.Behaviors
         private bool TryStartFeudWar(ClaimFeudRecord feud)
         {
             FeudalTitleBehavior titleBehavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
-            if (titleBehavior == null || feud == null)
+            if (titleBehavior == null || feud == null || feud.Judgment == ClaimFeudJudgment.Suppress)
                 return false;
 
             Clan claimant = ResolveClan(feud.ClaimantClanId);
@@ -305,6 +318,13 @@ namespace BellumCivile.Behaviors
             }
 
             ClaimFeudBehavior feudBehavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudBehavior>();
+            TextObject peaceBlock = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(parent);
+            if (peaceBlock != null)
+            {
+                feudBehavior?.PauseFeudForConflict(feud, peaceBlock.ToString());
+                return false;
+            }
+
             if (HasActiveCivilWar(parent))
             {
                 feudBehavior?.PauseFeudForConflict(feud, "civil war has suspended private warfare");
@@ -566,7 +586,8 @@ namespace BellumCivile.Behaviors
                 $"original_parent_eliminated={originalParent?.IsEliminated.ToString() ?? "missing"}; return_realm={parent?.StringId ?? "independent promotion"}; " +
                 $"claimant_shell={claimantKingdom?.StringId ?? war.ClaimantKingdomId}; holder_shell={holderKingdom?.StringId ?? war.HolderKingdomId}.");
 
-            var resultNotice = ConflictOutcomeBehavior.Current?.Begin("feud:" + war.WarId, claimantKingdom, holderKingdom,
+            bool realmPeaceExecuting = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.IsExecutingRealmPeace(originalParent) == true;
+            var resultNotice = realmPeaceExecuting ? null : ConflictOutcomeBehavior.Current?.Begin("feud:" + war.WarId, claimantKingdom, holderKingdom,
                 originalParent?.RulingClan == Clan.PlayerClan ? originalParent : null);
             if (resultNotice != null && Clan.PlayerClan != null
                 && (DecodeIds(war.ClaimantClanIds).Contains(Clan.PlayerClan.StringId)
@@ -670,8 +691,9 @@ namespace BellumCivile.Behaviors
             string destinationText = parent != null && !parent.IsEliminated
                 ? new TextObject("{=BC_Result_FeudReturn}The surviving houses have returned to {REALM}.").SetTextVariable("REALM", parent.Name).ToString()
                 : new TextObject("{=BC_Result_FeudIndependent}With their former realm gone, surviving houses that could establish themselves now stand independently.").ToString();
-            ConflictOutcomeBehavior.Current?.Publish(resultNotice, resultKind,
-                string.IsNullOrEmpty(claimConsequence) ? destinationText : claimConsequence + "\n\n" + destinationText);
+            if (!realmPeaceExecuting)
+                ConflictOutcomeBehavior.Current?.Publish(resultNotice, resultKind,
+                    string.IsNullOrEmpty(claimConsequence) ? destinationText : claimConsequence + "\n\n" + destinationText);
             BellumCivileLogger.Log($"Claim feud war resolved; war={war.WarId}; feud={war.FeudRecordId}; outcome={outcome}; reason={reason ?? "unknown"}.");
         }
 
@@ -808,8 +830,9 @@ namespace BellumCivile.Behaviors
 
         private void RepairOrphanedTemporaryFeudKingdoms()
         {
+            var peace = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>();
             HashSet<string> activeShellIds = new HashSet<string>(
-                _wars.Where(war => war != null && war.IsActive)
+                _wars.Where(war => war != null && (war.IsActive || peace?.OwnsUnfinishedFeudSettlement(war.FeudRecordId) == true))
                     .SelectMany(war => new[] { war.ClaimantKingdomId, war.HolderKingdomId })
                     .Where(id => !string.IsNullOrWhiteSpace(id)),
                 StringComparer.Ordinal);

@@ -190,6 +190,13 @@ internal static class Program
                 TestRivalCrownPromotion();
                 Console.WriteLine($"{_checks} civil-war settlement checks passed.");
             }
+            else if (args.Contains("--royal-peace"))
+            {
+                RoyalPeaceEngineTests.Run(Check);
+                CourtRoyalPeaceEngineTests.Run(Check);
+                RealmRoyalPeaceEngineTests.Run(Check);
+                Console.WriteLine($"{_checks} royal peace checks passed.");
+            }
             else if (args.Contains("--influence-budget"))
             {
                 NpcInfluenceBudgetTests.Run(Check);
@@ -864,6 +871,7 @@ internal static class Program
         CourtMandateEngineTests.Run(Check);
         RoyalPeaceEngineTests.Run(Check);
         CourtRoyalPeaceEngineTests.Run(Check);
+        RealmRoyalPeaceEngineTests.Run(Check);
         ClientLiberationResolveTests.Run(Check);
         ClientLiberationEngineTests.Run(Check);
         EstateRecoveryTests.Run(Check);

@@ -28,12 +28,20 @@ namespace BellumCivile
                     "{=BC_LiberationCancelledBody}The Crown's former plan no longer governs the realm's course. No declaration of liberation is credited to these preparations." };
                 case "royal_peace_warning": return new[] {
                     "{=BC_RoyalPeaceWarningTitle}The Crown Demands Unity",
-                    "{=BC_RoyalPeaceWarningChat}With {ENEMY} threatening {REALM}, {RULER} has commanded {CLAIMANT_HOUSE} and {HOLDER_HOUSE} to prepare to lay down their private banners.",
-                    "{=BC_RoyalPeaceWarningBody}On {DATE}, the Crown will impose peace upon their feud over {TITLE}. Neither house will be awarded the disputed claim. Both must return to the realm and turn their strength against the foreign enemy." };
+                    "{=BC_RealmPeaceWarningChat}{RULER} has announced a decree ending all private feuds and private wars throughout {REALM}.",
+                    "{=BC_RealmPeaceWarningBody}On {DATE}, the Crown intends to impose Royal Peace for one year. Private armies will return to the realm, pre-feud holdings will be restored, and claims will remain unresolved. New private conflicts and claimed-title revocations will be forbidden." };
                 case "royal_peace_cancelled": return new[] {
                     "{=BC_RoyalPeaceCancelledTitle}The Decree Withdrawn",
-                    "{=BC_RoyalPeaceCancelledChat}The announced decree concerning the feud over {TITLE} in {REALM} will not proceed.",
+                    "{=BC_RealmPeaceCancelledChat}The announced Royal Peace decree in {REALM} will not proceed.",
                     "{=BC_RoyalPeaceCancelledBody}{REASON}" };
+                case "realm_royal_peace_interrupted": return new[] {
+                    "{=BC_RealmPeaceInterruptedTitle}Royal Peace Settlement Interrupted",
+                    "{=BC_RealmPeaceInterruptedChat}The Royal Peace decree in {REALM} took effect, but some private conflicts could not be safely settled.",
+                    "{=BC_RealmPeaceInterruptedBody}The decree's influence cost has been paid and its prohibition remains in force until {DATE}. Settlement was interrupted; no further automatic attempt will repeat a partially applied transfer. The remaining conflicts require investigation using the Bellum log." };
+                case "realm_royal_peace": return new[] {
+                    "{=BC_Result_RoyalPeaceTitle}The Crown Imposes Peace",
+                    "{=BC_RealmPeaceResultChat}{RULER} has imposed Royal Peace throughout {REALM} until {DATE}.",
+                    "{=BC_RealmPeaceResultBody}All private feuds have been suppressed. The feuding houses return to the realm and their pre-feud holdings are restored, without extinguishing their claims. New private feuds, private wars and claimed-title revocations are forbidden for one year. The houses resent this interference, and Tyrant's Debt burdens the enforcing house." };
                 case "election_called": return new[] {
                     "{=BC_Deposition_ElectionCalled}Election Called",
                     "{=BC_Deposition_Deliberation}{DEPOSED} has been cast down. {CARETAKER} will govern {REALM} until its nobles choose a sovereign on {DATE}. The houses now weigh their loyalties and seek support for the coming election.",

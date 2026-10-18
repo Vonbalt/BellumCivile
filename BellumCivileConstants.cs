@@ -551,9 +551,11 @@ namespace BellumCivile
         public const float ClaimFeudRulerMercySuppressionBiasPerTrait = 8f;
         public const float ClaimFeudRulerCautiousSuppressionBiasPerTrait = 5f;
 
-        public const int RoyalPeaceFeudBaseInfluenceCost = 300;
-        public const int RoyalPeaceFeudLeaderTierCost = 50;
-        public const int RoyalPeaceFeudSupporterTierCost = 25;
+        public const int RoyalPeaceFeudBaseInfluenceCost = 100;
+        public const int RoyalPeaceAdditionalFeudCost = 50;
+        public const int RoyalPeaceAdditionalWarCost = 75;
+        public const int RoyalPeacePeacetimeCostMultiplier = 3;
+        public const int RoyalPeacePeacetimeResentmentMultiplier = 2;
         public const int RoyalPeaceInvolvedRelationPenalty = -15;
         public const int RoyalPeaceRealmRelationPenalty = -5;
         public const float RoyalPeaceTyrantsDebtYears = 1f;

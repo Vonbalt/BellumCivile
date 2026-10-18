@@ -187,6 +187,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (TryPauseFeudForRoyalPeace(record, out report))
+                return false;
+
             if (record.Pressure < C.DiscontentTrigger * 0.8f && record.State != ClaimFeudState.PetitionReady)
             {
                 report = new TextObject("{=BC_ClaimFeud_ReportLowIntensity}Feud intensity is not high enough to petition the ruler.").ToString();
@@ -348,6 +351,21 @@ namespace BellumCivile.Behaviors
             }
         }
 
+        private static TextObject GetRoyalPeaceBlockReason(Kingdom kingdom)
+        {
+            return Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(kingdom);
+        }
+
+        private bool TryPauseFeudForRoyalPeace(ClaimFeudRecord record, out string reason)
+        {
+            reason = GetRoyalPeaceBlockReason(RealmPeaceEnforcementBehavior.ResolveKingdomForFeud(record))?.ToString();
+            if (reason == null)
+                return false;
+
+            PauseFeudForConflict(record, reason);
+            return true;
+        }
+
         public float GetRebelliousIntentPenalty(Clan clan)
         {
             if (clan == null || string.IsNullOrWhiteSpace(clan.StringId))
@@ -488,7 +506,7 @@ namespace BellumCivile.Behaviors
             ClaimFeudRecord record = StartFeud(best, "debug_force");
             if (record == null)
             {
-                report = "A civil war has suspended private litigation in this realm.";
+                CanStartClaimFeud(clan, out report);
                 return false;
             }
 
@@ -505,9 +523,10 @@ namespace BellumCivile.Behaviors
             if (titleBehavior == null || clan == null)
                 return previews;
 
-            if (!CanStartClaimFeud(clan, out _))
+            if (!IsValidFeudClan(clan, out _) || HasActiveCivilWar(clan.Kingdom))
                 return previews;
 
+            TextObject peaceBlock = GetRoyalPeaceBlockReason(clan.Kingdom);
             foreach (ClaimFeudCandidate candidate in GetRankedFeudCandidates(titleBehavior, clan, requireThreshold: false))
             {
                 ClaimFeudActionPreview preview = new ClaimFeudActionPreview
@@ -526,6 +545,14 @@ namespace BellumCivile.Behaviors
             }
 
             AppendCooldownFeudPreviews(titleBehavior, clan, previews);
+            if (peaceBlock != null)
+            {
+                foreach (ClaimFeudActionPreview preview in previews)
+                {
+                    preview.IsEnabled = false;
+                    preview.DisabledReason = peaceBlock.ToString();
+                }
+            }
 
             return previews;
         }
@@ -642,7 +669,7 @@ namespace BellumCivile.Behaviors
             record = StartFeud(candidate, "player_action");
             if (record == null)
             {
-                report = "A civil war has suspended private litigation in this realm.";
+                CanStartClaimFeud(clan, out report);
                 return false;
             }
 
@@ -698,6 +725,13 @@ namespace BellumCivile.Behaviors
             if (revoker.Kingdom == null || holder.Kingdom == null || revoker.Kingdom != holder.Kingdom)
             {
                 report = "revocation parties are not in the same realm";
+                return false;
+            }
+
+            TextObject peaceBlock = GetRoyalPeaceBlockReason(kingdom);
+            if (peaceBlock != null)
+            {
+                report = peaceBlock.ToString();
                 return false;
             }
 
@@ -883,6 +917,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (TryPauseFeudForRoyalPeace(record, out report))
+                return false;
+
             Clan claimant = ResolveClan(record.ClaimantClanId);
             Clan holder = ResolveClan(record.HolderClanId);
             FeudalTitleRecord title = titleBehavior.GetTitle(record.TargetTitleId);
@@ -956,6 +993,9 @@ namespace BellumCivile.Behaviors
             float currentDay = CurrentDay;
             foreach (ClaimFeudRecord record in GetActiveFeuds().ToList())
             {
+                if (TryPauseFeudForRoyalPeace(record, out _))
+                    continue;
+
                 Clan claimant = ResolveClan(record.ClaimantClanId);
                 Clan holder = ResolveClan(record.HolderClanId);
                 FeudalTitleRecord title = titleBehavior.GetTitle(record.TargetTitleId);
@@ -982,6 +1022,8 @@ namespace BellumCivile.Behaviors
                         $"Claim feud resumed; feud={record.RecordId}; state={restoredState}; pressure={record.Pressure:0.0}.",
                         requestInGameDisplay: true);
                 }
+
+                ResetLegacySuppressionJudgment(record);
 
                 if (record.State == ClaimFeudState.PetitionReady && record.Judgment == ClaimFeudJudgment.None)
                 {
@@ -1039,6 +1081,9 @@ namespace BellumCivile.Behaviors
             float newPressure)
         {
             if (record == null || record.State != ClaimFeudState.Agitating || claimant == null || holder == null || title == null)
+                return;
+
+            if (TryPauseFeudForRoyalPeace(record, out _))
                 return;
 
             if (!record.HasPassed33 && oldPressure < 33f && newPressure >= 33f)
@@ -1106,6 +1151,9 @@ namespace BellumCivile.Behaviors
             if (record == null || claimant == null || holder == null || title == null)
                 return;
 
+            if (TryPauseFeudForRoyalPeace(record, out _))
+                return;
+
             Kingdom kingdom = claimant.Kingdom ?? holder.Kingdom;
             Hero ruler = kingdom?.RulingClan?.Leader;
             if (kingdom == null || ruler == null || ruler.IsDead)
@@ -1120,7 +1168,6 @@ namespace BellumCivile.Behaviors
             float claimantPower = RebellionPowerHelper.CalculateFactionPower(claimantSide);
             float holderPower = RebellionPowerHelper.CalculateFactionPower(holderSide);
             RefreshRecordedSupporters(record, claimantSide, holderSide, claimantPower, holderPower);
-            bool canEnforcePeace = CanRulerEnforcePeace(record, kingdom);
             bool playerIsClaimant = claimant == Clan.PlayerClan;
             bool playerIsHolder = holder == Clan.PlayerClan;
             bool playerIsRuler = kingdom.RulingClan == Clan.PlayerClan;
@@ -1143,7 +1190,7 @@ namespace BellumCivile.Behaviors
 
                 BellumCivileDebug.Trace(
                     "claim feud",
-                    $"Claim feud petition awaiting player ruler judgment; kingdom={kingdom.Name}; claimant={claimant.Name} ({claimant.StringId}); holder={holder.Name} ({holder.StringId}); title={FeudalTitleDisplayHelper.FormatTitleName(title, claimant)}; power={claimantPower:0}/{holderPower:0}; can_enforce_peace={canEnforcePeace}.",
+                    $"Claim feud petition awaiting player ruler judgment; kingdom={kingdom.Name}; claimant={claimant.Name} ({claimant.StringId}); holder={holder.Name} ({holder.StringId}); title={FeudalTitleDisplayHelper.FormatTitleName(title, claimant)}; power={claimantPower:0}/{holderPower:0}; can_enforce_peace={CanRulerEnforcePeace(kingdom)}.",
                     requestInGameDisplay: true);
                 return;
             }
@@ -1157,8 +1204,7 @@ namespace BellumCivile.Behaviors
                 title,
                 record.ClaimStrength,
                 claimantPower,
-                holderPower,
-                canEnforcePeace);
+                holderPower);
 
             GetRulingResponses(
                 judgment,
@@ -1277,23 +1323,6 @@ namespace BellumCivile.Behaviors
                     claimantAssessment = assessment.Summary;
                     break;
                 }
-                case ClaimFeudJudgment.Suppress:
-                {
-                    ClaimFeudComplianceAssessment assessment = AssessRulingCompliance(
-                        claimant,
-                        holder,
-                        kingdom,
-                        ruler,
-                        title,
-                        strength,
-                        claimantSide: true,
-                        judgment,
-                        claimantPower,
-                        holderPower);
-                    claimantResponse = assessment.Defies ? ClaimFeudResponse.Defy : ClaimFeudResponse.Accept;
-                    claimantAssessment = assessment.Summary;
-                    break;
-                }
                 case ClaimFeudJudgment.Abstain:
                 {
                     ClaimFeudComplianceAssessment claimantResult = AssessRulingCompliance(
@@ -1364,12 +1393,7 @@ namespace BellumCivile.Behaviors
                     legalPosition = true;
                     factors.Add("rightful holder");
                 }
-                if (judgment == ClaimFeudJudgment.Suppress)
-                {
-                    threshold -= 0.10f;
-                    factors.Add("claim suppressed");
-                }
-                else if (judgment == ClaimFeudJudgment.Abstain)
+                if (judgment == ClaimFeudJudgment.Abstain)
                 {
                     threshold -= 0.12f;
                     factors.Add("crown refused judgment");
@@ -1453,14 +1477,15 @@ namespace BellumCivile.Behaviors
             return new ClaimFeudComplianceAssessment(defies, summary);
         }
 
-        private static bool CanRulerEnforcePeace(ClaimFeudRecord record, Kingdom kingdom)
+        private static bool CanRulerEnforcePeace(Kingdom kingdom)
         {
             RealmPeaceEnforcementBehavior peaceBehavior = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>();
             Clan rulingClan = kingdom?.RulingClan;
-            if (peaceBehavior == null || rulingClan == null)
+            if (peaceBehavior == null || rulingClan == null
+                || Campaign.Current?.GetCampaignBehavior<CourtAgendaBehavior>() == null)
                 return false;
 
-            RoyalPeacePreview preview = peaceBehavior.GetClaimFeudPreview(record, rulingClan);
+            RoyalPeacePreview preview = peaceBehavior.GetRealmPreview(kingdom, rulingClan);
             return preview?.IsEnabled == true;
         }
 
@@ -1476,6 +1501,9 @@ namespace BellumCivile.Behaviors
             ClaimFeudResponse claimantResponse,
             ClaimFeudResponse holderResponse)
         {
+            if (judgment == ClaimFeudJudgment.Suppress || TryPauseFeudForRoyalPeace(record, out _))
+                return;
+
             _yearlyPetitionsJudged++;
             bool anyDefiance = claimantResponse == ClaimFeudResponse.Defy || holderResponse == ClaimFeudResponse.Defy;
             if (anyDefiance)
@@ -1510,18 +1538,6 @@ namespace BellumCivile.Behaviors
                         out result);
                     record.SetState(success ? ClaimFeudState.Settled : ClaimFeudState.Resolved);
                     break;
-                case ClaimFeudJudgment.Suppress:
-                    RealmPeaceEnforcementBehavior peaceBehavior = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>();
-                    Clan rulingClan = kingdom?.RulingClan;
-                    success = peaceBehavior != null
-                        && rulingClan != null
-                        && peaceBehavior.TryEnforceClaimFeudPeace(record, rulingClan, out result, showNotification: false);
-                    if (!success)
-                    {
-                        record.SetState(ClaimFeudState.Settled);
-                        record.SetCooldownUntilDay(CurrentDay + GetCampaignDaysInYear() * C.ClaimFeudCooldownYears);
-                    }
-                    break;
                 case ClaimFeudJudgment.Abstain:
                     record.SetState(ClaimFeudState.Settled);
                     record.SetCooldownUntilDay(CurrentDay + GetCampaignDaysInYear() * C.ClaimFeudCooldownYears);
@@ -1551,6 +1567,21 @@ namespace BellumCivile.Behaviors
                 return;
 
             ShowPlayerRulingInquiry(record, kingdom, ruler, claimant, holder, title);
+        }
+
+        private bool ResetLegacySuppressionJudgment(ClaimFeudRecord record)
+        {
+            if (record == null || record.Judgment != ClaimFeudJudgment.Suppress
+                || (record.State != ClaimFeudState.AwaitingPlayerResponse && record.State != ClaimFeudState.DefiedPendingWar))
+                return false;
+
+            // Old saves may still contain a per-feud suppression ruling awaiting a response.
+            record.RecordRuling(ClaimFeudJudgment.None, ClaimFeudResponse.None, ClaimFeudResponse.None,
+                CurrentDay, record.ClaimantSidePower, record.HolderSidePower,
+                record.ClaimantSupporterIds, record.HolderSupporterIds);
+            record.SetState(ClaimFeudState.PetitionReady);
+            _shownPlayerRulingInquiries.Remove(record.RecordId);
+            return true;
         }
 
         private void TryShowPendingPlayerRulerJudgmentInquiry(
@@ -1592,7 +1623,7 @@ namespace BellumCivile.Behaviors
             if (titleBehavior == null || record == null || kingdom == null || ruler == null || claimant == null || holder == null || title == null)
                 return;
 
-            if (kingdom.RulingClan != Clan.PlayerClan)
+            if (kingdom.RulingClan != Clan.PlayerClan || CourtAgendaBehavior.Current?.HasPendingRoyalPeace(kingdom) == true)
                 return;
 
             _shownPlayerRulerJudgmentInquiries.Add(record.RecordId);
@@ -1604,7 +1635,7 @@ namespace BellumCivile.Behaviors
             RefreshRecordedSupporters(record, claimantSide, holderSide, claimantPower, holderPower);
 
             RealmPeaceEnforcementBehavior peaceBehavior = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>();
-            RoyalPeacePreview peacePreview = peaceBehavior?.GetClaimFeudPreview(record, Clan.PlayerClan);
+            RoyalPeacePreview peacePreview = peaceBehavior?.GetRealmPreview(kingdom, Clan.PlayerClan);
 
             TextObject titleText = new TextObject("{=BC_ClaimFeud_PlayerRuler_Title}Petition for Judgment");
             TextObject desc = new TextObject("{=BC_ClaimFeud_PlayerRuler_Desc}A messenger arrives carrying the seal of {CLAIMANT_NAME} of the {CLAIMANT_CLAN}:{newline}{newline}\"I hope this letter finds you well, my liege. As you happen to know, I hold a legal right to the {TITLE_NAME}, held wrongfully by {HOLDER_NAME} of the {HOLDER_CLAN}, and would seek your justice on this matter. I await your decision.\"");
@@ -1639,7 +1670,7 @@ namespace BellumCivile.Behaviors
                     PlayerRulerChoiceSuppress,
                     new TextObject("{=BC_ClaimFeud_PlayerRuler_EnforcePeace}Enforce the Realm's Peace").ToString(),
                     null,
-                    peacePreview?.IsEnabled == true,
+                    peacePreview?.IsEnabled == true && Campaign.Current?.GetCampaignBehavior<CourtAgendaBehavior>() != null,
                     BuildPlayerRulerJudgmentTooltip(ClaimFeudJudgment.Suppress, record, kingdom, ruler, claimant, holder, title, claimantPower, holderPower, peacePreview))
             };
 
@@ -1670,6 +1701,10 @@ namespace BellumCivile.Behaviors
             float holderPower,
             RoyalPeacePreview peacePreview)
         {
+            if (judgment == ClaimFeudJudgment.Suppress)
+                return peacePreview?.Hint?.ToString()
+                    ?? new TextObject("{=BC_RoyalPeace_ErrUnavailable}The realm's peace cannot be enforced right now.").ToString();
+
             string titleName = FeudalTitleDisplayHelper.FormatTitleName(title, claimant ?? holder);
             string claimantName = claimant?.Name?.ToString() ?? "?";
             string holderName = holder?.Name?.ToString() ?? "?";
@@ -1720,21 +1755,6 @@ namespace BellumCivile.Behaviors
                     text.SetTextVariable("newline", "\n");
                     return text.ToString();
                 }
-                case ClaimFeudJudgment.Suppress:
-                {
-                    if (peacePreview?.IsEnabled == true)
-                    {
-                        TextObject text = new TextObject("{=BC_ClaimFeud_PlayerRuler_TooltipSuppress}<a style=\"Tooltip.Value.Text\"><b>Legal effect</b></a>{newline}Suppresses the feud without changing title rights.{newline}{newline}<a style=\"Tooltip.Value.Text\"><b>Cost</b></a>{newline}{COST} influence and Tyrant's Debt for the crown.{newline}{newline}<a style=\"Tooltip.Value.Text\"><b>Likely consequence</b></a>{newline}{CLAIMANT_CLAN} {RESPONSE}.");
-                        text.SetTextVariable("COST", peacePreview.InfluenceCost);
-                        text.SetTextVariable("CLAIMANT_CLAN", new TextObject("{=!}" + claimantName));
-                        text.SetTextVariable("RESPONSE", GetRulingResponseText(claimantResponse));
-                        text.SetTextVariable("newline", "\n");
-                        return text.ToString();
-                    }
-
-                    return peacePreview?.Hint?.ToString()
-                        ?? new TextObject("{=BC_RoyalPeace_ErrUnavailable}The realm's peace cannot be enforced right now.").ToString();
-                }
                 default:
                     return string.Empty;
             }
@@ -1779,6 +1799,9 @@ namespace BellumCivile.Behaviors
             if (record == null || record.State != ClaimFeudState.AwaitingPlayerRulerJudgment)
                 return;
 
+            if (TryPauseFeudForRoyalPeace(record, out _))
+                return;
+
             FeudalTitleBehavior titleBehavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
             Clan claimant = ResolveClan(record.ClaimantClanId);
             Clan holder = ResolveClan(record.HolderClanId);
@@ -1792,9 +1815,14 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
-            if (judgment == ClaimFeudJudgment.Suppress && !CanRulerEnforcePeace(record, kingdom))
+            if (judgment == ClaimFeudJudgment.Suppress)
             {
-                record.SetState(ClaimFeudState.AwaitingPlayerRulerJudgment);
+                if (CanRulerEnforcePeace(kingdom))
+                {
+                    // Confirmation schedules the same realm decree as the crown action.
+                    // The petition remains pending until that decree actually executes.
+                    Campaign.Current?.GetCampaignBehavior<CourtAgendaBehavior>()?.ShowPlayerRoyalPeace(kingdom, null);
+                }
                 return;
             }
 
@@ -1931,6 +1959,9 @@ namespace BellumCivile.Behaviors
 
             ClaimFeudRecord record = _feuds.FirstOrDefault(feud => feud != null && feud.RecordId == recordId);
             if (record == null || record.State != ClaimFeudState.AwaitingPlayerResponse)
+                return;
+
+            if (TryPauseFeudForRoyalPeace(record, out _) || ResetLegacySuppressionJudgment(record))
                 return;
 
             FeudalTitleBehavior titleBehavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
@@ -2118,12 +2149,10 @@ namespace BellumCivile.Behaviors
             FeudalTitleRecord title,
             FeudalClaimStrength strength,
             float claimantPower,
-            float holderPower,
-            bool canSuppress)
+            float holderPower)
         {
             float claimantCase = strength == FeudalClaimStrength.Strong ? 35f : 12f;
             float holderCase = 10f;
-            float suppressionInclination = 0f;
 
             if (title.DeJureHolderClanId == claimant.StringId)
                 claimantCase += 30f;
@@ -2158,16 +2187,11 @@ namespace BellumCivile.Behaviors
                 claimantPower,
                 holderPower,
                 ref claimantCase,
-                ref holderCase,
-                ref suppressionInclination);
+                ref holderCase);
 
             float difference = Math.Abs(claimantCase - holderCase);
-            float suppressionWindow = Math.Max(5f, Math.Min(35f, 15f + suppressionInclination));
-            if (canSuppress && difference < suppressionWindow)
-                return ClaimFeudJudgment.Suppress;
-
             if (difference < 8f)
-                return canSuppress ? ClaimFeudJudgment.Suppress : ClaimFeudJudgment.Abstain;
+                return ClaimFeudJudgment.Abstain;
 
             return claimantCase > holderCase
                 ? ClaimFeudJudgment.UpholdClaimant
@@ -2183,8 +2207,7 @@ namespace BellumCivile.Behaviors
             float claimantPower,
             float holderPower,
             ref float claimantCase,
-            ref float holderCase,
-            ref float suppressionInclination)
+            ref float holderCase)
         {
             if (ruler == null)
                 return;
@@ -2199,10 +2222,6 @@ namespace BellumCivile.Behaviors
                     holderCase += legalBias;
             }
 
-            int mercy = ruler.GetTraitLevel(DefaultTraits.Mercy);
-            if (mercy != 0)
-                suppressionInclination += mercy * C.ClaimFeudRulerMercySuppressionBiasPerTrait;
-
             int valor = ruler.GetTraitLevel(DefaultTraits.Valor);
             if (valor > 0)
             {
@@ -2210,10 +2229,6 @@ namespace BellumCivile.Behaviors
                     claimantCase += valor * C.ClaimFeudRulerPowerBiasPerTrait;
                 else
                     holderCase += valor * C.ClaimFeudRulerPowerBiasPerTrait;
-            }
-            else if (valor < 0)
-            {
-                suppressionInclination += -valor * C.ClaimFeudRulerCautiousSuppressionBiasPerTrait;
             }
 
             int calculating = ruler.GetTraitLevel(DefaultTraits.Calculating);
@@ -2223,12 +2238,6 @@ namespace BellumCivile.Behaviors
                     claimantCase += calculating * C.ClaimFeudRulerCalculatingPowerBiasPerTrait;
                 else
                     holderCase += calculating * C.ClaimFeudRulerCalculatingPowerBiasPerTrait;
-
-                suppressionInclination += calculating * 2f;
-            }
-            else if (calculating < 0)
-            {
-                suppressionInclination -= -calculating * C.ClaimFeudRulerCautiousSuppressionBiasPerTrait;
             }
         }
 
@@ -2240,7 +2249,7 @@ namespace BellumCivile.Behaviors
             ClaimFeudResponse claimantResponse,
             ClaimFeudResponse holderResponse)
         {
-            if (ruler == null)
+            if (ruler == null || judgment == ClaimFeudJudgment.Suppress)
                 return;
 
             switch (judgment)
@@ -2252,9 +2261,6 @@ namespace BellumCivile.Behaviors
                 case ClaimFeudJudgment.UpholdHolder:
                     ChangeRelation(holder?.Leader, ruler, C.ClaimFeudRulerUpholdRelationBonus, RelationMemorySources.UpheldMyTitleRights);
                     ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerUpholdRelationPenalty, RelationMemorySources.RejectedMyTitleRights);
-                    break;
-                case ClaimFeudJudgment.Suppress:
-                    ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerSuppressClaimantPenalty, RelationMemorySources.SuppressedMyClaim);
                     break;
                 case ClaimFeudJudgment.Abstain:
                     ChangeRelation(claimant?.Leader, ruler, C.ClaimFeudRulerAbstainRelationPenalty, RelationMemorySources.WithheldFeudJudgment);
@@ -2763,7 +2769,8 @@ namespace BellumCivile.Behaviors
                 return false;
 
             Kingdom kingdom = playerClan.Kingdom;
-            return kingdom.StringId == record.ParentKingdomId
+            return GetRoyalPeaceBlockReason(RealmPeaceEnforcementBehavior.ResolveKingdomForFeud(record)) == null
+                && kingdom.StringId == record.ParentKingdomId
                 && claimant?.Kingdom == kingdom && holder?.Kingdom == kingdom
                 && playerClan != claimant && playerClan != holder && playerClan != kingdom.RulingClan;
         }
@@ -2956,6 +2963,13 @@ namespace BellumCivile.Behaviors
             Kingdom parent = ResolveKingdom(record.ParentKingdomId);
             if (parent == null || parent.IsEliminated)
                 return false;
+
+            TextObject peaceBlock = GetRoyalPeaceBlockReason(parent);
+            if (peaceBlock != null)
+            {
+                reason = peaceBlock.ToString();
+                return true;
+            }
 
             if (claimant?.Kingdom != parent || holder?.Kingdom != parent)
             {
@@ -3166,11 +3180,11 @@ namespace BellumCivile.Behaviors
 
         private ClaimFeudRecord StartFeud(ClaimFeudCandidate candidate, string source)
         {
-            if (candidate?.Claimant?.Kingdom == null || HasActiveCivilWar(candidate.Claimant.Kingdom))
+            if (!CanStartClaimFeud(candidate?.Claimant, out string reason))
             {
                 BellumCivileDebug.TraceIfEnabled(
                     "claim feud",
-                    $"Claim feud start skipped because civil war has suspended private litigation; claimant={candidate?.Claimant?.Name}; source={source ?? "unknown"}.",
+                    $"Claim feud start skipped; reason={reason}; claimant={candidate?.Claimant?.Name}; source={source ?? "unknown"}.",
                     requestInGameDisplay: true);
                 return null;
             }
@@ -3613,6 +3627,13 @@ namespace BellumCivile.Behaviors
         {
             if (!IsValidFeudClan(clan, out reason))
                 return false;
+
+            TextObject peaceBlock = GetRoyalPeaceBlockReason(clan.Kingdom);
+            if (peaceBlock != null)
+            {
+                reason = peaceBlock.ToString();
+                return false;
+            }
 
             if (HasActiveCivilWar(clan.Kingdom))
             {

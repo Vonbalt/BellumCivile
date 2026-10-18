@@ -49,6 +49,7 @@ namespace BellumCivile.Behaviors
             selector.Register(new CourtTitleGrantObjectiveSource(CourtTitleGrantRules.Grant), "higher_titles");
             selector.Register(new CourtTitleGrantObjectiveSource(CourtTitleGrantRules.Petition), "higher_titles");
             selector.Register(new CourtClientGrantObjectiveSource());
+            selector.Register(new CourtRoyalPeaceObjectiveSource());
             return selector;
         }
 
@@ -121,6 +122,8 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BC_CourtDecreeCases", ref _decreeCases);
             dataStore.SyncData("BC_CourtRoyalPeaceCases", ref _royalPeaceCases);
             _royalPeaceCases = _royalPeaceCases ?? new List<CourtRoyalPeaceCase>();
+            dataStore.SyncData("BC_RoyalPeaceReviewAfter", ref _royalPeaceReviewAfter);
+            _royalPeaceReviewAfter = _royalPeaceReviewAfter ?? new Dictionary<string, float>();
             dataStore.SyncData("BC_CourtCouncilSettledUntil", ref _councilSettledUntil);
             dataStore.SyncData("BC_CourtCouncilContestedDay", ref _councilContestedDay);
             _councilSettledUntil = _councilSettledUntil ?? new Dictionary<string, CampaignTime>();

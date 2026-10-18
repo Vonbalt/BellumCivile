@@ -333,6 +333,13 @@ namespace BellumCivile
             }
 
             preview.ClaimStrength = strength;
+            TextObject peaceBlock = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(clan.Kingdom);
+            if (peaceBlock != null)
+            {
+                preview.Reason = peaceBlock.ToString();
+                return preview;
+            }
+
             if (clan.Influence < preview.InfluenceCost)
             {
                 preview.Reason = "insufficient influence";
@@ -586,6 +593,13 @@ namespace BellumCivile
         {
             holderDefied = false;
             reason = null;
+
+            TextObject peaceBlock = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(revokerClan?.Kingdom);
+            if (peaceBlock != null)
+            {
+                reason = peaceBlock.ToString();
+                return false;
+            }
 
             if (!preview.CanRevoke)
             {

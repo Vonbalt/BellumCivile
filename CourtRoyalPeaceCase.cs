@@ -22,6 +22,10 @@ namespace BellumCivile
         [SaveableField(15)] public Clan Claimant;
         [SaveableField(16)] public Clan Holder;
         [SaveableField(17)] public double WarStarted;
+        [SaveableField(18)] public bool RealmWide;
+        [SaveableField(19)] public bool Wartime;
+        [SaveableField(20)] public int QuotedCost;
+        [SaveableField(21)] public bool PlayerInitiated;
         internal bool TryBegin()
         {
             if (Closed || Started) return false;

@@ -147,7 +147,7 @@ The **player ruler does not receive the NPC annual Crown business invitation**. 
 | Prepare for liberation | 100 influence; +20 Liberty Desire preparation; one full-term cooldown; ordinary readiness and declaration rules still apply |
 | Seek foreign protection | 100 influence even if refused; one full-term cooldown after sending the appeal |
 | Grant land to a client | 100 influence plus the transferred holding; excludes the last fief, sieges, disputes, wartime occupations, and pending distribution |
-| Enforce Peace | Existing feud-specific influence calculation, scaling with the participants' hierarchy tiers; foreign-war and eligibility rules still apply |
+| Enforce Peace | Realm-wide decree: 100 influence includes one conflict (an armed one first), plus 50 per additional unarmed feud and 75 per additional private war; triple cost in peacetime; one year of Royal Peace |
 
 Cooldowns are saved per realm and action, not reset by switching a target or ruler. This is separate from the active benefit: ruler replacement ends an appeasement accommodation, while changed rulership or clientage ends liberation preparation. See `Behaviors/CourtPlayerCrownActions.cs` and `Behaviors/CourtCrownActionCooldowns.cs` for presentation and receipts.
 
@@ -290,7 +290,11 @@ A supporting player can **Leave** before or during war. Wartime withdrawal retur
 
 Civil wars and feuds share scoring/readiness infrastructure with foreign wars but retain their own terminal handlers. White peace ends the dispute without judgment. Install Ruler, Abdication, and independence must reach the appropriate political resolution before generic cleanup.
 
-Royal **Enforce Peace** applies to private claim wars, not open rebellions or grand coalitions. The player's Crown Action retains its foreign-war, eligibility, and influence requirements. An NPC ruler considers a crisis override when a substantial foreign attack threatens a realm distracted by feuds; advance notice precedes the decree. Enforcement returns the houses without awarding the disputed claim.
+Royal **Enforce Peace** ends all active private feuds and private wars attached to the realm, not open rebellions or grand coalitions. Both player and NPC rulers announce the decree through Crown business with the configured political deliberation period (five days by default). Execution costs 100 influence for the first conflict, counting an armed conflict first, plus 50 per additional unarmed feud and 75 per additional private war. Peacetime triples that price. A change in wartime status or an increased price cancels the announcement without payment; unsafe battles and sieges defer settlement for up to 30 days.
+
+Enforcement restores pre-feud holdings without extinguishing claims. Each involved noble house receives -15 relations and other noble houses receive -5, once per decree; peacetime doubles these penalties. Mercenaries are excluded. The enforcing house receives one year of Tyrant's Debt, halving positive daily influence gain. A separate saved, realm-level **Royal Peace** lasts one campaign year: new private feuds, their reactivation or escalation, and coercive claimed-title revocations are forbidden for NPCs and players alike. The decree cannot be renewed while active and survives ruler changes and foreign peace. Disabled feud choices explain the remaining duration; claims, voluntary grants, inheritance and rebellions against the Crown are unaffected.
+
+NPC rulers review wartime intervention at most once every 30 days, weighing all diverted military strength, foreign pressure and personality. In peacetime, intervention competes with ordinary Crown agendas and requires multiple disputes or a prolonged, costly private war. Old single-feud announcements are cancelled on upgrade rather than silently changing their scope or price; existing Tyrant's Debt does not retroactively impose Royal Peace.
 
 Close war stances before deleting feud records or temporary kingdoms. A legitimate realm destroyed by a third party during civil war uses a separate successor-recovery path.
 
@@ -1005,6 +1009,7 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --integration
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --inheritance-regression
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --royal-peace
 ```
 
 Use the default Debug configuration for the combined engine harness: its Harmony mocks can otherwise be bypassed by Release JIT inlining. Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Run the startup and version-contract probes against a Release build as well. Record results with the revision/environment rather than maintaining a stale passed-check count here.
