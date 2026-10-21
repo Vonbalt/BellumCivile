@@ -22,6 +22,7 @@ namespace BellumCivile.Behaviors
     /// </summary>
     public sealed class ForeignTreatyBehavior : CampaignBehaviorBase
     {
+        internal const string BudgetExceededReason = "the draft exceeds the available war score";
         private List<TreatyProposalRecord> _proposals = new List<TreatyProposalRecord>();
         private List<ActiveTreatyTributeRecord> _activeTributes = new List<ActiveTreatyTributeRecord>();
         private List<PendingTreatyRebelResolutionRecord> _pendingRebelResolutions = new List<PendingTreatyRebelResolutionRecord>();
@@ -254,7 +255,8 @@ namespace BellumCivile.Behaviors
             if (proposal == null)
                 return false;
 
-            if (!TryPreparePendingProposalDraft(war, proposal, out report))
+            bool submittedOverBudget = proposal.IsOverBudget;
+            if (!TryPreparePendingProposalDraft(war, proposal, out report, rebuildNpcDraft: false))
                 return proposal.State == TreatyProposalState.Cancelled;
 
             Kingdom winner = ResolveKingdom(proposal.WinnerKingdomId);
@@ -281,7 +283,7 @@ namespace BellumCivile.Behaviors
             // The parley may remain open while campaign state continues to change. Normalize once
             // more at the final ratification boundary so councils assess only terms that can still
             // be performed, rather than spending influence on a stale spouse, prisoner, or title.
-            if (!TryPreparePendingProposalDraft(war, proposal, out report))
+            if (!TryPreparePendingProposalDraft(war, proposal, out report, rebuildNpcDraft: false))
                 return proposal.State == TreatyProposalState.Cancelled;
 
             winner = ResolveKingdom(proposal.WinnerKingdomId);
@@ -290,8 +292,12 @@ namespace BellumCivile.Behaviors
             if (!TryValidateCouncilControlledWhitePeace(war, proposal, out report))
                 return proposal.State == TreatyProposalState.Cancelled;
 
-            if (!HasSettlementBudget(proposal, out report))
-                return false;
+            if (!HasSettlementBudget(proposal, out report) || (submittedOverBudget && !playerIsRuler))
+            {
+                if (playerIsRuler) return false;
+                CancelInvalidProposal(war, proposal, report);
+                return true;
+            }
 
             TreatyCouncilEvaluation winnerCouncil = EvaluateCouncil(war, proposal, winner, winnerSide: true);
             TreatyCouncilEvaluation loserCouncil = EvaluateCouncil(war, proposal, loser, winnerSide: false);
@@ -445,7 +451,8 @@ namespace BellumCivile.Behaviors
         private bool TryPreparePendingProposalDraft(
             WarScoreRecord war,
             TreatyProposalRecord proposal,
-            out string report)
+            out string report,
+            bool rebuildNpcDraft = true)
         {
             report = "the pending treaty proposal is no longer valid";
             if (proposal != null)
@@ -505,8 +512,45 @@ namespace BellumCivile.Behaviors
 
             proposal.ReplaceTerms(repairedDraft);
             _councilSnapshots.Remove(proposal.ProposalId);
+            Clan playerClan = Clan.PlayerClan;
+            if (rebuildNpcDraft && proposal.IsOverBudget
+                && (playerClan == null || (winner.RulingClan != playerClan && loser.RulingClan != playerClan)))
+                return TryRebuildNpcDraftWithinBudget(war, proposal, winner, loser, out report);
             report = validationReport;
             return true;
+        }
+
+        private bool TryRebuildNpcDraftWithinBudget(WarScoreRecord war, TreatyProposalRecord proposal,
+            Kingdom winner, Kingdom loser, out string report)
+        {
+            int previousCost = proposal.UsedWarScore;
+            try
+            {
+                Kingdom drafter = ResolveKingdom(proposal.DrafterKingdomId) ?? winner;
+                DraftAiTerms(war, proposal, winner, loser, drafter);
+                if (TreatyDraftService.TryValidateAndNormalize(war, proposal, winner, loser, proposal.Terms,
+                    out List<TreatyTermRecord> normalized, out string validationReport))
+                {
+                    proposal.ReplaceTerms(normalized);
+                    // A rewritten package must not spend a vote submitted for the previous terms.
+                    proposal.ResetPlayerResponse();
+                    _councilSnapshots.Remove(proposal.ProposalId);
+                    if (!TryValidateCouncilControlledWhitePeace(war, proposal, out report))
+                        return false;
+                    BellumCivileLogger.Log($"NPC treaty draft rebuilt within budget; proposal={proposal.ProposalId}; "
+                        + $"war={proposal.WarKey}; used={previousCost}->{proposal.UsedWarScore}/{proposal.WarScoreBudget}.");
+                    report = "NPC treaty draft rebuilt within available war score";
+                    return true;
+                }
+                BellumCivileLogger.Log($"NPC treaty budget repair failed validation; proposal={proposal.ProposalId}; reason={validationReport}.");
+            }
+            catch (Exception ex)
+            {
+                BellumCivileLogger.Log($"NPC treaty budget repair failed; proposal={proposal.ProposalId}; error={ex}");
+            }
+            report = BudgetExceededReason;
+            CancelInvalidProposal(war, proposal, report);
+            return false;
         }
 
         private bool TryValidateCouncilControlledWhitePeace(
@@ -1911,7 +1955,7 @@ namespace BellumCivile.Behaviors
 
         internal static bool HasSettlementBudget(TreatyProposalRecord proposal, out string report)
         {
-            report = "the draft exceeds the available war score";
+            report = BudgetExceededReason;
             return proposal != null && !proposal.IsOverBudget;
         }
 

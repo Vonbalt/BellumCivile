@@ -7066,5 +7066,7 @@
     <string id="BC_Parley_OrdinaryVoteCommitment" text="Council vote commitment" />
     <string id="BC_Parley_AdditionalOverrideCommitment" text="Additional override commitment" />
     <string id="BC_Parley_OutcomeUnavailable" text="Predicted outcome unavailable" />
+    <string id="BC_Parley_VassalInvalidBudgetHint" text="This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect." />
+    <string id="BC_Parley_OutcomeBudgetCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues." />
   </strings>
 </base>

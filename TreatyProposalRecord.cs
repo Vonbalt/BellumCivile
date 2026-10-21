@@ -113,6 +113,13 @@ namespace BellumCivile
             _playerInfluenceSpent = true;
         }
 
+        internal void ResetPlayerResponse()
+        {
+            _playerVoteStance = (int)TreatyCouncilVoteStance.Abstain;
+            _playerInfluenceCommitment = 0;
+            _playerVoteSubmitted = false;
+        }
+
         public void SetRatification(float winnerSupport, float loserSupport, int winnerOverrideCost, int loserOverrideCost)
         {
             _winnerSupport = winnerSupport;

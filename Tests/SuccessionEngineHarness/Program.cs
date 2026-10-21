@@ -300,6 +300,11 @@ internal static class Program
                 DiplomacyOverviewTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} client liberation checks passed.");
             }
+            else if (args.Contains("--parley-budget-recovery"))
+            {
+                PeaceParleyBudgetRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} parley budget recovery checks passed.");
+            }
             else if (args.Contains("--parley-presentation"))
             {
                 PeaceParleyPresentationTests.Run(Check);

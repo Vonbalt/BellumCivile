@@ -195,7 +195,7 @@ namespace BellumCivile.UI.Parley
                 bool hasValidPlayerResponse = IsPlayerRuler
                     || (proposal.PlayerVoteSubmitted
                         && (playerStance == TreatyCouncilVoteStance.Abstain || proposal.PlayerInfluenceCommitment > 0));
-                IsSignDisabled = isOverBudget || !hasValidPlayerResponse;
+                IsSignDisabled = !hasValidPlayerResponse || (isOverBudget && IsPlayerRuler);
                 foreach (TreatyCouncilMemberEvaluation member in OrderCouncilMembers(playerCouncil.Members, playerSide?.RulingClan))
                 {
                     bool isRuler = member?.Clan == playerSide?.RulingClan;
@@ -522,7 +522,9 @@ namespace BellumCivile.UI.Parley
                     : new TextObject("{=BC_Parley_RejectTreatyDisabledHint}Only your ruler might outright reject a treaty of peace")
                 : TextObject.GetEmpty());
             SignTreatyHint = new HintViewModel(isOverBudget
-                ? new TextObject("{=BC_Parley_FailureWarScoreExceeded}These demands exceed the leverage won in this war. Reduce the demands or offer concessions before sealing the peace; even capitulation cannot compel these terms.")
+                ? IsPlayerVassal
+                    ? new TextObject("{=BC_Parley_VassalInvalidBudgetHint}This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect.")
+                    : new TextObject("{=BC_Parley_FailureWarScoreExceeded}These demands exceed the leverage won in this war. Reduce the demands or offer concessions before sealing the peace; even capitulation cannot compel these terms.")
                 : IsSignDisabled
                 ? new TextObject("{=BC_Parley_SignTreatyDisabledHint}You need to select an outcome and how much you want to support that outcome.")
                 : new TextObject("{=BC_Parley_SignTreatyHint}Submit the drafted treaty to both councils. Committed influence will be spent even if ratification fails."));
@@ -606,7 +608,7 @@ namespace BellumCivile.UI.Parley
 
         public void ExecuteSignTreaty()
         {
-            if (_proposal?.IsOverBudget == true)
+            if (_proposal?.IsOverBudget == true && IsPlayerRuler)
             {
                 Refresh(_proposal);
                 return;
@@ -1443,7 +1445,9 @@ namespace BellumCivile.UI.Parley
             else if (_proposal?.State == TreatyProposalState.Cancelled)
             {
                 title = new TextObject("{=BC_Parley_OutcomeCancelledTitle}Peace Parley Closed");
-                description = new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
+                description = _proposal.ResolutionNote == ForeignTreatyBehavior.BudgetExceededReason
+                    ? new TextObject("{=BC_Parley_OutcomeBudgetCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues.")
+                    : new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
             }
             else if (explicitRulerRejection)
             {
