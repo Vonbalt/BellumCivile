@@ -300,6 +300,35 @@
                       <Children>
                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="24" MarginRight="24" MarginTop="18" MarginBottom="18" StackLayout.LayoutMethod="VerticalTopToBottom">
                           <Children>
+                        <Widget Id="RatificationStrip" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginBottom="6">
+                          <Children>
+                            <Widget DataSource="{PlayerCouncilSummary}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="246" SuggestedHeight="28" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="Barter\slider_boxy_canvas" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+                              <Children>
+                                <FillBarWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" MarginLeft="4" MarginRight="4" VerticalAlignment="Center" FillWidget="FillWidget" InitialAmount="@YayInfluence" MaxAmount="@TotalInfluence" Sprite="BlankWhiteSquare_9" Color="@OppositionColor">
+                                  <Children>
+                                    <Widget Id="FillWidget" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#66B65AFF" />
+                                  </Children>
+                                </FillBarWidget>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Bellum.Parley.VoteBalance.Text" Text="@BalanceText" />
+                              </Children>
+                            </Widget>
+                            <Widget Id="TreatyOutcomeIcon" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="44" SuggestedHeight="44" HorizontalAlignment="Center" VerticalAlignment="Center" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginPredictedOutcomeHint" Command.HoverEnd="ExecuteEndPredictedOutcomeHint">
+                              <Children>
+                                <BoolBrushChangerBrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" BooleanCheck="@TreatyWillPass" TrueBrush="Barter.Offer.Visual.Accepted" FalseBrush="Barter.Offer.Visual.NotAccepted" />
+                              </Children>
+                            </Widget>
+                            <Widget DataSource="{OpponentCouncilSummary}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="246" SuggestedHeight="28" HorizontalAlignment="Right" VerticalAlignment="Center" Sprite="Barter\slider_boxy_canvas" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+                              <Children>
+                                <FillBarWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" MarginLeft="4" MarginRight="4" VerticalAlignment="Center" FillWidget="FillWidget" InitialAmount="@YayInfluence" MaxAmount="@TotalInfluence" Sprite="BlankWhiteSquare_9" Color="@OppositionColor">
+                                  <Children>
+                                    <Widget Id="FillWidget" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#66B65AFF" />
+                                  </Children>
+                                </FillBarWidget>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Bellum.Parley.VoteBalance.Text" Text="@BalanceText" />
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </Widget>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" HorizontalAlignment="Center" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="23" Brush.FontColor="@BudgetColor" Text="@BudgetText" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@DraftTermsHeight" MarginTop="4">
                           <Children>
@@ -327,12 +356,6 @@
                                 <BrushWidget Id="DraftTermsScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />
                               </Children>
                             </ScrollbarWidget>
-                          </Children>
-                        </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="SPKingdom\Diplomacy\divider_left" MarginTop="14" MarginBottom="12" AlphaFactor="0.6" />
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginTop="8" Command.HoverBegin="ExecuteBeginPredictedOutcomeHint" Command.HoverEnd="ExecuteEndPredictedOutcomeHint">
-                          <Children>
-                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Text="@PredictedOutcomeText" Brush.FontColor="@PredictedOutcomeColor" />
                           </Children>
                         </Widget>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" />

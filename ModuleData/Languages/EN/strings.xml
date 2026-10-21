@@ -7046,5 +7046,25 @@
     <string id="BC_RealmPeaceInterruptedTitle" text="Royal Peace Settlement Interrupted" />
     <string id="BC_RealmPeaceInterruptedChat" text="The Royal Peace decree in {REALM} took effect, but some private conflicts could not be safely settled." />
     <string id="BC_RealmPeaceInterruptedBody" text="The decree's influence cost has been paid and its prohibition remains in force until {DATE}. Settlement was interrupted; no further automatic attempt will repeat a partially applied transfer. The remaining conflicts require investigation using the Bellum log." />
+    <string id="BC_Parley_VoteBalance" text="{YAY}% YAY / {NAY}% NAY" />
+    <string id="BC_Parley_RulerDecisionBalance" text="Ruler decision" />
+    <string id="BC_Parley_UncommittedBalance" text="Uncommitted" />
+    <string id="BC_Parley_CouncilUnavailable" text="The council's decision is unavailable." />
+    <string id="BC_Parley_NoVassalCouncil" text="There is no vassal council in {REALM}." />
+    <string id="BC_Parley_CouncilNoCommitments" text="The council of {REALM} has committed no influence." />
+    <string id="BC_Parley_CouncilSupportsTally" text="The council of {REALM} supports this treaty, with {YAY} influence committed YAY against {NAY} committed NAY." />
+    <string id="BC_Parley_CouncilOpposesTally" text="The council of {REALM} opposes this treaty, with {NAY} influence committed NAY against {YAY} committed YAY." />
+    <string id="BC_Parley_CouncilTiedTally" text="The council of {REALM} is divided, with {NAY} influence committed NAY against {YAY} committed YAY." />
+    <string id="BC_Parley_BudgetBlocksDecision" text="The draft exceeds the available war score and cannot be ratified." />
+    <string id="BC_Parley_CompulsoryDecision" text="Peace is compulsory; {REALM} must accept these terms." />
+    <string id="BC_Parley_NoRulerDecision" text="No ruler is available to approve this treaty." />
+    <string id="BC_Parley_RulerWouldOverrideAccept" text="{RULER} would approve the treaty with {COST} additional influence to overrule the council." />
+    <string id="BC_Parley_RulerWouldOverrideReject" text="{RULER} would reject the treaty with {COST} additional influence to overrule the council." />
+    <string id="BC_Parley_RulerWouldAccept" text="{RULER} would approve the treaty." />
+    <string id="BC_Parley_RulerWouldReject" text="{RULER} would reject the treaty." />
+    <string id="BC_Parley_RulerLacksInfluenceToApprove" text="I lack the influence to secure this peace against my vassals." />
+    <string id="BC_Parley_OrdinaryVoteCommitment" text="Council vote commitment" />
+    <string id="BC_Parley_AdditionalOverrideCommitment" text="Additional override commitment" />
+    <string id="BC_Parley_OutcomeUnavailable" text="Predicted outcome unavailable" />
   </strings>
 </base>

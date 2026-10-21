@@ -23,6 +23,7 @@ namespace BellumCivile.UI.Parley
         private CharacterImageIdentifierVM _portraitVisual;
         private BannerImageIdentifierVM _bannerVisual;
         private readonly BasicTooltipViewModel _reasonTooltip;
+        private bool _isHintVisible;
 
         public TreatyCouncilMemberVM(
             TreatyCouncilMemberEvaluation evaluation,
@@ -48,9 +49,10 @@ namespace BellumCivile.UI.Parley
             EnthusiasmText = new TextObject("{=BC_Parley_Enthusiasm}Enthusiasm: {VALUE}")
                 .SetTextVariable("VALUE", EnthusiasmValue + "%")
                 .ToString();
-            int committedInfluence = isRuler
-                ? Math.Max(0, rulerOverrideCommitment)
-                : Math.Max(0, evaluation?.InfluenceCommitment ?? 0);
+            int ordinaryCommitment = evaluation?.Stance == TreatyCouncilVoteStance.Abstain
+                ? 0 : Math.Max(0, evaluation?.InfluenceCommitment ?? 0);
+            int overrideCommitment = isRuler ? Math.Max(0, rulerOverrideCommitment) : 0;
+            int committedInfluence = ordinaryCommitment + overrideCommitment;
             InfluenceText = new TextObject("{=BC_Parley_Commitment}Influence commitment: {VALUE}")
                 .SetTextVariable("VALUE", committedInfluence)
                 .ToString();
@@ -71,16 +73,21 @@ namespace BellumCivile.UI.Parley
                 isRuler,
                 realmAccepts,
                 committedInfluence,
+                ordinaryCommitment,
+                overrideCommitment,
                 rulerCouncilReason));
         }
 
         public void ExecuteBeginReasonHint()
         {
+            _isHintVisible = true;
             _reasonTooltip?.ExecuteBeginHint();
         }
 
         public void ExecuteEndReasonHint()
         {
+            if (!_isHintVisible) return;
+            _isHintVisible = false;
             _reasonTooltip?.ExecuteEndHint();
         }
 
@@ -152,6 +159,8 @@ namespace BellumCivile.UI.Parley
             bool isRuler,
             bool realmAccepts,
             int committedInfluence,
+            int ordinaryCommitment,
+            int overrideCommitment,
             string rulerCouncilReason)
         {
             List<TooltipProperty> properties = new List<TooltipProperty>();
@@ -163,6 +172,12 @@ namespace BellumCivile.UI.Parley
             if (isRuler)
                 properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_RulerDecision}Ruler Decision").ToString(), BuildRulerDecisionText(realmAccepts), 0));
             properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_CommittedInfluence}Committed Influence").ToString(), committedInfluence.ToString(), 0));
+            if (isRuler)
+            {
+                properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_OrdinaryVoteCommitment}Council vote commitment").ToString(),
+                    ordinaryCommitment.ToString() + " (" + BuildVoteText(evaluation?.Stance ?? TreatyCouncilVoteStance.Abstain) + ")", 0));
+                properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_AdditionalOverrideCommitment}Additional override commitment").ToString(), overrideCommitment.ToString(), 0));
+            }
             properties.Add(new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator));
             if (isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason))
                 properties.Add(new TooltipProperty(rulerCouncilReason, string.Empty, 0));

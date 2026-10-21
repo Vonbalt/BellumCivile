@@ -18,10 +18,10 @@ Check ($vm -match 'public void ExecuteSignTreaty\(\)\s*\{\s*if \(_proposal\?\.Is
 Check ($vm.Contains('bool playerForced = proposal.IsForced && !isOverBudget;') -and
     $vm.Contains('bool opponentForced = proposal.IsForced && !isOverBudget;') -and
     $vm.Contains('bool treatyWillPass = !isOverBudget && playerAccepts && opponentAccepts;')) 'Forced drafts cannot predict acceptance while over budget.'
-$status = $vm.Substring($vm.IndexOf('private static string BuildCouncilStatusText('))
-Check ($status.IndexOf('if (council.IsBudgetBlocked)') -lt $status.IndexOf('if (forced)')) 'Budget-blocked council status takes precedence over capitulation.'
-Check ($vm.Contains('rulerPosition == null || council.IsBudgetBlocked || council.IsSoleRulerDecision') -and
-    $vm.Contains('if (council == null || council.IsBudgetBlocked)')) 'Budget rejection does not invent ruler override reasons or commitments.'
+$summary = Get-Content -Raw -LiteralPath (Join-Path $root 'UI/Parley/TreatyCouncilSummaryVM.cs')
+Check ($summary.IndexOf('if (council.IsBudgetBlocked)') -lt $summary.IndexOf('if (forced)')) 'Budget-blocked council status takes precedence over capitulation.'
+Check ($summary.Contains('position == null || council.IsBudgetBlocked || forced') -and
+    $summary.Contains('bool actualOverride = council != null && !council.IsBudgetBlocked && !forced')) 'Budget rejection does not invent ruler override reasons or commitments.'
 Check ($vm.Contains('Math.Max(currentCost, GetMaximumWealthCost(existing, fromKingdom, toKingdom))') -and
     $vm.Contains('nextCost = Math.Max(0, currentCost + (increase ? step : -step));')) 'Ctrl+increase never reduces oversized wealth and ordinary increments remain uncapped.'
 Check ($vm.Contains('return Math.Max(0, _proposal.WarScoreBudget - usedWithoutThisTerm);') -and
