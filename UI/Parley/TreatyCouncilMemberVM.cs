@@ -17,6 +17,7 @@ namespace BellumCivile.UI.Parley
         private Color _voteColor;
         private string _enthusiasmText;
         private string _influenceText;
+        private bool _isInfluenceVisible;
         private string _primaryReasonText;
         private int _enthusiasmValue;
         private Color _enthusiasmColor;
@@ -53,9 +54,8 @@ namespace BellumCivile.UI.Parley
                 ? 0 : Math.Max(0, evaluation?.InfluenceCommitment ?? 0);
             int overrideCommitment = isRuler ? Math.Max(0, rulerOverrideCommitment) : 0;
             int committedInfluence = ordinaryCommitment + overrideCommitment;
-            InfluenceText = new TextObject("{=BC_Parley_Commitment}Influence commitment: {VALUE}")
-                .SetTextVariable("VALUE", committedInfluence)
-                .ToString();
+            InfluenceText = committedInfluence.ToString();
+            IsInfluenceVisible = committedInfluence > 0;
 
             TreatyCouncilReason primary = evaluation?.PrimaryReason;
             PrimaryReasonText = isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason)
@@ -101,6 +101,8 @@ namespace BellumCivile.UI.Parley
         public string EnthusiasmText { get => _enthusiasmText; set { if (value != _enthusiasmText) { _enthusiasmText = value; OnPropertyChangedWithValue(value, "EnthusiasmText"); } } }
         [DataSourceProperty]
         public string InfluenceText { get => _influenceText; set { if (value != _influenceText) { _influenceText = value; OnPropertyChangedWithValue(value, "InfluenceText"); } } }
+        [DataSourceProperty]
+        public bool IsInfluenceVisible { get => _isInfluenceVisible; set { if (value != _isInfluenceVisible) { _isInfluenceVisible = value; OnPropertyChangedWithValue(value, "IsInfluenceVisible"); } } }
         [DataSourceProperty]
         public string PrimaryReasonText { get => _primaryReasonText; set { if (value != _primaryReasonText) { _primaryReasonText = value; OnPropertyChangedWithValue(value, "PrimaryReasonText"); } } }
         [DataSourceProperty]

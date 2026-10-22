@@ -294,7 +294,10 @@ internal static class PeaceCouncilReadinessTests
                     _settlementEntryCalls = 0;
                     foreach (var apply in settlementMethods)
                     {
-                        check(!(bool)apply.Invoke(behavior, new object[] { war, proposal, kingdom, loser })
+                        object[] arguments = apply.Name == "ApplyTreaty"
+                            ? new object[] { war, proposal, kingdom, loser, false }
+                            : new object[] { war, proposal, kingdom, loser };
+                        check(!(bool)apply.Invoke(behavior, arguments)
                             && _settlementEntryCalls == 0,
                             apply.Name + " rejects excess before reaching settlement work; forced=" + forced);
                         check(proposal.State == originalState && proposal.DraftRevision == originalRevision
@@ -325,7 +328,10 @@ internal static class PeaceCouncilReadinessTests
                     {
                         bool reachedBoundary = false;
                         int previousCalls = _settlementEntryCalls;
-                        try { apply.Invoke(behavior, new object[] { war, proposal, kingdom, loser }); }
+                        object[] arguments = apply.Name == "ApplyTreaty"
+                            ? new object[] { war, proposal, kingdom, loser, false }
+                            : new object[] { war, proposal, kingdom, loser };
+                        try { apply.Invoke(behavior, arguments); }
                         catch (TargetInvocationException ex) when (ex.InnerException is InvalidOperationException
                             && ex.InnerException.Message == "Readiness fixture settlement boundary reached")
                         { reachedBoundary = true; }

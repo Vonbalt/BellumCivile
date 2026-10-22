@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -10,9 +8,6 @@ namespace BellumCivile.UI.Parley
 {
     public sealed class TreatyCouncilSummaryVM : ViewModel
     {
-        private readonly BasicTooltipViewModel _tooltip;
-        private bool _isHintVisible;
-
         [DataSourceProperty] public int YayInfluence { get; }
         [DataSourceProperty] public int TotalInfluence { get; }
         [DataSourceProperty] public Color OppositionColor { get; }
@@ -46,24 +41,6 @@ namespace BellumCivile.UI.Parley
             DecisionText = BuildDecisionText(kingdom, council, forced, accepts, actualOverride,
                 RulerOverrideCommitment);
             RulerReason = BuildRulerReason(kingdom, council, forced, accepts, actualOverride);
-            _tooltip = new BasicTooltipViewModel(() => new List<TooltipProperty>
-            {
-                new TooltipProperty(CouncilText, string.Empty, 0),
-                new TooltipProperty(DecisionText, string.Empty, 0)
-            });
-        }
-
-        public void ExecuteBeginHint()
-        {
-            _isHintVisible = true;
-            _tooltip.ExecuteBeginHint();
-        }
-
-        public void ExecuteEndHint()
-        {
-            if (!_isHintVisible) return;
-            _isHintVisible = false;
-            _tooltip.ExecuteEndHint();
         }
 
         private static string BuildCouncilText(Kingdom kingdom, TreatyCouncilEvaluation council)

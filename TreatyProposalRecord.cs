@@ -52,6 +52,7 @@ namespace BellumCivile
         internal bool IsWhitePeaceOrEmpty => _terms == null
             || _terms.All(term => term == null)
             || _terms.Any(term => term?.Type == TreatyTermType.WhitePeace);
+        internal bool IsExplicitWhitePeace => _terms?.Count == 1 && _terms[0]?.Type == TreatyTermType.WhitePeace;
         public int UsedWarScore => TreatyWarScoreAccounting.Calculate(
             _terms,
             _winnerKingdomId,

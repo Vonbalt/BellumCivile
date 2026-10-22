@@ -256,6 +256,7 @@ namespace BellumCivile.Behaviors
                 return false;
 
             bool submittedOverBudget = proposal.IsOverBudget;
+            bool playerReviewedWhitePeace = proposal.IsExplicitWhitePeace;
             if (!TryPreparePendingProposalDraft(war, proposal, out report, rebuildNpcDraft: false))
                 return proposal.State == TreatyProposalState.Cancelled;
 
@@ -289,7 +290,7 @@ namespace BellumCivile.Behaviors
             winner = ResolveKingdom(proposal.WinnerKingdomId);
             loser = ResolveKingdom(proposal.LoserKingdomId);
 
-            if (!TryValidateCouncilControlledWhitePeace(war, proposal, out report))
+            if (!TryValidateCouncilControlledWhitePeace(war, proposal, out report, playerReviewedWhitePeace))
                 return proposal.State == TreatyProposalState.Cancelled;
 
             if (!HasSettlementBudget(proposal, out report) || (submittedOverBudget && !playerIsRuler))
@@ -328,7 +329,7 @@ namespace BellumCivile.Behaviors
                 return true;
             }
 
-            if (!ApplyTreaty(war, proposal, winner, loser))
+            if (!ApplyTreaty(war, proposal, winner, loser, playerReviewedWhitePeace))
             {
                 report = proposal.ResolutionNote;
                 return proposal.State == TreatyProposalState.Cancelled;
@@ -556,7 +557,8 @@ namespace BellumCivile.Behaviors
         private bool TryValidateCouncilControlledWhitePeace(
             WarScoreRecord war,
             TreatyProposalRecord proposal,
-            out string report)
+            out string report,
+            bool playerReviewedWhitePeace = false)
         {
             report = string.Empty;
             if (!proposal.IsWhitePeaceOrEmpty)
@@ -570,10 +572,16 @@ namespace BellumCivile.Behaviors
             // Native peace offers can enter through TryQueuePlayerParley even with an NPC
             // proposer. Use final ruling authority, not entry-point or drafter provenance.
             // Player rulers intentionally bypass this automatic gate; normal councils still decide.
+            // A submitted vassal response also reaches the councils, but only for the explicit white
+            // draft reviewed before normalization, never an empty or repaired automatic fallback.
             Kingdom playerKingdom = WarPeaceRevampBehavior.GetPlayerPoliticalKingdom();
-            if (Clan.PlayerClan != null && playerKingdom?.RulingClan == Clan.PlayerClan
+            if (Clan.PlayerClan != null && playerKingdom != null
                 && (playerKingdom.StringId == proposal.WinnerKingdomId
-                    || playerKingdom.StringId == proposal.LoserKingdomId))
+                    || playerKingdom.StringId == proposal.LoserKingdomId)
+                && (playerKingdom.RulingClan == Clan.PlayerClan
+                    || (playerReviewedWhitePeace && proposal.IsExplicitWhitePeace && proposal.PlayerVoteSubmitted
+                        && (proposal.PlayerVoteStance == TreatyCouncilVoteStance.Abstain
+                            || proposal.PlayerInfluenceCommitment > 0))))
                 return true;
 
             WarScoreBehavior scores = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>();
@@ -1848,7 +1856,8 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private bool ApplyTreaty(WarScoreRecord war, TreatyProposalRecord proposal, Kingdom winner, Kingdom loser)
+        private bool ApplyTreaty(WarScoreRecord war, TreatyProposalRecord proposal, Kingdom winner, Kingdom loser,
+            bool playerReviewedWhitePeace = false)
         {
             if (!HasSettlementBudget(proposal, out _))
                 return false;
@@ -1856,7 +1865,7 @@ namespace BellumCivile.Behaviors
             if (TryCancelStorylineProtectedProposal(war, proposal, out _))
                 return false;
 
-            if (!TryValidateCouncilControlledWhitePeace(war, proposal, out _))
+            if (!TryValidateCouncilControlledWhitePeace(war, proposal, out _, playerReviewedWhitePeace))
                 return false;
 
             if (!proposal.Terms.Any(t => t?.Type == TreatyTermType.HostagePeace))

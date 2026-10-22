@@ -18,7 +18,9 @@ Check ($budget.Contains('case NpcInfluenceExpenseKind.Discretionary:') -and $bud
 $banner = $panel.SelectSingleNode('//ListPanel[@DataSource="{FavorBanners}"]/ItemTemplate/ListPanel/Children')
 $cost = $banner.SelectSingleNode('ListPanel/Children/TextWidget[@Text="@InfluenceCostText"]')
 Check ($null -ne $cost -and $cost.GetAttribute('DoNotAcceptEvents') -eq 'true') 'Every repeated banner has a click-through cost below its name.'
-Check ($cost.ParentNode.SelectSingleNode('Widget').GetAttribute('Sprite') -eq 'General\Icons\Influence@2x') 'Cost uses the existing native influence icon.'
+$icon = $cost.ParentNode.SelectSingleNode('Widget')
+Check ($icon.GetAttribute('Sprite') -eq 'SPKingdom\influence_icon_small' -and
+    $icon.GetAttribute('SuggestedWidth') -eq '17' -and $icon.GetAttribute('SuggestedHeight') -eq '27') 'Cost uses the native kingdom influence icon at vanilla proposal-cost dimensions.'
 [xml]$strings = Read 'ModuleData/Languages/EN/strings.xml'
 foreach ($id in @('BC_CrownFavorSelect', 'BC_CrownFavorUnaffordable')) {
     Check ($strings.SelectSingleNode("//string[@id='$id']").text.Contains('{COST}')) "Localized price hint: $id"

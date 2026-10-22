@@ -124,7 +124,7 @@ namespace BellumCivile.UI.Parley
             UpperPanelHeight = IsPlayerVassal ? 280 : 538;
             LowerPanelHeight = IsPlayerVassal ? 609 : 351;
             DraftEditorHeight = IsPlayerVassal ? 118 : 376;
-            DraftTermsHeight = IsPlayerVassal ? 277 : 199;
+            DraftTermsHeight = IsPlayerVassal ? 246 : 199;
             IsRejectDisabled = !IsPlayerRuler || proposal?.IsForced == true;
             TreatyCouncilVoteStance playerStance = proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain;
             IsInfluenceSelectionDisabled = !IsPlayerVassal || playerStance == TreatyCouncilVoteStance.Abstain;
@@ -546,7 +546,7 @@ namespace BellumCivile.UI.Parley
         public void ExecuteCommit150() => SetPlayerVote(_proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain, 150);
         public void ExecuteBeginPredictedOutcomeHint()
         {
-            if (_predictedOutcomeTooltip == null) return;
+            if (_isOutcomeHintVisible || _predictedOutcomeTooltip == null) return;
             _isOutcomeHintVisible = true;
             _predictedOutcomeTooltip.ExecuteBeginHint();
         }
@@ -561,8 +561,6 @@ namespace BellumCivile.UI.Parley
         public void CloseTooltips()
         {
             ExecuteEndPredictedOutcomeHint();
-            PlayerCouncilSummary?.ExecuteEndHint();
-            OpponentCouncilSummary?.ExecuteEndHint();
             foreach (var member in PlayerCouncil) member.ExecuteEndReasonHint();
             foreach (var member in OpponentCouncil) member.ExecuteEndReasonHint();
         }
@@ -1445,9 +1443,30 @@ namespace BellumCivile.UI.Parley
             else if (_proposal?.State == TreatyProposalState.Cancelled)
             {
                 title = new TextObject("{=BC_Parley_OutcomeCancelledTitle}Peace Parley Closed");
-                description = _proposal.ResolutionNote == ForeignTreatyBehavior.BudgetExceededReason
-                    ? new TextObject("{=BC_Parley_OutcomeBudgetCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues.")
-                    : new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
+                switch (_proposal.ResolutionNote)
+                {
+                    case ForeignTreatyBehavior.BudgetExceededReason:
+                        description = new TextObject("{=BC_Parley_OutcomeBudgetCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues.");
+                        break;
+                    case "war or treaty realm no longer active":
+                        description = new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
+                        break;
+                    case "the council-controlled white peace no longer meets mutual peace eligibility":
+                        description = new TextObject("{=BC_Parley_OutcomeWhitePeaceCancelledBody}The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms.");
+                        break;
+                    case "the active campaign quest prevents peace in this war":
+                        description = new TextObject("{=BC_Parley_OutcomeQuestCancelledBody}An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement.");
+                        break;
+                    case "the balance of the war changed before the treaty could be ratified":
+                        description = new TextObject("{=BC_Parley_OutcomeBalanceCancelledBody}The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement.");
+                        break;
+                    case "the promised hostage could not be delivered":
+                        description = new TextObject("{=BC_Parley_OutcomeHostageCancelledBody}The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement.");
+                        break;
+                    default:
+                        description = new TextObject("{=BC_Parley_OutcomeOtherCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement.");
+                        break;
+                }
             }
             else if (explicitRulerRejection)
             {

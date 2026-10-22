@@ -133,7 +133,7 @@
                                     </ButtonWidget>
                                   </Children>
                                 </Widget>
-                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedHeight="25" SuggestedWidth="10" />
+                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedHeight="32" SuggestedWidth="10" />
                               </Children>
                             </ListPanel>
 
@@ -149,12 +149,12 @@
                                     </ButtonWidget>
                                   </Children>
                                 </Widget>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25">
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32">
                                   <Children>
                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@IsFoundCostVisible">
                                       <Children>
-                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="100" MarginRight="5" VerticalAlignment="Center" PositionYOffset="3" />
-                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" Sprite="General\Icons\Influence@2x" VerticalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="100" MarginRight="4" VerticalAlignment="Center" />
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="27" Sprite="SPKingdom\influence_icon_small" VerticalAlignment="Center" />
                                       </Children>
                                     </ListPanel>
                                   </Children>
@@ -182,12 +182,12 @@
                                             </ButtonWidget>
                                           </Children>
                                         </Widget>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25">
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32">
                                           <Children>
                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@ProposalInfluenceCostText" MarginRight="5" VerticalAlignment="Center" PositionYOffset="3" />
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" Sprite="General\Icons\Influence@2x" VerticalAlignment="Center" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="@ProposalInfluenceCostText" MarginRight="4" VerticalAlignment="Center" />
+                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="27" Sprite="SPKingdom\influence_icon_small" VerticalAlignment="Center" />
                                               </Children>
                                             </ListPanel>
                                           </Children>
@@ -207,12 +207,12 @@
                                             </ButtonWidget>
                                           </Children>
                                         </Widget>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25">
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32">
                                           <Children>
                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@DismissInfluenceCostText" MarginRight="5" VerticalAlignment="Center" PositionYOffset="3" />
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" Sprite="General\Icons\Influence@2x" VerticalAlignment="Center" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="@DismissInfluenceCostText" MarginRight="4" VerticalAlignment="Center" />
+                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="27" Sprite="SPKingdom\influence_icon_small" VerticalAlignment="Center" />
                                               </Children>
                                             </ListPanel>
                                           </Children>
@@ -375,10 +375,10 @@
                                           </Children>
                                         </HintWidget>
                                         <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@Name" MarginTop="5" />
-                                        <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="28" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" MarginTop="3">
+                                        <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" MarginTop="3">
                                           <Children>
-                                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@InfluenceCostText" MarginRight="5" VerticalAlignment="Center" />
-                                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" Sprite="General\Icons\Influence@2x" VerticalAlignment="Center" />
+                                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="@InfluenceCostText" MarginRight="4" VerticalAlignment="Center" />
+                                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="27" Sprite="SPKingdom\influence_icon_small" VerticalAlignment="Center" />
                                           </Children>
                                         </ListPanel>
                                       </Children>
@@ -900,7 +900,7 @@
                     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Frame1.Border">
                       <Children>
                         <TextWidget Text="@ChooseFactionTypeText" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="60" Brush="Kingdom.DecisionTitleBig.Text" Brush.FontSize="50" MarginTop="20" HorizontalAlignment="Center" VerticalAlignment="Top" />
-                        <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="100" MarginLeft="30" MarginRight="50" AutoHideScrollBars="true" ClipRect="BellumTypeClipRect" InnerPanel="BellumTypeClipRect\BellumTypeList" VerticalScrollbar="..\BellumTypeListScrollbar">
+                        <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="112" MarginLeft="30" MarginRight="50" AutoHideScrollBars="true" ClipRect="BellumTypeClipRect" InnerPanel="BellumTypeClipRect\BellumTypeList" VerticalScrollbar="..\BellumTypeListScrollbar">
                           <Children>
                             <Widget Id="BellumTypeClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                               <Children>
@@ -923,7 +923,7 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
-                        <ScrollbarWidget Id="BellumTypeListScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" VerticalAlignment="Center" MarginTop="80" MarginBottom="100" MarginRight="22" AlignmentAxis="Vertical" Handle="BellumTypeListScrollbarHandle" MaxValue="100" MinValue="0">
+                        <ScrollbarWidget Id="BellumTypeListScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" VerticalAlignment="Center" MarginTop="80" MarginBottom="112" MarginRight="22" AlignmentAxis="Vertical" Handle="BellumTypeListScrollbarHandle" MaxValue="100" MinValue="0">
                           <Children>
                             <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Bed" />
                             <BrushWidget Id="BellumTypeListScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50" HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle" />
@@ -938,10 +938,10 @@
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="26" Text="@ConfirmText" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                   </Children>
                                 </ButtonWidget>
-                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="25" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@IsSelectedActionCostVisible">
+                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@IsSelectedActionCostVisible">
                                   <Children>
-                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@SelectedActionCostText" MarginRight="5" VerticalAlignment="Center" PositionYOffset="3" />
-                                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" Sprite="General\Icons\Influence@2x" VerticalAlignment="Center" />
+                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="@SelectedActionCostText" MarginRight="4" VerticalAlignment="Center" />
+                                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="27" Sprite="SPKingdom\influence_icon_small" VerticalAlignment="Center" />
                                   </Children>
                                 </ListPanel>
                               </Children>
@@ -953,7 +953,7 @@
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="26" Text="@CancelText" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                   </Children>
                                 </ButtonWidget>
-                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedHeight="25" SuggestedWidth="10" />
+                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedHeight="32" SuggestedWidth="10" />
                               </Children>
                             </ListPanel>
                           </Children>

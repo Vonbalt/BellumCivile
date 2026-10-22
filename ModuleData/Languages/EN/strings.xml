@@ -2345,6 +2345,11 @@
     <string id="BC_Parley_OutcomeRulerRejectedBody" text="You have rejected the proposed treaty between {FIRST_REALM} and {SECOND_REALM}. The parley has ended without agreement, and the war continues." />
     <string id="BC_Parley_OutcomeCouncilRejectedBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} failed to secure the assent of both realms. The parley has ended without agreement, and the war continues." />
     <string id="BC_Parley_OutcomeCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed." />
+    <string id="BC_Parley_OutcomeWhitePeaceCancelledBody" text="The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms." />
+    <string id="BC_Parley_OutcomeQuestCancelledBody" text="An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeBalanceCancelledBody" text="The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeHostageCancelledBody" text="The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeOtherCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement." />
     <string id="BC_Parley_MajorityFailed" text="REJECTED: NAY MAJORITY" />
     <string id="BC_Parley_CouncilStatus" text="{REALM}: {STATUS}&#xA;YAY {YAY} / NAY {NAY} | Participation {PARTICIPATION}/{QUORUM}" />
     <string id="BC_Parley_PredictedOutcomeHint" text="{FIRST_REALM}&#xA;&#xA;{SECOND_REALM}" />

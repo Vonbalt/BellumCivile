@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
@@ -97,12 +99,11 @@ internal static class PeaceParleyPresentationTests
                 "Short tooltip matches the agreed wording and real override calculation");
             check(!approval.SummaryText.Contains("%") && !approval.SummaryText.Contains("remaining")
                 && approval.RulerOverrideCommitment == 300, "Realm tooltip omits percentages and remaining balances");
-            check(TooltipRows(approval, "_tooltip").SequenceEqual(new[] { approval.CouncilText + ":", approval.DecisionText + ":" }),
-                "Realm hover contains only the two concise paragraphs");
 
             var rulerRow = new TreatyCouncilMemberVM(opposed.Members[0], true, true,
                 approval.RulerOverrideCommitment, approval.RulerReason);
-            check(rulerRow.InfluenceText == "Influence commitment: 375", "Ruler row includes the ordinary vote plus the override");
+            check(rulerRow.InfluenceText == "375" && rulerRow.IsInfluenceVisible && rulerRow.VoteText == "ACCEPT",
+                "Ruler row shows its exact ordinary vote plus override as a plain amount beneath the decision");
             var rows = TooltipRows(rulerRow, "_reasonTooltip");
             check(rows.Contains("Council vote commitment:75 (YAY)")
                 && rows.Contains("Additional override commitment:300")
@@ -119,7 +120,7 @@ internal static class PeaceParleyPresentationTests
             check(cannotReject.DecisionText == "King Derthert would approve the treaty."
                 && cannotReject.RulerOverrideCommitment == 0 && cannotReject.RulerReason.Contains("lack the influence"),
                 "Protected reserve explains why an opposing ruler yields despite sufficient raw influence");
-            check(new TreatyCouncilMemberVM(supported.Members[0], true, true).InfluenceText == "Influence commitment: 75",
+            check(new TreatyCouncilMemberVM(supported.Members[0], true, true).InfluenceText == "75",
                 "Ordinary ruler commitment remains visible when no override occurs");
             _influence = 675;
             var rejection = Summary(supported);
@@ -158,11 +159,53 @@ internal static class PeaceParleyPresentationTests
             check(player.DecisionText.Contains("would approve") && player.RulerOverrideCommitment == 0,
                 "Player ruler directly approves an unopposed draft without a fictitious cost");
 
+            foreach (var stance in new[] { TreatyCouncilVoteStance.Yay, TreatyCouncilVoteStance.Nay })
+            foreach (int amount in new[] { 25, 75, 150 })
+            {
+                var member = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(
+                    _ruler, 45, 1000, 0, stance, amount, null));
+                check(member.InfluenceText == amount.ToString() && member.IsInfluenceVisible
+                    && member.VoteText == (stance == TreatyCouncilVoteStance.Yay ? "YAY" : "NAY")
+                    && member.EnthusiasmText == "Enthusiasm: 45%",
+                    "Plain influence amount preserves the actual vote and separate enthusiasm: " + stance + " " + amount);
+            }
+            foreach (var stance in new[] { TreatyCouncilVoteStance.Yay, TreatyCouncilVoteStance.Nay, TreatyCouncilVoteStance.Abstain })
+            {
+                var member = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(
+                    _ruler, 45, 0, 0, stance, 0, null));
+                check(!member.IsInfluenceVisible && member.InfluenceText == "0",
+                    "Zero commitment hides both the amount and influence icon: " + stance);
+            }
+            var abstaining = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(
+                _ruler, 45, 1000, 0, TreatyCouncilVoteStance.Abstain, 150, null));
+            check(!abstaining.IsInfluenceVisible && abstaining.VoteText == "ABSTAIN",
+                "Abstention hides even a stale nonzero ordinary commitment");
+            var rulerOverrideOnly = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(
+                _ruler, 45, 2000, 0, TreatyCouncilVoteStance.Abstain, 0, null), true, false, 1275);
+            check(rulerOverrideOnly.IsInfluenceVisible && rulerOverrideOnly.InfluenceText == "1275"
+                && rulerOverrideOnly.VoteText == "REJECT", "Ruler overrides remain visible above the ordinary voting tiers");
+            var overrideRows = TooltipRows(rulerOverrideOnly, "_reasonTooltip");
+            check(overrideRows.Contains("Council vote commitment:0 (ABSTAIN)")
+                && overrideRows.Contains("Additional override commitment:1275")
+                && overrideRows.Contains("Committed Influence:1275"), "An override-only ruler retains the full influence breakdown");
+            var missing = new TreatyCouncilMemberVM(null);
+            check(!missing.IsInfluenceVisible && missing.EnthusiasmValue == 0 && missing.VoteText == "ABSTAIN",
+                "Unavailable noble evaluation has no fabricated influence commitment");
+            foreach (int value in new[] { -5, 0, 30, 31, 45, 70, 71, 100, 105 })
+            {
+                int clamped = Math.Max(0, Math.Min(100, value));
+                var member = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(
+                    _ruler, value, 0, 0, TreatyCouncilVoteStance.Abstain, 0, null));
+                var color = clamped <= 30 ? Color.ConvertStringToColor("#82E06AFF")
+                    : clamped <= 70 ? Color.ConvertStringToColor("#E4B85EFF") : Colors.Red;
+                check(member.EnthusiasmValue == clamped && member.EnthusiasmColor == color
+                    && member.EnthusiasmText == "Enthusiasm: " + clamped + "%",
+                    "Enthusiasm keeps its existing range, text and war-will color: " + value);
+            }
+
             Patch(AccessTools.Method(tooltipType, "ExecuteBeginHint"), nameof(Begin));
             Patch(AccessTools.Method(tooltipType, "ExecuteEndHint"), nameof(End));
             _begun = _ended = 0;
-            approval.ExecuteEndHint(); rulerRow.ExecuteEndReasonHint();
-            check(_ended == 0, "Inactive hover cleanup leaves unrelated tooltips alone");
             var vm = Blank<PeaceParleyVM>();
             AccessTools.Field(typeof(PeaceParleyVM), "<PlayerCouncil>k__BackingField")
                 .SetValue(vm, new MBBindingList<TreatyCouncilMemberVM> { rulerRow });
@@ -170,12 +213,40 @@ internal static class PeaceParleyPresentationTests
                 .SetValue(vm, new MBBindingList<TreatyCouncilMemberVM>());
             vm.PlayerCouncilSummary = approval;
             vm.OpponentCouncilSummary = rejection;
-            AccessTools.Field(typeof(PeaceParleyVM), "_predictedOutcomeTooltip")
-                .SetValue(vm, AccessTools.Field(typeof(TreatyCouncilSummaryVM), "_tooltip").GetValue(approval));
-            approval.ExecuteBeginHint(); rejection.ExecuteBeginHint(); rulerRow.ExecuteBeginReasonHint();
             vm.ExecuteBeginPredictedOutcomeHint();
+            vm.CloseTooltips();
+            check(_begun == 0 && _ended == 0, "Unavailable outcome and inactive cleanup leave unrelated tooltips alone");
+            vm.PredictedOutcomeText = "Predicted Outcome: TREATY REJECTED";
+            vm.PlayerRatificationText = approval.SummaryText;
+            vm.OpponentRatificationText = rejection.SummaryText;
+            var buildOutcome = AccessTools.Method(typeof(PeaceParleyVM), "BuildPredictedOutcomeTooltip");
+            // Build the native callback without adding a UI assembly reference to the harness.
+            var instance = Expression.Constant(vm);
+            var outcomeRows = Expression.Lambda(typeof(Func<>).MakeGenericType(buildOutcome.ReturnType),
+                Expression.Call(buildOutcome,
+                    Expression.Property(instance, nameof(PeaceParleyVM.PredictedOutcomeText)),
+                    Expression.Property(instance, nameof(PeaceParleyVM.PlayerRatificationText)),
+                    Expression.Property(instance, nameof(PeaceParleyVM.OpponentRatificationText)))).Compile();
+            AccessTools.Field(typeof(PeaceParleyVM), "_predictedOutcomeTooltip")
+                .SetValue(vm, Activator.CreateInstance(tooltipType, outcomeRows));
+            check(TooltipRows(vm, "_predictedOutcomeTooltip").SequenceEqual(new[] {
+                vm.PredictedOutcomeText + ":", ":", approval.SummaryText + ":", ":", rejection.SummaryText + ":" }),
+                "Single outcome tooltip preserves its prediction title, separators and both full realm decisions");
+            check(!string.Join("\n", TooltipRows(vm, "_predictedOutcomeTooltip")).Contains("%")
+                && !string.Join("\n", TooltipRows(vm, "_predictedOutcomeTooltip")).Contains("remaining"),
+                "Combined outcome tooltip keeps percentages and remaining balances out of its text");
+            vm.ExecuteBeginPredictedOutcomeHint();
+            vm.ExecuteBeginPredictedOutcomeHint();
+            check(_begun == 1, "Repeated hover entry opens the shared tooltip only once");
+            // Match Gauntlet invocation and avoid inlining the native close call before Harmony patches it.
+            var endOutcomeHint = AccessTools.Method(typeof(PeaceParleyVM), nameof(PeaceParleyVM.ExecuteEndPredictedOutcomeHint));
+            endOutcomeHint.Invoke(vm, null);
+            endOutcomeHint.Invoke(vm, null);
+            check(_ended == 1, "Leaving the combined strip closes its tooltip only once: begun=" + _begun + ", ended=" + _ended);
+            vm.ExecuteBeginPredictedOutcomeHint();
+            rulerRow.ExecuteBeginReasonHint();
             vm.CloseTooltips(); vm.CloseTooltips();
-            check(_begun == 4 && _ended == 4, "Draft refresh and close dismiss each active hover exactly once");
+            check(_begun == 3 && _ended == 3, "Draft refresh and close clean up the shared outcome and noble hovers exactly once");
 
             CheckLayout(check);
         }
@@ -191,21 +262,38 @@ internal static class PeaceParleyPresentationTests
         var list = (XmlElement)strip.ParentNode.ParentNode;
         check(strip.PreviousSibling == null && strip.NextSibling.Attributes["Text"].Value == "@BudgetText",
             "Ratification strip sits above Drafted Terms");
+        check(strip.GetAttribute("DoNotPassEventsToChildren") == "true"
+            && strip.GetAttribute("Command.HoverBegin") == "ExecuteBeginPredictedOutcomeHint"
+            && strip.GetAttribute("Command.HoverEnd") == "ExecuteEndPredictedOutcomeHint"
+            && !strip.HasAttribute("DataSource") && !strip.HasAttribute("DoNotAcceptEvents")
+            && strip.SelectNodes(".//*[@Command.HoverBegin or @Command.HoverEnd]").Count == 0,
+            "Both bars, the handshake and their gaps share one parent-level outcome hover without competing tooltips");
         var bars = strip.SelectNodes("Children/Widget[@DataSource]").Cast<XmlElement>().ToArray();
         check(bars.Length == 2 && bars[0].GetAttribute("DataSource") == "{PlayerCouncilSummary}"
             && bars[1].GetAttribute("DataSource") == "{OpponentCouncilSummary}", "Each bar belongs to its adjacent realm");
         foreach (var bar in bars)
         {
-            check(bar.GetAttribute("SuggestedWidth") == "246" && bar.GetAttribute("SuggestedHeight") == "28"
-                && bar.GetAttribute("Command.HoverBegin") == "ExecuteBeginHint"
-                && !bar.HasAttribute("IsEnabled"), "Compact native-framed bar retains an enabled hover region");
+            check(bar.GetAttribute("SuggestedWidth") == "230.5" && bar.GetAttribute("SuggestedHeight") == "28"
+                && bar.GetAttribute("DoNotAcceptEvents") == "true"
+                && !bar.HasAttribute("Command.HoverBegin"), "Compact native-framed bar defers hover to the shared outcome strip");
             var fill = (XmlElement)bar.SelectSingleNode("Children/FillBarWidget");
             check(fill.GetAttribute("InitialAmount") == "@YayInfluence" && fill.GetAttribute("MaxAmount") == "@TotalInfluence"
                 && fill.GetAttribute("Color") == "@OppositionColor", "Bar geometry uses exact commitments and a neutral empty background");
         }
         var icon = (XmlElement)strip.SelectSingleNode("Children/Widget[@Id='TreatyOutcomeIcon']");
         var visual = (XmlElement)icon.SelectSingleNode("Children/BoolBrushChangerBrushWidget");
-        check(icon.GetAttribute("SuggestedWidth") == "44" && !icon.HasAttribute("Command.Click")
+        string game = (string)AccessTools.Field(typeof(Program), "_game").GetValue(null);
+        var nativeBarter = new XmlDocument();
+        nativeBarter.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Barter/BarterScreen.xml"));
+        var nativeIcon = (XmlElement)nativeBarter.SelectSingleNode("//ButtonWidget[@Id='AutoOfferButton']");
+        check(icon.GetAttribute("SuggestedWidth") == nativeIcon.GetAttribute("SuggestedWidth")
+            && icon.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
+            && strip.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
+            && icon.GetAttribute("HorizontalAlignment") == "Center" && icon.GetAttribute("VerticalAlignment") == "Center"
+            && bars.All(bar => bar.GetAttribute("VerticalAlignment") == "Center"),
+            "Handshake matches the actual native barter dimensions and stays centered between both bars");
+        check(!icon.HasAttribute("Command.Click")
+            && icon.GetAttribute("DoNotAcceptEvents") == "true" && !icon.HasAttribute("Command.HoverBegin")
             && visual.GetAttribute("BooleanCheck") == "@TreatyWillPass"
             && visual.GetAttribute("TrueBrush") == "Barter.Offer.Visual.Accepted"
             && visual.GetAttribute("FalseBrush") == "Barter.Offer.Visual.NotAccepted", "Native handshake indicates the combined result without a barter action");
@@ -219,17 +307,162 @@ internal static class PeaceParleyPresentationTests
         check(style.GetAttribute("FontSize") == "17" && style.GetAttribute("TextOutlineColor") == "#000000FF"
             && style.GetAttribute("TextOutlineAmount") == "0.3", "Percentage text uses a small outlined native brush style");
         int width = 600 - int.Parse(list.GetAttribute("MarginLeft")) - int.Parse(list.GetAttribute("MarginRight"));
-        check(width == 552 && 246 * 2 + 44 + 16 == width, "Both bars and the icon fit the unchanged center width with eight-unit gaps");
+        double occupiedWidth = bars.Sum(bar => double.Parse(bar.GetAttribute("SuggestedWidth"), CultureInfo.InvariantCulture))
+            + int.Parse(icon.GetAttribute("SuggestedWidth"));
+        check(width == 552 && occupiedWidth + 16 == width,
+            "Both bars and the native-sized icon fit the unchanged center width with eight-unit gaps");
+        var vmSource = File.ReadAllText(Path.Combine(root, "UI/Parley/PeaceParleyVM.cs"));
+        check(vmSource.Contains("DraftTermsHeight = IsPlayerVassal ? 246 : 199;"),
+            "Vassal draft viewport makes room for the native handshake without moving its vote controls");
         foreach (var mode in new[] { new { Name = "ruler", Height = 351, Terms = 199, Controls = 0 },
-            new { Name = "vassal", Height = 609, Terms = 277, Controls = 196 } })
+            new { Name = "vassal", Height = 609, Terms = 246, Controls = 196 } })
         {
             int available = mode.Height - int.Parse(list.GetAttribute("MarginTop")) - int.Parse(list.GetAttribute("MarginBottom"));
-            int required = 44 + 6 + 30 + 4 + mode.Terms + mode.Controls;
+            int required = int.Parse(strip.GetAttribute("SuggestedHeight")) + 6 + 30 + 4 + mode.Terms + mode.Controls;
             check(required <= available, "Ratification strip preserves the " + mode.Name + " panel's existing height and controls");
+        }
+        CheckMemberLayout(document, bars[0], check);
+        CheckInfluenceSizing(document, check);
+    }
+
+    private static void CheckMemberLayout(XmlDocument document, XmlElement summaryBar, Action<bool, string> check)
+    {
+        var cards = new[] { "PlayerCouncilList", "OpponentCouncilList" }.Select(id =>
+            (XmlElement)document.SelectSingleNode("//*[@Id='" + id + "']/ItemTemplate/Widget")).ToArray();
+        check(cards[0].OuterXml == cards[1].OuterXml, "Both realms use the exact same noble card layout");
+        foreach (var card in cards)
+        {
+            check(card.GetAttribute("SuggestedHeight") == "124" && card.GetAttribute("MarginBottom") == "8"
+                && card.GetAttribute("DoNotPassEventsToChildren") == "true"
+                && card.GetAttribute("Command.HoverBegin") == "ExecuteBeginReasonHint"
+                && card.GetAttribute("Command.HoverEnd") == "ExecuteEndReasonHint"
+                && card.SelectNodes(".//ButtonWidget | .//*[@Command.Click or @Command.HoverBegin]").Count == 0,
+                "Whole noble card has a single read-only hover target and unchanged row spacing");
+            var details = (XmlElement)card.SelectSingleNode("Children/Widget[@Id='CouncilMemberDetails']");
+            var description = (XmlElement)details.SelectSingleNode("Children/ListPanel[@Id='CouncilMemberDescription']");
+            var column = (XmlElement)details.SelectSingleNode("Children/ListPanel[@Id='CouncilVoteColumn']");
+            int reserve = int.Parse(description.GetAttribute("MarginRight"));
+            int columnWidth = int.Parse(column.GetAttribute("SuggestedWidth"));
+            check(details.GetAttribute("MarginLeft") == "120" && details.GetAttribute("MarginRight") == "4"
+                && column.GetAttribute("WidthSizePolicy") == "Fixed" && columnWidth == 112
+                && column.GetAttribute("HorizontalAlignment") == "Right" && reserve - columnWidth == 12,
+                "Portrait, description and fixed vote column have separate bounds with a twelve-unit gap");
+            var name = (XmlElement)description.SelectSingleNode("Children/TextWidget[@Text='@DisplayName']");
+            var reason = (XmlElement)description.SelectSingleNode("Children/TextWidget[@Text='@PrimaryReasonText']");
+            var bar = (XmlElement)description.SelectSingleNode("Children/Widget[@Id='CouncilEnthusiasmBar']");
+            var fill = (XmlElement)bar.SelectSingleNode("Children/FillBarWidget");
+            var label = (XmlElement)bar.SelectSingleNode("Children/TextWidget");
+            check(bar.GetAttribute("SuggestedHeight") == summaryBar.GetAttribute("SuggestedHeight")
+                && bar.GetAttribute("Sprite") == summaryBar.GetAttribute("Sprite")
+                && fill.GetAttribute("SuggestedHeight") == "18"
+                && fill.GetAttribute("MarginLeft") == "4" && fill.GetAttribute("MarginRight") == "4"
+                && fill.GetAttribute("VerticalAlignment") == "Center",
+                "Noble enthusiasm reuses the middle bar's frame, outer height and inset fill");
+            check(fill.GetAttribute("InitialAmount") == "@EnthusiasmValue" && fill.GetAttribute("MaxAmount") == "100"
+                && fill.GetAttribute("Color") == "#555555FF"
+                && fill.SelectSingleNode("Children/Widget").Attributes["Color"].Value == "@EnthusiasmColor"
+                && label.GetAttribute("Brush") == "Bellum.Parley.VoteBalance.Text"
+                && label.GetAttribute("Text") == "@EnthusiasmText"
+                && label.GetAttribute("WidthSizePolicy") == "StretchToParent"
+                && label.GetAttribute("HeightSizePolicy") == "StretchToParent",
+                "Centered outlined enthusiasm text overlays its original war-will fill, not treaty support");
+            int usedHeight = description.SelectNodes("Children/*").Cast<XmlElement>().Sum(widget =>
+                int.Parse(widget.GetAttribute("SuggestedHeight"))
+                + (int.TryParse(widget.GetAttribute("MarginTop"), out int top) ? top : 0));
+            int availableHeight = int.Parse(card.GetAttribute("SuggestedHeight"))
+                - int.Parse(details.GetAttribute("MarginTop")) - int.Parse(details.GetAttribute("MarginBottom"));
+            check(usedHeight <= availableHeight && reason.GetAttribute("SuggestedHeight") == "40"
+                && reason.GetAttribute("Brush.FontSize") == "18" && reason.GetAttribute("ClipContents") == "true"
+                && name.GetAttribute("HeightSizePolicy") == "Fixed" && name.GetAttribute("ClipContents") == "true",
+                "Bounded name and two-line reason fit the original card height without touching its divider");
+            var vote = (XmlElement)column.SelectSingleNode("Children/TextWidget");
+            var influence = (XmlElement)column.SelectSingleNode("Children/ListPanel[@Id='CouncilInfluence']");
+            var amount = (XmlElement)influence.SelectSingleNode("Children/TextWidget");
+            var icon = (XmlElement)influence.SelectSingleNode("Children/BrushWidget");
+            int voteTop = int.Parse(column.GetAttribute("MarginTop"));
+            int barTop = int.Parse(name.GetAttribute("SuggestedHeight")) + int.Parse(bar.GetAttribute("MarginTop"));
+            int influenceTop = voteTop + int.Parse(vote.GetAttribute("SuggestedHeight"))
+                + int.Parse(influence.GetAttribute("MarginTop"));
+            check(vote.GetAttribute("Text") == "@VoteText" && vote.GetAttribute("Brush.FontColor") == "@VoteColor"
+                && voteTop == barTop && vote.GetAttribute("SuggestedHeight") == bar.GetAttribute("SuggestedHeight")
+                && vote.GetAttribute("Brush.TextVerticalAlignment") == "Center"
+                && influenceTop >= barTop + int.Parse(bar.GetAttribute("SuggestedHeight")) + 4,
+                "Vote aligns vertically with the enthusiasm bar and the commitment sits beneath it");
+            check(influenceTop + int.Parse(influence.GetAttribute("SuggestedHeight")) <= availableHeight,
+                "Lowered vote and enlarged commitment still fit above the original card divider");
+            check(influence.GetAttribute("IsVisible") == "@IsInfluenceVisible"
+                && influence.GetAttribute("HorizontalAlignment") == "Center"
+                && !influence.HasAttribute("Sprite") && !influence.HasAttribute("Brush")
+                && influence.SelectNodes("Children/*").Count == 2
+                && amount.GetAttribute("Text") == "@InfluenceText"
+                && amount.GetAttribute("Brush") == "Kingdom.Voter.SupportAmount.Text"
+                && amount.GetAttribute("Brush.FontColor") == "#FCA060FF"
+                && icon.GetAttribute("Brush") == "Kingdom.VoteStrengthInfluence.Icon",
+                "Only the highlighted number and native influence icon are shown, with no button frame");
+            check(int.Parse(amount.GetAttribute("MaxWidth")) + int.Parse(icon.GetAttribute("SuggestedWidth"))
+                + int.Parse(icon.GetAttribute("MarginLeft")) <= columnWidth
+                && amount.GetAttribute("CanBreakWords") == "false"
+                && amount.GetAttribute("HeightSizePolicy") == "Fixed",
+                "Large ruler totals have a bounded single-number region that cannot overlap the bar");
+            CheckNativeAttributes(card, check);
         }
     }
 
-    private static void CheckNativeAttributes(XmlElement strip, Action<bool, string> check)
+    private static void CheckInfluenceSizing(XmlDocument document, Action<bool, string> check)
+    {
+        string game = (string)AccessTools.Field(typeof(Program), "_game").GetValue(null);
+        var diplomacy = new XmlDocument();
+        diplomacy.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/KingdomManagement/Diplomacy/DiplomacyPanel.xml"));
+        var nativeAmount = (XmlElement)diplomacy.SelectSingleNode("//TextWidget[@IntText='@InfluenceCost']");
+        var nativeIcon = (XmlElement)nativeAmount.ParentNode.SelectSingleNode("Widget[@Sprite]");
+        var brushes = new XmlDocument();
+        brushes.Load(Path.Combine(game, "Modules/SandBox/GUI/Brushes/Kingdom.xml"));
+        var nativeBrush = (XmlElement)brushes.SelectSingleNode("//Brush[@Name='" + nativeAmount.GetAttribute("Brush") + "']");
+        string font = nativeBrush.GetAttribute("Font");
+        string fontSize = nativeBrush.SelectSingleNode("Styles/Style[@Name='Default']").Attributes["FontSize"].Value;
+        var amounts = document.SelectNodes("//*[@Text='@InfluenceText'] | //ButtonWidget[starts-with(@Command.Click,'ExecuteCommit')]/Children/ListPanel/Children/TextWidget")
+            .Cast<XmlElement>().ToArray();
+        check(amounts.Length == 5, "Both noble commitments and all three player voting amounts use the sizing check");
+        foreach (var amount in amounts)
+        {
+            var icon = (XmlElement)amount.ParentNode.SelectSingleNode("BrushWidget");
+            var iconBrush = brushes.SelectSingleNode("//Brush[@Name='" + icon.GetAttribute("Brush") + "']");
+            check(amount.GetAttribute("Brush.Font") == font && amount.GetAttribute("Brush.FontSize") == fontSize
+                && icon.GetAttribute("SuggestedWidth") == nativeIcon.GetAttribute("SuggestedWidth")
+                && icon.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
+                && iconBrush.SelectSingleNode("Layers/BrushLayer").Attributes["Sprite"].Value == nativeIcon.GetAttribute("Sprite"),
+                "Influence text and icon match native Propose Peace proportions: " + amount.GetAttribute("Text"));
+            check(amount.GetAttribute("SuggestedHeight") == "32" && amount.GetAttribute("HeightSizePolicy") == "Fixed"
+                && icon.GetAttribute("MarginLeft") == "4" && !icon.HasAttribute("PositionYOffset")
+                && icon.GetAttribute("VerticalAlignment") == "Center"
+                && int.Parse(icon.GetAttribute("SuggestedHeight")) <= int.Parse(amount.GetAttribute("SuggestedHeight")),
+                "Larger influence glyph has explicit separation and room in its centered text row");
+        }
+        var buttons = document.SelectNodes("//ButtonWidget[starts-with(@Command.Click,'ExecuteCommit')]")
+            .Cast<XmlElement>().ToArray();
+        check(buttons.Length == 3 && buttons.Select(button => button.GetAttribute("Command.Click"))
+            .SequenceEqual(new[] { "ExecuteCommit25", "ExecuteCommit75", "ExecuteCommit150" }),
+            "The three player commitment commands remain unchanged");
+        int index = 0;
+        foreach (var button in buttons)
+        {
+            index++;
+            check(button.GetAttribute("SuggestedWidth") == "88" && button.GetAttribute("SuggestedHeight") == "64"
+                && button.GetAttribute("IsDisabled") == "@IsInfluenceSelectionDisabled"
+                && button.GetAttribute("ButtonType") == "Radio"
+                && button.GetAttribute("IsSelected") == "@IsCommit" + button.SelectSingleNode(".//TextWidget").Attributes["Text"].Value + "Selected"
+                && button.GetAttribute("Brush") == "Kingdom.VoteStrength" + index + ".Button"
+                && button.GetAttribute("UpdateChildrenStates") == "true",
+                "Roomier player voting button preserves its native frame, selection and disabled behavior");
+            CheckNativeAttributes(button, check);
+        }
+        int usedWidth = buttons.Sum(button => int.Parse(button.GetAttribute("SuggestedWidth"))
+            + (int.TryParse(button.GetAttribute("MarginRight"), out int margin) ? margin : 0));
+        check(usedWidth <= 552 && buttons[0].ParentNode.ParentNode.Attributes["SuggestedHeight"].Value == "64",
+            "Larger commitment buttons fit within the existing center panel without increasing its height");
+    }
+
+    private static void CheckNativeAttributes(XmlElement root, Action<bool, string> check)
     {
         var ui = Assembly.Load("TaleWorlds.GauntletUI");
         var extras = Assembly.Load("TaleWorlds.GauntletUI.ExtraWidgets");
@@ -237,21 +470,30 @@ internal static class PeaceParleyPresentationTests
         var knownTypes = new Dictionary<string, Type> {
             { "Widget", ui.GetType("TaleWorlds.GauntletUI.BaseTypes.Widget", true) },
             { "TextWidget", ui.GetType("TaleWorlds.GauntletUI.BaseTypes.TextWidget", true) },
+            { "ListPanel", ui.GetType("TaleWorlds.GauntletUI.BaseTypes.ListPanel", true) },
+            { "BrushWidget", ui.GetType("TaleWorlds.GauntletUI.BaseTypes.BrushWidget", true) },
+            { "ButtonWidget", ui.GetType("TaleWorlds.GauntletUI.BaseTypes.ButtonWidget", true) },
             { "FillBarWidget", extras.GetType("TaleWorlds.GauntletUI.ExtraWidgets.FillBarWidget", true) },
             { "BoolBrushChangerBrushWidget", gameWidgets.GetType("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChangerBrushWidget", true) }
         };
         var unsupported = new HashSet<string>();
-        foreach (XmlElement widget in strip.SelectNodes("descendant-or-self::*"))
+        foreach (XmlElement widget in root.SelectNodes("descendant-or-self::*"))
         {
             if (!knownTypes.TryGetValue(widget.Name, out Type type)) continue;
             foreach (XmlAttribute attribute in widget.Attributes)
             {
                 string name = attribute.Name;
                 if (name.StartsWith("Command.") || name == "DataSource" || name == "Id") continue;
-                if (AccessTools.Property(type, name) == null) unsupported.Add(widget.Name + "." + name);
+                Type propertyType = type;
+                foreach (string part in name.Split('.'))
+                {
+                    PropertyInfo property = AccessTools.Property(propertyType, part);
+                    if (property == null) { unsupported.Add(widget.Name + "." + name); break; }
+                    propertyType = property.PropertyType;
+                }
             }
         }
-        check(unsupported.Count == 0, "Ratification attributes exist in the actual native widget API: "
+        check(unsupported.Count == 0, root.GetAttribute("Id") + " attributes exist in the actual native widget API: "
             + string.Join(", ", unsupported));
     }
 }
