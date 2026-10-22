@@ -145,10 +145,21 @@ internal static class PeaceParleyPresentationTests
                 "Single-house realm has a neutral bar and a sovereign decision");
             var compulsory = Summary(opposed, forced: true);
             check(compulsory.DecisionText.Contains("Peace is compulsory") && compulsory.RulerOverrideCommitment == 0
-                && string.IsNullOrEmpty(compulsory.RulerReason), "Compulsory peace never invents an override cost or ruler motive");
+                && compulsory.RulerReason == "The war is decided; we must accept these terms.",
+                "Compulsory peace explains acceptance without inventing an override cost");
             var overBudget = Summary(Council(350, 75, TreatyCouncilVoteStance.Yay, blocked: true), forced: true);
             check(overBudget.DecisionText.Contains("exceeds the available war score") && !overBudget.SummaryText.Contains("compulsory")
-                && overBudget.RulerOverrideCommitment == 0, "Budget failure takes precedence over forced acceptance");
+                && overBudget.RulerOverrideCommitment == 0 && overBudget.RulerReason.Contains("exceeds the available war score"),
+                "Budget failure takes precedence over forced acceptance in both summary and card explanation");
+            foreach (var summary in new[] { compulsory, overBudget, approval, rejection, cannotApprove, cannotReject })
+            {
+                var row = new TreatyCouncilMemberVM(opposed.Members[0], true,
+                    summary == compulsory || summary == approval || summary == cannotReject,
+                    summary.RulerOverrideCommitment, summary.RulerReason);
+                check(row.PrimaryReasonText == summary.RulerReason
+                    && TooltipRows(row, "_reasonTooltip").Contains(summary.RulerReason + ":"),
+                    "Ruler decision explanation takes priority and is shared with its tooltip: " + summary.RulerReason);
+            }
             var absent = new TreatyCouncilSummaryVM(kingdom, null, false, false, false);
             check(absent.TotalInfluence == 0 && absent.CouncilText.Contains("unavailable"), "Unavailable evaluations reset to a neutral summary");
             _leader = null;
@@ -203,6 +214,8 @@ internal static class PeaceParleyPresentationTests
                     "Enthusiasm keeps its existing range, text and war-will color: " + value);
             }
 
+            CheckMemberExplanations(check, TooltipRows);
+
             Patch(AccessTools.Method(tooltipType, "ExecuteBeginHint"), nameof(Begin));
             Patch(AccessTools.Method(tooltipType, "ExecuteEndHint"), nameof(End));
             _begun = _ended = 0;
@@ -251,6 +264,85 @@ internal static class PeaceParleyPresentationTests
             CheckLayout(check);
         }
         finally { harmony.UnpatchAll(harmony.Id); }
+    }
+
+    private static void CheckMemberExplanations(Action<bool, string> check, Func<object, string, string[]> tooltipRows)
+    {
+        foreach (var stance in new[] { TreatyCouncilVoteStance.Yay, TreatyCouncilVoteStance.Nay })
+        {
+            float sign = stance == TreatyCouncilVoteStance.Yay ? 1f : -1f;
+            var reasons = new[] { new TreatyCouncilReason("Strong opposing motive", -60f * sign),
+                new TreatyCouncilReason("Aligned motive", 40f * sign), new TreatyCouncilReason("Other aligned motive", 35f * sign) };
+            var evaluation = new TreatyCouncilMemberEvaluation(_ruler, 45, 1000, 15f * sign, stance, 75, reasons);
+            var row = new TreatyCouncilMemberVM(evaluation);
+            var rows = tooltipRows(row, "_reasonTooltip");
+            check(row.PrimaryReasonText == "Aligned motive" && evaluation.PrimaryReason == reasons[0],
+                "Card selects the strongest vote-aligned motive without changing the public strongest-overall property: " + stance);
+            check(rows.Contains("Aligned motive:") && reasons.All(reason => rows.Contains(reason.Label + ":"
+                + reason.Amount.ToString("+0.0;-0.0;0.0"))) && evaluation.Reasons.Sum(reason => reason.Amount) == evaluation.Utility,
+                "Tooltip shares the selected explanation and retains every weighted motive and the exact utility: " + stance);
+
+            var tied = new TreatyCouncilMemberEvaluation(_ruler, 45, 1000, 20f * sign, stance, 75,
+                new[] { new TreatyCouncilReason("First aligned motive", 40f * sign),
+                    new TreatyCouncilReason("Second aligned motive", 40f * sign), new TreatyCouncilReason("Opposition", -60f * sign) });
+            check(new TreatyCouncilMemberVM(tied).PrimaryReasonText == "First aligned motive",
+                "Equal aligned motives preserve their original order: " + stance);
+
+            var malformed = new TreatyCouncilMemberEvaluation(_ruler, 45, 1000, 20f * sign, stance, 75,
+                new[] { null, new TreatyCouncilReason("", 100f * sign), new TreatyCouncilReason("Zero", 0),
+                    new TreatyCouncilReason("NaN", float.NaN), new TreatyCouncilReason("Infinity", float.PositiveInfinity * sign),
+                    new TreatyCouncilReason("Valid aligned motive", 20f * sign) });
+            var safe = new TreatyCouncilMemberVM(malformed);
+            check(safe.PrimaryReasonText == "Valid aligned motive" && tooltipRows(safe, "_reasonTooltip").Contains("Valid aligned motive:"),
+                "Null, empty, zero and nonfinite candidates cannot replace a valid explanation or break its tooltip: " + stance);
+
+            foreach (var candidates in new[] { Array.Empty<TreatyCouncilReason>(),
+                new[] { new TreatyCouncilReason("Opposing motive", -100f * sign), new TreatyCouncilReason("Zero", 0) } })
+            {
+                var missing = new TreatyCouncilMemberVM(new TreatyCouncilMemberEvaluation(_ruler, 45, 1000, 0, stance, 25, candidates));
+                check(missing.PrimaryReasonText == (stance == TreatyCouncilVoteStance.Yay
+                    ? "I stand behind these terms." : "I cannot support these terms."),
+                    "Missing aligned motives use a stance-consistent fallback, never the opposing reason: " + stance);
+            }
+        }
+
+        foreach (var example in new[] {
+            Tuple.Create(TreatyCouncilAbstentionReason.None, "I will abstain from this vote."),
+            Tuple.Create(TreatyCouncilAbstentionReason.NeutralAssessment, "Neither side makes a convincing case; I will abstain."),
+            Tuple.Create(TreatyCouncilAbstentionReason.InsufficientInfluence, "I lack the influence to cast my vote."),
+            Tuple.Create(TreatyCouncilAbstentionReason.ProtectedInfluence, "I must reserve my influence for other obligations."),
+            Tuple.Create(TreatyCouncilAbstentionReason.PlayerAbstained, "I withhold my voice from this treaty."),
+            Tuple.Create(TreatyCouncilAbstentionReason.PlayerUndecided, "I have not yet declared my position."),
+            Tuple.Create((TreatyCouncilAbstentionReason)999, "I will abstain from this vote.") })
+        {
+            var evaluation = new TreatyCouncilMemberEvaluation(_ruler, 45, 1000, -100, TreatyCouncilVoteStance.Abstain, 0,
+                new[] { new TreatyCouncilReason("Opposing motive", -100) }, example.Item1);
+            var row = new TreatyCouncilMemberVM(evaluation);
+            _influence = 0;
+            var rows = tooltipRows(row, "_reasonTooltip");
+            check(row.PrimaryReasonText == example.Item2 && rows.Contains(example.Item2 + ":")
+                && rows.Contains("Opposing motive:" + (-100f).ToString("+0.0;-0.0;0.0")) && !row.IsInfluenceVisible,
+                "Captured abstention reason replaces the political motive without altering its breakdown or resampling funds: " + example.Item1);
+        }
+        var oldCaller = new TreatyCouncilMemberEvaluation(_ruler, 45, 0, 100, TreatyCouncilVoteStance.Abstain, 0,
+            new[] { new TreatyCouncilReason("Supporting motive", 100) });
+        check(oldCaller.AbstentionReason == TreatyCouncilAbstentionReason.None
+            && new TreatyCouncilMemberVM(oldCaller).PrimaryReasonText == "I will abstain from this vote.",
+            "Existing public constructor remains available and does not guess why an external caller abstained");
+
+        foreach (bool accepts in new[] { false, true })
+        {
+            var evaluation = new TreatyCouncilMemberEvaluation(_ruler, 45, 0, accepts ? -100 : 100,
+                accepts ? TreatyCouncilVoteStance.Nay : TreatyCouncilVoteStance.Abstain, 0,
+                new[] { new TreatyCouncilReason("Positive motive", 30), new TreatyCouncilReason("Negative motive", -40) },
+                TreatyCouncilAbstentionReason.ProtectedInfluence);
+            var ruler = new TreatyCouncilMemberVM(evaluation, true, accepts);
+            check(ruler.PrimaryReasonText == (accepts ? "Positive motive" : "Negative motive")
+                && ruler.VoteText == (accepts ? "ACCEPT" : "REJECT"),
+                "Ruler fallback follows the displayed final decision rather than an opposing or abstaining ordinary vote: " + accepts);
+        }
+        check(new TreatyCouncilMemberVM(null).PrimaryReasonText == "No decisive motive",
+            "Unavailable evaluations retain a neutral explanation without inventing an abstention cause");
     }
 
     private static void CheckLayout(Action<bool, string> check)

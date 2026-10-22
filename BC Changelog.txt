@@ -777,4 +777,5 @@ Reworked Enforce Peace into a realm-wide decree for player and AI rulers, ending
 
 1.4.6 CHANGELOG
 
-Fixed peace parley softlocks by rebuilding over-budget NPC treaties and allowing vassals to close invalid drafts without spending influence or receiving penalties.
+Fixed peace parley softlocks.
+Improved peace parley explanations to match nobles’ votes, clarify abstention reasons, and reflect rulers’ final decisions.

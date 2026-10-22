@@ -23,7 +23,7 @@ namespace BellumCivile
                 ["Lengthy peace commitment"] = "{=BC_Parley_Reason_LengthyPact}This pact would bind our hands for too long.",
                 ["Time to recover"] = "{=BC_Parley_Reason_PactRecovery}Our realm needs time to recover.",
                 ["High Enthusiasm"] = "{=BC_Parley_Reason_HighEnthusiasm}I am still eager to carry on the fight.",
-                ["Early war reluctance"] = "{=BC_Parley_Reason_EarlyWar}I believe we should continue the war longer for the sake of honor.",
+                ["Early war reluctance"] = "{=BC_Parley_Reason_EarlyWar}We should continue this war longer for the sake of honor.",
                 ["Inconclusive campaign"] = "{=BC_Parley_Reason_InconclusiveWar}This war has not yet yielded a decisive result.",
                 ["Prolonged exhaustion"] = "{=BC_Parley_Reason_ProlongedExhaustion}We are completely exhausted.",
                 ["Enemy making unreasonable demands"] = "{=BC_Parley_Reason_UnreasonableDemands}The enemy is making unreasonable demands.",
@@ -221,10 +221,15 @@ namespace BellumCivile
                 }
 
                 int influenceCommitment = 0;
+                TreatyCouncilAbstentionReason abstentionReason = TreatyCouncilAbstentionReason.None;
                 if (clan == Clan.PlayerClan && kingdom != null && kingdom.RulingClan != Clan.PlayerClan)
                 {
                     influenceCommitment = proposal?.PlayerInfluenceCommitment ?? 0;
                     ApplyPlayerVote(reasons, ref utility, proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain, influenceCommitment);
+                    if (proposal?.PlayerVoteSubmitted != true)
+                        abstentionReason = TreatyCouncilAbstentionReason.PlayerUndecided;
+                    else if (proposal.PlayerVoteStance == TreatyCouncilVoteStance.Abstain)
+                        abstentionReason = TreatyCouncilAbstentionReason.PlayerAbstained;
                 }
 
                 TreatyCouncilVoteStance stance = utility >= 10f
@@ -258,13 +263,27 @@ namespace BellumCivile
                     influenceCommitment = 0;
                 }
                 else if (clan != Clan.PlayerClan || kingdom == null)
+                {
+                    NpcInfluenceBudgetAssessment budget = NpcInfluenceBudgetService.Assess(
+                        clan, 0f, NpcInfluenceExpenseKind.CouncilCommitment, influence);
                     influenceCommitment = PoliticalInfluenceVoteHelper.GetCommitment(
                         utility,
-                        clan,
-                        out stance,
-                        influence);
+                        budget.SpendableInfluence,
+                        out stance);
+                    if (stance == TreatyCouncilVoteStance.Abstain)
+                    {
+                        // Use the same tiers with sufficient funds to distinguish neutrality from affordability.
+                        PoliticalInfluenceVoteHelper.GetCommitment(utility, C.TreatyCouncilStrongCommitment,
+                            out TreatyCouncilVoteStance fundedStance);
+                        abstentionReason = fundedStance == TreatyCouncilVoteStance.Abstain
+                            ? TreatyCouncilAbstentionReason.NeutralAssessment
+                            : budget.CurrentInfluence < C.TreatyCouncilMinimumVoteStep
+                                ? TreatyCouncilAbstentionReason.InsufficientInfluence
+                                : TreatyCouncilAbstentionReason.ProtectedInfluence;
+                    }
+                }
 
-                members.Add(new TreatyCouncilMemberEvaluation(clan, enthusiasm, influence, utility, stance, influenceCommitment, reasons));
+                members.Add(new TreatyCouncilMemberEvaluation(clan, enthusiasm, influence, utility, stance, influenceCommitment, reasons, abstentionReason));
                 if (stance == TreatyCouncilVoteStance.Yay)
                     yayInfluence += influenceCommitment;
                 else if (stance == TreatyCouncilVoteStance.Nay)

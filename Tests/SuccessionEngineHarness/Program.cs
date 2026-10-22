@@ -312,6 +312,12 @@ internal static class Program
                 PeaceParleyBudgetRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} parley budget recovery checks passed.");
             }
+            else if (args.Contains("--parley-explanations"))
+            {
+                PeaceParleyExplanationTests.Run(Check);
+                PeaceParleyPresentationTests.Run(Check);
+                Console.WriteLine($"{_checks} parley explanation checks passed.");
+            }
             else if (args.Contains("--parley-presentation"))
             {
                 PeaceParleyPresentationTests.Run(Check);

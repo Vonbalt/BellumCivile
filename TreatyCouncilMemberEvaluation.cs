@@ -12,10 +12,16 @@ namespace BellumCivile
         public float Utility { get; }
         public TreatyCouncilVoteStance Stance { get; }
         public int InfluenceCommitment { get; }
+        public TreatyCouncilAbstentionReason AbstentionReason { get; }
         public IReadOnlyList<TreatyCouncilReason> Reasons { get; }
         public TreatyCouncilReason PrimaryReason => Reasons.OrderByDescending(reason => System.Math.Abs(reason.Amount)).FirstOrDefault();
 
         public TreatyCouncilMemberEvaluation(Clan clan, float enthusiasm, float influence, float utility, TreatyCouncilVoteStance stance, int influenceCommitment, IEnumerable<TreatyCouncilReason> reasons)
+            : this(clan, enthusiasm, influence, utility, stance, influenceCommitment, reasons, TreatyCouncilAbstentionReason.None)
+        {
+        }
+
+        public TreatyCouncilMemberEvaluation(Clan clan, float enthusiasm, float influence, float utility, TreatyCouncilVoteStance stance, int influenceCommitment, IEnumerable<TreatyCouncilReason> reasons, TreatyCouncilAbstentionReason abstentionReason)
         {
             Clan = clan;
             Enthusiasm = enthusiasm;
@@ -23,6 +29,7 @@ namespace BellumCivile
             Utility = utility;
             Stance = stance;
             InfluenceCommitment = influenceCommitment;
+            AbstentionReason = abstentionReason;
             Reasons = reasons?.ToList() ?? new List<TreatyCouncilReason>();
         }
     }

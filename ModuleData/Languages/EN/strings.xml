@@ -2358,6 +2358,12 @@
     <string id="BC_Parley_Commitment" text="Influence commitment: {VALUE}" />
     <string id="BC_Parley_RulerLacksInfluenceToOppose" text="I lack the influence to oppose my vassals." />
     <string id="BC_Parley_RulerYieldsToCouncil" text="I will not defy my vassals over these terms." />
+    <string id="BC_Parley_RulerCompelledToAccept" text="The war is decided; we must accept these terms." />
+    <string id="BC_Parley_AbstainNeutral" text="Neither side makes a convincing case; I will abstain." />
+    <string id="BC_Parley_AbstainInsufficientInfluence" text="I lack the influence to cast my vote." />
+    <string id="BC_Parley_AbstainProtectedInfluence" text="I must reserve my influence for other obligations." />
+    <string id="BC_Parley_AbstainUnspecified" text="I will abstain from this vote." />
+    <string id="BC_Parley_PlayerPositionPending" text="I have not yet declared my position." />
     <string id="BC_Parley_RulerOverridesForPeace" text="I will spend my influence to secure this peace despite my vassals." />
     <string id="BC_Parley_RulerOverridesAgainstPeace" text="I will spend my influence to reject these terms despite my vassals." />
     <string id="BC_Parley_Committed" text="commits {VALUE}" />
@@ -2375,7 +2381,7 @@
     <!-- Treaty council motive labels -->
     <string id="BC_Parley_CouncilMemberName" text="{HERO_NAME} {CLAN_NAME}" />
     <string id="BC_Parley_Reason_LowEnthusiasm" text="I am exhausted by this conflict." />
-    <string id="BC_Parley_Reason_EarlyWar" text="I believe we should continue the war longer for the sake of honor." />
+    <string id="BC_Parley_Reason_EarlyWar" text="We should continue this war longer for the sake of honor." />
     <string id="BC_Parley_Reason_InconclusiveWar" text="This war has not yet yielded a decisive result." />
     <string id="BC_Parley_Reason_ProlongedExhaustion" text="We are completely exhausted." />
     <string id="BC_Parley_Reason_UnreasonableDemands" text="The enemy is making unreasonable demands." />

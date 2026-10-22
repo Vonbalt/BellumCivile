@@ -57,12 +57,8 @@ namespace BellumCivile.UI.Parley
             InfluenceText = committedInfluence.ToString();
             IsInfluenceVisible = committedInfluence > 0;
 
-            TreatyCouncilReason primary = evaluation?.PrimaryReason;
-            PrimaryReasonText = isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason)
-                ? rulerCouncilReason
-                : primary == null
-                ? new TextObject("{=BC_Parley_NoStrongMotive}No decisive motive").ToString()
-                : primary.Label;
+            PrimaryReasonText = TreatyCouncilExplanation.Resolve(evaluation, isRuler, realmAccepts, rulerCouncilReason);
+            string explanation = PrimaryReasonText;
             if (clan?.Leader?.CharacterObject != null)
                 PortraitVisual = new CharacterImageIdentifierVM(BellumCivile.UI.PortraitAppearance.Create(clan.Leader.CharacterObject));
             if (clan?.Banner != null)
@@ -75,7 +71,7 @@ namespace BellumCivile.UI.Parley
                 committedInfluence,
                 ordinaryCommitment,
                 overrideCommitment,
-                rulerCouncilReason));
+                explanation));
         }
 
         public void ExecuteBeginReasonHint()
@@ -163,7 +159,7 @@ namespace BellumCivile.UI.Parley
             int committedInfluence,
             int ordinaryCommitment,
             int overrideCommitment,
-            string rulerCouncilReason)
+            string explanation)
         {
             List<TooltipProperty> properties = new List<TooltipProperty>();
             string name = BuildDisplayName(evaluation?.Clan);
@@ -181,10 +177,13 @@ namespace BellumCivile.UI.Parley
                 properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_AdditionalOverrideCommitment}Additional override commitment").ToString(), overrideCommitment.ToString(), 0));
             }
             properties.Add(new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator));
-            if (isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason))
-                properties.Add(new TooltipProperty(rulerCouncilReason, string.Empty, 0));
+            if (!string.IsNullOrWhiteSpace(explanation))
+                properties.Add(new TooltipProperty(explanation, string.Empty, 0));
             foreach (TreatyCouncilReason reason in evaluation?.Reasons ?? new List<TreatyCouncilReason>())
+            {
+                if (reason == null) continue;
                 properties.Add(new TooltipProperty(reason.Label, reason.Amount.ToString("+0.0;-0.0;0.0"), 0));
+            }
             return properties;
         }
 

@@ -91,8 +91,13 @@ namespace BellumCivile.UI.Parley
         {
             Clan ruler = kingdom?.RulingClan;
             TreatyCouncilMemberEvaluation position = council?.Members.FirstOrDefault(member => member?.Clan == ruler);
-            if (ruler == null || position == null || council.IsBudgetBlocked || forced
-                || council.IsSoleRulerDecision || council.Participation == 0)
+            if (ruler == null || position == null)
+                return string.Empty;
+            if (council.IsBudgetBlocked)
+                return new TextObject("{=BC_Parley_BudgetBlocksDecision}The draft exceeds the available war score and cannot be ratified.").ToString();
+            if (forced)
+                return new TextObject("{=BC_Parley_RulerCompelledToAccept}The war is decided; we must accept these terms.").ToString();
+            if (council.IsSoleRulerDecision || council.Participation == 0)
                 return string.Empty;
             if (usesOverride)
                 return new TextObject(accepts
