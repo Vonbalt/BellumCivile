@@ -2375,7 +2375,7 @@
     <!-- Treaty council motive labels -->
     <string id="BC_Parley_CouncilMemberName" text="{HERO_NAME} {CLAN_NAME}" />
     <string id="BC_Parley_Reason_LowEnthusiasm" text="I am exhausted by this conflict." />
-    <string id="BC_Parley_Reason_EarlyWar" text="We have only just taken up arms; we should see this campaign through." />
+    <string id="BC_Parley_Reason_EarlyWar" text="I believe we should continue the war longer for the sake of honor." />
     <string id="BC_Parley_Reason_InconclusiveWar" text="This war has not yet yielded a decisive result." />
     <string id="BC_Parley_Reason_ProlongedExhaustion" text="We are completely exhausted." />
     <string id="BC_Parley_Reason_UnreasonableDemands" text="The enemy is making unreasonable demands." />
