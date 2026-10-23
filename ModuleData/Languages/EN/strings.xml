@@ -4228,6 +4228,8 @@
     <string id="BC_CrownEmergencyAccession" text="The nobles of {REALM} have chosen {HEIR} to bear the Crown." />
     <string id="BC_CrossClanEstateInherited" text="Following the death of {PARENT}, {HEIR} has received {POSSESSIVE} lawful share of the estates of {HOUSE} into the keeping of {RECIPIENT}." />
     <string id="BC_CrownLawfulAccession" text="Following the death of {RULER}, the Crown of {REALM} passes to {HEIR} by right of succession." />
+    <string id="BC_RecruitmentRank_PeerRefusal" text="We stand as peers in rank. I will not swear fealty to you." />
+    <string id="BC_RecruitmentRank_HigherRefusal" text="My title stands above yours. I will not swear fealty to a ruler of lesser rank." />
     <string id="BC_CrownDeparture_Dialogue" text="{ADDRESS}, the Crown of {REALM} has passed to me. To take my place as sovereign, I must establish a household of my own and leave {SOURCE_CLAN}. {FAMILY_TIES}" />
     <string id="BC_CrownDeparture_Acknowledge" text="I understand. Go and take your rightful place." />
     <string id="BC_CrownDeparture_LetterTitle" text="A Crown for {HEIR}" />

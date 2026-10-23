@@ -278,6 +278,11 @@ internal static class Program
                 ExpulsionRelationTests.Run(Check);
                 Console.WriteLine($"{_checks} gameplay relation memory checks passed.");
             }
+            else if (args.Contains("--recruitment-rank"))
+            {
+                RecruitmentRankTests.Run(Check);
+                Console.WriteLine($"{_checks} recruitment rank checks passed.");
+            }
             else if (args.Contains("--exile-recovery"))
             {
                 ExileRecoveryTests.Run(Check);
