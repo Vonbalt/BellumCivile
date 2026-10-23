@@ -779,3 +779,4 @@ Reworked Enforce Peace into a realm-wide decree for player and AI rulers, ending
 
 Fixed peace parley softlocks.
 Improved peace parley explanations to match nobles’ votes, clarify abstention reasons, and reflect rulers’ final decisions.
+Added dialogue and popup letters explaining when player-clan family members leave to establish their own household and inherit a throne.

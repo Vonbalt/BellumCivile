@@ -20,12 +20,22 @@ namespace BellumCivile.Behaviors
         {
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ResumePending);
             CampaignEvents.OnPlayerCharacterChangedEvent.AddNonSerializedListener(this, OnPlayerChanged);
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RegisterCrownDepartureDialogue);
+            CampaignEvents.TickEvent.AddNonSerializedListener(this, ProcessPlayerCrownDepartures);
         }
 
         public override void SyncData(IDataStore dataStore)
         {
             dataStore.SyncData("BC_CrownAccessions", ref _accessions);
             _accessions = _accessions ?? new List<CrownAccessionRecord>();
+            if (dataStore.IsLoading)
+            {
+                _activeCrownDeparture = null;
+                _activeCrownDepartureLetter = null;
+                _crownDeparturePostLoadTicks = 2;
+                foreach (var record in _accessions.Where(r => r.PlayerDepartureCaptured && r.PlayerDepartureDialogueAttempted))
+                    record.PlayerDepartureWantsDialogue = false;
+            }
         }
 
         public void Capture(Hero victim)
@@ -332,6 +342,7 @@ namespace BellumCivile.Behaviors
 
         private void Finish(CrownAccessionRecord record, Clan house)
         {
+            CapturePlayerCrownDeparture(record, allowDialogue: false);
             if (!record.TitleTransferred)
             {
                 if (Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.TrySetKingdomTitleRuler(

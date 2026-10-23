@@ -1071,6 +1071,7 @@ namespace BellumCivile.Behaviors
                 || hero.IsWanderer
                 || !IsViableAdultLord(hero)
                 || protectedSet.Contains(hero)
+                || CrownAccessionBehavior.Instance?.IsPendingCrownHeir(hero) == true
                 || adultLords - 1 < C.DynamicMercenaryMinimumAdultsRemainingInSourceClan
                 || (clan != Clan.PlayerClan && !DynamicMercenaryBandService.CanTransferHeroNow(hero)))
             {
@@ -1100,6 +1101,7 @@ namespace BellumCivile.Behaviors
                 || hero.IsWanderer
                 || !IsAliveAdultLord(hero)
                 || protectedSet.Contains(hero)
+                || CrownAccessionBehavior.Instance?.IsPendingCrownHeir(hero) == true
                 || adultLords - 1 < C.DynamicMercenaryMinimumAdultsRemainingInSourceClan)
             {
                 return false;

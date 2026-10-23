@@ -172,7 +172,11 @@ namespace BellumCivile.Behaviors
 
         internal bool SettleCrownCadet(CrownAccessionRecord record)
         {
-            if (record.EndowmentSettled) return true;
+            if (record.EndowmentSettled)
+            {
+                CapturePlayerCrownDeparture(record, allowDialogue: false);
+                return true;
+            }
             RetainExistingCrownChildren(record);
             Clan source = record.EndowmentHouse;
             if (source == null || source.IsEliminated || source.Kingdom != record.HouseholdRealm)
@@ -212,6 +216,9 @@ namespace BellumCivile.Behaviors
                     || member.PartyBelongedTo?.SiegeEvent != null)
                     return DeferAbdication(record, "the successor's household is unavailable");
             }
+            CapturePlayerCrownDeparture(record, allowDialogue: true);
+            if (WaitForPlayerCrownFarewell(record))
+                return DeferAbdication(record, "waiting for the player's Crown departure farewell");
             var partition = Campaign.Current.GetCampaignBehavior<PartitionSuccessionBehavior>();
             if (partition?.PrepareAbdicationCadet(record) != true)
                 return DeferAbdication(record, record.AbdicationFailure ?? "cadet household preparation is incomplete");

@@ -258,6 +258,11 @@ internal static class Program
                 MarriageCombinedScoreTests.Run(Check);
                 Console.WriteLine($"{_checks} long-run recovery checks passed.");
             }
+            else if (args.Contains("--crown-player-departure"))
+            {
+                CrownPlayerDepartureTests.Run(Check);
+                Console.WriteLine($"{_checks} Crown player departure checks passed.");
+            }
             else if (args.Contains("--crown-household-recovery"))
             {
                 CrownHouseholdRecoveryTests.Run(Check);

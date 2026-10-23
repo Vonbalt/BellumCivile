@@ -4228,6 +4228,22 @@
     <string id="BC_CrownEmergencyAccession" text="The nobles of {REALM} have chosen {HEIR} to bear the Crown." />
     <string id="BC_CrossClanEstateInherited" text="Following the death of {PARENT}, {HEIR} has received {POSSESSIVE} lawful share of the estates of {HOUSE} into the keeping of {RECIPIENT}." />
     <string id="BC_CrownLawfulAccession" text="Following the death of {RULER}, the Crown of {REALM} passes to {HEIR} by right of succession." />
+    <string id="BC_CrownDeparture_Dialogue" text="{ADDRESS}, the Crown of {REALM} has passed to me. To take my place as sovereign, I must establish a household of my own and leave {SOURCE_CLAN}. {FAMILY_TIES}" />
+    <string id="BC_CrownDeparture_Acknowledge" text="I understand. Go and take your rightful place." />
+    <string id="BC_CrownDeparture_LetterTitle" text="A Crown for {HEIR}" />
+    <string id="BC_CrownDeparture_LetterAcknowledge" text="I understand." />
+    <string id="BC_CrownDeparture_LetterBody" text="A sealed letter from {HEIR} reaches you.&#xA;&#xA;&quot;{ADDRESS}, I have left {SOURCE_CLAN} to assume the Crown of {REALM}. I now lead {NEW_CLAN}, a household of my own. {FAMILY_TIES}&quot;" />
+    <string id="BC_CrownDeparture_LetterMinor" text="Word reaches you that {HEIR} has left {SOURCE_CLAN} to assume the Crown of {REALM}. The new household, {NEW_CLAN}, will be led by a regent until {HEIR} comes of age." />
+    <string id="BC_CrownDeparture_LetterHistorical" text="Word reaches you that {HEIR} left {SOURCE_CLAN} to assume the Crown of {REALM}, establishing a new household, {NEW_CLAN}." />
+    <string id="BC_CrownDeparture_MarriageWife" text="Whatever duties this crown brings, I remain your wife." />
+    <string id="BC_CrownDeparture_MarriageHusband" text="Whatever duties this crown brings, I remain your husband." />
+    <string id="BC_CrownDeparture_FamilyUnchanged" text="My duties may change, but we are still family." />
+    <string id="BC_CrownDeparture_AddressWife" text="My wife" />
+    <string id="BC_CrownDeparture_AddressHusband" text="My husband" />
+    <string id="BC_CrownDeparture_AddressDaughter" text="My daughter" />
+    <string id="BC_CrownDeparture_AddressSon" text="My son" />
+    <string id="BC_CrownDeparture_AddressSister" text="Sister" />
+    <string id="BC_CrownDeparture_AddressBrother" text="Brother" />
     <string id="BC_CrownVoluntaryAccession" text="{RULER} has laid down the Crown of {REALM}. By right of succession, {HEIR} now reigns." />
     <string id="BC_CrownForcedAccession" text="{RULER} has been compelled to relinquish the Crown of {REALM}. By right of succession, {HEIR} now reigns." />
     <string id="BC_AbdicationUnavailable" text="The Crown cannot be relinquished at this time." />

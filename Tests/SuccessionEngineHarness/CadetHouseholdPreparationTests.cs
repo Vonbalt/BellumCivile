@@ -155,6 +155,7 @@ internal static class CadetHouseholdPreparationTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "IsEliminated"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Kingdom"), nameof(Realm));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "All"), nameof(Clans));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "HomeSettlement"), nameof(FindHome));
             Patch(AccessTools.Method(typeof(Clan), "SetLeader"), nameof(Found));
             Patch(AccessTools.Method(typeof(Clan), "ConsiderAndUpdateHomeSettlement"), nameof(Skip));
             Patch(AccessTools.Method(typeof(Settlement), "Find"), nameof(FindHome));
@@ -250,7 +251,6 @@ internal static class CadetHouseholdPreparationTests
             manager.Items.Add(Blank<FeudalTitleBehavior>());
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Mother"), nameof(Mother));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Father"), nameof(Father));
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "HomeSettlement"), nameof(FindHome));
             Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "MoveCrownHeirClaims"), nameof(Skip));
             var settle = AccessTools.Method(typeof(CrownAccessionBehavior), "SettleCrownCadet");
             var retain = AccessTools.Method(typeof(CrownAccessionBehavior), "RetainExistingCrownChildren");

@@ -61,6 +61,7 @@ namespace BellumCivile.Behaviors
 
         private static void ResetUncommittedCrownHousehold(CrownAccessionRecord record, Clan current)
         {
+            ResetPlayerCrownDeparture(record);
             record.HeirHouse = current;
             record.ForcedPrepared = false;
             record.IncomingHousePrepared = false;
