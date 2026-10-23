@@ -189,7 +189,7 @@ namespace BellumCivile.Behaviors
                         if (!record.Challenge.TribunalQueued) return;
                     }
                     CompleteCivilWarTracker(record.Winner, record.WinnerRealm, record.Transfer != null
-                        ? "Crown mantle restored; rival claims continue" : "Crown mantle restored after outside conquest");
+                        ? "Crown mantle restored; rival claims continue" : "Crown mantle restored after outside conquest", record.Successor);
                     Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.RemoveFaction(record.Winner);
                     PreservePromotedRebelForeignWars(record.WinnerRealm, record.Successor, record.Parent);
                     if (!DrainAndDestroyRebelKingdom(record.WinnerRealm, record.Successor)) return;

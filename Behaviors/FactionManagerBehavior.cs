@@ -49,6 +49,7 @@ namespace BellumCivile.Behaviors
         {
             Instance = this;
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainCivilWarGrace);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, OnClanChangedKingdom);
             CampaignEvents.OnClanDestroyedEvent.AddNonSerializedListener(this, OnClanDestroyed);
@@ -71,6 +72,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_TemporaryKingdomExpectedRulerIds", ref _temporaryKingdomExpectedRulerIds);
             dataStore.SyncData("BellumCivile_TemporaryKingdomRepairReasons", ref _temporaryKingdomRepairReasons);
             SyncPlayerCourtAffiliation(dataStore);
+            SyncCivilWarGrace(dataStore);
             EnsureCollectionsInitialized();
             if (dataStore.IsLoading)
             {
@@ -1338,6 +1340,7 @@ namespace BellumCivile.Behaviors
         public void RegisterNewFaction(FactionObject newFaction)
         {
             if (newFaction == null || newFaction.Type == FactionType.Royalists) return;
+            if (IsCivilWarGraceBlocked(newFaction)) return;
             if (newFaction.IsIdeology && !CourtMembershipEligibility.CanBelong(newFaction.Leader, newFaction.ParentKingdom)) return;
             if (_activeFactions.Contains(newFaction)) return;
 

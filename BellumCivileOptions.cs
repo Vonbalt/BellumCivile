@@ -23,6 +23,7 @@ namespace BellumCivile
         public static float RebelliousIntentThreshold => Settings?.RebellionThreshold ?? C.RebelliousIntentThreshold;
         public static int CourtCrisisMoodThreshold => Math.Max(-100, Math.Min(-25, Settings?.CourtCrisisMoodThreshold ?? -60));
         public static int CourtChallengeChancePercent => Math.Max(0, Math.Min(100, Settings?.CourtChallengeChancePercent ?? 100));
+        public static int CivilWarGraceYears => Math.Max(0, Math.Min(5, Settings?.CivilWarGraceYears ?? 2));
         public static int HeirChallengeLoyaltyThreshold => Math.Max(0, Math.Min(50, Settings?.HeirChallengeLoyaltyThreshold ?? 25));
         public static int ElectionChallengeChancePercent => Math.Max(0, Math.Min(200, Settings?.ElectionChallengeChancePercent ?? 100));
         public static float ClaimFeudStartThreshold => Math.Max(25, Math.Min(150, Settings?.ClaimFeudStartThreshold ?? (int)C.ClaimFeudStartThreshold));

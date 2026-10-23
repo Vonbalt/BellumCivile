@@ -56,6 +56,11 @@ internal static class Program
                 TestRegencyContinuity();
                 Console.WriteLine($"{_checks} regency setting checks passed.");
             }
+            else if (args.Contains("--civil-war-grace"))
+            {
+                CivilWarGraceTests.Run(Check);
+                Console.WriteLine($"{_checks} civil-war grace checks passed.");
+            }
             else if (args.Contains("--internal-instability"))
             {
                 InternalInstabilityTests.Run(Check);

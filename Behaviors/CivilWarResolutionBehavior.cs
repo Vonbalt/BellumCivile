@@ -887,8 +887,9 @@ namespace BellumCivile.Behaviors
                     () => MakePeaceAction.Apply(firstKingdom, secondKingdom)));
         }
 
-        private static void CompleteCivilWarTracker(FactionObject faction, Kingdom rebelKingdom, string reason)
+        private static void CompleteCivilWarTracker(FactionObject faction, Kingdom rebelKingdom, string reason, Kingdom outcome = null)
         {
+            Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.QueueCivilWarGrace(faction, rebelKingdom, outcome);
             CivilWarConflictBehavior.Instance?.Complete(faction);
             Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()
                 ?.CompleteCivilWar(faction, rebelKingdom, reason);
@@ -2030,7 +2031,7 @@ namespace BellumCivile.Behaviors
                 runImmediateRepair: false, challenge: challengeRecord);
             if (restoredSuccessorKingdom == null) return;
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(strongestFaction, SuccessionChallengeOutcome.Victory, restoredSuccessorKingdom) == false) return;
-            CompleteCivilWarTracker(strongestFaction, successorKingdom, "parent realm collapsed into a civil-war successor");
+            CompleteCivilWarTracker(strongestFaction, successorKingdom, "parent realm collapsed into a civil-war successor", restoredSuccessorKingdom);
             strongestFaction.RestoreCivilWarInfluenceSnapshots(successorWinnerClans);
             ApplyChallengeAwareVictoryRewards(strongestFaction, successorWinnerClans, successorLeader, "parent collapse succession");
 
@@ -2046,7 +2047,7 @@ namespace BellumCivile.Behaviors
                     DrainAndDestroyRebelKingdom(rivalKingdom, restoredSuccessorKingdom);
                 }
 
-                CompleteCivilWarTracker(rivalFaction.Key, rivalKingdom, "rival civil-war realm absorbed by the successor");
+                CompleteCivilWarTracker(rivalFaction.Key, rivalKingdom, "rival civil-war realm absorbed by the successor", restoredSuccessorKingdom);
                 factionManager.RemoveFaction(rivalFaction.Key);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(rivalFaction.Key, restoredSuccessorKingdom);
             }
@@ -2054,7 +2055,7 @@ namespace BellumCivile.Behaviors
             foreach (FactionObject leftover in factionManager.GetFactionsInKingdom(collapsedParent).Where(f => !f.IsIdeology).ToList())
             {
                 if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(leftover, SuccessionChallengeOutcome.WhitePeace, restoredSuccessorKingdom) == false) continue;
-                CompleteCivilWarTracker(leftover, leftover.GetTrackedRebelKingdomIncludingEliminated(), "civil-war faction cleared after parent collapse");
+                CompleteCivilWarTracker(leftover, leftover.GetTrackedRebelKingdomIncludingEliminated(), "civil-war faction cleared after parent collapse", restoredSuccessorKingdom);
                 factionManager.RemoveFaction(leftover);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(leftover, restoredSuccessorKingdom);
             }
@@ -3066,6 +3067,7 @@ namespace BellumCivile.Behaviors
                 TransferIndependenceGroupToKingdom(faction, rebelKingdom, promotedGroup.Item2, promotedGroup.Item1);
 
             List<Kingdom> permanentKingdoms = promotedGroups.Select(group => group.Item2).ToList();
+            Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.AddCivilWarGraceRealms(faction, permanentKingdoms.ToArray());
             foreach (Kingdom kingdom in permanentKingdoms)
             {
                 Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(kingdom);

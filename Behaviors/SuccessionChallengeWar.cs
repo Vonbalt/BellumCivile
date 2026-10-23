@@ -269,7 +269,8 @@ namespace BellumCivile.Behaviors
                 if (realm?.IsEliminated == false) HereditaryLoyaltyBehavior.Instance?.Observe(realm, false);
             }
             record.PersonalBlockedUntil = record.OutcomeDay + CampaignTime.Years(SuccessionChallengeRules.PersonalPauseYears(record.WarOutcome)).ToDays;
-            record.RealmBlockedUntil = record.OutcomeDay + CampaignTime.Years(2).ToDays;
+            // Realm recovery is owned by the shared civil-war grace record; personal submission remains separate.
+            record.RealmBlockedUntil = record.OutcomeDay;
             record.Phase = SuccessionChallengePhase.Settled;
             record.ReportPending = false;
             record.Failure = null;

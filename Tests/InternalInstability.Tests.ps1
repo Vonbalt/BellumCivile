@@ -39,7 +39,7 @@ foreach ($s in $catalog.base.strings.string) { $entries[$s.id] = $s.text }
 $section = $settings.Substring($settings.IndexOf('[SettingPropertyInteger("{=BC_MCM_RebellionThreshold}'),
     $settings.IndexOf('[SettingPropertyFloatingInteger("{=BC_MCM_CourtTerm}') - $settings.IndexOf('[SettingPropertyInteger("{=BC_MCM_RebellionThreshold}'))
 $matches = [regex]::Matches($section, 'HintText = "\{=([^}]+)\}([^"]+)"')
-Check ($matches.Count -eq 9) 'Internal Instability contains the retained slider and eight new controls.'
+Check ($matches.Count -eq 10) 'Internal Instability contains the nine existing controls and the civil-war grace period.'
 foreach ($match in $matches) {
     $id = $match.Groups[1].Value; $text = $match.Groups[2].Value
     Check ($text -ceq $entries[$id] -and $text.Contains('Bellum default:') -and

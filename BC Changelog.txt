@@ -781,3 +781,4 @@ Fixed peace parley softlocks.
 Improved peace parley explanations to match nobles’ votes, clarify abstention reasons, and reflect rulers’ final decisions.
 Added dialogue and popup letters explaining when player-clan family members leave to establish their own household and inherit a throne.
 Fixed recruitment allowing player rulers to recruit equal- or higher-ranked nobles.
+Added a configurable realm-wide grace period after civil wars.

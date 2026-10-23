@@ -21,6 +21,8 @@ namespace BellumCivile.Behaviors
         private bool MayStartAutomaticCourtChallenge(FactionObject faction, Kingdom realm)
         {
             if (faction == null || realm == null) return false;
+            if (GetAgenda(realm, faction)?.State != CourtAgendaState.Crisis
+                && Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(realm) == true) return false;
             if (faction.Leader == Clan.PlayerClan || GetAgenda(realm, faction)?.State == CourtAgendaState.Crisis)
                 return true;
             string key = realm.StringId + "|" + (int)faction.Type;

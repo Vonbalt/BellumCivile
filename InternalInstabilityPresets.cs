@@ -24,7 +24,8 @@ namespace BellumCivile
                 [nameof(BellumCivileSettings.ClaimFeudStartThreshold)] = Pick(65, 80, 55),
                 [nameof(BellumCivileSettings.ClaimedRevocationChancePercent)] = Pick(100, 50, 150),
                 [nameof(BellumCivileSettings.TreasonResistanceChancePercent)] = Pick(100, 50, 150),
-                [nameof(BellumCivileSettings.ClientLiberationWillingnessThreshold)] = Pick(75, 85, 65)
+                [nameof(BellumCivileSettings.ClientLiberationWillingnessThreshold)] = Pick(75, 85, 65),
+                [nameof(BellumCivileSettings.CivilWarGraceYears)] = Pick(2, 3, 1)
             };
         }
 

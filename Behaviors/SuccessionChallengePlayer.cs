@@ -18,6 +18,8 @@ namespace BellumCivile.Behaviors
         internal TextObject PlayerChallengeBlock(FeudalTitleRecord title)
         {
             var realm = Clan.PlayerClan?.Kingdom;
+            var grace = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.CivilWarGraceBlock(realm);
+            if (grace != null) return grace;
             if (!IsPlayerChallengeTitle(title) || !CrownAccessionBehavior.IsHereditaryRealm(realm)
                 || realm.IsEliminated || SuccessionLawBehavior.Instance?.ResolvePermanentRealm(realm) != realm)
                 return new TextObject("{=BC_PlayerChallenge_Realm}Select the sovereign title of your hereditary realm.");

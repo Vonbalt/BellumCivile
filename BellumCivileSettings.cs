@@ -113,7 +113,7 @@ namespace BellumCivile
             "{=BC_MCM_InstabilityIncreased}Increased Instability"
         }, 0);
 
-        [SettingPropertyButton("{=BC_MCM_ApplyInstabilityPreset}Apply Instability Preset", Content = "{=BC_MCM_Apply}Apply", Order = -10, RequireRestart = false, HintText = "{=BC_MCM_ApplyInstabilityPreset_Hint}Updates only the nine Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these nine sliders only. Bellum default: Standard.")]
+        [SettingPropertyButton("{=BC_MCM_ApplyInstabilityPreset}Apply Instability Preset", Content = "{=BC_MCM_Apply}Apply", Order = -10, RequireRestart = false, HintText = "{=BC_MCM_ApplyInstabilityPreset_Hint}Updates only the ten Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these ten sliders only. Bellum default: Standard.")]
         [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
         public System.Action ApplyInstabilityPreset
         {
@@ -157,6 +157,10 @@ namespace BellumCivile
         [SettingPropertyInteger("{=BC_MCM_ClientLiberationWillingness}AI Client Liberation Willingness Threshold", 0, 100, Order = 80, RequireRestart = false, HintText = "{=BC_MCM_ClientLiberationWillingness_Hint}War Will plus liberation resolve required for AI liberation proposals and Crown preparations. Increasing reduces client liberation instability; decreasing increases it. Zero removes only this willingness check, not liberty desire, power, influence, cooldown or voting requirements. Player actions, existing proposals and foreign-war thresholds are unchanged. Bellum default: 75.")]
         [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
         public int ClientLiberationWillingnessThreshold { get; set; } = (int)C.WarPeaceRevampWarProposalThreshold;
+
+        [SettingPropertyInteger("{=BC_MCM_CivilWarGrace}Post-Civil-War Grace Period (Years)", 0, 5, Order = 90, RequireRestart = false, HintText = "{=BC_MCM_CivilWarGrace_Hint}Realm-wide recovery after a civil war against the crown ends. Increasing reduces instability by delaying new rebellions; decreasing increases instability by shortening the delay. Zero disables new grace periods. The duration is recorded when settlement begins; existing periods are unchanged. Applies to player and AI rebellions, including court coalitions and succession disputes. Private feuds, Enforce Peace, committed challenges and resistance to treason judgments are unaffected. Personal challenge cooldowns remain separate. Bellum default: 2 years.")]
+        [SettingPropertyGroup(InternalInstability, GroupOrder = InternalInstabilityGroupOrder)]
+        public int CivilWarGraceYears { get; set; } = 2;
 
         [SettingPropertyFloatingInteger("{=BC_MCM_CourtTerm}Court Term Length (Years)", 0.25f, 4f, "0.00", Order = 20, RequireRestart = false, HintText = "{=BC_MCM_CourtTerm_Hint}Time between public court agendas. Changes apply to the next term, not announced sessions or existing policy reconsideration dates. Default: 1 year.")]
         [SettingPropertyGroup(CourtPolitics, GroupOrder = CourtPoliticsGroupOrder)]

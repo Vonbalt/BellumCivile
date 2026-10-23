@@ -439,7 +439,7 @@ namespace BellumCivile.Behaviors
                 bool playerLed = owner != null && sponsor == Clan.PlayerClan;
                 if (!playerLed && ShouldStartCourtCrisis(owner, realm)) { agenda.State = CourtAgendaState.Crisis; continue; }
                 if (playerLed) agenda.State = CourtAgendaState.AwaitingPlayerDecision;
-                if (playerLed && owner.Mood <= -60) agenda.CrisisInterventionPending = true;
+                if (playerLed && owner.Mood <= -60 && manager.HasCivilWarGrace(realm) != true) agenda.CrisisInterventionPending = true;
                 selecting.Add(agenda);
             }
             var choices = _objectiveSelector.SelectBatch(context,

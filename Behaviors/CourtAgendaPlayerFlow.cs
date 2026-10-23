@@ -24,7 +24,8 @@ namespace BellumCivile.Behaviors
             foreach (var agenda in _agendas.Where(a => a.Faction == faction && a.Realm == faction.ParentKingdom))
             {
                 if (!TryHandOverUnstartedAgenda(agenda, Clan.PlayerClan, agenda.SessionDate.IsPast,
-                    faction.Mood <= -60 && !agenda.OrdinaryCrisisRestrained)) continue;
+                    faction.Mood <= -60 && !agenda.OrdinaryCrisisRestrained
+                        && Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(agenda.Realm) != true)) continue;
                 BellumCivileLogger.Log($"Court agenda handed to new player leader; realm={agenda.Realm.StringId}; faction={faction.Type}; policy={agenda.PolicyId}; session={agenda.SessionDate.ToDays}.");
             }
         }

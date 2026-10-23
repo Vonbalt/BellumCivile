@@ -59,7 +59,8 @@ internal static class InternalInstabilityTests
                 ("CourtCrisisMoodThreshold", -100, -25, -60), ("CourtChallengeChancePercent", 0, 100, 100),
                 ("HeirChallengeLoyaltyThreshold", 0, 50, 25), ("ElectionChallengeChancePercent", 0, 200, 100),
                 ("ClaimFeudStartThreshold", 25, 150, 65), ("ClaimedRevocationChancePercent", 0, 200, 100),
-                ("TreasonResistanceChancePercent", 0, 200, 100), ("ClientLiberationWillingnessThreshold", 0, 100, 75)
+                ("TreasonResistanceChancePercent", 0, 200, 100), ("ClientLiberationWillingnessThreshold", 0, 100, 75),
+                ("CivilWarGraceYears", 0, 5, 2)
             };
             foreach (var spec in specs)
             {
