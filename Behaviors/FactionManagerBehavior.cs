@@ -55,6 +55,7 @@ namespace BellumCivile.Behaviors
             CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, ApplyInitialCivilWarGrace);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainCivilWarGrace);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ProcessSuccessionOpportunities);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, OnClanChangedKingdom);
             CampaignEvents.OnClanDestroyedEvent.AddNonSerializedListener(this, OnClanDestroyed);
@@ -78,6 +79,8 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_TemporaryKingdomRepairReasons", ref _temporaryKingdomRepairReasons);
             SyncPlayerCourtAffiliation(dataStore);
             SyncCivilWarGrace(dataStore);
+            dataStore.SyncData("BellumCivile_PendingSuccessionOpportunities", ref _pendingSuccessionOpportunities);
+            _pendingSuccessionOpportunities = _pendingSuccessionOpportunities ?? new Dictionary<string, string>();
             EnsureCollectionsInitialized();
             if (dataStore.IsLoading)
             {
@@ -204,6 +207,9 @@ namespace BellumCivile.Behaviors
             ProcessPendingSettlementRefreshes();
             RepairCivilWarSettlementState();
             SanitizeIdeologyMemberships();
+
+            foreach (Kingdom realm in _activeFactions.Select(f => f.ParentKingdom).Where(k => k != null).Distinct().ToList())
+                ReconcileWarmingCrownFactions(realm);
 
             foreach (FactionObject faction in _activeFactions.ToList())
                 if (!CivilWarConflictBehavior.IsFactionTransferPending(faction)) faction.DailyTick();
@@ -1129,86 +1135,16 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private void OnRulingClanChanged(Kingdom kingdom, Clan newRulingClan)
+        private void OnRulingClanChanged(Kingdom kingdom, Clan oldRulingClan)
         {
+            if (kingdom == null) return;
+            // Bannerlord supplies the displaced clan, not the incoming ruler.
+            Clan newRulingClan = kingdom.RulingClan;
             ReportRulingClanChangedEvent(kingdom, newRulingClan);
             CourtAgendaBehavior.Current?.ReconcileCrown(kingdom);
-
-            foreach (FactionObject faction in _activeFactions.ToList())
-            {
-                if (faction.ParentKingdom == kingdom)
-                {
-                    if (faction.IsIdeology) continue;
-
-                    // Existing wars keep their pledges and war state. Resolve satisfied
-                    // demands after accession completes, outside this synchronous callback.
-                    if (faction.HasTrackedRebelKingdom || faction.IsChallengeStartupPending || faction.IsCivilWarActive()) continue;
-
-                    if (faction.Type == FactionType.Abdication)
-                    {
-                        // Hereditary demands target a person. The accession coordinator
-                        // settles their war only after the lawful transfer is complete.
-                        if (faction.IsHereditaryAbdication) continue;
-                        RemoveFaction(faction);
-                        NotificationHelper.ShowFactionDisbanded(faction, new TextObject("{=BC_FactionManager_DisbandReason_OldRuler}the old ruler is no longer in power").ToString());
-                        continue;
-                    }
-
-                    if (faction.Leader == newRulingClan)
-                    {
-                        RemoveFaction(faction);
-                        NotificationHelper.ShowFactionDisbanded(faction, new TextObject("{=BC_FactionManager_DisbandReason_LeaderAscended}their leader ascended to the throne").ToString());
-                        continue;
-                    }
-                    else if (faction.Members.Contains(newRulingClan))
-                    {
-                        faction.RemoveMember(newRulingClan);
-                        NotificationHelper.ShowClanLeftFaction(newRulingClan, faction, new TextObject("{=BC_FactionManager_LeftReason_Ascended}they ascended to the throne").ToString());
-                    }
-
-                    if (faction.Type == FactionType.InstallRuler)
-                    {
-                        if (IsCivilWarGraceBlocked(faction)) continue;
-                        float factionPower = faction.CalculateFactionPower();
-                        float loyalistPower = faction.CalculateLoyalistPower();
-
-                        float dynamicThreshold = 0.8f;
-                        Hero factionLeader = faction.Leader?.Leader;
-
-                        if (factionLeader != null)
-                        {
-                            int calculating = factionLeader.GetTraitLevel(DefaultTraits.Calculating);
-                            if (calculating <= -2) dynamicThreshold -= 0.20f;
-                            else if (calculating == -1) dynamicThreshold -= 0.10f;
-                            else if (calculating == 1) dynamicThreshold += 0.10f;
-                            else if (calculating >= 2) dynamicThreshold += 0.20f;
-
-                            int valor = factionLeader.GetTraitLevel(DefaultTraits.Valor);
-                            if (valor >= 2) dynamicThreshold -= 0.20f;
-                            else if (valor == 1) dynamicThreshold -= 0.10f;
-                            else if (valor == -1) dynamicThreshold += 0.10f;
-                            else if (valor <= -2) dynamicThreshold += 0.20f;
-                        }
-
-                        if (dynamicThreshold < 0.40f) dynamicThreshold = 0.40f;
-
-                        if (factionPower >= loyalistPower * dynamicThreshold)
-                        {
-                            if (faction.Leader == Clan.PlayerClan)
-                            {
-                                NotificationHelper.ShowPlayerSuccessionOpportunity(() => faction.TriggerUltimatum());
-                            }
-                            else
-                            {
-                                TextObject text = new TextObject("{=BC_FactionManager_SuccessionChaos}Seizing the chaos of succession, the {FACTION_NAME} has issued their demands!");
-                                text.SetTextVariable("FACTION_NAME", NotificationHelper.GetFactionDisplayName(faction));
-                                BellumCivileNotifications.Show(text, BellumNotificationColors.Rebellion, primaryKingdom: kingdom, primaryClan: faction.Leader);
-                                faction.TriggerUltimatum();
-                            }
-                        }
-                    }
-                }
-            }
+            ReconcileWarmingCrownFactions(kingdom, rulerChanged: oldRulingClan != newRulingClan);
+            if (newRulingClan != null && oldRulingClan != newRulingClan)
+                _pendingSuccessionOpportunities[kingdom.StringId] = newRulingClan.StringId;
         }
 
         public void ApplyPacifiedCooldown(Clan clan, int days) => _pacifiedClans[clan] = CampaignTime.Now + CampaignTime.Days(days);
@@ -1398,7 +1334,7 @@ namespace BellumCivile.Behaviors
 
                 if (numRebellions > 0)
                 {
-                    Hero ruler = kingdom.RulingClan.Leader;
+                    Hero ruler = kingdom.RulingClan?.Leader;
                     if (ruler == null) continue;
 
                     float paranoiaMultiplier = 1.0f;

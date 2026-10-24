@@ -785,3 +785,4 @@ Added a configurable realm-wide pacification period after civil-wars with a star
 Small rebalance to peace treaty war length consideration and hostage pacts duration with added MCM settings.
 Fixed restored kingdom cleanup and recovery to prevent leaderless remnants, duplicate successors, and premature settlement completion.
 Fixed heirs on regency skipping adult skills and equipment when coming of age.
+Fixed succession-related rebellion errors that could leave kingdoms leaderless and crash court processing.

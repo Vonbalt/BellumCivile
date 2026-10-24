@@ -1003,6 +1003,7 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --royal-peace
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-leadership-diagnostic
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --crown-rebellion-safety
 ```
 
 Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Record results with the revision/environment rather than maintaining a stale passed-check count here.
@@ -1016,6 +1017,8 @@ The engine harness accepts an installation path as its first positional argument
 `Tests/EncyclopediaConcepts.Tests.ps1` also compares text with the manuscript through `Tests/ConceptArticleSource.ps1`. It needs `docs/encyclopedia-articles-draft.md` and **cannot run unchanged in a clean clone without that private file**. The engine harness separately checks shipped Concepts XML/filter. Runtime has no manuscript dependency.
 
 ### Logs and Console Tools
+
+Ruler-change handling reads the incoming clan from the realm; the native event argument is the displaced clan. Unstarted rebel factions exclude the reigning house before escalation, while existing wars and saved startup journals retain their owners. Succession opportunities are saved and processed after accession settles, outside the synchronous ruler event. Startup and recovery cannot transfer the parent's current ruling clan, and court decree processing rechecks leadership after callbacks. These safeguards do not require the ruler to own land and do not reconstruct already-corrupted saves. Focused native-DLL checks: `--crown-rebellion-safety`.
 
 Logs live under the user's Documents folder:
 

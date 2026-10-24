@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--regency-adulthood"))
+            if (args.Contains("--crown-rebellion-safety"))
+            {
+                CrownRebellionSafetyTests.Run(Check);
+                Console.WriteLine($"{_checks} crown rebellion safety checks passed.");
+            }
+            else if (args.Contains("--regency-adulthood"))
             {
                 RegencyAdulthoodTests.Run(Check);
                 Console.WriteLine($"{_checks} regency adulthood checks passed.");

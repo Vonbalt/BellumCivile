@@ -8,6 +8,7 @@ using BellumCivile.Behaviors;
 using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
@@ -49,6 +50,7 @@ internal static class CivilWarGraceTests
     private static int _memories, _notices;
     private static bool _warActive;
     private static Clan _ruler;
+    private static Hero _head;
     private static bool _mercenary;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool Campaign(ref Campaign __result) { __result = _campaign; return false; }
@@ -61,6 +63,9 @@ internal static class CivilWarGraceTests
     private static bool NoUnsafe(ref bool __result) { __result = false; return false; }
     private static bool Player(ref Clan __result) { __result = _clan; return false; }
     private static bool Ruler(ref Clan __result) { __result = _ruler; return false; }
+    private static bool Head(ref Hero __result) { __result = _head; return false; }
+    private static bool Decisions(ref MBReadOnlyList<KingdomDecision> __result)
+    { __result = new MBReadOnlyList<KingdomDecision>(new List<KingdomDecision>()); return false; }
     private static bool Mercenary(ref bool __result) { __result = _mercenary; return false; }
     private static bool All(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(Realms); return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
@@ -111,6 +116,7 @@ internal static class CivilWarGraceTests
         void Setup(int years = 2)
         {
             Gone.Clear(); _day = 100; manager.Items.Clear();
+            _ruler = Blank<Clan>(); _head = Blank<Hero>();
             _warActive = false;
             Realms.Clear(); Realms.Add(_parent);
             behavior = new FactionManagerBehavior(); manager.Items.Add(behavior);
@@ -134,6 +140,9 @@ internal static class CivilWarGraceTests
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsEliminated"), nameof(Eliminated));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Kingdom"), nameof(Realm));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), nameof(Head));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Ruler));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "UnresolvedDecisions"), nameof(Decisions));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "All"), nameof(All));
             Patch(AccessTools.Method(typeof(FactionObject), "IsCivilWarActive"), nameof(Active));
             Patch(AccessTools.Method(typeof(FactionObject), "ShouldDelayUltimatumForUnsafeLeaderLocation"), nameof(NoUnsafe));
@@ -293,7 +302,6 @@ internal static class CivilWarGraceTests
                 "Accelerated campaigns receive their actual 24-day year, not a hardcoded 84-day delay");
             calendar[0].SetValue(null, 7); calendar[1].SetValue(null, 3);
 
-            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Ruler));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "IsUnderMercenaryService"), nameof(Mercenary));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Influence"), nameof(Influence));
             foreach (bool startup in new[] { true, false })

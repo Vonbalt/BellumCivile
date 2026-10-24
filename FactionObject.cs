@@ -76,6 +76,7 @@ namespace BellumCivile
         internal bool IsJudgmentResistance => _judgmentResistance;
         internal void MarkJudgmentResistance() => _judgmentResistance = true;
         internal bool HasStartedCivilWar => _rebellionCreationCompleted;
+        internal bool IsRebellionCreationPending => _rebellionCreationStarted && !_rebellionCreationCompleted;
         internal bool IsCommittedCrownChallenge => IsUltimatumPending || _ultimatumResolved
             || _rebellionCreationStarted || !string.IsNullOrEmpty(_successionChallengeId) || _committedCourtChallenge;
         public bool IsChallengeStartupPending => !string.IsNullOrEmpty(_successionChallengeId) && !_rebellionCreationCompleted;
@@ -441,6 +442,7 @@ namespace BellumCivile
                 return false;
             }
 
+            if (!TryGetRebellionCrown(out Clan crown, out failureReason)) return false;
             if (!KingdomCreationSafetyHelper.PrepareRuler(rebelKingdom, Leader, "adopt rebel kingdom"))
             {
                 failureReason = "the rebel kingdom has no valid intended ruler";
@@ -453,14 +455,17 @@ namespace BellumCivile
             CaptureCivilWarStartInfluence(ParentKingdom.Clans);
             CaptureCivilWarStartInfluence(Members);
 
+            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (Leader.Kingdom == ParentKingdom)
                 MoveClanToKingdomPreservingCivilWarInfluence(Leader, rebelKingdom, preserveCustomBanner: true, showNotification: false);
 
             rebelKingdom.RulingClan = Leader;
             foreach (Clan member in Members.ToList())
             {
+                if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
                 if (member != null
                     && member != Leader
+                    && member != crown
                     && !member.IsEliminated
                     && member.Kingdom == ParentKingdom)
                 {
@@ -468,7 +473,8 @@ namespace BellumCivile
                 }
             }
 
-            if (!TryValidateActiveRebellion(out _, out failureReason))
+            if (!RebellionCrownUnchanged(crown, out failureReason)
+                || !TryValidateActiveRebellion(out _, out failureReason))
                 return false;
 
             _ultimatumPending = false;
@@ -509,6 +515,7 @@ namespace BellumCivile
                 return false;
             }
 
+            if (!TryGetRebellionCrown(out Clan crown, out failureReason)) return false;
             if (!KingdomCreationSafetyHelper.PrepareRuler(rebelKingdom, Leader, "recover partial rebellion"))
             {
                 failureReason = "the rebel kingdom has no valid intended ruler";
@@ -520,6 +527,7 @@ namespace BellumCivile
             CaptureCivilWarStartInfluence(ParentKingdom.Clans);
             CaptureCivilWarStartInfluence(Members);
 
+            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (Leader.Kingdom == ParentKingdom)
                 MoveClanToKingdomPreservingCivilWarInfluence(Leader, rebelKingdom, preserveCustomBanner: true, showNotification: false);
 
@@ -529,8 +537,10 @@ namespace BellumCivile
 
             foreach (Clan member in (Members ?? new List<Clan>()).ToList())
             {
+                if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
                 if (member != null
                     && member != Leader
+                    && member != crown
                     && !member.IsEliminated
                     && member.Kingdom == ParentKingdom)
                 {
@@ -538,13 +548,15 @@ namespace BellumCivile
                 }
             }
 
+            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (!rebelKingdom.IsAtWarWith(ParentKingdom))
             {
                 ModIntegrationHelper.ExecuteWithAIInfluenceDiplomacyBypass(
                     () => DeclareWarAction.ApplyByDefault(rebelKingdom, ParentKingdom));
             }
 
-            if (!TryValidateActiveRebellion(out _, out failureReason))
+            if (!RebellionCrownUnchanged(crown, out failureReason)
+                || !TryValidateActiveRebellion(out _, out failureReason))
                 return false;
 
             _ultimatumPending = false;
@@ -576,6 +588,7 @@ namespace BellumCivile
         public void AddMember(Clan clan)
         {
             if (clan == null || (IsIdeology && !CourtMembershipEligibility.CanBelong(clan, ParentKingdom))) return;
+            if (!IsIdeology && clan == ParentKingdom?.RulingClan) return;
             if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.IsCivilWarGraceBlocked(this) == true) return;
             if (clan == Clan.PlayerClan && !Members.Contains(clan)
                 && Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.CivilWarGraceJoinBlock(this) != null) return;
@@ -806,6 +819,8 @@ namespace BellumCivile
             if (_rebellionCreationCompleted) return "rebellion creation already completed";
             if (Leader == null) return "the faction has no leader";
             if (ParentKingdom == null) return "the faction has no parent kingdom";
+            if (!TryGetRebellionCrown(out _, out string crownFailure)) return crownFailure;
+            if (!FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom)) return "the crown transition is still pending";
             if (Leader.Kingdom != ParentKingdom) return "the faction leader no longer belongs to the parent kingdom";
             if (unsafeSettlement != null) return $"the faction leader is in settlement {unsafeSettlement.StringId}, which would become hostile upon rebellion";
             return "an unknown preflight condition failed";
@@ -827,7 +842,8 @@ namespace BellumCivile
                 return false;
             }
 
-            if (Leader == null || ParentKingdom == null || Leader.Kingdom != ParentKingdom)
+            if (!KingdomCreationSafetyHelper.IsValidFounder(Leader) || !TryGetRebellionCrown(out _, out _)
+                || Leader.Kingdom != ParentKingdom || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
                 return false;
 
             return !ShouldDelayUltimatumForUnsafeLeaderLocation(out unsafeSettlement);
@@ -872,7 +888,8 @@ namespace BellumCivile
 
         private UltimatumResolution AcceptDemands()
         {
-            if (!KingdomCreationSafetyHelper.IsValidFounder(Leader))
+            if (!KingdomCreationSafetyHelper.IsValidFounder(Leader)
+                || !TryGetRebellionCrown(out _, out _) || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
                 return UltimatumResolution.Failed;
 
             if (!TryResolveUltimatum("accepted"))
@@ -1048,6 +1065,8 @@ namespace BellumCivile
 
         private UltimatumResolution RefuseDemandsAndRebel(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice)
         {
+            if (!TryGetRebellionCrown(out _, out _) || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
+                return UltimatumResolution.Failed;
             if (!TryResolveUltimatum("refused"))
                 return UltimatumResolution.Failed;
 
@@ -1148,12 +1167,6 @@ namespace BellumCivile
                 return false;
             }
 
-            if (ParentKingdom == null)
-            {
-                failureReason = "the faction has no parent kingdom";
-                return false;
-            }
-
             if (_rebellionCreationStarted && !resumeChallenge)
             {
                 failureReason = "rebellion creation was already started";
@@ -1179,6 +1192,10 @@ namespace BellumCivile
                 return false;
             }
 
+            if (!TryGetRebellionCrown(out Clan crown, out failureReason)) return false;
+            if (!resumeChallenge && !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
+            { failureReason = "the crown transition is still pending"; return false; }
+            if (Members.Contains(crown)) RemoveMember(crown);
             TextObject rebelName;
 
             if (IsGrandCoalition)
@@ -1253,6 +1270,7 @@ namespace BellumCivile
                 FactionHelper.FinishAllRelatedHostileActionsOfFactionToFaction(ParentKingdom, Leader);
             }
 
+            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (Leader.Kingdom != rebelKingdom)
                 MoveClanToKingdomPreservingCivilWarInfluence(Leader, rebelKingdom, preserveRebelClanBanners, showNotification: false);
             rebelKingdom.RulingClan = Leader;
@@ -1261,7 +1279,8 @@ namespace BellumCivile
 
             foreach (Clan member in Members.ToList())
             {
-                if (member != Leader && !member.IsEliminated && member.Kingdom == ParentKingdom)
+                if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
+                if (member != null && member != Leader && member != crown && !member.IsEliminated && member.Kingdom == ParentKingdom)
                     MoveClanToKingdomPreservingCivilWarInfluence(member, rebelKingdom, preserveRebelClanBanners, showNotification: false);
             }
 
@@ -1273,11 +1292,13 @@ namespace BellumCivile
             else
                 KingdomVisualHelper.ReapplyKingdomPaletteAfterClanChanges(rebelKingdom, rebelVisuals);
 
+            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (!rebelKingdom.IsAtWarWith(ParentKingdom))
                 ModIntegrationHelper.ExecuteWithAIInfluenceDiplomacyBypass(
                     () => DeclareWarAction.ApplyByDefault(rebelKingdom, ParentKingdom));
 
-            if (!TryValidateActiveRebellion(out _, out failureReason))
+            if (!RebellionCrownUnchanged(crown, out failureReason)
+                || !TryValidateActiveRebellion(out _, out failureReason))
             {
                 BellumCivileLogger.Log(
                     $"Rebellion creation failed postcondition validation; faction={Name}; rebel={rebelKingdom?.StringId ?? "none"}; parent={ParentKingdom?.StringId ?? "none"}; reason={failureReason ?? "unknown"}.");
@@ -1310,14 +1331,34 @@ namespace BellumCivile
             return true;
         }
 
+        private bool TryGetRebellionCrown(out Clan crown, out string failureReason)
+        {
+            crown = ParentKingdom?.RulingClan;
+            failureReason = null;
+            if (ParentKingdom == null || ParentKingdom.IsEliminated
+                || !NobleClanEligibilityHelper.IsValidRulingClan(crown, ParentKingdom))
+                failureReason = "the parent kingdom has no valid reigning clan";
+            else if (Leader == crown)
+                failureReason = "the faction leader is the parent kingdom's reigning clan";
+            return failureReason == null;
+        }
+
+        private bool RebellionCrownUnchanged(Clan expected, out string failureReason)
+        {
+            if (!TryGetRebellionCrown(out Clan current, out failureReason)) return false;
+            if (current == expected) return true;
+            failureReason = "the parent kingdom's ruler changed during rebellion startup";
+            return false;
+        }
+
         internal bool TryValidateActiveRebellion(out Kingdom rebelKingdom, out string failureReason)
         {
             rebelKingdom = GetRebelKingdom();
             failureReason = null;
 
-            if (ParentKingdom == null)
+            if (ParentKingdom == null || ParentKingdom.IsEliminated)
             {
-                failureReason = "the parent kingdom is missing";
+                failureReason = "the parent kingdom is missing or eliminated";
                 return false;
             }
 

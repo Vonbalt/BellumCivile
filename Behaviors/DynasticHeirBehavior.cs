@@ -107,9 +107,10 @@ namespace BellumCivile.Behaviors
         // EVENT HANDLERS
         // -------------------- EVENT HANDLERS --------------------
 
-        private void OnRulingClanChanged(Kingdom kingdom, Clan newRulingClan)
+        private void OnRulingClanChanged(Kingdom kingdom, Clan oldRulingClan)
         {
             if (kingdom == null) return;
+            Clan newRulingClan = kingdom.RulingClan;
             if (_pendingUsurperKingdoms.Contains(kingdom.StringId))
             {
 

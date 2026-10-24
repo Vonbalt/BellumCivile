@@ -2799,11 +2799,12 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private void OnRulingClanChanged(Kingdom kingdom, Clan newRulingClan)
+        private void OnRulingClanChanged(Kingdom kingdom, Clan oldRulingClan)
         {
             if (!IsEligiblePermanentRealm(kingdom))
                 return;
 
+            Clan newRulingClan = kingdom.RulingClan;
             EnsureCouncilForKingdom(kingdom);
             float currentDay = (float)CampaignTime.Now.ToDays;
             foreach (PrivyCouncilOfficeRecord record in GetOfficeRecords(kingdom))
