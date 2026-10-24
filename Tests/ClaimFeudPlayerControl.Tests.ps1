@@ -41,3 +41,11 @@ if ($source.Substring($start, $end - $start) -match 'Clan.PlayerClan|Hero.MainHe
     throw 'Shared launch path must not reject player actions or NPC targets.'
 }
 Write-Host 'PASS: five AI eligibility cases, autonomous entry guard, and shared/manual launch wiring.'
+$view = Get-Content -Raw (Join-Path $root 'UI/FactionsWindowVM.cs')
+$start = $view.IndexOf('        private string BuildClaimFeudActionHint(')
+$end = $view.IndexOf('        private static TextObject GetClaimStrengthText(', $start)
+if ($start -lt 0 -or $end -le $start) { throw 'Player claim-selection hint not found.' }
+if ($view.Substring($start, $end - $start) -match 'preview\.Score|\{SCORE\}|Feud pressure score') {
+    throw 'Player claim-selection hint must not display the AI initiation score.'
+}
+Write-Host 'PASS: player claim-selection hint omits the AI initiation score.'

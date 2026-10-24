@@ -911,7 +911,7 @@
     <string id="BC_UI_Hint_FactionType_Militarists" text="Advocates constant war, military prestige, and rule by strength rather than compromise." />
     <string id="BC_UI_Hint_FactionType_Aristocrats" text="Defends noble privilege, inheritance, and the political rights of the great clans." />
     <string id="BC_UI_Hint_FactionType_Populists" text="Advocates broader opportunity, relief for lesser lords, and policies favoring the common people." />
-    <string id="BC_UI_Hint_StartClaimFeud" text="Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.&#xA;&#xA;Current holder: {HOLDER_CLAN}&#xA;Feud pressure score: {SCORE}&#xA;&#xA;Starting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler." />
+    <string id="BC_UI_Hint_StartClaimFeud" text="Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.&#xA;&#xA;Current holder: {HOLDER_CLAN}&#xA;&#xA;Starting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler." />
     <string id="BC_UI_Hint_FactionType_WithReason" text="{DESCRIPTION}&#xA;&#xA;Unavailable: {REASON}" />
     <string id="BC_UI_Leave" text="Leave" />
     <string id="BC_UI_Join" text="Join" />

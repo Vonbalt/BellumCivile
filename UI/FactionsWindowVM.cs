@@ -312,11 +312,10 @@ namespace BellumCivile.UI
             if (preview == null)
                 return string.Empty;
 
-            TextObject description = new TextObject("{=BC_UI_Hint_StartClaimFeud}Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.\n\nCurrent holder: {HOLDER_CLAN}\nFeud pressure score: {SCORE}\n\nStarting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler.");
+            TextObject description = new TextObject("{=BC_UI_Hint_StartClaimFeud}Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.\n\nCurrent holder: {HOLDER_CLAN}\n\nStarting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler.");
             description.SetTextVariable("CLAIM_STRENGTH", GetClaimStrengthText(preview.Strength));
             description.SetTextVariable("TITLE_NAME", preview.TitleName);
             description.SetTextVariable("HOLDER_CLAN", preview.HolderName);
-            description.SetTextVariable("SCORE", preview.Score.ToString("0"));
 
             if (string.IsNullOrWhiteSpace(disabledReason))
                 return description.ToString();
