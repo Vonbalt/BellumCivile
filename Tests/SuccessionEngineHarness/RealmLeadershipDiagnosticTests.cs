@@ -92,6 +92,11 @@ internal static class RealmLeadershipDiagnosticTests
             Patch(AccessTools.PropertySetter(typeof(Hero), "Clan"), nameof(Skip));
             harmony.CreateClassProcessor(patch).Patch();
             var house = House("original_house"); var realm = Realm("vlandia_restored", house);
+            rulerSetter.Invoke(realm, new object[] { null });
+            Call("OnHourlyTick");
+            check(realm.RulingClan == null && Lines.Count == 0 && _flushes == 0,
+                "Startup mutations and early ticks remain silent while native campaign data is incomplete");
+            rulerSetter.Invoke(realm, new object[] { house });
             Call("OnGameLoaded", new object[] { null });
             check(Lines.Count == 0 && _flushes == 0, "Healthy realms generate no leadership diagnostics");
             rulerSetter.Invoke(realm, new object[] { null });
@@ -131,8 +136,12 @@ internal static class RealmLeadershipDiagnosticTests
             check(Incidents() == 1 && Lines.Any(s => s.Contains("stage=first_observed_leaderless")
                 && s.Contains("realm=already_orphaned") && s.Contains("previous_leader=unknown")),
                 "An orphan loaded from a save is distinguished from a witnessed loss");
-            _campaign = NewCampaign(); Clear(); Call("OnSessionLaunched", new object[] { null });
-            check(Incidents() == 1, "A new campaign session has independent nonserialized diagnostic deduplication");
+            _campaign = NewCampaign(); Clear();
+            rulerSetter.Invoke(loaded, new object[] { null }); Call("OnHourlyTick");
+            check(Lines.Count == 0, "A new session does not inherit readiness from the previous campaign");
+            Call("OnSessionLaunched", new object[] { null });
+            check(Incidents() == 1 && Lines.Any(s => s.Contains("realm=already_orphaned")),
+                "Session readiness immediately reports a genuinely orphaned realm, with independent deduplication");
             var broken = Realm("native_failure", House("failure_house")); Clear();
             external.Patch(rulerSetter, prefix: new HarmonyMethod(typeof(RealmLeadershipDiagnosticTests), nameof(ThrowAfterMutation))
                 { priority = Priority.Last });

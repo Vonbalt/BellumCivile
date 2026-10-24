@@ -20,6 +20,7 @@ namespace BellumCivile
             internal readonly Dictionary<Kingdom, Snapshot> Last = new Dictionary<Kingdom, Snapshot>();
             internal readonly Dictionary<Kingdom, double> Open = new Dictionary<Kingdom, double>();
             internal readonly HashSet<Kingdom> DeferredDestruction = new HashSet<Kingdom>();
+            internal bool Ready;
             internal bool FailureLogged;
         }
 
@@ -46,7 +47,7 @@ namespace BellumCivile
         {
             try
             {
-                if (Campaign.Current == null) return Array.Empty<Snapshot>();
+                if (!IsReady(Campaign.Current)) return Array.Empty<Snapshot>();
                 if (instance is Kingdom realm) return new[] { new Snapshot(realm) };
                 var clan = instance as Clan;
                 if (instance is Hero hero)
@@ -71,15 +72,31 @@ namespace BellumCivile
             catch (Exception ex) { Failure(ex); }
         }
 
-        internal static void OnGameLoaded(CampaignGameStarter starter) => Scan("save_loaded");
-        internal static void OnSessionLaunched(CampaignGameStarter starter) => Scan("session_launched");
+        internal static void OnGameLoaded(CampaignGameStarter starter) => Start("save_loaded");
+        internal static void OnSessionLaunched(CampaignGameStarter starter) => Start("session_launched");
         internal static void OnHourlyTick() => Scan("hourly_audit");
+
+        private static bool IsReady(Campaign campaign) => campaign != null
+            && Sessions.TryGetValue(campaign, out var session) && session.Ready;
+
+        private static void Start(string source)
+        {
+            try
+            {
+                var campaign = Campaign.Current;
+                if (campaign == null) return;
+                // XML initialization and save hydration temporarily leave native realms without houses.
+                Sessions.GetValue(campaign, _ => new Session()).Ready = true;
+                Scan(source);
+            }
+            catch (Exception ex) { Failure(ex); }
+        }
 
         private static void Scan(string source)
         {
             try
             {
-                if (Campaign.Current == null) return;
+                if (!IsReady(Campaign.Current)) return;
                 foreach (var realm in Kingdom.All) Observe(realm, source);
             }
             catch (Exception ex) { Failure(ex); }
@@ -90,7 +107,7 @@ namespace BellumCivile
             try
             {
                 var campaign = Campaign.Current;
-                if (realm == null || campaign == null) return;
+                if (realm == null || !IsReady(campaign)) return;
                 var session = Sessions.GetValue(campaign, _ => new Session());
                 var now = new Snapshot(realm);
                 if (before == null) session.Last.TryGetValue(realm, out before);
@@ -194,7 +211,7 @@ namespace BellumCivile
             try
             {
                 var campaign = Campaign.Current;
-                if (campaign == null) return;
+                if (!IsReady(campaign)) return;
                 var session = Sessions.GetValue(campaign, _ => new Session());
                 if (session.FailureLogged) return;
                 session.FailureLogged = true;

@@ -34,31 +34,48 @@ namespace BellumCivile.Behaviors
 
         private bool PrepareForcedAbdication(CrownAccessionRecord record)
         {
-            if (record.ForcedPrepared) return true;
+            bool repair = record.ForcedPrepared && record.CreatesCadet && record.Heir != null
+                && record.Household?.Contains(record.Heir.StringId) != true;
+            if (record.ForcedPrepared && !repair) return true;
+            if (repair && (HasCommittedHouseholdSettlement(record) || record.IncomingHousePrepared))
+                return DeferAbdication(record, "the prepared household lacks its founder after settlement began; existing delivery receipts retained");
             if (record.PreviousHouse.Kingdom != record.Realm || record.PreviousHouse.IsEliminated)
                 return DeferAbdication(record, "the former house has not rejoined the settlement realm");
             if (record.Predecessor.IsDead)
                 return DeferAbdication(record, "the targeted monarch died before the forced settlement was prepared");
             var laws = new SuccessionLawSet(record.GenderLaw, record.HouseLaw);
             Hero heir = record.Heir;
-            record.Heir = heir != null && RegencyPolicy.CanReceiveCrown(heir) ? heir
-                : HereditaryRealmSuccession.GetLine(record.Realm, record.Predecessor, laws).FirstOrDefault();
+            if (repair && (heir.IsAlive != true || heir.IsDisabled || !RegencyPolicy.CanReceiveCrown(heir)))
+                return DeferAbdication(record, "the recorded successor is unavailable for household repair");
+            if (!repair)
+                record.Heir = heir != null && RegencyPolicy.CanReceiveCrown(heir) ? heir
+                    : HereditaryRealmSuccession.GetLine(record.Realm, record.Predecessor, laws).FirstOrDefault();
             record.Emergency = record.Heir == null;
             record.HeirHouse = record.Heir?.Clan;
             record.CreatesCadet = record.HeirHouse == record.PreviousHouse;
             record.RequiresRegency = record.Heir != null && record.Heir.Age < SuccessionLawHelper.GetAgeOfMajority();
             if (record.CreatesCadet)
             {
+                // Do not freeze a plan while a regent still leads the source house.
+                // The existing transfer guard requires the predecessor to resume leadership first.
+                if (record.PreviousHouse.Leader != record.Predecessor || record.Heir == record.Predecessor
+                    || record.Heir == Hero.MainHero)
+                    return DeferAbdication(record, "the source house is not ready to release the successor's household");
+                record.ForcedPrepared = false;
                 record.Household = new[] { record.Heir, record.Heir.Spouse }
                     .Where(h => h != null && h.IsAlive && h.Clan == record.PreviousHouse
                         && h != record.Predecessor && h != record.PreviousHouse.Leader && h != Hero.MainHero)
                     .Distinct().Select(h => h.StringId).ToList();
+                if (!record.Household.Contains(record.Heir.StringId))
+                    return DeferAbdication(record, "the founding heir is unavailable for the new household");
                 FillAbdicationEndowment(record);
                 var partition = Campaign.Current.GetCampaignBehavior<PartitionSuccessionBehavior>();
                 if (partition == null) return DeferAbdication(record, "partition service unavailable");
                 record.CadetName = partition.PreviewAbdicationCadetName(record);
             }
             record.ForcedPrepared = true;
+            if (repair)
+                BellumCivileLogger.Log($"Forced abdication household repaired; realm={record.Realm.StringId}; heir={record.Heir.StringId}; cadet={record.CadetId}; no_transfers_replayed=true.");
             return true;
         }
 
