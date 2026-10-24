@@ -44,4 +44,25 @@ foreach ($path in @('Behaviors/RealmPeaceEnforcementBehavior.cs', 'Behaviors/Cla
 Check ((Read 'InternalInstabilityPresets.cs').Contains('[nameof(BellumCivileSettings.CivilWarGraceYears)] = Pick(2, 3, 1)')) 'Standard, Reduced and Increased presets use two, three and one years respectively.'
 Check ((Read 'BellumCivileSaveDefiner.cs').Contains('AddClassDefinition(typeof(CivilWarGraceRecord), 136)') -and
     (Read 'BellumCivileSaveDefiner.cs').Contains('ConstructContainerDefinition(typeof(List<CivilWarGraceRecord>))')) 'The grace journal and its container have dedicated save definitions.'
+Check ($manager.Contains('OnNewGameCreatedEvent.AddNonSerializedListener(this, ArmInitialCivilWarGrace)') -and
+    $manager.Contains('OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, ApplyInitialCivilWarGrace)') -and
+    $grace.Contains('if (!_initialCivilWarGracePending) return;') -and
+    $grace.Contains('BC_InitialCivilWarGraceUntil')) 'Only a new-game event arms startup pacification, with a saved nonrenewing deadline.'
+Check ($grace.Contains('Kingdom.All.Where(PermanentGraceRealm)') -and
+    $grace.Contains('CampaignTime.Days(Math.Max(1, CampaignTime.DaysInYear))') -and
+    (Read 'BellumCivileSaveDefiner.cs').Contains('ConstructContainerDefinition(typeof(Dictionary<Kingdom, CampaignTime>))')) 'Startup protection covers permanent modded realms for one actual calendar year using an already registered save container.'
+$picker = Read 'Behaviors/CourtPlayerMotionPicker.cs'
+$court = Read 'Behaviors/CourtInstability.cs'
+Check ($picker.Contains('CanConsiderCourtChallenge(agenda.Faction, agenda.Realm)') -and
+    $picker.Contains('grace == null && Clan.PlayerClan.Influence >= price') -and
+    $picker.Contains('PlayerMotionCategoryChoice(agenda, group)')) 'Otherwise eligible tyranny motions and their categories remain visible with disabled grace hints.'
+Check ($court.Contains('if (faction.Leader == Clan.PlayerClan) return faction.Mood <= -60;') -and
+    $court.IndexOf('HasCivilWarGrace(realm)') -lt $court.IndexOf('if (faction.Leader == Clan.PlayerClan)') -and
+    !$court.Contains('if (GetAgenda(realm, faction)?.State != CourtAgendaState.Crisis')) 'Both player-led escalation and already announced court crises respect pacification.'
+Check ((Read 'Behaviors/CourtAgendaPlayerFlow.cs').Contains('if (choice == 0 && grace != null)') -and
+    $picker.IndexOf('var currentGrace = PlayerMotionGraceBlock(agenda, motion);') -lt $picker.IndexOf('NpcInfluenceBudgetService.TrySpend')) 'Disabled approvals and stale confirmation callbacks are guarded before committing or charging.'
+Check ((Read 'Behaviors/CourtAgendaPlayerFlow.cs').Contains('a.State == CourtAgendaState.Crisis && CourtChallengeGraceBlock(a) != null') -and
+    $picker.Contains('BC_CourtCrisisSetAside')) 'A previously approved unissued crisis can reopen a blocked approval popup with a free way to set it aside.'
+Check ($grace.Contains('The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days.') -and
+    !$grace.Contains('BC_CivilWarGrace_Settling')) 'Startup, settlement and postwar commands use one standardized countdown message.'
 'Source contracts passed; native campaign/save-load behavior still needs in-game testing.'

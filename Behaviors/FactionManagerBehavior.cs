@@ -48,6 +48,8 @@ namespace BellumCivile.Behaviors
         public override void RegisterEvents()
         {
             Instance = this;
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, ArmInitialCivilWarGrace);
+            CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, ApplyInitialCivilWarGrace);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainCivilWarGrace);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
@@ -1160,6 +1162,7 @@ namespace BellumCivile.Behaviors
 
                     if (faction.Type == FactionType.InstallRuler)
                     {
+                        if (IsCivilWarGraceBlocked(faction)) continue;
                         float factionPower = faction.CalculateFactionPower();
                         float loyalistPower = faction.CalculateLoyalistPower();
 

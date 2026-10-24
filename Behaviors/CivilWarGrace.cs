@@ -9,13 +9,35 @@ namespace BellumCivile.Behaviors
     public partial class FactionManagerBehavior
     {
         private List<CivilWarGraceRecord> _civilWarGrace = new List<CivilWarGraceRecord>();
+        private Dictionary<Kingdom, CampaignTime> _initialCivilWarGrace = new Dictionary<Kingdom, CampaignTime>();
+        private bool _initialCivilWarGracePending;
+        private CampaignTime _initialCivilWarGraceUntil = CampaignTime.Zero;
 
         private void SyncCivilWarGrace(IDataStore store)
         {
             store.SyncData("BC_CivilWarGrace", ref _civilWarGrace);
+            store.SyncData("BC_InitialCivilWarGrace", ref _initialCivilWarGrace);
+            store.SyncData("BC_InitialCivilWarGracePending", ref _initialCivilWarGracePending);
+            store.SyncData("BC_InitialCivilWarGraceUntil", ref _initialCivilWarGraceUntil);
             _civilWarGrace = _civilWarGrace ?? new List<CivilWarGraceRecord>();
+            _initialCivilWarGrace = _initialCivilWarGrace ?? new Dictionary<Kingdom, CampaignTime>();
             foreach (var record in _civilWarGrace)
                 record.Realms = record.Realms ?? new List<Kingdom>();
+        }
+
+        private void ArmInitialCivilWarGrace(CampaignGameStarter starter)
+        {
+            if (_initialCivilWarGraceUntil != CampaignTime.Zero) return;
+            _initialCivilWarGraceUntil = CampaignTime.Now + CampaignTime.Days(Math.Max(1, CampaignTime.DaysInYear));
+            _initialCivilWarGracePending = true;
+        }
+
+        private void ApplyInitialCivilWarGrace(CampaignGameStarter starter)
+        {
+            if (!_initialCivilWarGracePending) return;
+            foreach (var realm in Kingdom.All.Where(PermanentGraceRealm))
+                _initialCivilWarGrace[realm] = _initialCivilWarGraceUntil;
+            _initialCivilWarGracePending = false;
         }
 
         internal void QueueCivilWarGrace(FactionObject faction, Kingdom rebel, Kingdom outcome = null)
@@ -60,21 +82,26 @@ namespace BellumCivile.Behaviors
         }
 
         internal bool HasCivilWarGrace(Kingdom realm) => PermanentGraceRealm(realm)
-            && _civilWarGrace.Any(r => r.DurationDays > 0 && r.Realms.Contains(realm)
-                && (!r.Settled || r.UntilDay > CampaignTime.Now.ToDays));
+            && ((_initialCivilWarGrace.TryGetValue(realm, out var initialUntil) && initialUntil.ToDays > CampaignTime.Now.ToDays)
+                || _civilWarGrace.Any(r => r.DurationDays > 0 && r.Realms.Contains(realm)
+                    && (!r.Settled || r.UntilDay > CampaignTime.Now.ToDays)));
 
         internal TextObject CivilWarGraceBlock(Kingdom realm)
         {
             if (!HasCivilWarGrace(realm)) return null;
-            var records = _civilWarGrace.Where(r => r.DurationDays > 0 && r.Realms.Contains(realm)).ToList();
-            if (records.Any(r => !r.Settled))
-                return new TextObject("{=BC_CivilWarGrace_Settling}The recent civil war is still being settled. No new rebellion against the crown may begin until the settlement and its grace period have ended.");
-            int days = Math.Max(1, (int)Math.Ceiling(records.Max(r => r.UntilDay) - CampaignTime.Now.ToDays));
-            return new TextObject("{=BC_CivilWarGrace_Blocked}The realm is recovering from civil war. New rebellions against the crown are barred. Days remaining: {DAYS}. Private feuds and resistance to treason judgments are unaffected.")
+            double remaining = _civilWarGrace.Where(r => r.DurationDays > 0 && r.Realms.Contains(realm))
+                .Select(r => r.Settled ? r.UntilDay - CampaignTime.Now.ToDays : r.DurationDays).DefaultIfEmpty(0).Max();
+            if (_initialCivilWarGrace.TryGetValue(realm, out var initialUntil))
+                remaining = Math.Max(remaining, initialUntil.ToDays - CampaignTime.Now.ToDays);
+            int days = Math.Max(1, (int)Math.Ceiling(remaining));
+            return new TextObject("{=BC_CivilWarGrace_Blocked}The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days.")
                 .SetTextVariable("DAYS", days);
         }
 
         internal bool IsCivilWarGraceBlocked(FactionObject faction) => faction != null && !faction.IsIdeology
             && !faction.IsJudgmentResistance && !faction.IsCommittedCrownChallenge && HasCivilWarGrace(faction.ParentKingdom);
+
+        internal TextObject CivilWarGraceJoinBlock(FactionObject faction) => faction != null && !faction.IsIdeology
+            && !faction.IsJudgmentResistance && !faction.IsCivilWarActive() ? CivilWarGraceBlock(faction.ParentKingdom) : null;
     }
 }

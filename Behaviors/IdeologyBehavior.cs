@@ -398,6 +398,11 @@ namespace BellumCivile.Behaviors
         internal bool CanSelectCourtChallenge(FactionObject faction, Kingdom kingdom)
         {
             if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(kingdom) == true) return false;
+            return CanConsiderCourtChallenge(faction, kingdom);
+        }
+
+        internal bool CanConsiderCourtChallenge(FactionObject faction, Kingdom kingdom)
+        {
             if (!CanRunCourtPolitics(kingdom) || faction == null || faction.ParentKingdom != kingdom
                 || !faction.IsIdeology || faction.Mood > -60 || CourtAgendaBehavior.MemberCount(faction) < 2
                 || faction.Leader == kingdom.RulingClan || !CourtAgendaBehavior.Eligible(faction.Leader, kingdom)) return false;
@@ -408,8 +413,7 @@ namespace BellumCivile.Behaviors
 
         internal bool TryLaunchCourtChallenge(FactionObject faction, Kingdom kingdom)
         {
-            if (CourtAgendaBehavior.Current?.GetAgenda(kingdom, faction)?.State != CourtAgendaState.Crisis
-                && Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(kingdom) == true) return false;
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(kingdom) == true) return false;
             if (!CanRunCourtPolitics(kingdom) || CourtAgendaBehavior.MemberCount(faction) < 2) return false;
             var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             return faction.Members.Contains(kingdom.RulingClan)
@@ -767,6 +771,8 @@ namespace BellumCivile.Behaviors
         {
             var factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             if (factionManager == null) return "FactionManagerBehavior not found";
+            var grace = factionManager.CivilWarGraceBlock(kingdom);
+            if (grace != null) return grace.ToString();
 
             FactionObject ideology = factionManager.GetFactionsInKingdom(kingdom)
                 .FirstOrDefault(f => f.IsIdeology && f.Type == ideologyType);
@@ -790,6 +796,7 @@ namespace BellumCivile.Behaviors
 
         private bool TryExpelKingForRebellion(FactionObject faction, Kingdom kingdom, FactionManagerBehavior factionManager)
         {
+            if (factionManager?.HasCivilWarGrace(kingdom) == true) return false;
             if (!faction.Members.Contains(kingdom.RulingClan))
                 return false;
 
@@ -834,7 +841,7 @@ namespace BellumCivile.Behaviors
         private bool TriggerGrandCoalition(FactionObject triggeringFaction, Kingdom kingdom, FactionManagerBehavior factionManager, bool showFailureMessage = true)
         {
             bool committedCrisis = CourtAgendaBehavior.Current?.GetAgenda(kingdom, triggeringFaction)?.State == CourtAgendaState.Crisis;
-            if (!committedCrisis && factionManager?.HasCivilWarGrace(kingdom) == true) return false;
+            if (factionManager?.HasCivilWarGrace(kingdom) == true) return false;
             FactionObject existingGrandCoalition = factionManager?
                 .GetFactionsInKingdom(kingdom)
                 .FirstOrDefault(faction => faction != null

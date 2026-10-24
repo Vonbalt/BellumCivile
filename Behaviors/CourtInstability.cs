@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace BellumCivile.Behaviors
 {
@@ -9,6 +10,9 @@ namespace BellumCivile.Behaviors
     {
         private Dictionary<string, double> _challengeWindowUntil = new Dictionary<string, double>();
         private Dictionary<string, bool> _challengeWindowAllowed = new Dictionary<string, bool>();
+
+        private TextObject CourtChallengeGraceBlock(CourtAgendaRecord agenda) => agenda?.Faction?.IsIdeology == true
+            ? Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.CivilWarGraceBlock(agenda.Realm) : null;
 
         private void SyncInstabilityData(IDataStore dataStore)
         {
@@ -21,8 +25,7 @@ namespace BellumCivile.Behaviors
         private bool MayStartAutomaticCourtChallenge(FactionObject faction, Kingdom realm)
         {
             if (faction == null || realm == null) return false;
-            if (GetAgenda(realm, faction)?.State != CourtAgendaState.Crisis
-                && Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(realm) == true) return false;
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(realm) == true) return false;
             if (faction.Leader == Clan.PlayerClan || GetAgenda(realm, faction)?.State == CourtAgendaState.Crisis)
                 return true;
             string key = realm.StringId + "|" + (int)faction.Type;
@@ -34,6 +37,7 @@ namespace BellumCivile.Behaviors
         private bool ShouldStartCourtCrisis(FactionObject faction, Kingdom realm)
         {
             if (faction == null) return false;
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(realm) == true) return false;
             if (faction.Leader == Clan.PlayerClan) return faction.Mood <= -60;
             return faction.Mood <= BellumCivileOptions.CourtCrisisMoodThreshold
                 && MayStartAutomaticCourtChallenge(faction, realm);

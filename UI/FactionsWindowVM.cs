@@ -618,10 +618,10 @@ namespace BellumCivile.UI
             }
 
             if (selectedBackendFaction?.Members.Contains(Clan.PlayerClan) != true
-                && factionManager?.IsCivilWarGraceBlocked(selectedBackendFaction) == true)
+                && factionManager?.CivilWarGraceJoinBlock(selectedBackendFaction) is TextObject joinGrace)
             {
                 IsJoinLeaveEnabled = false;
-                JoinLeaveHint = new HintViewModel(factionManager.CivilWarGraceBlock(selectedBackendFaction.ParentKingdom));
+                JoinLeaveHint = new HintViewModel(joinGrace);
             }
             FactionObject playerRebelFaction = factionManager?.GetRebelFaction(Clan.PlayerClan);
 
@@ -1118,9 +1118,9 @@ namespace BellumCivile.UI
             if (selectedBackendFaction == null) return;
             bool isPlayerInSelectedFaction = selectedBackendFaction.Members.Contains(Clan.PlayerClan);
             var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
-            if (!isPlayerInSelectedFaction && manager?.IsCivilWarGraceBlocked(selectedBackendFaction) == true)
+            if (!isPlayerInSelectedFaction && manager?.CivilWarGraceJoinBlock(selectedBackendFaction) is TextObject joinGrace)
             {
-                BellumCivileNotifications.ShowPersonal(manager.CivilWarGraceBlock(selectedBackendFaction.ParentKingdom), BellumNotificationColors.Warning);
+                BellumCivileNotifications.ShowPersonal(joinGrace, BellumNotificationColors.Warning);
                 RefreshButtonStates();
                 return;
             }
@@ -1686,6 +1686,13 @@ namespace BellumCivile.UI
         public void ExecuteUltimatum()
         {
             FactionObject selectedBackendFaction = SelectedFaction?.BackendFactionModel as FactionObject;
+            var manager = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
+            if (manager?.IsCivilWarGraceBlocked(selectedBackendFaction) == true)
+            {
+                BellumCivileNotifications.ShowPersonal(manager.CivilWarGraceBlock(selectedBackendFaction.ParentKingdom), BellumNotificationColors.Warning);
+                RefreshButtonStates();
+                return;
+            }
 
             if (selectedBackendFaction != null
                 && !selectedBackendFaction.IsIdeology

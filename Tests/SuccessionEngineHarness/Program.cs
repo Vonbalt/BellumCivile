@@ -61,6 +61,13 @@ internal static class Program
                 CivilWarGraceTests.Run(Check);
                 Console.WriteLine($"{_checks} civil-war grace checks passed.");
             }
+            else if (args.Contains("--court-player-motions"))
+            {
+                CourtLeadershipHandoverTests.Run(Check);
+                CourtNominationMandateTests.Run(Check);
+                CourtMotionNavigationTests.Run(Check);
+                Console.WriteLine($"{_checks} player court motion checks passed.");
+            }
             else if (args.Contains("--internal-instability"))
             {
                 InternalInstabilityTests.Run(Check);
