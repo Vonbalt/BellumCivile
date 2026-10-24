@@ -13,7 +13,7 @@ internal static class IntegrationSaveDefinitionTests
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.PartitionRecipientRecord"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.IntegrationVoteRecord"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.CouncilAppointmentResultRecord"), typeof(CivilWarGraceRecord),
-        typeof(TreatyTermRecord), typeof(TreatyHostageRecord) };
+        typeof(TreatyTermRecord), typeof(TreatyHostageRecord), typeof(RestoredRealmCreationRecord), typeof(CivilWarCollapseRecord) };
     private static bool OnlyRecords(Type type) => Records.Contains(type);
     private static bool OnlyLists(Type type) => Records.Any(r => type == typeof(List<>).MakeGenericType(r));
     internal static void Run(Action<bool, string> check)

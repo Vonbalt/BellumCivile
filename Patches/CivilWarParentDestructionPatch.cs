@@ -21,6 +21,8 @@ namespace BellumCivile.Patches
             if (isKingdomLeaderDeath) return true;
             try
             {
+                if (Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?
+                    .IsRestoredRetirementAuthorized(destroyedKingdom) == true) return true;
                 return Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?
                     .ReserveCollapseBeforeDestruction(destroyedKingdom) != true;
             }

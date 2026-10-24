@@ -48,6 +48,9 @@ namespace BellumCivile.Behaviors
         public override void RegisterEvents()
         {
             Instance = this;
+            CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, RealmLeadershipDiagnostics.OnGameLoaded);
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RealmLeadershipDiagnostics.OnSessionLaunched);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, RealmLeadershipDiagnostics.OnHourlyTick);
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, ArmInitialCivilWarGrace);
             CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, ApplyInitialCivilWarGrace);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
@@ -337,7 +340,8 @@ namespace BellumCivile.Behaviors
                     if (BellumKingdomVisibilityHelper.IsSupersededEmptyKingdomShell(kingdom))
                     {
                         DestroyKingdomAction.Apply(kingdom);
-                        BellumCivileLogger.Log($"Destroyed superseded empty kingdom shell {kingdom.StringId} after Bellum successor cleanup.");
+                        if (kingdom.IsEliminated)
+                            BellumCivileLogger.Log($"Destroyed superseded empty kingdom shell {kingdom.StringId} after Bellum successor cleanup.");
                     }
                 }
                 catch (System.Exception ex)
@@ -707,6 +711,8 @@ namespace BellumCivile.Behaviors
             foreach (FactionObject faction in _activeFactions.ToList())
             {
                 if (!faction.Members.Contains(clan)) continue;
+                if (!faction.IsIdeology && Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?
+                    .IsRestoredCreationPending(faction.ParentKingdom) == true) continue;
 
                 if (faction.IsIdeology)
                 {

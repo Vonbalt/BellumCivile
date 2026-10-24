@@ -165,8 +165,8 @@ namespace BellumCivile.Behaviors
                     if (!ReleaseMercenariesFromKingdom(record.WinnerRealm)
                         || !ReleaseMercenariesFromKingdom(record.Parent))
                     { record.Failure = "Mercenary dismissal pending"; return; }
-                    TransferClansToKingdom(record.WinnerRealm, record.Successor, record.WinnerHouse);
-                    TransferClansToKingdom(record.Parent, record.Successor, record.WinnerHouse);
+                    if (!TransferClansToKingdom(record.WinnerRealm, record.Successor, record.WinnerHouse)
+                        || !TransferClansToKingdom(record.Parent, record.Successor)) return;
                     if (record.WinnerRealm.Clans.Any(c => !c.IsEliminated) || record.Parent.Clans.Any(c => !c.IsEliminated)) return;
                     EnsureValidRulingClan(record.Successor, record.WinnerHouse, forcePreferred: true);
                     Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?
@@ -198,6 +198,15 @@ namespace BellumCivile.Behaviors
                 }
                 if (record.Stage == 4)
                 {
+                    if (!NobleClanEligibilityHelper.IsValidRulingClan(record.Successor?.RulingClan, record.Successor)
+                        || record.Successor.IsEliminated) return;
+                    if (!record.CreatedNotified)
+                    {
+                        record.CreatedNotified = true;
+                        CampaignEventDispatcher.Instance.OnKingdomCreated(record.Successor);
+                    }
+                    if (record.Successor.IsEliminated
+                        || !NobleClanEligibilityHelper.IsValidRulingClan(record.Successor.RulingClan, record.Successor)) return;
                     if (!record.RewardsApplied)
                     {
                         if (!record.InfluenceRestored)

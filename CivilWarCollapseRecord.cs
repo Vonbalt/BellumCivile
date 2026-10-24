@@ -26,6 +26,7 @@ namespace BellumCivile
         [SaveableField(18)] public bool InfluenceRestored;
         [SaveableField(19)] public List<CivilWarPairTransferRecord> NativePairs = new List<CivilWarPairTransferRecord>();
         [SaveableField(20)] public CivilWarRivalPromotionRecord Promotion;
+        [SaveableField(21)] public bool CreatedNotified;
 
         internal bool OwnsChallenge(SuccessionChallengeRecord challenge) => !Completed
             && challenge != null && Challenge == challenge;

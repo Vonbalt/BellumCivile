@@ -258,6 +258,16 @@ internal static class Program
                 CadetRegencyFoundingTests.Run(Check);
                 Console.WriteLine($"{_checks} cadet household preparation checks passed.");
             }
+            else if (args.Contains("--restored-realm-recovery"))
+            {
+                RestoredRealmRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} restored-realm recovery checks passed.");
+            }
+            else if (args.Contains("--realm-leadership-diagnostic"))
+            {
+                RealmLeadershipDiagnosticTests.Run(Check);
+                Console.WriteLine($"{_checks} realm-leadership diagnostic checks passed.");
+            }
             else if (args.Contains("--clan-finance-diagnostic"))
             {
                 ClanFinanceDiagnosticTests.Run(Check);

@@ -1000,6 +1000,7 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --inheritance-regression
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --royal-peace
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-leadership-diagnostic
 ```
 
 Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Record results with the revision/environment rather than maintaining a stale passed-check count here.
@@ -1024,6 +1025,10 @@ Mount and Blade II Bannerlord/Configs/ModLogs/
 ```
 
 `BellumCivileLogger` rotates ordinary logs at about 5 MiB and prunes old dated logs after five days. Capture all numbered segments before expiry. Correlate yearly war/succession summaries with detailed transitions and campaign identity. Accelerated runs can skip telemetry opportunities; missing samples alone do not prove a mechanic failed.
+
+`[BellumCivile realm leadership diagnostic]` is always-on, file-only logging for live realms with a missing/dead ruler, independent of debug notifications. It records previous/current leadership, bounded house and holding lists, pending recovery records, causal call stacks where available, and Harmony patch owners, then flushes immediately. Repeated checks of the same incident are silent; recovery, retirement, and uncompleted destruction requests have separate markers. Load/session and hourly audits catch old save state or raw-field changes, explicitly without claiming to know their original call stack. Brief succession/destruction gaps can be legitimate. Nothing is repaired, suppressed or changed by the observer; its session state is not saved.
+
+Restored-realm recovery separately saves the intended successor before allocation and resumes interrupted household transfers and realm retirement. Cleanup verifies actual elimination; a deferred destruction retains its retry. Restored kingdoms publish the native kingdom-created event once membership, leadership, crown delivery and predecessor retirement are ready, with a saved receipt to avoid replaying listeners. Old empty, rulerless restored predecessors can retire only with a valid successor and no pending inheritance/conflict ownership; ordinary live landless realms are preserved. The legacy native duplicate-ruler load migration cannot leave a Bellum-protected realm rulerless after deferred destruction. See [the lifecycle audit and test limits](Tests/RestoredRealmLifecycleAudit.md). Focused engine checks: `--restored-realm-recovery`; source contracts: `Tests/RestoredRealmRecovery.Tests.ps1`.
 
 Treaty openings are counted by creation date; applied, rejected, and cancelled outcomes by their saved resolution date. Pending parleys are a current snapshot, and average war score spent includes applied treaties only. Older resolved proposals without a resolution timestamp are not assigned an invented year. Crown-heir regency creation and replacement contribute to the same succession counters as ordinary regencies.
 
