@@ -11,6 +11,8 @@ namespace BellumCivile
         [SaveableField(4)] private string _predecessorHeroId;
         [SaveableField(5)] private CampaignTime _startedAt;
         [SaveableField(6)] private bool _regentWasGenerated;
+        [SaveableField(7)] private string _adulthoodPreparedWardId;
+        [SaveableField(8)] private string _adulthoodFailure;
 
         public string ClanId => _clanId ?? string.Empty;
         public string WardHeroId => _wardHeroId ?? string.Empty;
@@ -18,6 +20,15 @@ namespace BellumCivile
         public string PredecessorHeroId => _predecessorHeroId ?? string.Empty;
         public CampaignTime StartedAt => _startedAt;
         public bool RegentWasGenerated => _regentWasGenerated;
+        internal string AdulthoodFailure => _adulthoodFailure;
+        internal bool IsAdulthoodPrepared(Hero ward) => ward != null && _adulthoodPreparedWardId == ward.StringId;
+        internal void BeginAdulthood() => _adulthoodFailure = "Native adulthood event did not complete";
+        internal void CompleteAdulthood(Hero ward)
+        {
+            _adulthoodPreparedWardId = ward.StringId;
+            _adulthoodFailure = null;
+        }
+        internal void FailAdulthood(string failure) => _adulthoodFailure = failure;
 
         public RegencyRecord(
             string clanId,
@@ -38,6 +49,8 @@ namespace BellumCivile
         public void ReplaceWard(Hero ward)
         {
             _wardHeroId = ward?.StringId ?? string.Empty;
+            _adulthoodPreparedWardId = null;
+            _adulthoodFailure = null;
         }
 
         public void ReplaceRegent(Hero regent, bool wasGenerated)

@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--regency-settings"))
+            if (args.Contains("--regency-adulthood"))
+            {
+                RegencyAdulthoodTests.Run(Check);
+                Console.WriteLine($"{_checks} regency adulthood checks passed.");
+            }
+            else if (args.Contains("--regency-settings"))
             {
                 RegencySettingsTests.Run(Check);
                 TestRegencyContinuity();

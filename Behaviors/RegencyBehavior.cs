@@ -18,7 +18,7 @@ namespace BellumCivile.Behaviors
     /// Keeps NPC noble houses alive when their lawful successor is still underage. The adult
     /// regent remains the engine-facing clan leader while the saved ward remains the legal head.
     /// </summary>
-    public sealed class RegencyBehavior : CampaignBehaviorBase
+    public sealed partial class RegencyBehavior : CampaignBehaviorBase
     {
         private enum PlayerSuccessionMode
         {
@@ -252,6 +252,7 @@ namespace BellumCivile.Behaviors
             }
             if (mode == PlayerSuccessionMode.WardSucceeds)
             {
+                if (!EnsureWardAdulthood(clan, activeRegency, ward)) return false;
                 _playerRegencyHandoverPending = false;
                 if (ward.IsNotSpawned || ward.IsDisabled)
                     ward.ChangeState(Hero.CharacterStates.Active);
@@ -524,6 +525,7 @@ namespace BellumCivile.Behaviors
         {
             Patches.FeudalTitleHeroNamePatch.InvalidateCache();
             ValidateRegencies(showNotifications: false);
+            RecoverLegacyWardEquipment();
         }
 
         private void OnBeforeHeroKilled(
@@ -628,7 +630,9 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
-            EndRegency(clan, record, hero, showNotification: true);
+            // Native listeners run newest first. Never activate the ward inside this
+            // callback: AgingCampaignBehavior must initialize skills and gear first.
+            _adultWardHandovers.Add(hero);
         }
 
         private void OnClanDestroyed(Clan clan)
@@ -655,6 +659,7 @@ namespace BellumCivile.Behaviors
 
         private void OnTick(float dt)
         {
+            ProcessAdultWardHandovers();
             if (_pendingPlayerSuccession != null)
                 TryShowPlayerRegencyIntroduction();
             if (_playerRegencyHandoverPending)
@@ -854,6 +859,7 @@ namespace BellumCivile.Behaviors
 
             try
             {
+                if (!EnsureWardAdulthood(clan, record, ward)) return;
                 if (ward.IsNotSpawned || ward.IsDisabled)
                     ward.ChangeState(Hero.CharacterStates.Active);
                 if (ward.PartyBelongedTo == null && MobileParty.MainParty != null)
@@ -966,8 +972,10 @@ namespace BellumCivile.Behaviors
                     return;
                 }
 
+                record.ReplaceWard(successor);
                 EndRegency(clan, record, successor, showNotification: false);
-                ShowWardSucceededAfterDeath(clan, dyingWard, successor);
+                if (clan.Leader == successor && !_regencies.Contains(record))
+                    ShowWardSucceededAfterDeath(clan, dyingWard, successor);
                 return;
             }
 
@@ -1036,6 +1044,7 @@ namespace BellumCivile.Behaviors
         {
             if (clan == null || record == null || rightfulLeader == null || !rightfulLeader.IsAlive)
                 return;
+            if (!EnsureWardAdulthood(clan, record, rightfulLeader)) return;
 
             Hero formerRegent = ResolveHero(record.RegentHeroId);
             if (rightfulLeader.IsNotSpawned || rightfulLeader.IsDisabled)

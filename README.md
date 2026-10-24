@@ -411,6 +411,8 @@ An underage lawful heir becomes a ward. An eligible adult relative acts as engin
 
 With legal-heir enforcement enabled, player regency allows control of a regent until a deferred, safe handover to the ward. Accession and partition remain regency-aware, so the acting adult does not become the hereditary beneficiary.
 
+Regency handovers wait for vanilla's complete adulthood event before activating the ward, preserving adult skills and cultural battle/civilian equipment. Daily, load-time and death-time catch-up consumes only an outstanding native birthday; saved completion/failure receipts prevent repeating partial development. Hostage custody remains intact. On session launch, an equipment-only recovery handles adult NPC nobles still wearing an exact cultural childhood battle outfit without weapons or a mount; it does not reroll skills or change ordinary player-clan inventory. Unrelated civilian outfits and adult loadouts are preserved. Native-DLL regression checks: `--regency-adulthood`; source contracts: `Tests/RegencyAdulthood.Tests.ps1`.
+
 Custom adulthood defaults to **16**, configurable from 16 to 21. Education milestones default to **2, 5, 8, 10, 13, 15** and normalize into strictly increasing ages below adulthood. Completed stages are preserved. Disabling the option restores native ages; changes require restart. Marriage minimum ages are clamped to adulthood.
 
 Strict gender-only laws exclude the opposite gender from title succession. If the lawful line is extinct, an engine-valid leader can preserve the house while title escheat follows its own rules. A living underage heir is not extinction.

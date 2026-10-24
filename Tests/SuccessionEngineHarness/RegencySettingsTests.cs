@@ -35,6 +35,7 @@ internal static class RegencySettingsTests
     private static int _destroyed;
     private static bool Skip() => false;
     private static bool No(ref bool __result) { __result = false; return false; }
+    private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool Majority(ref int __result) { __result = 18; return false; }
     private static bool Age(Hero __instance, ref float __result) { __result = Ages[__instance]; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
@@ -91,6 +92,7 @@ internal static class RegencySettingsTests
             Patch(AccessTools.Method(typeof(RegencyBehavior), "ResolveHero"), nameof(ResolveHero));
             Patch(AccessTools.Method(typeof(RegencyBehavior), "ResolveClan"), nameof(ResolveClan));
             Patch(AccessTools.Method(typeof(RegencyBehavior), "TryInstallClanLeader"), nameof(Install));
+            Patch(AccessTools.Method(typeof(RegencyBehavior), "EnsureWardAdulthood"), nameof(Yes));
             Patch(AccessTools.Method(typeof(RegencyBehavior), "ShowRegencyEnded"), nameof(Skip));
             Patch(AccessTools.Method(policy, "TryRestoreAdultLeader"), nameof(No));
             Patch(AccessTools.Method(typeof(DestroyClanAction), "ApplyByClanLeaderDeath"), nameof(Destroy));
