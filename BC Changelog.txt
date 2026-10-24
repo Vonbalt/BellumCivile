@@ -784,3 +784,4 @@ Fixed dialogue option allowing player rulers to recruit equal or higher-ranked n
 Added a configurable realm-wide pacification period after civil-wars with a starting 1 in-game year pacification for new saves.
 Small rebalance to peace treaty war length consideration and hostage pacts duration with added MCM settings.
 Fixed restored kingdom cleanup and recovery to prevent leaderless remnants, duplicate successors, and premature settlement completion.
+Fixed heirs on regency skipping adult skills and equipment when coming of age.
