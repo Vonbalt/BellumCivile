@@ -24,9 +24,32 @@ namespace BellumCivile.UI.Parley
             if (increase ? IsHostageIncreaseDisabled : IsHostageDecreaseDisabled) return;
             int days = TreatyHostageTerms.DurationForDraft(_proposal.Terms);
             int step = HostagePactRules.DurationStepDays;
-            int next = increase ? (days / step + 1) * step : ((days + step - 1) / step - 1) * step;
+            int next;
+            if (IsControlDown())
+                next = increase ? GetMaximumHostageDuration() : TreatyHostageTerms.MinimumForDraft(_proposal.Terms);
+            else
+            {
+                int steps = IsShiftDown() ? WealthShiftAdjustmentStep : WealthAdjustmentStep;
+                next = increase ? (days / step + steps) * step : ((days + step - 1) / step - steps) * step;
+            }
+            if (next == days) return;
             next = Math.Max(TreatyHostageTerms.MinimumForDraft(_proposal.Terms), Math.Min(HostagePactRules.MaximumDurationDays, next));
             ReplaceDraft(TreatyHostageTerms.WithDuration(GetEditableDemandTerms(), next));
+        }
+
+        private int GetMaximumHostageDuration()
+        {
+            int days = TreatyHostageTerms.DurationForDraft(_proposal.Terms);
+            var terms = GetEditableDemandTerms();
+            // Both pledges share a duration, so price them together with capped offering credit.
+            for (int candidate = HostagePactRules.MaximumDurationDays; candidate > days; candidate -= HostagePactRules.DurationStepDays)
+            {
+                var updated = TreatyHostageTerms.WithDuration(terms, candidate);
+                if (TreatyWarScoreAccounting.Calculate(updated, _proposal.WinnerKingdomId, _proposal.WarScoreBudget).UsedWarScore
+                    <= _proposal.WarScoreBudget)
+                    return candidate;
+            }
+            return days;
         }
 
         private void AddHostageOption(Kingdom supplier, Kingdom receiver)
