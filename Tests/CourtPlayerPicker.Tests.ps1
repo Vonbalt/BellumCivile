@@ -14,7 +14,7 @@ Check ($council.Contains('HasCouncilReservation(context.Realm, context.PlayerAge
 Check ($council.Contains('foreach (var candidate in facts.Candidates(record.Office).Where(c => c != incumbent))')) 'Manual council list includes all eligible nominees, not only the favored shortlist.'
 Check ($context.Contains('owner.Sponsor == Clan.PlayerClan && !context.ManualSelection')) 'Player Crown policies are available manually, not automatically selected.'
 Check ($flow.Contains('if (choice == 2) { ShowTermMotionPicker(agenda, crisis); return; }')) 'Substitute opens the shared picker before any spending.'
-Check ($picker.Contains('agenda.Faction == null ? 0 : BlockCost(agenda, crisis)')) 'Crown selection is free; crisis replacement uses suppression instead of two fees.'
+Check ($picker.Contains('agenda.Faction == null') -and $picker.Contains('crisis && CourtChallengeGraceBlock(agenda) != null ? 0 : BlockCost(agenda, crisis)')) 'Crown selection and replacing a pacified crisis are free; other crisis replacement uses suppression instead of two fees.'
 Check ($picker.IndexOf('current == null || current.FilingCost != motion.FilingCost') -lt $picker.IndexOf('NpcInfluenceBudgetService.TrySpend')) 'Confirmation revalidates candidate and price before spending.'
 Check ($picker.IndexOf('agenda.PlayerSelectionConfirmed = true;', $picker.IndexOf('private void ShowPlayerMotionConfirmation')) -lt $picker.IndexOf('NpcInfluenceBudgetService.TrySpend')) 'Confirmation seals before influence callbacks.'
 Check ($agenda.Contains('[SaveableField(32)] public bool PlayerSelectionConfirmed;') -and $agenda.Contains('[SaveableField(33)] public int SubstitutionInfluencePaid;')) 'Selection and fee receipts persist with the agenda.'

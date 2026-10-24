@@ -25,12 +25,34 @@ namespace BellumCivile.Behaviors
             && (agenda.SessionDate.IsFuture || agenda.CrisisInterventionPending) && !agenda.PlayerSelectionConfirmed && !agenda.ResultApplied
             && agenda.ObjectiveData?.Kind != CourtExecutiveRules.Decree && !IsRoyalPeace(agenda);
 
-        private int ReplacementCost(CourtAgendaRecord agenda, bool crisis) => agenda.Faction == null ? 0 : BlockCost(agenda, crisis);
+        private int ReplacementCost(CourtAgendaRecord agenda, bool crisis) => agenda.Faction == null
+            || crisis && CourtChallengeGraceBlock(agenda) != null ? 0 : BlockCost(agenda, crisis);
+
+        private TextObject PlayerMotionGraceBlock(CourtAgendaRecord agenda, PlayerMotion motion) =>
+            motion.Kind == DebateKind ? CourtChallengeGraceBlock(agenda) : null;
+
+        private InquiryElement PlayerMotionChoice(CourtAgendaRecord agenda, PlayerMotion motion, int price)
+        {
+            var grace = PlayerMotionGraceBlock(agenda, motion);
+            return new InquiryElement(motion, motion.Label.ToString(), null, grace == null && Clan.PlayerClan.Influence >= price,
+                grace?.ToString() ?? new TextObject(motion.Kind == NominationMotionKind
+                    ? "{=BC_NominationPickerHint}Selection: {COST} influence. Grants one time-limited mandate; the normal proposal cost is paid when you file through the kingdom menu."
+                    : "{=BC_CourtPickerCosts}Selection: {COST} influence. Filing: {FILING} influence at the appointed session.")
+                    .SetTextVariable("COST", price).SetTextVariable("FILING", motion.FilingCost).ToString());
+        }
+
+        private InquiryElement PlayerMotionCategoryChoice(CourtAgendaRecord agenda, IGrouping<string, PlayerMotion> group)
+        {
+            var blocks = group.Select(m => PlayerMotionGraceBlock(agenda, m)).ToList();
+            var grace = blocks.All(b => b != null) ? blocks[0] : null;
+            return new InquiryElement(group.Key, group.Key, null, grace == null, grace?.ToString() ?? "");
+        }
 
         private void ShowTermBusinessInquiry(CourtAgendaRecord agenda)
         {
             bool crown = agenda.Faction == null;
             bool crisis = agenda.CrisisInterventionPending;
+            var grace = crisis ? CourtChallengeGraceBlock(agenda) : null;
             // A later crisis can interrupt a previously confirmed ordinary agenda.
             if (crisis) agenda.PlayerSelectionConfirmed = false;
             if (!CanChooseTermBusiness(agenda)) return;
@@ -57,11 +79,12 @@ namespace BellumCivile.Behaviors
             }
             else
             {
-                choices.Add(new InquiryElement(0, new TextObject("{=BC_CourtAgenda_Approve}Approve").ToString(), null, true,
-                    new TextObject("{=BC_CourtAgenda_Approve_Desc}Approve the faction's proposed motion without spending influence.").ToString()));
-                choices.Add(new InquiryElement(1, new TextObject("{=BC_CourtAgenda_Decline}Decline").ToString(), null,
-                    Clan.PlayerClan.Influence >= price && (crisis || !agenda.IsPolicy || Policy(agenda) != null),
-                    new TextObject("{=BC_CourtDeclineCost}Spend {COST} influence to overrule the faction. Its member houses will resent your decision ({RELATION} relation).")
+                choices.Add(new InquiryElement(0, new TextObject("{=BC_CourtAgenda_Approve}Approve").ToString(), null, grace == null,
+                    grace?.ToString() ?? new TextObject("{=BC_CourtAgenda_Approve_Desc}Approve the faction's proposed motion without spending influence.").ToString()));
+                choices.Add(new InquiryElement(1, new TextObject(grace != null
+                    ? "{=BC_CourtCrisisSetAside}Set the crisis aside" : "{=BC_CourtAgenda_Decline}Decline").ToString(), null,
+                    grace != null || Clan.PlayerClan.Influence >= price && (crisis || !agenda.IsPolicy || Policy(agenda) != null),
+                    grace?.ToString() ?? new TextObject("{=BC_CourtDeclineCost}Spend {COST} influence to overrule the faction. Its member houses will resent your decision ({RELATION} relation).")
                         .SetTextVariable("COST", price).SetTextVariable("RELATION", BellumCivileConstants.CourtAgendaDeclineRelationPenalty).ToString()));
                 choices.Add(new InquiryElement(2, new TextObject("{=BC_CourtAgenda_Substitute}Substitute Motion").ToString(), null, agenda.SessionDate.IsFuture, feeHint));
             }
@@ -155,7 +178,8 @@ namespace BellumCivile.Behaviors
                     result.Add(new PlayerMotion { Kind = kind, Candidate = candidate, Label = label, FilingCost = filing });
                 }
             }
-            if (Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.CanSelectCourtChallenge(agenda.Faction, agenda.Realm) == true)
+            if ((onlyKind == null || onlyKind == DebateKind)
+                && Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.CanConsiderCourtChallenge(agenda.Faction, agenda.Realm) == true)
                 result.Add(new PlayerMotion { Kind = DebateKind, Candidate = new CourtObjectiveCandidate(agenda.Realm.StringId, "debate"),
                     Label = new TextObject("{=BC_CourtPickerTyranny}Debate the ruler's tyranny") });
             return result;
@@ -195,18 +219,11 @@ namespace BellumCivile.Behaviors
             int price = ReplacementCost(agenda, crisis);
             bool categories = category == null && motions.Count > 12;
             if (category != null) motions = motions.Where(m => MotionCategory(m.Kind).ToString() == category).ToList();
-            var choices = categories ? motions.Where(m => m.Kind != NominationMotionKind).Select(m => MotionCategory(m.Kind).ToString()).Distinct()
-                .Select(c => new InquiryElement(c, c, null, true, "")).ToList()
-                : motions.Select(m => new InquiryElement(m, m.Label.ToString(), null, Clan.PlayerClan.Influence >= price,
-                new TextObject(m.Kind == NominationMotionKind
-                    ? "{=BC_NominationPickerHint}Selection: {COST} influence. Grants one time-limited mandate; the normal proposal cost is paid when you file through the kingdom menu."
-                    : "{=BC_CourtPickerCosts}Selection: {COST} influence. Filing: {FILING} influence at the appointed session.")
-                    .SetTextVariable("COST", price).SetTextVariable("FILING", m.FilingCost).ToString())).ToList();
+            var choices = categories ? motions.Where(m => m.Kind != NominationMotionKind).GroupBy(m => MotionCategory(m.Kind).ToString())
+                .Select(group => PlayerMotionCategoryChoice(agenda, group)).ToList()
+                : motions.Select(m => PlayerMotionChoice(agenda, m, price)).ToList();
             if (categories)
-                choices.InsertRange(0, motions.Where(m => m.Kind == NominationMotionKind).Select(m => new InquiryElement(m,
-                    m.Label.ToString(), null, Clan.PlayerClan.Influence >= price,
-                    new TextObject("{=BC_NominationPickerHint}Selection: {COST} influence. Grants one time-limited mandate; the normal proposal cost is paid when you file through the kingdom menu.")
-                        .SetTextVariable("COST", price).ToString())));
+                choices.InsertRange(0, motions.Where(m => m.Kind == NominationMotionKind).Select(m => PlayerMotionChoice(agenda, m, price)));
             choices.Add(new InquiryElement(MotionPickerBack, new TextObject("{=BC_CourtPickerBack}Back").ToString(), null, true, ""));
             _activePlayerInquiry = agenda;
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
@@ -245,6 +262,12 @@ namespace BellumCivile.Behaviors
 
         private void ShowPlayerMotionConfirmation(CourtAgendaRecord agenda, PlayerMotion motion, bool crisis, int price, string category)
         {
+            var grace = PlayerMotionGraceBlock(agenda, motion);
+            if (grace != null)
+            {
+                BellumCivileNotifications.ShowPersonal(grace, BellumNotificationColors.Warning);
+                return;
+            }
             if (motion.Kind == NominationMotionKind)
             { ShowNominationMandateConfirmation(agenda, motion.Candidate.TargetId, crisis, price, category); return; }
             var identity = agenda.GetObjective();
@@ -294,6 +317,12 @@ namespace BellumCivile.Behaviors
                     _activePlayerInquiry = null;
                     if (!CanChooseTermBusiness(agenda) || !agenda.SessionDate.IsFuture || agenda.ObjectiveData != identity || agenda.State != state
                         || agenda.CrisisInterventionPending != crisis || ReplacementCost(agenda, crisis) != price) return;
+                    var currentGrace = PlayerMotionGraceBlock(agenda, motion);
+                    if (currentGrace != null)
+                    {
+                        BellumCivileNotifications.ShowPersonal(currentGrace, BellumNotificationColors.Warning);
+                        return;
+                    }
                     var current = AvailablePlayerMotions(agenda).FirstOrDefault(m => SamePlayerMotion(m, motion));
                     if (current == null || current.FilingCost != motion.FilingCost) return;
                     // Prepare without mutating the live agenda or charging for a cancelled preview.
@@ -333,9 +362,10 @@ namespace BellumCivile.Behaviors
                     agenda.PreferredCouncilCandidate = prepared.PreferredCouncilCandidate;
                     agenda.CouncilMotionId = prepared.CouncilMotionId;
                     agenda.CrisisInterventionPending = false;
-                    agenda.OrdinaryCrisisRestrained |= crisis;
+                    bool overruledCrisis = crisis && CourtChallengeGraceBlock(agenda) == null;
+                    agenda.OrdinaryCrisisRestrained |= overruledCrisis;
                     agenda.State = motion.Kind == DebateKind ? CourtAgendaState.Crisis : CourtAgendaState.Announced;
-                    if (crisis) ApplyMemberMemory(agenda, BellumCivileConstants.CourtAgendaDeclineRelationPenalty,
+                    if (overruledCrisis) ApplyMemberMemory(agenda, BellumCivileConstants.CourtAgendaDeclineRelationPenalty,
                         RelationMemorySources.OverruledMyFaction, 7f);
                     BellumCivileLogger.Log($"Court player selection; realm={agenda.Realm.StringId}; owner={agenda.Faction?.Type.ToString() ?? "Crown"}; kind={motion.Kind}; target={motion.Candidate.TargetId}; selection_cost={price}; session={agenda.SessionDate.ToDays}.");
                     NotifyAgenda(agenda);

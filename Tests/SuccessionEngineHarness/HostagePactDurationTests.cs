@@ -14,7 +14,11 @@ internal static class HostagePactDurationTests
     private static Clan _firstHouse, _secondHouse;
     private static Kingdom _firstRealm;
     private static List<TreatyTermRecord> _editedTerms;
+    private static bool _shiftDown, _controlDown;
     private static bool CaptureDraft(List<TreatyTermRecord> __0) { _editedTerms = __0; return false; }
+    private static bool Shift(ref bool __result) { __result = _shiftDown; return false; }
+    private static bool Control(ref bool __result) { __result = _controlDown; return false; }
+    private static bool Skip() => false;
     private static bool RulingHouse(Kingdom __instance, ref Clan __result)
     { __result = __instance == _firstRealm ? _firstHouse : _secondHouse; return false; }
     private static T Empty<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
@@ -24,7 +28,11 @@ internal static class HostagePactDurationTests
         var assembly = typeof(HostagePactRecord).Assembly;
         var service = assembly.GetType("BellumCivile.TreatyHostageTerms", true);
         var rules = assembly.GetType("BellumCivile.HostagePactRules", true);
-        object Rule(string name, params object[] args) => AccessTools.Method(rules, name).Invoke(null, args);
+        object Rule(string name, params object[] args)
+        {
+            var method = AccessTools.Method(rules, name);
+            return method.Invoke(null, args.Concat(method.GetParameters().Skip(args.Length).Select(_ => Type.Missing)).ToArray());
+        }
         int Cost(int tier, int days) => (int)Rule("GetNegotiatedCost", tier, days);
         check(AccessTools.Property(assembly.GetType("BellumCivile.BellumCivileSettings"), "HostagePactDurationDays") == null,
             "Negotiated duration replaces the MCM slider");
@@ -56,15 +64,26 @@ internal static class HostagePactDurationTests
         {
             var durations = (int[])Rule("GetAiDurations", enthusiasm, warDays);
             int preferred = (int)Rule("GetPreferredAiDuration", enthusiasm, warDays);
-            check(durations.Length <= 5 && durations.All(d => d >= 30 && d <= 200)
-                && durations.Contains(30) && durations.Contains(50)
+            check(durations.Length <= 4 && durations.All(d => d >= 50 && d <= 200)
+                && durations.Contains(50)
                 && durations.OrderByDescending(d => (float)Rule("GetAiDurationAdjustment", d, enthusiasm, warDays)).First() == preferred,
                 $"Bounded AI duration shortlist and preference: will={enthusiasm}, war={warDays}");
         }
 
         var harmony = new Harmony("bellum.tests.hostage.duration");
+        var options = assembly.GetType("BellumCivile.BellumCivileOptions");
+        var cache = AccessTools.Field(options, "_settings");
+        var previousSettings = cache.GetValue(null);
+        var settingsType = assembly.GetType("BellumCivile.BellumCivileSettings");
         try
         {
+            harmony.Patch(AccessTools.Method(assembly.GetType("BellumCivile.FeudalTitleStylePresetCatalog"), "CreateDropdown"),
+                prefix: new HarmonyMethod(typeof(HostagePactDurationTests), nameof(Skip)));
+            var settings = Activator.CreateInstance(settingsType, true); cache.SetValue(null, settings);
+            var minimum = AccessTools.Property(settingsType, "HostagePactMinimumDurationDays");
+            var effectiveMinimum = AccessTools.Property(options, "HostagePactMinimumDurationDays");
+            check((int)minimum.GetValue(settings) == 50 && (int)effectiveMinimum.GetValue(null) == 50,
+                "Hostage minimum/default setting starts at fifty days");
             harmony.Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"),
                 prefix: new HarmonyMethod(typeof(HostagePactDurationTests), nameof(RulingHouse)));
             var secondRealm = Empty<Kingdom>(); secondRealm.StringId = "second_realm";
@@ -74,8 +93,8 @@ internal static class HostagePactDurationTests
             var hero = Empty<Hero>(); hero.StringId = "pledged_heir";
             var candidate = Activator.CreateInstance(assembly.GetType("BellumCivile.TreatyHostageCandidate"),
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { hero, 1 }, null);
-            TreatyTermRecord Draft(int? days = null, bool priced = true) => (TreatyTermRecord)AccessTools.Method(service, "Create")
-                .Invoke(null, new object[] { _firstRealm, secondRealm, candidate, false, days, priced });
+            TreatyTermRecord Draft(int? days = null, bool priced = true, int? baseline = null) => (TreatyTermRecord)AccessTools.Method(service, "Create")
+                .Invoke(null, new object[] { _firstRealm, secondRealm, candidate, false, days, priced, baseline });
             int DraftDuration(params TreatyTermRecord[] terms) => (int)AccessTools.Method(service, "DurationForDraft")
                 .Invoke(null, new object[] { terms });
             check(Draft().DurationDays == 50 && DraftDuration() == 50 && Draft().HostageDurationPriced,
@@ -112,15 +131,21 @@ internal static class HostagePactDurationTests
                 "New 100-day clause cannot reuse the legacy 30 WS heir price");
 
             var vmType = assembly.GetType("BellumCivile.UI.Parley.PeaceParleyVM");
+            harmony.Patch(AccessTools.Method(vmType, "IsShiftDown"),
+                prefix: new HarmonyMethod(typeof(HostagePactDurationTests), nameof(Shift)));
+            harmony.Patch(AccessTools.Method(vmType, "IsControlDown"),
+                prefix: new HarmonyMethod(typeof(HostagePactDurationTests), nameof(Control)));
             var vm = FormatterServices.GetUninitializedObject(vmType);
             var proposal = new TreatyProposalRecord("ui", secondRealm.StringId, _firstRealm.StringId, _firstRealm.StringId, 0, 100, false);
             AccessTools.Field(vmType, "_proposal").SetValue(vm, proposal);
             harmony.Patch(AccessTools.Method(vmType, "ReplaceDraft"),
                 prefix: new HarmonyMethod(typeof(HostagePactDurationTests), nameof(CaptureDraft)));
-            void Click(bool increase)
+            void Click(bool increase, bool shift = false, bool control = false)
             {
                 _editedTerms = null;
-                AccessTools.Method(vmType, increase ? "ExecuteIncreaseHostageDuration" : "ExecuteDecreaseHostageDuration").Invoke(vm, null);
+                _shiftDown = shift; _controlDown = control;
+                try { AccessTools.Method(vmType, increase ? "ExecuteIncreaseHostageDuration" : "ExecuteDecreaseHostageDuration").Invoke(vm, null); }
+                finally { _shiftDown = _controlDown = false; }
             }
             proposal.ReplaceTerms(changed.Take(2));
             Click(true);
@@ -163,8 +188,10 @@ internal static class HostagePactDurationTests
             AccessTools.Method(rowType, "ExecuteDecreaseDuration").Invoke(row, null);
             AccessTools.Method(rowType, "ExecuteIncreaseDuration").Invoke(row, null);
             check(toggles == 0, "Inline minimum and maximum disabled states block callbacks");
-            proposal.ReplaceTerms(new[] { Draft(30) }); Click(false);
-            check(_editedTerms == null, "Minus command stops at 30 days");
+            proposal.ReplaceTerms(new[] { Draft(50) }); Click(false);
+            check(_editedTerms == null, "Minus command stops at the new 50-day baseline");
+            proposal.ReplaceTerms(new[] { Draft(30, baseline: 0) }); Click(false);
+            check(_editedTerms == null, "Saved negotiated pledges retain their old 30-day minimum");
             proposal.ReplaceTerms(new[] { Draft(1000) }); Click(true);
             check(_editedTerms == null, "Plus command stops at 1000 days");
             proposal.ReplaceTerms(new[] { original }); Click(true);
@@ -179,6 +206,97 @@ internal static class HostagePactDurationTests
             proposal.ReplaceTerms(Array.Empty<TreatyTermRecord>()); Click(true);
             check(_editedTerms == null && !(bool)AccessTools.Property(vmType, "HasHostagePact").GetValue(vm),
                 "Empty draft has no duration control and cannot create a hostage by adjustment");
+
+            List<TreatyTermRecord> BulkClick(IEnumerable<TreatyTermRecord> terms, int budget, bool increase,
+                bool shift = false, bool control = false)
+            {
+                var draft = new TreatyProposalRecord("bulk", secondRealm.StringId, _firstRealm.StringId,
+                    _firstRealm.StringId, 0, budget, false);
+                draft.ReplaceTerms(terms);
+                AccessTools.Field(vmType, "_proposal").SetValue(vm, draft);
+                try { Click(increase, shift, control); return _editedTerms; }
+                finally { AccessTools.Field(vmType, "_proposal").SetValue(vm, proposal); }
+            }
+            int Used(IEnumerable<TreatyTermRecord> terms, int budget)
+            {
+                var draft = new TreatyProposalRecord("cost", secondRealm.StringId, _firstRealm.StringId,
+                    _firstRealm.StringId, 0, budget, false);
+                draft.ReplaceTerms(terms); return draft.UsedWarScore;
+            }
+            var bulk = BulkClick(new[] { Draft(50) }, 100, true, shift: true);
+            check(bulk.Single().DurationDays == 100 && bulk.Single().WarScoreCost == 35,
+                "Shift-plus adds five ten-day steps with the matching price");
+            bulk = BulkClick(new[] { Draft(150) }, 100, false, shift: true);
+            check(bulk.Single().DurationDays == 100 && bulk.Single().WarScoreCost == 35,
+                "Shift-minus removes five ten-day steps with the matching price");
+            check(BulkClick(new[] { Draft(70) }, 100, false, shift: true).Single().DurationDays == 50
+                && BulkClick(new[] { Draft(970) }, 200, true, shift: true).Single().DurationDays == 1000,
+                "Shift adjustments stop at the saved minimum and thousand-day maximum");
+            check(BulkClick(new[] { original }, 100, true, shift: true).Single().DurationDays == 180
+                && BulkClick(new[] { original }, 100, false, shift: true).Single().DurationDays == 90,
+                "Shift adjustments keep arbitrary legacy durations on the ten-day grid");
+            bulk = BulkClick(new[] { Draft(150) }, 100, false, shift: true, control: true);
+            check(bulk.Single().DurationDays == 50 && bulk.Single().WarScoreCost == 30,
+                "Ctrl-minus takes precedence over Shift and returns to the saved minimum without removing the pledge");
+            check(BulkClick(new[] { Draft(100, baseline: 0) }, 100, false, control: true).Single().DurationDays == 30,
+                "Ctrl-minus retains the historical thirty-day minimum for pre-baseline clauses");
+            var demandWealth = new TreatyTermRecord(TreatyTermType.Reparations, 5,
+                fromKingdomId: _firstRealm.StringId, toKingdomId: secondRealm.StringId);
+            bulk = BulkClick(new[] { Draft(50), demandWealth }, 40, true, control: true);
+            check(bulk[0].DurationDays == 100 && bulk[0].WarScoreCost == 35 && ReferenceEquals(bulk[1], demandWealth)
+                && Used(bulk, 40) == 40,
+                "Ctrl-plus spends remaining War Score after unrelated demands and leaves them unchanged");
+            var offeredWealth = new TreatyTermRecord(TreatyTermType.Reparations, 10,
+                fromKingdomId: secondRealm.StringId, toKingdomId: _firstRealm.StringId, wasVoluntaryOffering: true);
+            bulk = BulkClick(new[] { Draft(50), offeredWealth }, 40, true, shift: true, control: true);
+            check(bulk[0].DurationDays == 200 && Used(bulk, 40) == 40,
+                "Ctrl-plus includes half-value offering credit and takes precedence over Shift");
+            var largeOffering = new TreatyTermRecord(TreatyTermType.Reparations, 1000,
+                fromKingdomId: secondRealm.StringId, toKingdomId: _firstRealm.StringId, wasVoluntaryOffering: true);
+            bulk = BulkClick(new[] { Draft(50), largeOffering }, 40, true, control: true);
+            check(bulk[0].DurationDays == 350 && Used(bulk, 40) == 40,
+                "Ctrl-plus cannot exceed the shared offering-credit cap despite a large concession");
+            var otherDemand = new TreatyTermRecord(TreatyTermType.Reparations, 50,
+                fromKingdomId: _firstRealm.StringId, toKingdomId: secondRealm.StringId);
+            bulk = BulkClick(new[] { Draft(50), otherDemand, largeOffering }, 200, true, control: true);
+            check(bulk[0].DurationDays == 1000 && Used(bulk, 200) == 125,
+                "Maximum-shortcut accounting still caps offering credit at fifty even with a large budget");
+            var mutual = (List<TreatyTermRecord>)AccessTools.Method(service, "WithDuration")
+                .Invoke(null, new object[] { new[] { Draft(50), reciprocal }, 50 });
+            bulk = BulkClick(mutual, 30, true, control: true);
+            check(bulk.All(t => t.DurationDays == 170 && t.HostageDurationBaselineDays == 50)
+                && bulk[0].WarScoreCost == 42 && bulk[1].WarScoreCost == 24 && Used(bulk, 30) == 30
+                && Used((List<TreatyTermRecord>)AccessTools.Method(service, "WithDuration")
+                    .Invoke(null, new object[] { bulk, 180 }), 30) > 30
+                && mutual.All(t => t.DurationDays == 50),
+                "Ctrl-plus prices both reciprocal pledges together and chooses the last affordable ten-day step without mutating the original");
+            check(BulkClick(new[] { mutual[1] }, 0, true, control: true).Single().DurationDays == 1000,
+                "An offering-only pledge can reach the duration ceiling without spending demand War Score");
+            check(BulkClick(new[] { Draft(50) }, 30, true, control: true) == null
+                && BulkClick(new[] { Draft(150) }, 30, true, control: true) == null
+                && BulkClick(new[] { Draft(50) }, 0, true, control: true) == null
+                && BulkClick(new[] { Draft(20, false) }, 0, true, control: true) == null,
+                "Ctrl-plus is a no-op when no extension fits and never shortens an over-budget pact");
+            check(BulkClick(new[] { Draft(50) }, 1000, true, control: true).Single().DurationDays == 1000,
+                "Surplus War Score cannot push the maximum shortcut above a thousand days");
+            bulk = BulkClick(new[] { original }, 40, true, control: true);
+            check(bulk.Single().DurationDays == 150 && bulk.Single().WarScoreCost == 40 && bulk.Single().HostageDurationPriced,
+                "Ctrl-plus reprices a legacy tier-only pledge instead of treating its old price as duration-priced");
+            check(BulkClick(new[] { original }, 35, true, control: true) == null,
+                "A legacy repricing jump cannot sneak an unaffordable extension through Ctrl-plus");
+            bulk = BulkClick(new[] { Draft(100, baseline: 100) }, 35, true, control: true);
+            check(bulk.Single().DurationDays == 150 && bulk.Single().HostageDurationBaselineDays == 100
+                && bulk.Single().WarScoreCost == 35,
+                "Ctrl-plus honors a custom recorded baseline rather than the current new-pact setting");
+            check(BulkClick(new[] { Draft(200, baseline: 100) }, 100, false, control: true).Single().DurationDays == 100,
+                "Ctrl-minus honors a custom recorded minimum");
+            AccessTools.Field(vmType, "_isDraftEditingDisabled").SetValue(vm, true);
+            check(BulkClick(new[] { Draft(150) }, 100, true, shift: true, control: true) == null
+                && BulkClick(new[] { Draft(150) }, 100, false, control: true) == null,
+                "Vassal/read-only commands cannot use keyboard modifiers to change a pact");
+            AccessTools.Field(vmType, "_isDraftEditingDisabled").SetValue(vm, false);
+            check(BulkClick(Array.Empty<TreatyTermRecord>(), 100, true, shift: true, control: true) == null,
+                "Modifier shortcuts cannot create a pledge in an empty draft");
 
             HostagePactRecord Pact(int days, bool recorded = true, bool priced = false) => new HostagePactRecord {
                 Id = "duration-test", FirstRealm = _firstRealm, SecondRealm = secondRealm,
@@ -221,14 +339,90 @@ internal static class HostagePactDurationTests
             var alternatives = ((IEnumerable)AccessTools.Method(assembly.GetType("BellumCivile.TreatyAiDraftService"), "ShorterHostageDrafts")
                 .Invoke(null, new[] { result })).Cast<object>().ToList();
             check(alternatives.Select(a => ((IEnumerable<TreatyTermRecord>)resultType.GetProperty("Terms").GetValue(a))
-                .First().DurationDays).SequenceEqual(new[] { 150, 100, 50, 30 }),
+                .First().DurationDays).SequenceEqual(new[] { 150, 100, 50 }),
                 "Rejected long drafts have bounded shorter alternatives, never longer ones");
+
+            var oldDraft = Draft(100);
+            var oldPricing = Draft(30, baseline: 0);
+            minimum.SetValue(settings, 100);
+            var fresh = Draft();
+            check(fresh.DurationDays == 100 && fresh.HostageDurationBaselineDays == 100 && fresh.WarScoreCost == 30
+                && DraftDuration() == 100, "New pacts start at the configured minimum with the unchanged tier base price");
+            check((int)Rule("GetNegotiatedCost", 1, 110, 100) == 31 && (int)Rule("GetNegotiatedCost", 4, 200, 100) == 22,
+                "New prices add one War Score per ten days above the recorded baseline");
+            check(oldDraft.DurationDays == 100 && oldDraft.HostageDurationBaselineDays == 50 && oldDraft.WarScoreCost == 35,
+                "Changing MCM does not rewrite an already drafted hostage clause");
+            changed = (List<TreatyTermRecord>)AccessTools.Method(service, "WithDuration").Invoke(null, new object[] { new[] { oldDraft }, 110 });
+            check(changed.Single().HostageDurationBaselineDays == 50 && changed.Single().WarScoreCost == 36,
+                "Editing an existing negotiation keeps its saved pricing baseline");
+            validArgs[0] = new[] { oldPricing };
+            check((bool)AccessTools.Method(service, "ValidShape").Invoke(null, validArgs),
+                "Older thirty-day negotiated clauses still validate after raising the new-pact minimum");
+            cloned = (List<TreatyTermRecord>)AccessTools.Method(vmType, "CloneTerms").Invoke(null, new object[] { new[] { fresh } });
+            check(cloned.Single().HostageDurationBaselineDays == 100 && cloned.Single().WarScoreCost == 30,
+                "Parley clone/reset preserves the saved baseline as well as duration and cost");
+            proposal.ReplaceTerms(new[] { fresh }); Click(false);
+            check(_editedTerms == null, "Player duration controls cannot decrease below a new pact's recorded minimum");
+            minimum.SetValue(settings, 500); Click(true);
+            check(_editedTerms.Single().DurationDays == 110 && _editedTerms.Single().WarScoreCost == 31
+                && _editedTerms.Single().HostageDurationBaselineDays == 100,
+                "A later MCM change cannot alter an existing parley's controls or repricing");
+            proposal.ReplaceTerms(new[] { original }); Click(false);
+            check(_editedTerms.Single().DurationDays == 130 && _editedTerms.Single().WarScoreCost == 38
+                && _editedTerms.Single().HostageDurationBaselineDays == 0,
+                "Editing an older tier-only pledge retains the historical schedule even under a higher MCM minimum");
+            var reciprocalRebased = (List<TreatyTermRecord>)AccessTools.Method(service, "WithDuration")
+                .Invoke(null, new object[] { new[] { fresh, reciprocal }, 150 });
+            validArgs[0] = reciprocalRebased;
+            check(reciprocalRebased.All(t => t.HostageDurationBaselineDays == 100 && t.DurationDays == 150)
+                && reciprocalRebased[0].WarScoreCost == 35 && reciprocalRebased[1].WarScoreCost == 17
+                && (bool)AccessTools.Method(service, "ValidShape").Invoke(null, validArgs),
+                "Reciprocal duration edits share the same frozen baseline and validate both prices");
+            foreach (int baseline in new[] { 10, 30, 50, 80, 100, 500, 980, 1000 })
+            {
+                check((bool)Rule("IsNegotiableDuration", baseline, baseline)
+                    && !(bool)Rule("IsNegotiableDuration", baseline - 10, baseline),
+                    "Negotiated lower bound follows the saved baseline: " + baseline);
+                check((float)Rule("GetDurationPenalty", baseline, baseline) == 0
+                    && (float)Rule("GetRecoveryUtility", baseline, 0f, baseline) == 0,
+                    "The chosen baseline itself incurs neither excess-duration penalty nor bonus: " + baseline);
+                foreach (float will in new[] { 0f, 5f, 50f })
+                foreach (float age in new[] { 0f, 200f, 400f })
+                {
+                    int[] choices = (int[])Rule("GetAiDurations", will, age, baseline);
+                    check(choices.Length <= 4 && choices.Distinct().Count() == choices.Length
+                        && choices.Contains(baseline) && choices.All(d => (bool)Rule("IsNegotiableDuration", d, baseline)),
+                        $"AI durations stay bounded and never fall below the saved minimum: {baseline}/{will}/{age}");
+                    check(choices.OrderByDescending(d => (float)Rule("GetAiDurationAdjustment", d, will, age, baseline)).First()
+                        == (int)Rule("GetPreferredAiDuration", will, age, baseline),
+                        $"AI duration preference remains coherent after rebasing: {baseline}/{will}/{age}");
+                }
+            }
+            check((float)Rule("GetDurationPenalty", 150, 100) == 10
+                && (float)Rule("GetDurationPenalty", 250, 100) == 50
+                && (float)Rule("GetRecoveryUtility", 150, 0f, 100) == 15,
+                "Excess-duration utility bands and capped recovery shift with the chosen baseline");
+            var snapshot = Pact(150, priced: true);
+            snapshot.FirstHostage.DurationBaselineDays = 100; snapshot.FirstHostage.NegotiatedCost = 35;
+            minimum.SetValue(settings, 1000);
+            check(Activate(snapshot, 10) && snapshot.EndDay == 160 && snapshot.FirstHostage.DurationBaselineDays == 100,
+                "Saved baseline allows interrupted handover to activate despite a later thousand-day MCM minimum");
+            check(Activate(Pact(30, priced: true), 10), "Pre-baseline thirty-day pacts still activate under changed settings");
+            foreach (var pair in new[] { new[] { -10, 10 }, new[] { 0, 10 }, new[] { 11, 20 }, new[] { 51, 60 }, new[] { 999, 1000 }, new[] { 5000, 1000 } })
+            {
+                minimum.SetValue(settings, pair[0]);
+                check((int)effectiveMinimum.GetValue(null) == pair[1], "MCM minimum is bounded and rounded up to ten-day steps: " + pair[0]);
+            }
+            check(typeof(TreatyTermRecord).GetConstructors().Single().GetParameters().Length == 18,
+                "The original public constructor remains available to already compiled integrations");
         }
         finally
         {
             harmony.UnpatchAll(harmony.Id);
+            cache.SetValue(null, previousSettings);
             _firstRealm = null; _firstHouse = _secondHouse = null;
             _editedTerms = null;
+            _shiftDown = _controlDown = false;
         }
     }
 }

@@ -13,6 +13,10 @@ namespace BellumCivile.Behaviors
         private static readonly System.Reflection.FieldInfo NativeWarStart = AccessTools.Field(typeof(StanceLink), "_warStartDate");
 
         internal static bool IsRealmTransferPending(Kingdom realm) => realm != null
+            && (IsOtherRealmTransferPending(realm)
+                || Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?.IsRestoredCreationPending(realm) == true);
+
+        internal static bool IsOtherRealmTransferPending(Kingdom realm) => realm != null
             && (Instance?._transfers.Any(t => t.Protects(realm)) == true
                 || ElectiveContestBehavior.Instance?.IsDispatchRealmPending(realm) == true
                 || Instance?._promotions.Any(t => t.Protects(realm)) == true

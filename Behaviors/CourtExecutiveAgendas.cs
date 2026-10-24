@@ -48,8 +48,7 @@ namespace BellumCivile.Behaviors
 
         private void ScanDecreeCases(Kingdom realm, IdeologyBehavior ideology)
         {
-            if (realm.RulingClan == Clan.PlayerClan) return;
-            var ruler = realm.RulingClan.Leader;
+            if (ideology == null || !TryGetCourtRuler(realm, out Clan house, out Hero ruler) || house == Clan.PlayerClan) return;
             _decreeCases.RemoveAll(c => c.Realm == null || c.Realm.IsEliminated
                 || c.Realm == realm && (c.Ruler != ruler || !Eligible(c.Accused, realm)
                     || c.Closed && !ideology.CanScheduleTreasonDecree(realm, c.Accused)));
@@ -62,6 +61,7 @@ namespace BellumCivile.Behaviors
             if (!BellumCivileOptions.EnableAutomaticTreasonIndictments) return;
             foreach (var target in realm.Clans.Where(c => ideology.CanScheduleTreasonDecree(realm, c)).ToList())
             {
+                if (!CourtRulerUnchanged(realm, house, ruler)) return;
                 string id = realm.StringId + "|" + ruler.StringId + "|" + target.StringId;
                 if (_decreeCases.Any(c => c.Id == id)) continue;
                 var entry = new CourtDecreeCase { Id = id, Realm = realm, Accused = target, Ruler = ruler };
@@ -86,17 +86,18 @@ namespace BellumCivile.Behaviors
 
         private bool AssignPriorityDecree(CourtAgendaRecord agenda)
         {
+            if (!TryGetCourtRuler(agenda?.Realm, out _, out Hero ruler)) return false;
             var entry = _decreeCases.Where(c => c.Realm == agenda.Realm && !c.Closed && !c.Assigned)
-                .Where(c => c.Ruler == agenda.Realm.RulingClan.Leader
+                .Where(c => c.Ruler == ruler
                     && Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.CanScheduleTreasonDecree(c.Realm, c.Accused) == true)
                 .OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (entry == null) return false;
-            AssignDecree(agenda, entry);
-            return true;
+            return AssignDecree(agenda, entry);
         }
 
-        private void AssignDecree(CourtAgendaRecord agenda, CourtDecreeCase entry)
+        private bool AssignDecree(CourtAgendaRecord agenda, CourtDecreeCase entry)
         {
+            if (!TryGetCourtRuler(agenda?.Realm, out _, out Hero ruler) || entry.Ruler != ruler) return false;
             var previous = agenda.GetObjective();
             BellumCivileLogger.Log($"Crown agenda superseded before filing; realm={agenda.Realm.StringId}; kind={previous.Kind}; target={previous.TargetId}; decree={entry.Id}.");
             agenda.ObjectiveData = new CourtObjectiveRecord { Kind = CourtExecutiveRules.Decree, TargetId = entry.Accused.StringId, ActionId = "decree" };
@@ -111,6 +112,7 @@ namespace BellumCivile.Behaviors
             text.SetTextVariable("DATE", agenda.SessionDate.ToString());
             text.SetTextVariable("RULER", entry.Ruler.Name);
             BellumCivileNotifications.Show(text, BellumNotificationColors.Danger, primaryKingdom: agenda.Realm, secondaryClan: entry.Accused);
+            return true;
         }
 
         public bool TryNominateTreason(Kingdom realm, Clan target, Clan proposer, out TextObject explanation)
@@ -169,9 +171,10 @@ namespace BellumCivile.Behaviors
             string kind = agenda.ObjectiveData.Kind;
             if (kind == CourtExecutiveRules.Decree)
             {
+                if (!TryGetCourtRuler(agenda.Realm, out _, out Hero ruler)) return;
                 var entry = _decreeCases.FirstOrDefault(c => c.Id == agenda.DecreeCaseId);
                 var target = ExecutiveTargetClan(agenda);
-                if (entry == null || entry.Ruler != agenda.Realm.RulingClan.Leader || !ideology.CanScheduleTreasonDecree(agenda.Realm, target))
+                if (entry == null || entry.Ruler != ruler || !ideology.CanScheduleTreasonDecree(agenda.Realm, target))
                 { Cancel(agenda, "decree_parties_or_relation_changed"); return; }
                 if (!agenda.SessionDate.IsPast) return;
                 if (!ideology.CanIssueTreasonDecree(agenda.Realm, target))

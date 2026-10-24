@@ -35,18 +35,19 @@ namespace BellumCivile.Behaviors
                     if (!CanChooseTermBusiness(agenda) || agenda.ObjectiveData != identity || agenda.State != state
                         || crisis != agenda.CrisisInterventionPending || price != ReplacementCost(agenda, crisis)
                         || !deadline.IsFuture || !AvailablePlayerMotions(agenda, kind).Any()) return;
-                    if (!NpcInfluenceBudgetService.TrySpend(Clan.PlayerClan, price,
+                    if (price > 0 && !NpcInfluenceBudgetService.TrySpend(Clan.PlayerClan, price,
                         crisis ? NpcInfluenceExpenseKind.CrownEmergency : NpcInfluenceExpenseKind.Discretionary, "court_term_substitute")) return;
+                    bool overruledCrisis = crisis && CourtChallengeGraceBlock(agenda) == null;
                     // A fresh record releases all previous objective-specific reservations and effects.
                     var mandate = new CourtAgendaRecord { Realm = agenda.Realm, Faction = agenda.Faction, Sponsor = Clan.PlayerClan,
                         State = CourtAgendaState.AwaitingNomination, NominationKind = kind, NominationDeadline = deadline,
                         NominationWindowDays = agenda.NominationWindowDays, SessionDate = agenda.SessionDate, VoteDate = agenda.VoteDate,
                         HasScheduleSnapshot = agenda.HasScheduleSnapshot, TermDays = agenda.TermDays, PlayerSelectionConfirmed = true,
-                        SubstitutionInfluencePaid = price, OrdinaryCrisisRestrained = agenda.OrdinaryCrisisRestrained || crisis,
+                        SubstitutionInfluencePaid = price, OrdinaryCrisisRestrained = agenda.OrdinaryCrisisRestrained || overruledCrisis,
                         ObjectiveData = new CourtObjectiveRecord { Kind = "policy" } };
                     if (identity.HasTermSnapshot) mandate.ObjectiveData.FreezeTerm(identity.SelectedDay, identity.DeadlineDay);
                     _agendas[_agendas.IndexOf(agenda)] = mandate;
-                    if (crisis) ApplyMemberMemory(mandate, BellumCivileConstants.CourtAgendaDeclineRelationPenalty,
+                    if (overruledCrisis) ApplyMemberMemory(mandate, BellumCivileConstants.CourtAgendaDeclineRelationPenalty,
                         RelationMemorySources.OverruledMyFaction, 7f);
                     NotifyAgenda(mandate);
                     BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_NominationGranted}The {FACTION} entrusts you with a mandate: {MOTION}. Your peers expect a proposal before {DATE}.")

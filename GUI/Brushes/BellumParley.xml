@@ -1,0 +1,7 @@
+<Brushes>
+  <Brush Name="Bellum.Parley.VoteBalance.Text" Font="Galahad" TextHorizontalAlignment="Center" TextVerticalAlignment="Center">
+    <Styles>
+      <Style Name="Default" FontColor="#FFFFFFFF" TextOutlineColor="#000000FF" TextOutlineAmount="0.3" TextGlowRadius="0" TextBlur="0" FontSize="17" />
+    </Styles>
+  </Brush>
+</Brushes>

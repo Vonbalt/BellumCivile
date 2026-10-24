@@ -70,7 +70,7 @@ namespace BellumCivile.Behaviors
         private void AcceptTitleGrant(CourtAgendaRecord a)
         {
             var p = a.TitleGrant;
-            var existing = _titleDeliveries.FirstOrDefault(x => x.Realm == p.Realm && x.TitleId == p.TitleId && x.Recipient == p.Recipient
+            var existing = _titleDeliveries.FirstOrDefault(x => SameTitleOffer(x, p)
                 && x.Response == CourtTitleResponse.Accepted);
             if (existing != null) { a.TitleGrant = existing; return; }
             p.Response = CourtTitleResponse.Accepted;
@@ -113,6 +113,7 @@ namespace BellumCivile.Behaviors
                 {
                     if (!GrantUnchanged(p)) { FailTitleDelivery(p, "grant_changed"); return; }
                     if (!NpcInfluenceBudgetService.CanAfford(p.Grantor, FeudalTitlePlayerActionService.GrantInfluenceCost, NpcInfluenceExpenseKind.Discretionary)) return;
+                    if (TitleOfferNeedsConsent(p)) return;
                     p.PaymentAttempted = true; p.RecoveryUntil = now + 1;
                     p.Paid = NpcInfluenceBudgetService.TrySpend(p.Grantor, FeudalTitlePlayerActionService.GrantInfluenceCost, NpcInfluenceExpenseKind.Discretionary, "court_title_grant");
                 }
@@ -220,6 +221,8 @@ namespace BellumCivile.Behaviors
         }
         private static TextObject TitleGrantStatus(CourtAgendaRecord a) => TitleText(a.TitleGrant, new TextObject(a.ResultApplied
             ? "{=BC_TitleGrantClosed}This title motion has concluded."
+            : a.TitleGrant.Response == CourtTitleResponse.Accepted && TitleOfferNeedsConsent(a.TitleGrant)
+            ? "{=BC_TitleGrantOfferPending}The Crown has offered {TITLE} to your household and awaits your answer before {DATE}. No rights or influence change hands until you accept."
             : "{=BC_TitleGrantStatus}Named grant: {TITLE} to {RECIPIENT}. Deadline: {DATE}. Royal authorization and 100 influence are required. The recipient remains a vassal; subordinate settlements are not granted. An unfulfilled Nobility petition brings -10 approval at term end."));
         internal TextObject TitleGrantHint(Kingdom realm, FactionObject faction)
         { var a = GetDisplayedAgenda(realm, faction); return IsTitleGrant(a) && a.TitleGrant != null ? TitleGrantStatus(a) : null; }

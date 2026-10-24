@@ -33,6 +33,10 @@ namespace BellumCivile.UI.Parley
         private HintViewModel _signTreatyHint;
         private HintViewModel _resetTreatyHint;
         private BasicTooltipViewModel _predictedOutcomeTooltip;
+        private bool _isOutcomeHintVisible;
+        private bool _treatyWillPass;
+        private TreatyCouncilSummaryVM _playerCouncilSummary;
+        private TreatyCouncilSummaryVM _opponentCouncilSummary;
         private string _playerVoteText;
         private string _playerCommitmentText;
         private string _playerRatificationText;
@@ -84,6 +88,7 @@ namespace BellumCivile.UI.Parley
 
         public void Refresh(TreatyProposalRecord proposal)
         {
+            CloseTooltips();
             _proposal = proposal;
             ForeignTreatyBehavior treaties = Campaign.Current?.GetCampaignBehavior<ForeignTreatyBehavior>();
             WarScoreRecord war = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(proposal?.WarKey);
@@ -119,7 +124,7 @@ namespace BellumCivile.UI.Parley
             UpperPanelHeight = IsPlayerVassal ? 280 : 538;
             LowerPanelHeight = IsPlayerVassal ? 609 : 351;
             DraftEditorHeight = IsPlayerVassal ? 118 : 376;
-            DraftTermsHeight = IsPlayerVassal ? 277 : 199;
+            DraftTermsHeight = IsPlayerVassal ? 246 : 199;
             IsRejectDisabled = !IsPlayerRuler || proposal?.IsForced == true;
             TreatyCouncilVoteStance playerStance = proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain;
             IsInfluenceSelectionDisabled = !IsPlayerVassal || playerStance == TreatyCouncilVoteStance.Abstain;
@@ -152,6 +157,14 @@ namespace BellumCivile.UI.Parley
             IsPoliticsDraftScrollbarVisible = false;
             IsDraftTermsScrollbarVisible = false;
             IsSignDisabled = true;
+            TreatyWillPass = false;
+            PlayerCouncilSummary = new TreatyCouncilSummaryVM(playerSide, null, false, false, false);
+            OpponentCouncilSummary = new TreatyCouncilSummaryVM(opponent, null, false, false, false);
+            PlayerRatificationText = PlayerCouncilSummary.SummaryText;
+            OpponentRatificationText = OpponentCouncilSummary.SummaryText;
+            PredictedOutcomeText = new TextObject("{=BC_Parley_OutcomeUnavailable}Predicted outcome unavailable").ToString();
+            PredictedOutcomeColor = BuildOutcomeColor(false);
+            _predictedOutcomeTooltip = null;
             if (treaties != null && war != null && proposal != null)
             {
                 TreatyCouncilEvaluation playerCouncil = treaties.EvaluateCouncil(war, proposal, playerSide, playerWins);
@@ -163,57 +176,51 @@ namespace BellumCivile.UI.Parley
                 bool playerAccepts = treaties.WouldCouncilAccept(playerSide, playerCouncil, playerForced, IsPlayerRuler, out bool playerUsesOverride);
                 bool opponentAccepts = treaties.WouldCouncilAccept(opponent, opponentCouncil, opponentForced, playerRulerAuthorizesOverride: false, out bool opponentUsesOverride);
 
-                PlayerRatificationText = BuildCouncilStatusText(playerSide, playerCouncil, playerForced, playerAccepts, playerUsesOverride);
-                OpponentRatificationText = BuildCouncilStatusText(opponent, opponentCouncil, opponentForced, opponentAccepts, opponentUsesOverride);
+                PlayerCouncilSummary = new TreatyCouncilSummaryVM(playerSide, playerCouncil, playerForced, playerAccepts, playerUsesOverride);
+                OpponentCouncilSummary = new TreatyCouncilSummaryVM(opponent, opponentCouncil, opponentForced, opponentAccepts, opponentUsesOverride);
+                PlayerRatificationText = PlayerCouncilSummary.SummaryText;
+                OpponentRatificationText = OpponentCouncilSummary.SummaryText;
                 PlayerRatificationColor = BuildOutcomeColor(playerAccepts);
                 OpponentRatificationColor = BuildOutcomeColor(opponentAccepts);
-                string playerRulerCouncilReason = BuildRulerCouncilReason(
-                    playerSide,
-                    playerCouncil,
-                    playerAccepts,
-                    playerUsesOverride);
-                string opponentRulerCouncilReason = BuildRulerCouncilReason(
-                    opponent,
-                    opponentCouncil,
-                    opponentAccepts,
-                    opponentUsesOverride);
                 bool treatyWillPass = !isOverBudget && playerAccepts && opponentAccepts;
+                TreatyWillPass = treatyWillPass;
                 PredictedOutcomeText = treatyWillPass
                     ? new TextObject("{=BC_Parley_PredictedRatified}Predicted Outcome: TREATY RATIFIED").ToString()
                     : new TextObject("{=BC_Parley_PredictedRejected}Predicted Outcome: TREATY REJECTED").ToString();
                 PredictedOutcomeColor = BuildOutcomeColor(treatyWillPass);
                 _predictedOutcomeTooltip = new BasicTooltipViewModel(() => BuildPredictedOutcomeTooltip(
+                    PredictedOutcomeText,
                     PlayerRatificationText,
                     OpponentRatificationText));
                 bool hasValidPlayerResponse = IsPlayerRuler
                     || (proposal.PlayerVoteSubmitted
                         && (playerStance == TreatyCouncilVoteStance.Abstain || proposal.PlayerInfluenceCommitment > 0));
-                IsSignDisabled = isOverBudget || !hasValidPlayerResponse;
+                IsSignDisabled = !hasValidPlayerResponse || (isOverBudget && IsPlayerRuler);
                 foreach (TreatyCouncilMemberEvaluation member in OrderCouncilMembers(playerCouncil.Members, playerSide?.RulingClan))
                 {
                     bool isRuler = member?.Clan == playerSide?.RulingClan;
                     int overrideCommitment = isRuler
-                        ? GetRulerOverrideCommitment(playerCouncil, playerAccepts, playerUsesOverride)
+                        ? PlayerCouncilSummary.RulerOverrideCommitment
                         : 0;
                     PlayerCouncil.Add(new TreatyCouncilMemberVM(
                         member,
                         isRuler,
                         playerAccepts,
                         overrideCommitment,
-                        isRuler ? playerRulerCouncilReason : null));
+                        isRuler ? PlayerCouncilSummary.RulerReason : null));
                 }
                 foreach (TreatyCouncilMemberEvaluation member in OrderCouncilMembers(opponentCouncil.Members, opponent?.RulingClan))
                 {
                     bool isRuler = member?.Clan == opponent?.RulingClan;
                     int overrideCommitment = isRuler
-                        ? GetRulerOverrideCommitment(opponentCouncil, opponentAccepts, opponentUsesOverride)
+                        ? OpponentCouncilSummary.RulerOverrideCommitment
                         : 0;
                     OpponentCouncil.Add(new TreatyCouncilMemberVM(
                         member,
                         isRuler,
                         opponentAccepts,
                         overrideCommitment,
-                        isRuler ? opponentRulerCouncilReason : null));
+                        isRuler ? OpponentCouncilSummary.RulerReason : null));
                 }
                 IReadOnlyList<int> termImpacts = TreatyWarScoreAccounting.GetEffectiveTermImpacts(
                     proposal.Terms,
@@ -515,7 +522,9 @@ namespace BellumCivile.UI.Parley
                     : new TextObject("{=BC_Parley_RejectTreatyDisabledHint}Only your ruler might outright reject a treaty of peace")
                 : TextObject.GetEmpty());
             SignTreatyHint = new HintViewModel(isOverBudget
-                ? new TextObject("{=BC_Parley_FailureWarScoreExceeded}These demands exceed the leverage won in this war. Reduce the demands or offer concessions before sealing the peace; even capitulation cannot compel these terms.")
+                ? IsPlayerVassal
+                    ? new TextObject("{=BC_Parley_VassalInvalidBudgetHint}This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect.")
+                    : new TextObject("{=BC_Parley_FailureWarScoreExceeded}These demands exceed the leverage won in this war. Reduce the demands or offer concessions before sealing the peace; even capitulation cannot compel these terms.")
                 : IsSignDisabled
                 ? new TextObject("{=BC_Parley_SignTreatyDisabledHint}You need to select an outcome and how much you want to support that outcome.")
                 : new TextObject("{=BC_Parley_SignTreatyHint}Submit the drafted treaty to both councils. Committed influence will be spent even if ratification fails."));
@@ -535,8 +544,26 @@ namespace BellumCivile.UI.Parley
         public void ExecuteCommit25() => SetPlayerVote(_proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain, 25);
         public void ExecuteCommit75() => SetPlayerVote(_proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain, 75);
         public void ExecuteCommit150() => SetPlayerVote(_proposal?.PlayerVoteStance ?? TreatyCouncilVoteStance.Abstain, 150);
-        public void ExecuteBeginPredictedOutcomeHint() => _predictedOutcomeTooltip?.ExecuteBeginHint();
-        public void ExecuteEndPredictedOutcomeHint() => _predictedOutcomeTooltip?.ExecuteEndHint();
+        public void ExecuteBeginPredictedOutcomeHint()
+        {
+            if (_isOutcomeHintVisible || _predictedOutcomeTooltip == null) return;
+            _isOutcomeHintVisible = true;
+            _predictedOutcomeTooltip.ExecuteBeginHint();
+        }
+
+        public void ExecuteEndPredictedOutcomeHint()
+        {
+            if (!_isOutcomeHintVisible) return;
+            _isOutcomeHintVisible = false;
+            _predictedOutcomeTooltip?.ExecuteEndHint();
+        }
+
+        public void CloseTooltips()
+        {
+            ExecuteEndPredictedOutcomeHint();
+            foreach (var member in PlayerCouncil) member.ExecuteEndReasonHint();
+            foreach (var member in OpponentCouncil) member.ExecuteEndReasonHint();
+        }
         public void ExecuteSelectFiefsTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = true; IsPrisonersTabSelected = false; IsPoliticsTabSelected = false; IsWealthTabSelected = false; }
         public void ExecuteSelectPrisonersTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = false; IsPrisonersTabSelected = true; IsPoliticsTabSelected = false; IsWealthTabSelected = false; }
         public void ExecuteSelectPoliticsTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = false; IsPrisonersTabSelected = false; IsPoliticsTabSelected = true; IsWealthTabSelected = false; }
@@ -579,7 +606,7 @@ namespace BellumCivile.UI.Parley
 
         public void ExecuteSignTreaty()
         {
-            if (_proposal?.IsOverBudget == true)
+            if (_proposal?.IsOverBudget == true && IsPlayerRuler)
             {
                 Refresh(_proposal);
                 return;
@@ -1143,6 +1170,7 @@ namespace BellumCivile.UI.Parley
                 .Select(term => new TreatyTermRecord(
                     term.Type,
                     term.WarScoreCost,
+                    term.HostageDurationBaselineDays,
                     term.SettlementId,
                     term.GoldAmount,
                     term.DailyGold,
@@ -1416,7 +1444,30 @@ namespace BellumCivile.UI.Parley
             else if (_proposal?.State == TreatyProposalState.Cancelled)
             {
                 title = new TextObject("{=BC_Parley_OutcomeCancelledTitle}Peace Parley Closed");
-                description = new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
+                switch (_proposal.ResolutionNote)
+                {
+                    case ForeignTreatyBehavior.BudgetExceededReason:
+                        description = new TextObject("{=BC_Parley_OutcomeBudgetCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues.");
+                        break;
+                    case "war or treaty realm no longer active":
+                        description = new TextObject("{=BC_Parley_OutcomeCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed.");
+                        break;
+                    case "the council-controlled white peace no longer meets mutual peace eligibility":
+                        description = new TextObject("{=BC_Parley_OutcomeWhitePeaceCancelledBody}The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms.");
+                        break;
+                    case "the active campaign quest prevents peace in this war":
+                        description = new TextObject("{=BC_Parley_OutcomeQuestCancelledBody}An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement.");
+                        break;
+                    case "the balance of the war changed before the treaty could be ratified":
+                        description = new TextObject("{=BC_Parley_OutcomeBalanceCancelledBody}The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement.");
+                        break;
+                    case "the promised hostage could not be delivered":
+                        description = new TextObject("{=BC_Parley_OutcomeHostageCancelledBody}The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement.");
+                        break;
+                    default:
+                        description = new TextObject("{=BC_Parley_OutcomeOtherCancelledBody}The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement.");
+                        break;
+                }
             }
             else if (explicitRulerRejection)
             {
@@ -1502,141 +1553,6 @@ namespace BellumCivile.UI.Parley
                 .ThenBy(member => member?.Clan?.Name?.ToString() ?? string.Empty);
         }
 
-        private static string BuildCouncilStatusText(
-            Kingdom kingdom,
-            TreatyCouncilEvaluation council,
-            bool forced,
-            bool accepts,
-            bool usesOverride)
-        {
-            if (council == null)
-                return string.Empty;
-
-            string realmName = kingdom?.Name?.ToString() ?? string.Empty;
-            if (council.IsBudgetBlocked)
-            {
-                return new TextObject("{=BC_Parley_CouncilBudgetBlockedMood}The terms exceed the leverage won in this war and cannot be sealed by {REALM}.")
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            if (forced)
-            {
-                return new TextObject("{=BC_Parley_CouncilForcedMood}The lords of {REALM} have no choice but to accept these terms.")
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            TreatyCouncilMemberEvaluation rulerPosition = council.Members
-                .FirstOrDefault(member => member?.Clan == kingdom?.RulingClan);
-            if (council.IsRatified
-                && accepts
-                && rulerPosition?.Stance == TreatyCouncilVoteStance.Nay)
-            {
-                return new TextObject("{=BC_Parley_CouncilCompelsRulerMood}The lords of {REALM} have carried the treaty despite their ruler's opposition.")
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            bool rulerOverruled = council.IsRatified != accepts;
-            if (rulerOverruled || usesOverride)
-            {
-                string rulerTitle = ResolveRulerDisplayTitle(kingdom);
-                TextObject text = accepts
-                    ? new TextObject("{=BC_Parley_RulerOverrulesAcceptMood}The {RULER_TITLE} of {REALM} has overruled the realm's lords and accepted these terms.")
-                    : new TextObject("{=BC_Parley_RulerOverrulesRejectMood}The {RULER_TITLE} of {REALM} has overruled the realm's lords and rejected these terms.");
-                return text
-                    .SetTextVariable("RULER_TITLE", rulerTitle)
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            if (council.IsRatified)
-            {
-                return new TextObject("{=BC_Parley_CouncilAcceptMood}The lords of {REALM} seem inclined to agree with these terms.")
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            if (council.NayInfluence > council.YayInfluence)
-            {
-                return new TextObject("{=BC_Parley_CouncilRejectMood}The lords of {REALM} deem these terms unacceptable.")
-                    .SetTextVariable("REALM", realmName)
-                    .ToString();
-            }
-
-            return new TextObject("{=BC_Parley_CouncilUncommittedMood}The lords of {REALM} remain uncommitted to these terms.")
-                .SetTextVariable("REALM", realmName)
-                .ToString();
-        }
-
-        private static string BuildRulerCouncilReason(
-            Kingdom kingdom,
-            TreatyCouncilEvaluation council,
-            bool accepts,
-            bool usesOverride)
-        {
-            Clan ruler = kingdom?.RulingClan;
-            TreatyCouncilMemberEvaluation rulerPosition = council?.Members
-                .FirstOrDefault(member => member?.Clan == ruler);
-            if (ruler == null || rulerPosition == null || council.IsBudgetBlocked || council.IsSoleRulerDecision)
-                return string.Empty;
-
-            if (council.IsRatified && accepts && rulerPosition.Stance == TreatyCouncilVoteStance.Nay)
-            {
-                int requiredInfluence = Math.Max(0, council.RejectionOverrideCost)
-                    + Math.Max(0, rulerPosition.InfluenceCommitment);
-                if (ruler != Clan.PlayerClan && ruler.Influence < requiredInfluence)
-                {
-                    return new TextObject("{=BC_Parley_RulerLacksInfluenceToOppose}I lack the influence to oppose my vassals.")
-                        .ToString();
-                }
-
-                return new TextObject("{=BC_Parley_RulerYieldsToCouncil}I will not defy my vassals over these terms.")
-                    .ToString();
-            }
-
-            if (!council.IsRatified && accepts && usesOverride)
-            {
-                return new TextObject("{=BC_Parley_RulerOverridesForPeace}I will spend my influence to secure this peace despite my vassals.")
-                    .ToString();
-            }
-
-            if (council.IsRatified && !accepts && usesOverride)
-            {
-                return new TextObject("{=BC_Parley_RulerOverridesAgainstPeace}I will spend my influence to reject these terms despite my vassals.")
-                    .ToString();
-            }
-
-            return string.Empty;
-        }
-
-        private static string ResolveRulerDisplayTitle(Kingdom kingdom)
-        {
-            Hero ruler = kingdom?.RulingClan?.Leader;
-            if (ruler != null && FeudalTitleDisplayHelper.TryGetHighestDisplayTitle(ruler, out string displayTitle)
-                && !string.IsNullOrWhiteSpace(displayTitle))
-            {
-                return displayTitle;
-            }
-
-            return ruler?.IsFemale == true
-                ? new TextObject("{=BC_TitleDisplay_Queen}Queen").ToString()
-                : new TextObject("{=BC_TitleDisplay_King}King").ToString();
-        }
-
-        private static int GetRulerOverrideCommitment(
-            TreatyCouncilEvaluation council,
-            bool rulerAccepts,
-            bool usesAcceptanceOverride)
-        {
-            if (council == null || council.IsBudgetBlocked)
-                return 0;
-            if (rulerAccepts)
-                return usesAcceptanceOverride ? council.OverrideCost : 0;
-            return council.IsRatified ? council.RejectionOverrideCost : 0;
-        }
-
         private static Color BuildOutcomeColor(bool positive)
         {
             return positive
@@ -1645,11 +1561,14 @@ namespace BellumCivile.UI.Parley
         }
 
         private static List<TooltipProperty> BuildPredictedOutcomeTooltip(
+            string outcome,
             string firstRealm,
             string secondRealm)
         {
             return new List<TooltipProperty>
             {
+                new TooltipProperty(outcome ?? string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.Title),
+                new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator),
                 new TooltipProperty(firstRealm ?? string.Empty, string.Empty, 0),
                 new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator),
                 new TooltipProperty(secondRealm ?? string.Empty, string.Empty, 0)
@@ -1730,6 +1649,12 @@ namespace BellumCivile.UI.Parley
         public Color OpponentRatificationColor { get => _opponentRatificationColor; set { if (value != _opponentRatificationColor) { _opponentRatificationColor = value; OnPropertyChangedWithValue(value, "OpponentRatificationColor"); } } }
         [DataSourceProperty]
         public Color PredictedOutcomeColor { get => _predictedOutcomeColor; set { if (value != _predictedOutcomeColor) { _predictedOutcomeColor = value; OnPropertyChangedWithValue(value, "PredictedOutcomeColor"); } } }
+        [DataSourceProperty]
+        public bool TreatyWillPass { get => _treatyWillPass; set { if (value != _treatyWillPass) { _treatyWillPass = value; OnPropertyChangedWithValue(value, nameof(TreatyWillPass)); } } }
+        [DataSourceProperty]
+        public TreatyCouncilSummaryVM PlayerCouncilSummary { get => _playerCouncilSummary; set { if (value != _playerCouncilSummary) { _playerCouncilSummary = value; OnPropertyChangedWithValue(value, nameof(PlayerCouncilSummary)); } } }
+        [DataSourceProperty]
+        public TreatyCouncilSummaryVM OpponentCouncilSummary { get => _opponentCouncilSummary; set { if (value != _opponentCouncilSummary) { _opponentCouncilSummary = value; OnPropertyChangedWithValue(value, nameof(OpponentCouncilSummary)); } } }
         [DataSourceProperty]
         public bool IsFiefsTabSelected { get => _isFiefsTabSelected; set { if (value != _isFiefsTabSelected) { _isFiefsTabSelected = value; OnPropertyChangedWithValue(value, nameof(IsFiefsTabSelected)); } } }
         [DataSourceProperty]

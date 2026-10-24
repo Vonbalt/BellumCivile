@@ -64,7 +64,7 @@
     <string id="BC_Concept_peace_parleys_and_treaty_terms_Title" text="Peace Parleys and Treaty Terms" />
     <string id="BC_Concept_peace_parleys_and_treaty_terms_Text" text="The Peace Parley allows warring realms to turn military results into a negotiated agreement. With the War and Peace Revamp enabled, both councils assess the terms according to leverage, exhaustion and their political interests.{newline}{newline}Player rulers can edit demands and offerings involving fiefs, prisoners, wealth and political concessions. Player vassals support or oppose the agreement through their council position and influence commitment. Rulers then decide whether to accept their council's judgment or pay the applicable cost to override opposition.{newline}{newline}War Score supplies the demand budget. Offerings provide additional bargaining credit at a reduced value and within a cap, allowing one side to concede something useful in exchange for a stronger demand elsewhere. Excessive drafts show overwhelming opposition and must be brought within the available budget before they can be imposed.{newline}{newline}Victorious houses expect the treaty to make worthwhile use of their success. Territorial demands, reparations and tribute offer different ways to claim those gains, subject to what is available and affordable. Defeated houses weigh the burden of concessions against the prospects of continued resistance.{newline}{newline}Internal wars use a restricted parley focused on white peace or concession to the conflict's demand. Its result follows the rules of the rebellion or feud being settled.{newline}{newline}Open negotiations through the Diplomacy menu and inspect each council's assessment to understand which terms encourage agreement or provoke resistance.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_hostages_and_pledges_of_peace_Title" text="Hostages and Pledges of Peace" />
-    <string id="BC_Concept_hostages_and_pledges_of_peace_Text" text="A hostage pledge secures peace by placing a blood relative of one ruler in the other realm's custody. The family member's safety gives the supplying house a powerful reason to preserve the agreement.{newline}{newline}Peace parleys can demand or offer an eligible relative for fifty days by default. The duration can be negotiated in ten-day steps, from thirty to one thousand days. A longer pledge costs more War Score, while a shorter pledge costs less. Reciprocal hostages share the same term, and existing agreements keep their promised duration. Their position in the relevant succession determines the pledge's base value, and children can serve as hostages. The captive remains in their own house while being held in an eligible stronghold of the receiving realm.{newline}{newline}Lords weigh the security of the agreement against its restrictions on future action. Long pledges face increasing opposition, while exhausted houses value time to recover.{newline}{newline}Active treaty custody prevents ordinary ransom and escape. The encyclopedia and Clan menu identify the captive as a peace hostage, and ransom brokers explain the diplomatic reason for their detention.{newline}{newline}At expiry, the hostage is returned. Replacement of either recorded ruling house can also end the arrangement. War breaks the pledge and requires a decision about the captive: release, continued ordinary imprisonment or execution. NPC rulers choose according to personality and circumstances, while player captors receive a choice. Ordinary prisoners can again be ransomed, escape or be rescued.{newline}{newline}Dedicated dungeon dialogue lets a player captor honorably return a hostage early or order their execution, with consequences for relations and honor. If the other realm also holds a hostage, its ruler determines that person's fate in response.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
+    <string id="BC_Concept_hostages_and_pledges_of_peace_Text" text="A hostage pledge secures peace by placing a blood relative of one ruler in the other realm's custody. The family member's safety gives the supplying house a powerful reason to preserve the agreement.{newline}{newline}Peace parleys can demand or offer an eligible relative, starting at the minimum duration configured in Mod Options (fifty days by default). Duration is negotiated in ten-day steps up to one thousand days. Each extra ten days beyond the recorded starting duration costs one additional War Score. Reciprocal hostages share the same term. Existing agreements and pending negotiations retain their recorded rules, prices and durations. Their position in the relevant succession determines the pledge's base value, and children can serve as hostages. The captive remains in their own house while being held in an eligible stronghold of the receiving realm.{newline}{newline}Lords weigh the security of the agreement against its restrictions on future action. Additional time beyond the recorded starting duration faces increasing opposition, while exhausted houses value time to recover.{newline}{newline}Active treaty custody prevents ordinary ransom and escape. The encyclopedia and Clan menu identify the captive as a peace hostage, and ransom brokers explain the diplomatic reason for their detention.{newline}{newline}At expiry, the hostage is returned. Replacement of either recorded ruling house can also end the arrangement. War breaks the pledge and requires a decision about the captive: release, continued ordinary imprisonment or execution. NPC rulers choose according to personality and circumstances, while player captors receive a choice. Ordinary prisoners can again be ransomed, escape or be rescued.{newline}{newline}Dedicated dungeon dialogue lets a player captor honorably return a hostage early or order their execution, with consequences for relations and honor. If the other realm also holds a hostage, its ruler determines that person's fate in response.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_client_kingdoms_and_liberty_desire_Title" text="Client Kingdoms and Liberty Desire" />
     <string id="BC_Concept_client_kingdoms_and_liberty_desire_Text" text="A client kingdom keeps its ruler and identity while accepting a stronger realm's authority over foreign affairs. Its suzerain provides protection, and the client follows its lead in diplomacy and war.{newline}{newline}Clientage maintains an alliance and trade relationship between the realms. The client joins the suzerain's wars and peaces, with its independent diplomacy restricted by that obligation. A ruler may accept this position through a treaty or seek protection during a desperate defensive war. Accepting such an appeal includes joining the client's defense.{newline}{newline}The suzerain can strengthen the relationship by granting eligible personally held land. Peace terms can also recognize qualifying territory occupied by a client, allowing it to retain gains from a shared campaign.{newline}{newline}Liberty Desire measures the pressure for independence. Relative strength, relations, personality, burdens, claims and political conditions determine how tolerable the arrangement feels. Generous treatment and good relations can support loyalty alongside military dominance.{newline}{newline}A client seeking liberation must also judge its military prospects and readiness. Crown preparations can encourage that effort, while the eventual declaration follows the liberation requirements. If the suzerain collapses, its clients are released.{newline}{newline}The Diplomacy overview identifies client relationships and provides a Liberty Desire tooltip showing the pressures at work.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_relations_kinship_and_political_memory_Title" text="Relations, Kinship and Political Memory" />
@@ -112,8 +112,10 @@
     <string id="BC_MCM_EnableWarScoreMapWidget_Hint" text="Shows every active conflict involving the player's current realm at the top-right of the campaign map, using the opposing realm's banner and Bellum War Score. This includes foreign wars, civil wars, and claim feuds in which the player is a participant. Requires the War &amp; Peace Logic Revamp. Default: On." />
     <string id="BC_MCM_EnableClientStateMapWidget" text="Enable Campaign Map Client State Widget" />
     <string id="BC_MCM_EnableClientStateMapWidget_Hint" text="When the player rules a suzerain realm, shows its client kingdoms at the top-left of the campaign map with their current Liberty Desire. Requires the War &amp; Peace Logic Revamp. Default: On." />
-    <string id="BC_MCM_WarDurationReluctance" text="War Duration Reluctance Period" />
-    <string id="BC_MCM_WarDurationReluctance_Hint" text="Days over which the full -100 peace reluctance decays to 0. Enthusiasm below 10 softens this penalty. After this period, enthusiasm below 10 grants +30 peace support, and zero enthusiasm allows an exhausted internal opponent to consider conceding at more than 10 War Score. This setting never blocks peace proposals. Default: 100 days." />
+    <string id="BC_MCM_WarDurationReluctance" text="Early-War Reluctance (Strength and Days)" />
+    <string id="BC_MCM_WarDurationReluctance_Hint" text="Sets both the initial peace-utility penalty and its duration: 50 starts at -50 and decays by one point daily to zero on day 50. Increasing makes resistance stronger and longer; decreasing makes it weaker and shorter. Enthusiasm below 10 proportionally softens the penalty. After this period, enthusiasm below 10 grants +30 peace support, and zero enthusiasm permits an exhausted internal opponent to consider conceding above 10 War Score. This never blocks peace proposals. Bellum default: 50 strength/days." />
+    <string id="BC_MCM_HostageMinimumDuration" text="Minimum Hostage Pact Duration (Days)" />
+    <string id="BC_MCM_HostageMinimumDuration_Hint" text="Minimum and starting duration for new hostage pacts, rounded up to the next ten days. Increasing makes new pacts start longer; decreasing makes them start shorter. NPC rulers negotiate from this baseline. Each extra ten days costs 1 War Score; council duration penalties and recovery benefits count only time beyond the saved baseline. Existing pacts and pending negotiations retain their recorded rules, prices and durations. Bellum default: 50 days." />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar" text="Minimum Peace Before Renewed War" />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar_Hint" text="Minimum number of days two realms must remain at peace before Bellum&apos;s AI will consider another offensive against the same realm. A value of 0 disables this waiting period. Client liberation wars remain exempt. Default: 20." />
     <string id="BC_Parley_Reason_LengthyPact" text="This pact would bind our hands for too long." />
@@ -909,7 +911,7 @@
     <string id="BC_UI_Hint_FactionType_Militarists" text="Advocates constant war, military prestige, and rule by strength rather than compromise." />
     <string id="BC_UI_Hint_FactionType_Aristocrats" text="Defends noble privilege, inheritance, and the political rights of the great clans." />
     <string id="BC_UI_Hint_FactionType_Populists" text="Advocates broader opportunity, relief for lesser lords, and policies favoring the common people." />
-    <string id="BC_UI_Hint_StartClaimFeud" text="Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.&#xA;&#xA;Current holder: {HOLDER_CLAN}&#xA;Feud pressure score: {SCORE}&#xA;&#xA;Starting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler." />
+    <string id="BC_UI_Hint_StartClaimFeud" text="Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.&#xA;&#xA;Current holder: {HOLDER_CLAN}&#xA;&#xA;Starting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler." />
     <string id="BC_UI_Hint_FactionType_WithReason" text="{DESCRIPTION}&#xA;&#xA;Unavailable: {REASON}" />
     <string id="BC_UI_Leave" text="Leave" />
     <string id="BC_UI_Join" text="Join" />
@@ -2345,6 +2347,11 @@
     <string id="BC_Parley_OutcomeRulerRejectedBody" text="You have rejected the proposed treaty between {FIRST_REALM} and {SECOND_REALM}. The parley has ended without agreement, and the war continues." />
     <string id="BC_Parley_OutcomeCouncilRejectedBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} failed to secure the assent of both realms. The parley has ended without agreement, and the war continues." />
     <string id="BC_Parley_OutcomeCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed." />
+    <string id="BC_Parley_OutcomeWhitePeaceCancelledBody" text="The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms." />
+    <string id="BC_Parley_OutcomeQuestCancelledBody" text="An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeBalanceCancelledBody" text="The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeHostageCancelledBody" text="The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeOtherCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement." />
     <string id="BC_Parley_MajorityFailed" text="REJECTED: NAY MAJORITY" />
     <string id="BC_Parley_CouncilStatus" text="{REALM}: {STATUS}&#xA;YAY {YAY} / NAY {NAY} | Participation {PARTICIPATION}/{QUORUM}" />
     <string id="BC_Parley_PredictedOutcomeHint" text="{FIRST_REALM}&#xA;&#xA;{SECOND_REALM}" />
@@ -2353,6 +2360,12 @@
     <string id="BC_Parley_Commitment" text="Influence commitment: {VALUE}" />
     <string id="BC_Parley_RulerLacksInfluenceToOppose" text="I lack the influence to oppose my vassals." />
     <string id="BC_Parley_RulerYieldsToCouncil" text="I will not defy my vassals over these terms." />
+    <string id="BC_Parley_RulerCompelledToAccept" text="The war is decided; we must accept these terms." />
+    <string id="BC_Parley_AbstainNeutral" text="Neither side makes a convincing case; I will abstain." />
+    <string id="BC_Parley_AbstainInsufficientInfluence" text="I lack the influence to cast my vote." />
+    <string id="BC_Parley_AbstainProtectedInfluence" text="I must reserve my influence for other obligations." />
+    <string id="BC_Parley_AbstainUnspecified" text="I will abstain from this vote." />
+    <string id="BC_Parley_PlayerPositionPending" text="I have not yet declared my position." />
     <string id="BC_Parley_RulerOverridesForPeace" text="I will spend my influence to secure this peace despite my vassals." />
     <string id="BC_Parley_RulerOverridesAgainstPeace" text="I will spend my influence to reject these terms despite my vassals." />
     <string id="BC_Parley_Committed" text="commits {VALUE}" />
@@ -2370,7 +2383,7 @@
     <!-- Treaty council motive labels -->
     <string id="BC_Parley_CouncilMemberName" text="{HERO_NAME} {CLAN_NAME}" />
     <string id="BC_Parley_Reason_LowEnthusiasm" text="I am exhausted by this conflict." />
-    <string id="BC_Parley_Reason_EarlyWar" text="We have only just taken up arms; we should see this campaign through." />
+    <string id="BC_Parley_Reason_EarlyWar" text="We should continue this war longer for the sake of honor." />
     <string id="BC_Parley_Reason_InconclusiveWar" text="This war has not yet yielded a decisive result." />
     <string id="BC_Parley_Reason_ProlongedExhaustion" text="We are completely exhausted." />
     <string id="BC_Parley_Reason_UnreasonableDemands" text="The enemy is making unreasonable demands." />
@@ -4217,6 +4230,24 @@
     <string id="BC_CrownEmergencyAccession" text="The nobles of {REALM} have chosen {HEIR} to bear the Crown." />
     <string id="BC_CrossClanEstateInherited" text="Following the death of {PARENT}, {HEIR} has received {POSSESSIVE} lawful share of the estates of {HOUSE} into the keeping of {RECIPIENT}." />
     <string id="BC_CrownLawfulAccession" text="Following the death of {RULER}, the Crown of {REALM} passes to {HEIR} by right of succession." />
+    <string id="BC_RecruitmentRank_PeerRefusal" text="We stand as peers in rank. I will not swear fealty to you." />
+    <string id="BC_RecruitmentRank_HigherRefusal" text="My title stands above yours. I will not swear fealty to a ruler of lesser rank." />
+    <string id="BC_CrownDeparture_Dialogue" text="{ADDRESS}, the Crown of {REALM} has passed to me. To take my place as sovereign, I must establish a household of my own and leave {SOURCE_CLAN}. {FAMILY_TIES}" />
+    <string id="BC_CrownDeparture_Acknowledge" text="I understand. Go and take your rightful place." />
+    <string id="BC_CrownDeparture_LetterTitle" text="A Crown for {HEIR}" />
+    <string id="BC_CrownDeparture_LetterAcknowledge" text="I understand." />
+    <string id="BC_CrownDeparture_LetterBody" text="A sealed letter from {HEIR} reaches you.&#xA;&#xA;&quot;{ADDRESS}, I have left {SOURCE_CLAN} to assume the Crown of {REALM}. I now lead {NEW_CLAN}, a household of my own. {FAMILY_TIES}&quot;" />
+    <string id="BC_CrownDeparture_LetterMinor" text="Word reaches you that {HEIR} has left {SOURCE_CLAN} to assume the Crown of {REALM}. The new household, {NEW_CLAN}, will be led by a regent until {HEIR} comes of age." />
+    <string id="BC_CrownDeparture_LetterHistorical" text="Word reaches you that {HEIR} left {SOURCE_CLAN} to assume the Crown of {REALM}, establishing a new household, {NEW_CLAN}." />
+    <string id="BC_CrownDeparture_MarriageWife" text="Whatever duties this crown brings, I remain your wife." />
+    <string id="BC_CrownDeparture_MarriageHusband" text="Whatever duties this crown brings, I remain your husband." />
+    <string id="BC_CrownDeparture_FamilyUnchanged" text="My duties may change, but we are still family." />
+    <string id="BC_CrownDeparture_AddressWife" text="My wife" />
+    <string id="BC_CrownDeparture_AddressHusband" text="My husband" />
+    <string id="BC_CrownDeparture_AddressDaughter" text="My daughter" />
+    <string id="BC_CrownDeparture_AddressSon" text="My son" />
+    <string id="BC_CrownDeparture_AddressSister" text="Sister" />
+    <string id="BC_CrownDeparture_AddressBrother" text="Brother" />
     <string id="BC_CrownVoluntaryAccession" text="{RULER} has laid down the Crown of {REALM}. By right of succession, {HEIR} now reigns." />
     <string id="BC_CrownForcedAccession" text="{RULER} has been compelled to relinquish the Crown of {REALM}. By right of succession, {HEIR} now reigns." />
     <string id="BC_AbdicationUnavailable" text="The Crown cannot be relinquished at this time." />
@@ -4743,6 +4774,17 @@
     <string id="BC_TitleGrantLegalRights" text="Legal rights only" />
     <string id="BC_TitleGrantMemory" text="Granted me a title" />
     <string id="BC_TitleGrantNoInfluence" text="You need 100 influence to grant this title." />
+    <string id="BC_TitleGrantOfferTitle" text="A Royal Honor" />
+    <string id="BC_TitleGrantOfferBody" text="An envoy from {RULER} brings word that the Crown wishes to bestow {TITLE} upon your household, honoring your house's claim.&#xA;&#xA;{RIGHTS}&#xA;Your household will remain a vassal of {REALM}. This grant does not include its subordinate towns or castles.&#xA;&#xA;Refusing this honor will offend {RULER}. (Relations: {PENALTY})" />
+    <string id="BC_TitleGrantOfferBothRights" text="The grant conveys both lawful title and practical authority." />
+    <string id="BC_TitleGrantOfferLegalRights" text="The grant conveys lawful title only; practical authority remains unchanged." />
+    <string id="BC_TitleGrantOfferPracticalRights" text="The grant conveys practical authority only; lawful ownership remains unchanged." />
+    <string id="BC_TitleGrantOfferAccept" text="Accept the honor" />
+    <string id="BC_TitleGrantOfferRefuse" text="Refuse" />
+    <string id="BC_TitleGrantOfferUnavailable" text="The Crown's offer is no longer available. No response has been delivered." />
+    <string id="BC_TitleGrantOfferDeclined" text="You have declined {RULER}'s offer of {TITLE}. The grant has been withdrawn." />
+    <string id="BC_TitleGrantOfferRefusalMemory" text="Refused my title grant" />
+    <string id="BC_TitleGrantOfferPending" text="The Crown has offered {TITLE} to your household and awaits your answer before {DATE}. No rights or influence change hands until you accept." />
     <string id="BC_TitleGrantPetitionBegun" text="The nobility of {REALM} petitions the Crown to bestow {TITLE} upon {RECIPIENT}, citing the house's lawful claim. They ask that their appeal be honored before {DATE}." />
     <string id="BC_TitleGrantPetitionLabel" text="Petition for {TITLE} for {RECIPIENT}" />
     <string id="BC_TitleGrantPracticalRights" text="Practical rights only" />
@@ -7008,7 +7050,7 @@
     <string id="BC_MCM_InstabilityIncreased" text="Increased Instability" />
     <string id="BC_MCM_ApplyInstabilityPreset" text="Apply Instability Preset" />
     <string id="BC_MCM_Apply" text="Apply" />
-    <string id="BC_MCM_ApplyInstabilityPreset_Hint" text="Updates only the nine Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these nine sliders only. Bellum default: Standard." />
+    <string id="BC_MCM_ApplyInstabilityPreset_Hint" text="Updates only the ten Internal Instability sliders to the selected preset. Other settings and saved conflict assessments are unchanged. Sliders remain editable afterward; Done saves and Cancel discards the changes. Standard restores Bellum defaults for these ten sliders only. Bellum default: Standard." />
     <string id="BC_MCM_InstabilityPresetUnavailable" text="Unable to apply the instability preset. Check the Bellum log or adjust the sliders manually." />
     <string id="BC_MCM_CourtCrisisMood" text="AI Court Crisis Mood Threshold" />
     <string id="BC_MCM_CourtCrisisMood_Hint" text="Court faction mood at or below which an AI faction may replace its ordinary agenda with a coalition challenge. Increasing the number toward zero increases instability; decreasing it toward -100 reduces instability. Emergency challenges at -100 use the separate per-term chance. Player choices and existing crises are unchanged. Bellum default: -60." />
@@ -7026,6 +7068,11 @@
     <string id="BC_MCM_TreasonResistanceChance_Hint" text="Scales an expelled AI lord's chance to start a new rebellion against the judgment, after personality and backing checks. Increasing increases expulsion-related instability; decreasing reduces it. Zero prevents spontaneous resistance, but existing conspiracy leaders can still defy expulsion. Does not change indictment frequency, ongoing rebellions or player choices. Bellum default: 100% (original chance)." />
     <string id="BC_MCM_ClientLiberationWillingness" text="AI Client Liberation Willingness Threshold" />
     <string id="BC_MCM_ClientLiberationWillingness_Hint" text="War Will plus liberation resolve required for AI liberation proposals and Crown preparations. Increasing reduces client liberation instability; decreasing increases it. Zero removes only this willingness check, not liberty desire, power, influence, cooldown or voting requirements. Player actions, existing proposals and foreign-war thresholds are unchanged. Bellum default: 75." />
+    <string id="BC_MCM_CivilWarGrace" text="Post-Civil-War Grace Period (Years)" />
+    <string id="BC_MCM_CivilWarGrace_Hint" text="Realm-wide recovery after a civil war against the crown ends. Increasing reduces instability by delaying new rebellions; decreasing increases instability by shortening the delay. Zero disables new postwar grace periods. The duration is recorded when settlement begins; existing periods are unchanged. Applies to player and AI rebellions, including court coalitions and succession disputes. Private feuds, Enforce Peace, committed armed challenges and resistance to treason judgments are unaffected. Personal challenge cooldowns remain separate. New campaigns also receive one initial year of pacification, independently of this setting. Bellum default: 2 years." />
+    <string id="BC_CivilWarGrace_Settling" text="The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days." />
+    <string id="BC_CivilWarGrace_Blocked" text="The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days." />
+    <string id="BC_CourtCrisisSetAside" text="Set the crisis aside" />
     <string id="BC_RoyalPeaceRestriction" text="Royal Peace is in force. The Crown has forbidden private feuds, private wars and claimed-title revocations throughout {REALM}. Remaining duration: {DAYS} days. Your claim is preserved." />
     <string id="BC_RoyalPeaceSettling" text="An earlier Royal Peace decree is still being settled." />
     <string id="BC_RealmPeacePreview" text="End all {FEUDS} private feuds and {WARS} private wars in {REALM}. Cost: {COST} influence ({PRICING}). Royal Peace forbids new private conflicts for one year. Involved houses: {INVOLVED} relations; other noble houses: {OTHERS}. Tyrant's Debt halves positive daily influence gain for one year." />
@@ -7046,5 +7093,27 @@
     <string id="BC_RealmPeaceInterruptedTitle" text="Royal Peace Settlement Interrupted" />
     <string id="BC_RealmPeaceInterruptedChat" text="The Royal Peace decree in {REALM} took effect, but some private conflicts could not be safely settled." />
     <string id="BC_RealmPeaceInterruptedBody" text="The decree's influence cost has been paid and its prohibition remains in force until {DATE}. Settlement was interrupted; no further automatic attempt will repeat a partially applied transfer. The remaining conflicts require investigation using the Bellum log." />
+    <string id="BC_Parley_VoteBalance" text="{YAY}% YAY / {NAY}% NAY" />
+    <string id="BC_Parley_RulerDecisionBalance" text="Ruler decision" />
+    <string id="BC_Parley_UncommittedBalance" text="Uncommitted" />
+    <string id="BC_Parley_CouncilUnavailable" text="The council's decision is unavailable." />
+    <string id="BC_Parley_NoVassalCouncil" text="There is no vassal council in {REALM}." />
+    <string id="BC_Parley_CouncilNoCommitments" text="The council of {REALM} has committed no influence." />
+    <string id="BC_Parley_CouncilSupportsTally" text="The council of {REALM} supports this treaty, with {YAY} influence committed YAY against {NAY} committed NAY." />
+    <string id="BC_Parley_CouncilOpposesTally" text="The council of {REALM} opposes this treaty, with {NAY} influence committed NAY against {YAY} committed YAY." />
+    <string id="BC_Parley_CouncilTiedTally" text="The council of {REALM} is divided, with {NAY} influence committed NAY against {YAY} committed YAY." />
+    <string id="BC_Parley_BudgetBlocksDecision" text="The draft exceeds the available war score and cannot be ratified." />
+    <string id="BC_Parley_CompulsoryDecision" text="Peace is compulsory; {REALM} must accept these terms." />
+    <string id="BC_Parley_NoRulerDecision" text="No ruler is available to approve this treaty." />
+    <string id="BC_Parley_RulerWouldOverrideAccept" text="{RULER} would approve the treaty with {COST} additional influence to overrule the council." />
+    <string id="BC_Parley_RulerWouldOverrideReject" text="{RULER} would reject the treaty with {COST} additional influence to overrule the council." />
+    <string id="BC_Parley_RulerWouldAccept" text="{RULER} would approve the treaty." />
+    <string id="BC_Parley_RulerWouldReject" text="{RULER} would reject the treaty." />
+    <string id="BC_Parley_RulerLacksInfluenceToApprove" text="I lack the influence to secure this peace against my vassals." />
+    <string id="BC_Parley_OrdinaryVoteCommitment" text="Council vote commitment" />
+    <string id="BC_Parley_AdditionalOverrideCommitment" text="Additional override commitment" />
+    <string id="BC_Parley_OutcomeUnavailable" text="Predicted outcome unavailable" />
+    <string id="BC_Parley_VassalInvalidBudgetHint" text="This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect." />
+    <string id="BC_Parley_OutcomeBudgetCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues." />
   </strings>
 </base>

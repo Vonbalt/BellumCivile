@@ -397,6 +397,12 @@ namespace BellumCivile.Behaviors
 
         internal bool CanSelectCourtChallenge(FactionObject faction, Kingdom kingdom)
         {
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(kingdom) == true) return false;
+            return CanConsiderCourtChallenge(faction, kingdom);
+        }
+
+        internal bool CanConsiderCourtChallenge(FactionObject faction, Kingdom kingdom)
+        {
             if (!CanRunCourtPolitics(kingdom) || faction == null || faction.ParentKingdom != kingdom
                 || !faction.IsIdeology || faction.Mood > -60 || CourtAgendaBehavior.MemberCount(faction) < 2
                 || faction.Leader == kingdom.RulingClan || !CourtAgendaBehavior.Eligible(faction.Leader, kingdom)) return false;
@@ -407,6 +413,7 @@ namespace BellumCivile.Behaviors
 
         internal bool TryLaunchCourtChallenge(FactionObject faction, Kingdom kingdom)
         {
+            if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(kingdom) == true) return false;
             if (!CanRunCourtPolitics(kingdom) || CourtAgendaBehavior.MemberCount(faction) < 2) return false;
             var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             return faction.Members.Contains(kingdom.RulingClan)
@@ -764,6 +771,8 @@ namespace BellumCivile.Behaviors
         {
             var factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             if (factionManager == null) return "FactionManagerBehavior not found";
+            var grace = factionManager.CivilWarGraceBlock(kingdom);
+            if (grace != null) return grace.ToString();
 
             FactionObject ideology = factionManager.GetFactionsInKingdom(kingdom)
                 .FirstOrDefault(f => f.IsIdeology && f.Type == ideologyType);
@@ -787,6 +796,7 @@ namespace BellumCivile.Behaviors
 
         private bool TryExpelKingForRebellion(FactionObject faction, Kingdom kingdom, FactionManagerBehavior factionManager)
         {
+            if (factionManager?.HasCivilWarGrace(kingdom) == true) return false;
             if (!faction.Members.Contains(kingdom.RulingClan))
                 return false;
 
@@ -830,6 +840,8 @@ namespace BellumCivile.Behaviors
 
         private bool TriggerGrandCoalition(FactionObject triggeringFaction, Kingdom kingdom, FactionManagerBehavior factionManager, bool showFailureMessage = true)
         {
+            bool committedCrisis = CourtAgendaBehavior.Current?.GetAgenda(kingdom, triggeringFaction)?.State == CourtAgendaState.Crisis;
+            if (factionManager?.HasCivilWarGrace(kingdom) == true) return false;
             FactionObject existingGrandCoalition = factionManager?
                 .GetFactionsInKingdom(kingdom)
                 .FirstOrDefault(faction => faction != null
@@ -854,6 +866,7 @@ namespace BellumCivile.Behaviors
                 coalitionLeader = triggeringFaction.Members.FirstOrDefault(c => c.Kingdom == kingdom && !c.IsEliminated);
             }
 
+            if (coalitionLeader != null && factionManager.IsClanPacified(coalitionLeader)) return false;
             if (coalitionLeader == null)
             {
                 triggeringFaction.Mood = -20f;
@@ -893,6 +906,7 @@ namespace BellumCivile.Behaviors
             string sourceFactionName = triggeringFaction.GetDisplayName().ToString();
             string coalitionName = $"{kingdom.Name} {sourceFactionName} Grand Coalition";
             FactionObject grandCoalition = new FactionObject(coalitionName, kingdom, coalitionLeader, blueprint);
+            if (committedCrisis) grandCoalition.MarkCommittedCourtChallenge();
             grandCoalition.MarkAsGrandCoalition(triggeringFaction.Type);
             factionManager.RegisterNewFaction(grandCoalition);
 
@@ -1349,6 +1363,7 @@ namespace BellumCivile.Behaviors
         private void OnDailyTickClan_Rebellion(Clan clan, FactionManagerBehavior manager)
         {
             if (manager.IsClanPacified(clan)) return;
+            if (manager.HasCivilWarGrace(clan.Kingdom)) return;
 
             float score = CalculateRebellionScore(clan);
             float intentThreshold = O.RebelliousIntentThreshold;
@@ -1660,6 +1675,7 @@ namespace BellumCivile.Behaviors
         {
             if (clan?.Kingdom == null || manager == null)
                 return;
+            if (manager.HasCivilWarGrace(clan.Kingdom)) return;
 
             string factionName = $"{clan.Name} Revolt";
             switch (cause)
@@ -2403,6 +2419,7 @@ namespace BellumCivile.Behaviors
                 return UltimatumResolution.Failed;
             }
 
+            rebelFaction.MarkJudgmentResistance();
             if (!rebelFaction.CanTriggerUltimatum(out _))
             {
                 CleanupFailedLegalExpulsionRebellion(
@@ -2575,6 +2592,7 @@ namespace BellumCivile.Behaviors
 
             string factionName = $"{targetClan.Name} Secessionists";
             FactionObject rebelFaction = new FactionObject(factionName, originalKingdom, targetClan, FactionType.Independence);
+            rebelFaction.MarkJudgmentResistance();
             factionManager.RegisterNewFaction(rebelFaction);
             return rebelFaction;
         }
@@ -2638,6 +2656,7 @@ namespace BellumCivile.Behaviors
             bool personalNotification,
             Action<UltimatumResolution> deferredCompletion = null)
         {
+            rebelFaction.MarkJudgmentResistance();
             RallyTreasonSolidaritySupporters(rebelFaction, kingdom, targetClan, factionManager);
             UltimatumResolution result = rebelFaction.TriggerUltimatumDetailed(
                 null,

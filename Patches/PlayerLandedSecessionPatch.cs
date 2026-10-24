@@ -19,8 +19,18 @@ namespace BellumCivile.Patches
         private static bool Prefix(KingdomManagementVM __instance, List<InquiryElement> obj)
         {
             string selectedOption = obj?.FirstOrDefault()?.Identifier as string;
-            if (selectedOption != "keep" || !WarPeaceRevampBehavior.IsRevampEnabled())
+            if (selectedOption != "keep")
                 return true;
+
+            Clan player = Clan.PlayerClan;
+            var block = player?.IsUnderMercenaryService != true && player?.Fiefs.Any(f => f.IsTown || f.IsCastle) == true
+                ? Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.CivilWarGraceBlock(player.Kingdom) : null;
+            if (block != null)
+            {
+                BellumCivileNotifications.ShowPersonal(block, BellumNotificationColors.Warning);
+                return false;
+            }
+            if (!WarPeaceRevampBehavior.IsRevampEnabled()) return true;
 
             WarPeaceRevampBehavior warPeace = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>();
             string failureReason = "war and peace behavior unavailable";

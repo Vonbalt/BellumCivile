@@ -123,9 +123,32 @@ namespace BellumCivile.Behaviors
             if (agenda != null) Cancel(agenda, reason);
         }
 
+        private bool PrepareCouncilFilingSchedule(CourtAgendaRecord agenda)
+        {
+            if (!agenda.IsUnopened) return true;
+            var now = CampaignTime.Now;
+            if (!agenda.Manual && agenda.ObjectiveData?.HasTermSnapshot == true
+                && now.ToDays > agenda.ObjectiveData.DeadlineDay)
+            {
+                Cancel(agenda, "council_term_expired_before_filing");
+                return false;
+            }
+            agenda.FreezeSchedule(BellumCivileOptions.CourtTermDays, BellumCivileOptions.PoliticalDeliberationDays);
+            if (agenda.SessionDate.ToDays <= now.ToDays && agenda.VoteDate.ToDays < now.ToDays)
+            {
+                // A deferred, unpaid motion still needs its captured deliberation window.
+                // Filed ballots retain their original dates and bounded retry policy.
+                var duration = CampaignTime.Days((float)Math.Max(0, (agenda.VoteDate - agenda.SessionDate).ToDays));
+                agenda.SessionDate = now;
+                agenda.VoteDate = now + duration;
+            }
+            return true;
+        }
+
         private void AdvanceCouncil(CourtAgendaRecord agenda)
         {
             if (!CouncilOffice(agenda, out var office)) { Cancel(agenda, "council_office_missing"); return; }
+            if (!PrepareCouncilFilingSchedule(agenda)) return;
             var council = Campaign.Current.GetCampaignBehavior<PrivyCouncilBehavior>();
             var deliberation = CouncilAppointmentDeliberationBehavior.Current;
             if (agenda.IsUnopened)

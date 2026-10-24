@@ -15,5 +15,16 @@ foreach ($button in $plain) {
 foreach ($button in $rebel) {
     Check ($button.GetAttribute('Command.HoverBegin') -eq 'ExecuteBeginScoreHint' -and $button.GetAttribute('Command.HoverEnd') -eq 'ExecuteEndScoreHint') 'Rebel portraits retain rebellious intent hover handlers.'
 }
+foreach ($binding in @('{ClaimantLeader}', '{HolderLeader}', '{ClaimantMembers}', '{HolderMembers}')) {
+    $buttons = $panel.SelectNodes('//*[@DataSource="' + $binding + '"]//ButtonWidget')
+    Check ($buttons.Count -eq 1) "Claim-feud portrait binding exists: $binding"
+    $button = $buttons[0]
+    Check (!$button.HasAttribute('Command.HoverBegin') -and !$button.HasAttribute('Command.HoverEnd') -and !$button.HasAttribute('HoveredCursorState') -and
+        $button.SelectNodes('.//HintWidget').Count -eq 0) "Claim-feud portraits have no residual tooltip or special hover cursor: $binding"
+    Check ($button.GetAttribute('Command.Click') -eq 'ExecuteOpenClan') "Claim-feud portraits retain encyclopedia navigation: $binding"
+}
+Check ($panel.SelectNodes('//*[@*[name()="Command.HoverBegin"]="ExecuteBeginScoreHint"]').Count -eq 2) 'Only rebel leader and member portraits request rebellious intent tooltips.'
+$feud = Get-Content -Raw (Join-Path $root 'UI/ClaimFeudItemVM.cs')
+Check (([regex]::Matches($feud, 'new FactionMemberVM\([^,\r\n]+, false\)')).Count -eq 4) 'Both private-feud leaders and both supporter lists disable rebellious intent data.'
 Check ($panel.SelectNodes('//*[@DataSource="{..\FactionPowerHint}"]').Count -gt 0) 'Individual faction power tooltip is unchanged.'
 'XML/source contracts only; native hover rendering needs an in-game check.'

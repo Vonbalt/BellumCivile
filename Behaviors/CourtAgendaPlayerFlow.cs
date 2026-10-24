@@ -24,7 +24,8 @@ namespace BellumCivile.Behaviors
             foreach (var agenda in _agendas.Where(a => a.Faction == faction && a.Realm == faction.ParentKingdom))
             {
                 if (!TryHandOverUnstartedAgenda(agenda, Clan.PlayerClan, agenda.SessionDate.IsPast,
-                    faction.Mood <= -60 && !agenda.OrdinaryCrisisRestrained)) continue;
+                    faction.Mood <= -60 && !agenda.OrdinaryCrisisRestrained
+                        && Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(agenda.Realm) != true)) continue;
                 BellumCivileLogger.Log($"Court agenda handed to new player leader; realm={agenda.Realm.StringId}; faction={faction.Type}; policy={agenda.PolicyId}; session={agenda.SessionDate.ToDays}.");
             }
         }
@@ -84,11 +85,15 @@ namespace BellumCivile.Behaviors
             _activePlayerInquiry = null;
             if (ProcessProtectionInquiry()) return;
             if (ProcessTitlePetitionInquiry()) return;
+            if (ProcessTitleGrantOfferInquiry()) return;
             var agenda = _agendas.Where(ValidPlayerAgenda)
                 .Where(a => a.Faction != null)
-                .Where(a => a.CrisisInterventionPending || a.State == CourtAgendaState.AwaitingPlayerDecision)
+                .Where(a => a.CrisisInterventionPending || a.State == CourtAgendaState.AwaitingPlayerDecision
+                    || a.State == CourtAgendaState.Crisis && CourtChallengeGraceBlock(a) != null)
                 .OrderByDescending(a => a.CrisisInterventionPending).ThenBy(a => a.SessionDate.ToDays).FirstOrDefault();
             if (agenda == null) { ProcessDynasticInquiry(); return; }
+            if (agenda.State == CourtAgendaState.Crisis && CourtChallengeGraceBlock(agenda) != null)
+                agenda.CrisisInterventionPending = true;
             if (!UpdatePlayerAgenda(agenda))
             {
                 if (!agenda.CrisisInterventionPending) return;
@@ -106,10 +111,24 @@ namespace BellumCivile.Behaviors
 
         private void ApplyPlayerAgendaChoice(CourtAgendaRecord agenda, int choice, bool crisis)
         {
+            var grace = crisis ? CourtChallengeGraceBlock(agenda) : null;
+            if (choice == 0 && grace != null)
+            {
+                BellumCivileNotifications.ShowPersonal(grace, BellumNotificationColors.Warning);
+                return;
+            }
             if (choice == 2) { ShowTermMotionPicker(agenda, crisis); return; }
             if (agenda.Faction == null)
             {
                 agenda.State = choice == 1 ? CourtAgendaState.Blocked : CourtAgendaState.Announced;
+                agenda.PlayerSelectionConfirmed = true;
+                NotifyAgenda(agenda);
+                return;
+            }
+            if (choice == 1 && grace != null)
+            {
+                agenda.CrisisInterventionPending = false;
+                agenda.State = agenda.IsPolicy && Policy(agenda) == null ? CourtAgendaState.NotProposed : CourtAgendaState.Announced;
                 agenda.PlayerSelectionConfirmed = true;
                 NotifyAgenda(agenda);
                 return;

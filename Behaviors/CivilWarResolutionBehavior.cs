@@ -85,9 +85,12 @@ namespace BellumCivile.Behaviors
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, OnHeroKilled);
             CampaignEvents.OnPlayerCharacterChangedEvent.AddNonSerializedListener(this, OnPlayerCharacterChanged);
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, _ => RecoverCoalitionBallots());
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, _ => RetireOrphanedRestoredRealms());
         }
         public override void SyncData(IDataStore dataStore)
         {
+            dataStore.SyncData("BC_RestoredRealmCreations", ref _restoredCreations);
+            _restoredCreations = _restoredCreations ?? new List<RestoredRealmCreationRecord>();
             dataStore.SyncData("BC_PendingMercenarySettlements", ref _pendingMercenarySettlements);
             _pendingMercenarySettlements = _pendingMercenarySettlements ?? new List<CivilWarMercenarySettlementRecord>();
             dataStore.SyncData("BC_TribunalReactions", ref _tribunalReactions);
@@ -483,24 +486,27 @@ namespace BellumCivile.Behaviors
             return kingdom?.Fiefs.Count(f => f != null && (f.IsTown || f.IsCastle)) ?? 0;
         }
 
-        private static void TransferClansToKingdom(Kingdom sourceKingdom, Kingdom targetKingdom, Clan preferredRuler = null)
+        private static bool TransferClansToKingdom(Kingdom sourceKingdom, Kingdom targetKingdom, Clan preferredRuler = null)
         {
-            if (sourceKingdom == null || targetKingdom == null || sourceKingdom == targetKingdom || targetKingdom.IsEliminated) return;
+            if (sourceKingdom == null || targetKingdom == null || sourceKingdom == targetKingdom || targetKingdom.IsEliminated) return false;
 
-            RunWithRulerRepairSuppressed(sourceKingdom, () =>
+            return RunWithRulerRepairSuppressed(sourceKingdom, () =>
             {
-                if (!ReleaseMercenariesFromKingdom(sourceKingdom)) return;
+                if (!ReleaseMercenariesFromKingdom(sourceKingdom)) return false;
                 List<Clan> clansToTransfer = sourceKingdom.Clans.ToList();
                 if (preferredRuler != null && clansToTransfer.Remove(preferredRuler))
                 {
-                    if (TransferCivilWarClan(preferredRuler, sourceKingdom, targetKingdom))
-                        EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: true);
+                    if (!TransferCivilWarClan(preferredRuler, sourceKingdom, targetKingdom)) return false;
+                    EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: true);
                 }
 
                 foreach (Clan clan in clansToTransfer)
                     TransferCivilWarClan(clan, sourceKingdom, targetKingdom);
 
                 EnsureValidRulingClan(targetKingdom, preferredRuler, forcePreferred: preferredRuler != null);
+                return !sourceKingdom.Clans.Any(c => c != null && !c.IsEliminated && c.Kingdom == sourceKingdom)
+                    && clansToTransfer.Where(c => c != null && !c.IsEliminated).All(c => c.Kingdom == targetKingdom)
+                    && (preferredRuler == null || preferredRuler.Kingdom == targetKingdom);
             });
         }
 
@@ -694,6 +700,8 @@ namespace BellumCivile.Behaviors
 
         private void OnHourlyTick()
         {
+            ResumePendingRestoredCreations();
+            RetireOrphanedRestoredRealms();
             ProcessCoalitionSuccessions();
             ResumePendingCollapses();
             ResumePendingRivalDefeats();
@@ -887,8 +895,9 @@ namespace BellumCivile.Behaviors
                     () => MakePeaceAction.Apply(firstKingdom, secondKingdom)));
         }
 
-        private static void CompleteCivilWarTracker(FactionObject faction, Kingdom rebelKingdom, string reason)
+        private static void CompleteCivilWarTracker(FactionObject faction, Kingdom rebelKingdom, string reason, Kingdom outcome = null)
         {
+            Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.QueueCivilWarGrace(faction, rebelKingdom, outcome);
             CivilWarConflictBehavior.Instance?.Complete(faction);
             Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()
                 ?.CompleteCivilWar(faction, rebelKingdom, reason);
@@ -900,7 +909,8 @@ namespace BellumCivile.Behaviors
             if (rebelKingdom == null || rebelKingdom.IsEliminated) return;
 
             string rebelKingdomId = rebelKingdom.StringId;
-            _pendingRebelCleanupFallbackIds[rebelKingdomId] = fallbackKingdom?.StringId ?? string.Empty;
+            if (fallbackKingdom != null || !_pendingRebelCleanupFallbackIds.ContainsKey(rebelKingdomId))
+                _pendingRebelCleanupFallbackIds[rebelKingdomId] = fallbackKingdom?.StringId ?? string.Empty;
 
             if (!_pendingRebelCleanupOrder.Contains(rebelKingdomId))
                 _pendingRebelCleanupOrder.Add(rebelKingdomId);
@@ -1905,7 +1915,10 @@ namespace BellumCivile.Behaviors
             if (collapsedParent == null) return;
             var pendingCollapse = _collapses.FirstOrDefault(c => c.Parent == collapsedParent && !c.Completed);
             if (pendingCollapse != null) { ResumeCollapse(pendingCollapse); return; }
-            if (CivilWarConflictBehavior.IsRealmTransferPending(collapsedParent)) return;
+            var restoration = _restoredCreations.LastOrDefault(r => r.Parent == collapsedParent && !r.Ready && r.Owner != null);
+            if (restoration != null && _preparingRestoredCreations.Contains(restoration)) return;
+            if (CivilWarConflictBehavior.IsRealmTransferPending(collapsedParent)
+                && (restoration == null || !_resumingRestoredCreations.Contains(restoration))) return;
             // The challenge journal owns recovery after a successor realm was chosen.
             // Re-entering the generic collapse path could create another successor shell.
             if (SuccessionChallengeBehavior.Instance?.HasPendingWarOutcome(collapsedParent) == true) return;
@@ -1921,6 +1934,8 @@ namespace BellumCivile.Behaviors
                          && x.RebelKingdom != collapsedParent
                          && !x.RebelKingdom.IsEliminated)
                 .ToDictionary(x => x.Faction, x => x.RebelKingdom);
+
+            if (restoration != null) activeRebellions[restoration.Owner] = restoration.Source;
 
             if (!PrepareMercenarySettlement(decisiveCivilWarVictor, collapsedParent, MercenaryParentCollapse,
                 additionalRealms: activeRebellions.Values)) return;
@@ -1954,7 +1969,7 @@ namespace BellumCivile.Behaviors
             // A civil war which itself stripped the parent of its last stronghold must settle
             // its declared demand. The generic successor-state path is reserved for a parent
             // realm destroyed by an outside power while its civil war remains unresolved.
-            if (!parentAlreadyDestroyed
+            if (restoration == null && !parentAlreadyDestroyed
                 && decisiveCivilWarVictor != null
                 && activeRebellions.TryGetValue(decisiveCivilWarVictor, out Kingdom decisiveRebelKingdom))
             {
@@ -1963,7 +1978,7 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
-            if (!parentAlreadyDestroyed && decisiveCivilWarVictor == null
+            if (restoration == null && !parentAlreadyDestroyed && decisiveCivilWarVictor == null
                 && TryBeginContinuingCollapse(collapsedParent, activeRebellions)) return;
 
             foreach (var independenceFaction in activeRebellions.Where(kvp => kvp.Key.Type == FactionType.Independence).ToList())
@@ -1973,7 +1988,8 @@ namespace BellumCivile.Behaviors
 
             List<KeyValuePair<FactionObject, Kingdom>> successionFactions = activeRebellions
                 .Where(kvp => kvp.Key.Type != FactionType.Independence)
-                .OrderByDescending(kvp => kvp.Key == decisiveCivilWarVictor)
+                .OrderByDescending(kvp => kvp.Key == restoration?.Owner)
+                .ThenByDescending(kvp => kvp.Key == decisiveCivilWarVictor)
                 .ThenByDescending(kvp => kvp.Key.CalculateFactionPower())
                 .ToList();
 
@@ -2002,10 +2018,10 @@ namespace BellumCivile.Behaviors
             Hero abdicationHeir = strongestFaction.IsHereditaryAbdication
                 ? Campaign.Current.GetCampaignBehavior<DynasticHeirBehavior>()?.GetReigningHouseSuccessionCandidate(collapsedParent)
                 : null;
-            List<Clan> collapsedParentLoyalists = GetLiveNobleClans(collapsedParent)
+            List<Clan> collapsedParentLoyalists = (restoration?.ParentHouses ?? GetLiveNobleClans(collapsedParent))
                 .Where(clan => clan != null && !successorKingdom.Clans.Contains(clan))
                 .ToList();
-            List<Clan> successorWinnerClans = successorKingdom.Clans.ToList();
+            List<Clan> successorWinnerClans = restoration?.Houses.ToList() ?? successorKingdom.Clans.ToList();
             strongestFaction.CaptureCivilWarStartInfluence(successorWinnerClans);
             CaptureCurrentCivilWarFiefSnapshot(strongestFaction, successorKingdom);
             string civilWarStartFiefSnapshot = strongestFaction.ExportCivilWarStartFiefSnapshot();
@@ -2016,9 +2032,9 @@ namespace BellumCivile.Behaviors
                     ?.RecordOutcome(strongestFaction, RebellionSummaryOutcome.RebelVictory);
             }
 
-            List<Kingdom> inheritedWars = !parentAlreadyDestroyed
+            List<Kingdom> inheritedWars = restoration?.ExternalEnemies.ToList() ?? (!parentAlreadyDestroyed
                 ? GetExternalEnemiesToInherit(collapsedParent, activeRebellions.Values)
-                : new List<Kingdom>();
+                : new List<Kingdom>());
 
             var challengeRecord = SuccessionChallengeBehavior.Instance?.GetWarRecord(strongestFaction);
             if (challengeRecord != null)
@@ -2027,10 +2043,10 @@ namespace BellumCivile.Behaviors
                 challengeRecord.RestoredRealmRequested = true;
             }
             Kingdom restoredSuccessorKingdom = CreateRestoredSuccessorKingdom(collapsedParent, successorKingdom, successorLeader,
-                runImmediateRepair: false, challenge: challengeRecord);
+                runImmediateRepair: false, challenge: challengeRecord, restorationOwner: strongestFaction, inheritedWars: inheritedWars);
             if (restoredSuccessorKingdom == null) return;
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(strongestFaction, SuccessionChallengeOutcome.Victory, restoredSuccessorKingdom) == false) return;
-            CompleteCivilWarTracker(strongestFaction, successorKingdom, "parent realm collapsed into a civil-war successor");
+            CompleteCivilWarTracker(strongestFaction, successorKingdom, "parent realm collapsed into a civil-war successor", restoredSuccessorKingdom);
             strongestFaction.RestoreCivilWarInfluenceSnapshots(successorWinnerClans);
             ApplyChallengeAwareVictoryRewards(strongestFaction, successorWinnerClans, successorLeader, "parent collapse succession");
 
@@ -2046,7 +2062,7 @@ namespace BellumCivile.Behaviors
                     DrainAndDestroyRebelKingdom(rivalKingdom, restoredSuccessorKingdom);
                 }
 
-                CompleteCivilWarTracker(rivalFaction.Key, rivalKingdom, "rival civil-war realm absorbed by the successor");
+                CompleteCivilWarTracker(rivalFaction.Key, rivalKingdom, "rival civil-war realm absorbed by the successor", restoredSuccessorKingdom);
                 factionManager.RemoveFaction(rivalFaction.Key);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(rivalFaction.Key, restoredSuccessorKingdom);
             }
@@ -2054,22 +2070,12 @@ namespace BellumCivile.Behaviors
             foreach (FactionObject leftover in factionManager.GetFactionsInKingdom(collapsedParent).Where(f => !f.IsIdeology).ToList())
             {
                 if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(leftover, SuccessionChallengeOutcome.WhitePeace, restoredSuccessorKingdom) == false) continue;
-                CompleteCivilWarTracker(leftover, leftover.GetTrackedRebelKingdomIncludingEliminated(), "civil-war faction cleared after parent collapse");
+                CompleteCivilWarTracker(leftover, leftover.GetTrackedRebelKingdomIncludingEliminated(), "civil-war faction cleared after parent collapse", restoredSuccessorKingdom);
                 factionManager.RemoveFaction(leftover);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(leftover, restoredSuccessorKingdom);
             }
 
-            if (!parentAlreadyDestroyed && !collapsedParent.IsEliminated)
-            {
-                ApplyPacifiedCooldowns(collapsedParent.Clans, CivilWarPacifiedDays);
-                EnsureValidRulingClan(collapsedParent);
-                DrainAndDestroyRebelKingdom(collapsedParent, restoredSuccessorKingdom);
-            }
-            else if (collapsedParent.IsEliminated)
-            {
-                ApplyPacifiedCooldowns(GetLiveNobleClans(collapsedParent), CivilWarPacifiedDays);
-                TransferLiveClansFromEliminatedKingdom(collapsedParent, restoredSuccessorKingdom, successorLeader);
-            }
+            ApplyPacifiedCooldowns(collapsedParentLoyalists, CivilWarPacifiedDays);
 
             if (settleDecisiveFactionDemand)
             {
@@ -2311,24 +2317,30 @@ namespace BellumCivile.Behaviors
 
         public bool TryRepairEliminatedKingdomWithLiveState(Kingdom eliminatedKingdom, string reason = null)
         {
-            if (CivilWarConflictBehavior.IsRealmTransferPending(eliminatedKingdom)) return false;
+            var pending = _restoredCreations.LastOrDefault(r => r.Parent == eliminatedKingdom && !r.Ready);
+            if (CivilWarConflictBehavior.IsRealmTransferPending(eliminatedKingdom)
+                && (pending == null || !_resumingRestoredCreations.Contains(pending))) return false;
             if (eliminatedKingdom == null || !eliminatedKingdom.IsEliminated || IsBellumCivileTemporaryKingdom(eliminatedKingdom))
                 return false;
 
             List<Clan> liveClans = GetLiveNobleClans(eliminatedKingdom).ToList();
-            if (liveClans.Count == 0 || !HasLiveHoldings(eliminatedKingdom, liveClans))
+            if (pending == null && (liveClans.Count == 0 || !HasLiveHoldings(eliminatedKingdom, liveClans)))
                 return false;
 
-            Clan preferredRuler = SelectEmergencySuccessorRuler(eliminatedKingdom, liveClans);
+            Clan preferredRuler = pending?.Founder ?? SelectEmergencySuccessorRuler(eliminatedKingdom, liveClans);
             if (preferredRuler == null)
                 return false;
+
+            if (pending != null)
+                return PrepareRestoredRealm(pending.Parent, pending.Source, pending.Founder, pending.Replacement,
+                    true, pending.Challenge, pending.Owner) != null;
 
             Kingdom existingRestored = FindExistingRestoredSuccessor(eliminatedKingdom);
             if (existingRestored != null)
             {
-                TransferLiveClansFromEliminatedKingdom(eliminatedKingdom, existingRestored, preferredRuler);
+                if (!TransferLiveClansFromEliminatedKingdom(eliminatedKingdom, existingRestored, preferredRuler)) return false;
                 EnsureValidRulingClan(existingRestored, preferredRuler);
-                Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.RegisterRestoredRealmMantle(eliminatedKingdom, existingRestored, preferredRuler, "emergency restored successor reused");
+                Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.RegisterRestoredRealmMantle(eliminatedKingdom, existingRestored, existingRestored.RulingClan, "emergency restored successor reused");
                 Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(existingRestored);
                 RepairCompatibilityStateNow($"repaired eliminated kingdom {eliminatedKingdom.StringId} into existing successor {existingRestored.StringId}: {reason ?? "unknown"}");
                 BellumCivileLogger.Log($"Repaired eliminated kingdom {eliminatedKingdom.StringId} by moving live clans to existing successor {existingRestored.StringId}; reason={reason ?? "unknown"}.");
@@ -2343,7 +2355,7 @@ namespace BellumCivile.Behaviors
                 Kingdom restoredFromRebels = CreateRestoredSuccessorKingdom(eliminatedKingdom, temporarySuccessor, successorLeader, runImmediateRepair: false);
                 if (restoredFromRebels != null)
                 {
-                    TransferLiveClansFromEliminatedKingdom(eliminatedKingdom, restoredFromRebels, preferredRuler);
+                    if (!TransferLiveClansFromEliminatedKingdom(eliminatedKingdom, restoredFromRebels, preferredRuler)) return false;
                     EnsureValidRulingClan(restoredFromRebels, successorLeader);
                     Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.RegisterRestoredRealmMantle(eliminatedKingdom, restoredFromRebels, successorLeader, "emergency restored successor from temporary realm");
                     Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(restoredFromRebels);
@@ -2351,6 +2363,7 @@ namespace BellumCivile.Behaviors
                     BellumCivileLogger.Log($"Repaired eliminated kingdom {eliminatedKingdom.StringId} by restoring temporary successor {temporarySuccessor.StringId} into {restoredFromRebels.StringId}; reason={reason ?? "unknown"}.");
                     return true;
                 }
+                return false;
             }
 
             Kingdom restoredReplacement = CreateRestoredReplacementKingdom(eliminatedKingdom, preferredRuler);
@@ -3066,6 +3079,7 @@ namespace BellumCivile.Behaviors
                 TransferIndependenceGroupToKingdom(faction, rebelKingdom, promotedGroup.Item2, promotedGroup.Item1);
 
             List<Kingdom> permanentKingdoms = promotedGroups.Select(group => group.Item2).ToList();
+            Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.AddCivilWarGraceRealms(faction, permanentKingdoms.ToArray());
             foreach (Kingdom kingdom in permanentKingdoms)
             {
                 Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(kingdom);
@@ -3364,108 +3378,16 @@ namespace BellumCivile.Behaviors
         }
 
         private Kingdom CreateRestoredSuccessorKingdom(Kingdom collapsedParent, Kingdom successorRebelKingdom, Clan successorLeader,
-            bool runImmediateRepair = true, SuccessionChallengeRecord challenge = null)
+            bool runImmediateRepair = true, SuccessionChallengeRecord challenge = null, FactionObject restorationOwner = null,
+            IEnumerable<Kingdom> inheritedWars = null)
         {
-            if (collapsedParent == null || successorRebelKingdom == null || successorLeader == null) return null;
-            if (!ReleaseMercenariesFromKingdom(successorRebelKingdom)) return null;
-
-            string restoredStringIdBase = collapsedParent.StringId + "_restored"
-                + (challenge == null ? "" : "_challenge_" + challenge.Id);
-            string restoredStringId = restoredStringIdBase;
-            int idSuffix = 0;
-            while (challenge == null && Kingdom.All.Any(k => k.StringId == restoredStringId))
-                restoredStringId = restoredStringIdBase + "_" + (++idSuffix);
-
-            Kingdom restoredKingdom = challenge == null ? null : Kingdom.All.FirstOrDefault(k => k.StringId == restoredStringId);
-            if (restoredKingdom?.IsEliminated == true) return null;
-            restoredKingdom = restoredKingdom ?? KingdomCreationSafetyHelper.CreateKingdom(restoredStringId, successorLeader);
-            if (restoredKingdom == null)
-                return null;
-            if (challenge != null) challenge.OutcomeRealm = restoredKingdom;
-
-            Settlement capital = successorLeader.Settlements.FirstOrDefault()
-                              ?? successorRebelKingdom.Settlements.FirstOrDefault()
-                              ?? collapsedParent.Settlements.FirstOrDefault()
-                              ?? Settlement.All.FirstOrDefault(s => s.IsTown || s.IsCastle);
-            var restoredVisuals = KingdomVisualHelper.ResolveInheritedKingdomVisuals(collapsedParent, successorLeader, restoredKingdom.StringId);
-
-            if (challenge == null || !challenge.RestoredRealmInitialized)
-            {
-                restoredKingdom.InitializeKingdom(
-                    collapsedParent.Name,
-                    collapsedParent.Name,
-                    collapsedParent.Culture ?? successorRebelKingdom.Culture,
-                    restoredVisuals.Banner,
-                    restoredVisuals.PrimaryColor,
-                    restoredVisuals.SecondaryColor,
-                    capital,
-                    new TextObject(""),
-                    new TextObject(""),
-                    new TextObject(""));
-                if (challenge != null) challenge.RestoredRealmInitialized = true;
-            }
-            KingdomVisualHelper.ApplyKingdomPalette(restoredKingdom, restoredVisuals);
-            EnsureValidRulingClan(restoredKingdom, successorLeader);
-            ClearTemporaryKingdomRepair(restoredKingdom);
-
-            if (collapsedParent.ActivePolicies.Any())
-                RebelPolicyHelper.CopyPolicies(collapsedParent, restoredKingdom);
-            else
-                RebelPolicyHelper.CopyPolicies(successorRebelKingdom, restoredKingdom);
-
-            TransferClansToKingdom(successorRebelKingdom, restoredKingdom, successorLeader);
-            PreservePromotedRebelForeignWars(successorRebelKingdom, restoredKingdom, collapsedParent);
-            DrainAndDestroyRebelKingdom(successorRebelKingdom, restoredKingdom);
-            EnsureValidRulingClan(restoredKingdom, successorLeader);
-            Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.RegisterRestoredRealmMantle(collapsedParent, restoredKingdom, successorLeader, "parent collapse succession");
-            ClearTemporaryKingdomRepair(restoredKingdom);
-            if (runImmediateRepair)
-                RepairCompatibilityStateNow($"created restored successor kingdom {restoredKingdom.StringId} from {collapsedParent.StringId}");
-            if (challenge != null) challenge.RestoredRealmReady = true;
-            return restoredKingdom;
+            return PrepareRestoredRealm(collapsedParent, successorRebelKingdom, successorLeader, false,
+                runImmediateRepair, challenge, restorationOwner, inheritedWars);
         }
 
         private Kingdom CreateRestoredReplacementKingdom(Kingdom eliminatedParent, Clan preferredRuler)
         {
-            if (eliminatedParent == null || preferredRuler == null)
-                return null;
-
-            string restoredStringIdBase = eliminatedParent.StringId + "_restored";
-            string restoredStringId = restoredStringIdBase;
-            int idSuffix = 0;
-            while (Kingdom.All.Any(k => k.StringId == restoredStringId))
-                restoredStringId = restoredStringIdBase + "_" + (++idSuffix);
-
-            Kingdom restoredKingdom = KingdomCreationSafetyHelper.CreateKingdom(restoredStringId, preferredRuler);
-            if (restoredKingdom == null)
-                return null;
-            Settlement capital = preferredRuler.Settlements.FirstOrDefault()
-                              ?? eliminatedParent.Settlements.FirstOrDefault()
-                              ?? Settlement.All.FirstOrDefault(s => s.IsTown || s.IsCastle);
-            var restoredVisuals = KingdomVisualHelper.ResolveInheritedKingdomVisuals(eliminatedParent, preferredRuler, restoredKingdom.StringId);
-
-            restoredKingdom.InitializeKingdom(
-                eliminatedParent.Name,
-                eliminatedParent.Name,
-                eliminatedParent.Culture ?? preferredRuler.Culture,
-                restoredVisuals.Banner,
-                restoredVisuals.PrimaryColor,
-                restoredVisuals.SecondaryColor,
-                capital,
-                new TextObject(""),
-                new TextObject(""),
-                new TextObject(""));
-            KingdomVisualHelper.ApplyKingdomPalette(restoredKingdom, restoredVisuals);
-            EnsureValidRulingClan(restoredKingdom, preferredRuler);
-            ClearTemporaryKingdomRepair(restoredKingdom);
-            RebelPolicyHelper.CopyPolicies(eliminatedParent, restoredKingdom);
-            TransferLiveClansFromEliminatedKingdom(eliminatedParent, restoredKingdom, preferredRuler);
-            EnsureValidRulingClan(restoredKingdom, preferredRuler);
-            Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.RegisterRestoredRealmMantle(eliminatedParent, restoredKingdom, preferredRuler, "emergency restored replacement");
-            ClearTemporaryKingdomRepair(restoredKingdom);
-            Campaign.Current.GetCampaignBehavior<IdeologyBehavior>()?.RefreshKingdomIdeologies(restoredKingdom);
-            RepairCompatibilityStateNow($"created emergency restored successor kingdom {restoredKingdom.StringId} from eliminated {eliminatedParent.StringId}");
-            return restoredKingdom;
+            return PrepareRestoredRealm(eliminatedParent, eliminatedParent, preferredRuler, true, true);
         }
 
         private void CollapseLandlessParentWithoutSuccessor(Kingdom collapsedParent)
@@ -3496,7 +3418,17 @@ namespace BellumCivile.Behaviors
             }
 
             ActivateCompatibilityRepairWindow();
+            if (collapsedParent.Clans.Any(c => c != null && !c.IsEliminated) || CountStrongholds(collapsedParent) > 0)
+            {
+                QueuePendingRebelCleanup(collapsedParent, null);
+                return;
+            }
             DestroyKingdomAction.Apply(collapsedParent);
+            if (!collapsedParent.IsEliminated)
+            {
+                QueuePendingRebelCleanup(collapsedParent, null);
+                return;
+            }
             RepairCompatibilityStateNow($"collapsed landless parent kingdom {collapsedParent.StringId} without successor");
         }
 
@@ -3626,19 +3558,19 @@ namespace BellumCivile.Behaviors
             return RunWithRulerRepairSuppressed(eliminatedKingdom, () =>
             {
                 List<Clan> liveClans = GetLiveNobleClans(eliminatedKingdom).ToList();
-                if (liveClans.Count == 0)
-                    return false;
-
                 if (preferredRuler != null && liveClans.Remove(preferredRuler))
                 {
-                    if (TransferCivilWarClan(preferredRuler, eliminatedKingdom, targetKingdom))
-                        EnsureValidRulingClan(targetKingdom, preferredRuler);
+                    if (!TransferCivilWarClan(preferredRuler, eliminatedKingdom, targetKingdom)) return false;
+                    EnsureValidRulingClan(targetKingdom, preferredRuler);
                 }
 
                 foreach (Clan clan in liveClans)
                     TransferCivilWarClan(clan, eliminatedKingdom, targetKingdom);
 
                 EnsureValidRulingClan(targetKingdom, preferredRuler);
+                if (GetLiveNobleClans(eliminatedKingdom).Any()
+                    || liveClans.Where(c => !c.IsEliminated).Any(c => c.Kingdom != targetKingdom)
+                    || !NobleClanEligibilityHelper.IsValidRulingClan(targetKingdom.RulingClan, targetKingdom)) return false;
                 BellumCivileLogger.Log($"Moved live clans from eliminated kingdom {eliminatedKingdom.StringId} into {targetKingdom.StringId}.");
                 return true;
             });
@@ -3696,8 +3628,12 @@ namespace BellumCivile.Behaviors
 
         private bool DrainAndDestroyRebelKingdom(Kingdom rebelKingdom, Kingdom fallbackKingdom, bool allowDeferred = true, bool reunification = false)
         {
-            if (CivilWarConflictBehavior.IsRealmTransferPending(rebelKingdom)
-                || CivilWarConflictBehavior.IsRealmTransferPending(fallbackKingdom)) return false;
+            if ((CivilWarConflictBehavior.IsRealmTransferPending(rebelKingdom) && !IsRestoredDrainAuthorized(rebelKingdom))
+                || CivilWarConflictBehavior.IsRealmTransferPending(fallbackKingdom))
+            {
+                if (allowDeferred) QueuePendingRebelCleanup(rebelKingdom, fallbackKingdom);
+                return false;
+            }
             if (rebelKingdom == null) return true;
             if (!ReleaseMercenariesFromKingdom(rebelKingdom))
             {
@@ -3758,8 +3694,18 @@ namespace BellumCivile.Behaviors
                     return false;
                 }
 
-                ClearTemporaryKingdomRepair(rebelKingdom);
+                if (CountStrongholds(rebelKingdom) > 0)
+                {
+                    if (allowDeferred) QueuePendingRebelCleanup(rebelKingdom, resolvedFallback);
+                    return false;
+                }
                 DestroyKingdomAction.Apply(rebelKingdom);
+                if (!rebelKingdom.IsEliminated)
+                {
+                    if (allowDeferred) QueuePendingRebelCleanup(rebelKingdom, resolvedFallback);
+                    return false;
+                }
+                ClearTemporaryKingdomRepair(rebelKingdom);
                 return true;
             });
         }

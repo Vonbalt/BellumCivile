@@ -15,7 +15,8 @@ $record = Read 'TreatyProposalRecord.cs'
 $guardName = 'TryValidateCouncilControlledWhitePeace('
 $guard = Section $behavior ('private bool ' + $guardName) 'private void CancelInvalidProposal('
 $cancel = Section $behavior 'private void CancelInvalidProposal(' 'private bool TryCancelStorylineProtectedProposal('
-$prepare = Section $behavior 'private bool TryPreparePendingProposalDraft(' ('private bool ' + $guardName)
+$prepare = Section $behavior 'private bool TryPreparePendingProposalDraft(' 'private bool TryRebuildNpcDraftWithinBudget('
+$rebuild = Section $behavior 'private bool TryRebuildNpcDraftWithinBudget(' ('private bool ' + $guardName)
 $sign = Section $behavior 'public bool TrySignPlayerParley(' 'private TreatyProposalRecord FindPendingPlayerProposal('
 $resolve = Section $behavior 'private void ResolvePendingParley(' 'private void RejectParley('
 $apply = Section $behavior 'private bool ApplyTreaty(' 'private bool ApplyTreatyCore('
@@ -30,9 +31,17 @@ Check ($guard.Contains('if (!proposal.IsWhitePeaceOrEmpty)') -and
     $guard.IndexOf('if (!proposal.IsWhitePeaceOrEmpty)') -lt $guard.IndexOf('IsMutualWhitePeaceEligible')) 'Nonwhite terms bypass the new gate and retain normal treaty utility.'
 Check ($guard.Contains('if (proposal.IsForced)') -and
     $guard.IndexOf('if (proposal.IsForced)') -lt $guard.IndexOf('IsMutualWhitePeaceEligible')) 'Forced terminal/no-available-terms settlement is explicitly exempt.'
-Check ($guard.Contains('Clan.PlayerClan != null') -and $guard.Contains('playerKingdom?.RulingClan == Clan.PlayerClan') -and
+Check ($guard.Contains('Clan.PlayerClan != null') -and $guard.Contains('playerKingdom.RulingClan == Clan.PlayerClan') -and
     $guard.Contains('playerKingdom.StringId == proposal.WinnerKingdomId') -and
-    $guard.Contains('playerKingdom.StringId == proposal.LoserKingdomId')) 'Only a participating player ruler receives the manual-signing exemption; vassals and unrelated rulers do not.'
+    $guard.Contains('playerKingdom.StringId == proposal.LoserKingdomId')) 'Manual exemptions require a participating player realm and preserve the player-ruler exception.'
+Check ($guard.Contains('bool playerReviewedWhitePeace = false') -and
+    $guard.Contains('playerReviewedWhitePeace && proposal.IsExplicitWhitePeace && proposal.PlayerVoteSubmitted') -and
+    $guard.Contains('proposal.PlayerVoteStance == TreatyCouncilVoteStance.Abstain') -and
+    $guard.Contains('proposal.PlayerInfluenceCommitment > 0')) 'A vassal needs an explicitly reviewed white draft and a submitted valid response; automatic calls remain gated by default.'
+Check ($classification.Contains('_terms?.Count == 1 && _terms[0]?.Type == TreatyTermType.WhitePeace')) 'The manual exception excludes empty, null-only, and mixed fallback drafts.'
+Check ($sign.IndexOf('bool playerReviewedWhitePeace = proposal.IsExplicitWhitePeace;') -lt
+    $sign.IndexOf('TryPreparePendingProposalDraft(') -and
+    $sign.Contains('ApplyTreaty(war, proposal, winner, loser, playerReviewedWhitePeace)')) 'Signing captures the reviewed draft before repair and preserves that context through settlement.'
 Check (!$guard.Contains('proposal.DrafterKingdomId') -and !$guard.Contains('ProposerClan') -and !$guard.Contains('requireAiOnly')) 'NPC parent proposals and player-entry routing cannot misclassify final authority.'
 Check ($guard.Contains('scores?.IsMutualWhitePeaceEligible(war, out _, out _) == true')) 'Shared live eligibility is required; unavailable scoring fails closed.'
 Check ($guard.Contains('CancelInvalidProposal(war, proposal, report);') -and !$guard.Contains('RejectParley(')) 'Ineligible white fallback is cancelled, not politically rejected.'
@@ -67,11 +76,14 @@ Check ($replace.Contains('TreatyDraftService.TryValidateAndNormalize(') -and
     $prepare.Contains('repairStateDrift: true')) 'Existing draft validation and state-drift repair remain in place.'
 Check ($open.Contains('TreatyProposalRecord proposal = GetPendingProposalForPlayer(war);') -and
     $open.Contains('if (proposal == null)')) 'Reopening reuses the pending proposal instead of assigning new provenance.'
-Check (([regex]::Matches($behavior, [regex]::Escape($guardName))).Count -eq 5) 'The shared guard has one early queue check and three final-resolution checks.'
+Check ($rebuild.Contains('TryValidateCouncilControlledWhitePeace(war, proposal, out report)') -and
+    $rebuild.Contains('proposal.ResetPlayerResponse();')) 'An automatic rebuilt fallback cannot inherit the manual exception or the previous draft vote.'
+Check (([regex]::Matches($behavior, [regex]::Escape($guardName))).Count -eq 6) 'The shared guard covers queueing, rebuilding, signing, automatic resolution, and settlement.'
 Check ($guard -match 'if \(proposal\.IsForced\)\s+return true;') 'Every shared-guard invocation immediately preserves forced settlement.'
 Check (([regex]::Matches($behavior, 'IsMutualWhitePeaceEligible\(')).Count -eq 1 -and
     !$behavior.Contains('CanConsiderWhitePeace(')) 'No duplicate white eligibility check can override the forced or manual exemption.'
 Check ($guard.Contains('Player rulers intentionally bypass this automatic gate; normal councils still decide.')) 'The intentional manual player-ruler bypass is documented at the exemption.'
-Check ($sign -match 'if \(!TryValidateCouncilControlledWhitePeace\(war, proposal, out report\)\)\s+return proposal.State == TreatyProposalState.Cancelled;' -and
+Check ($sign -match 'if \(!TryValidateCouncilControlledWhitePeace\(war, proposal, out report, playerReviewedWhitePeace\)\)\s+return proposal.State == TreatyProposalState.Cancelled;' -and
     $resolve -match 'if \(!TryValidateCouncilControlledWhitePeace\(war, proposal, out _\)\)\s+return;') 'Both pre-spending failures return immediately without reaching any spending or council penalties.'
+Check ($apply.Contains('TryValidateCouncilControlledWhitePeace(war, proposal, out _, playerReviewedWhitePeace)')) 'The settlement backstop respects the same manual review context after councils have decided.'
 'Automatic white-peace fallback source contracts passed; no build or campaign runtime tests executed.'

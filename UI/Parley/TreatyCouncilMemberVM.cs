@@ -17,12 +17,14 @@ namespace BellumCivile.UI.Parley
         private Color _voteColor;
         private string _enthusiasmText;
         private string _influenceText;
+        private bool _isInfluenceVisible;
         private string _primaryReasonText;
         private int _enthusiasmValue;
         private Color _enthusiasmColor;
         private CharacterImageIdentifierVM _portraitVisual;
         private BannerImageIdentifierVM _bannerVisual;
         private readonly BasicTooltipViewModel _reasonTooltip;
+        private bool _isHintVisible;
 
         public TreatyCouncilMemberVM(
             TreatyCouncilMemberEvaluation evaluation,
@@ -48,19 +50,15 @@ namespace BellumCivile.UI.Parley
             EnthusiasmText = new TextObject("{=BC_Parley_Enthusiasm}Enthusiasm: {VALUE}")
                 .SetTextVariable("VALUE", EnthusiasmValue + "%")
                 .ToString();
-            int committedInfluence = isRuler
-                ? Math.Max(0, rulerOverrideCommitment)
-                : Math.Max(0, evaluation?.InfluenceCommitment ?? 0);
-            InfluenceText = new TextObject("{=BC_Parley_Commitment}Influence commitment: {VALUE}")
-                .SetTextVariable("VALUE", committedInfluence)
-                .ToString();
+            int ordinaryCommitment = evaluation?.Stance == TreatyCouncilVoteStance.Abstain
+                ? 0 : Math.Max(0, evaluation?.InfluenceCommitment ?? 0);
+            int overrideCommitment = isRuler ? Math.Max(0, rulerOverrideCommitment) : 0;
+            int committedInfluence = ordinaryCommitment + overrideCommitment;
+            InfluenceText = committedInfluence.ToString();
+            IsInfluenceVisible = committedInfluence > 0;
 
-            TreatyCouncilReason primary = evaluation?.PrimaryReason;
-            PrimaryReasonText = isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason)
-                ? rulerCouncilReason
-                : primary == null
-                ? new TextObject("{=BC_Parley_NoStrongMotive}No decisive motive").ToString()
-                : primary.Label;
+            PrimaryReasonText = TreatyCouncilExplanation.Resolve(evaluation, isRuler, realmAccepts, rulerCouncilReason);
+            string explanation = PrimaryReasonText;
             if (clan?.Leader?.CharacterObject != null)
                 PortraitVisual = new CharacterImageIdentifierVM(BellumCivile.UI.PortraitAppearance.Create(clan.Leader.CharacterObject));
             if (clan?.Banner != null)
@@ -71,16 +69,21 @@ namespace BellumCivile.UI.Parley
                 isRuler,
                 realmAccepts,
                 committedInfluence,
-                rulerCouncilReason));
+                ordinaryCommitment,
+                overrideCommitment,
+                explanation));
         }
 
         public void ExecuteBeginReasonHint()
         {
+            _isHintVisible = true;
             _reasonTooltip?.ExecuteBeginHint();
         }
 
         public void ExecuteEndReasonHint()
         {
+            if (!_isHintVisible) return;
+            _isHintVisible = false;
             _reasonTooltip?.ExecuteEndHint();
         }
 
@@ -94,6 +97,8 @@ namespace BellumCivile.UI.Parley
         public string EnthusiasmText { get => _enthusiasmText; set { if (value != _enthusiasmText) { _enthusiasmText = value; OnPropertyChangedWithValue(value, "EnthusiasmText"); } } }
         [DataSourceProperty]
         public string InfluenceText { get => _influenceText; set { if (value != _influenceText) { _influenceText = value; OnPropertyChangedWithValue(value, "InfluenceText"); } } }
+        [DataSourceProperty]
+        public bool IsInfluenceVisible { get => _isInfluenceVisible; set { if (value != _isInfluenceVisible) { _isInfluenceVisible = value; OnPropertyChangedWithValue(value, "IsInfluenceVisible"); } } }
         [DataSourceProperty]
         public string PrimaryReasonText { get => _primaryReasonText; set { if (value != _primaryReasonText) { _primaryReasonText = value; OnPropertyChangedWithValue(value, "PrimaryReasonText"); } } }
         [DataSourceProperty]
@@ -152,7 +157,9 @@ namespace BellumCivile.UI.Parley
             bool isRuler,
             bool realmAccepts,
             int committedInfluence,
-            string rulerCouncilReason)
+            int ordinaryCommitment,
+            int overrideCommitment,
+            string explanation)
         {
             List<TooltipProperty> properties = new List<TooltipProperty>();
             string name = BuildDisplayName(evaluation?.Clan);
@@ -163,11 +170,20 @@ namespace BellumCivile.UI.Parley
             if (isRuler)
                 properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_RulerDecision}Ruler Decision").ToString(), BuildRulerDecisionText(realmAccepts), 0));
             properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_CommittedInfluence}Committed Influence").ToString(), committedInfluence.ToString(), 0));
+            if (isRuler)
+            {
+                properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_OrdinaryVoteCommitment}Council vote commitment").ToString(),
+                    ordinaryCommitment.ToString() + " (" + BuildVoteText(evaluation?.Stance ?? TreatyCouncilVoteStance.Abstain) + ")", 0));
+                properties.Add(new TooltipProperty(new TextObject("{=BC_Parley_AdditionalOverrideCommitment}Additional override commitment").ToString(), overrideCommitment.ToString(), 0));
+            }
             properties.Add(new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator));
-            if (isRuler && !string.IsNullOrWhiteSpace(rulerCouncilReason))
-                properties.Add(new TooltipProperty(rulerCouncilReason, string.Empty, 0));
+            if (!string.IsNullOrWhiteSpace(explanation))
+                properties.Add(new TooltipProperty(explanation, string.Empty, 0));
             foreach (TreatyCouncilReason reason in evaluation?.Reasons ?? new List<TreatyCouncilReason>())
+            {
+                if (reason == null) continue;
                 properties.Add(new TooltipProperty(reason.Label, reason.Amount.ToString("+0.0;-0.0;0.0"), 0));
+            }
             return properties;
         }
 

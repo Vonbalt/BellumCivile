@@ -774,3 +774,17 @@ Hardened coming-of-age hostage checks against null hero events while preserving 
 Added individual MCM controls and Standard, Reduced, and Increased Instability presets for rebellions and internal conflicts, with tooltips explaining defaults and effects.
 Added an MCM toggle to disable new minor-heir regencies and replacement regents while preserving existing regencies and safely handling pending inheritances.
 Reworked Enforce Peace into a realm-wide decree for player and AI rulers, ending all private conflicts and preventing new ones for one year, with higher influence costs and relation penalties during peacetime.
+
+1.4.6 CHANGELOG
+
+Fixed peace parley softlocks.
+Improved peace parley explanations to match nobles’ votes, clarify abstention reasons, and reflect rulers’ final decisions.
+Added dialogue and popup letters explaining when player-clan family members leave to establish their own household and inherit a throne.
+Fixed dialogue option allowing player rulers to recruit equal or higher-ranked nobles.
+Added a configurable realm-wide pacification period after civil-wars with a starting 1 in-game year pacification for new saves.
+Small rebalance to peace treaty war length consideration and hostage pacts duration with added MCM settings.
+Fixed restored kingdom cleanup and recovery to prevent leaderless remnants, duplicate successors, and premature settlement completion.
+Fixed heirs on regency skipping adult skills and equipment when coming of age.
+Fixed succession-related rebellion errors that could leave kingdoms leaderless and crash court processing.
+Added immersive accept/refuse popups for royal higher-title grants to the player, with a relation penalty for refusal.
+Fixed stalled forced-abdication settlements, stale council appointments charging influence, and false leaderless-realm alerts during campaign startup

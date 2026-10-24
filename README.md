@@ -130,6 +130,8 @@ Player faction leaders receive **Approve / Block / Substitute** choices. Taking 
 
 The agenda saves dates, targets, deadlines, outcomes, and execution receipts. Success, failure, invalidation, and player neglect are distinct results. An objective can encourage war, marriage, trade, or peace without guaranteeing acceptance by the relevant parties.
 
+An authorized higher-title court grant to the player opens **A Royal Honor**, offering **Accept the honor / Refuse** before the Crown spends influence or transfers rights. Acceptance uses the ordinary grant rewards; refusal withdraws matching motions without charging the Crown or penalizing a nobility petition, and adds a **-10 personal grievance for two in-game years** under the normal relation-memory rules. The offer describes legal and/or practical rights, never transfers subordinate settlements, and does not change settlement votes or direct hierarchy grants. Recipient responses are saved; already-paid grants from older saves retain their recovery path. Focused engine checks: `--court-title-grants`.
+
 | Motion family | Main owners and purpose |
 | --- | --- |
 | Laws and council | Eligible blocs propose policies or appointments; Nobility seeks longer elective terms and Liberty shorter ones |
@@ -189,6 +191,8 @@ Sustainable core offices are limited by eligible council clans, up to four. Unsu
 Tooltips show competence, contributing skills, controversy, support, and assignment effects. Candidate competence appears in appointment voting. A nomination ballot produces three candidates for the kingdom decision. The player's realm receives deliberation and persuasion/bribery dialogue; NPC-only appointments can resolve synchronously at their scheduled session.
 
 Named Crown and court-faction appointment motions reserve one ballot place for their eligible nominee; the other places follow the nobles' nomination ranking. The same shortlist rule is used for AI forecasts and restored decisions. NPC sponsors favor their own nominee unless they have an explicit voting pledge, while ordinary influence costs and reserves still apply. Sponsorship guarantees consideration, not victory. Existing nominee eligibility and NPC vacancy-recovery rules remain in force.
+
+Unfiled council appointments are checked before payment: an expired annual motion is cancelled without spending influence; a still-valid delayed motion receives its original captured deliberation interval when its old ballot date has passed. Explicit player Crown business is not expired as an annual NPC motion. Already-filed ballots retain their original dates and bounded retry rules. The queue independently rejects past ballot dates.
 
 **Appoint** costs 100 influence before applicable Chancellor discounts. A faction leader needs an active mandate; a player ruler can file directly. **Dismiss** is ruler-only, costs 100 influence, applies grievances/mood effects, and leaves a vacancy. Overrides have their own influence and relation costs.
 
@@ -391,6 +395,8 @@ Hereditary accession follows the lawful personal line using saved transition rec
 
 An heir and their recorded incoming household are unavailable for new marriages while Crown settlement is pending. Ordinary future Crown heirs remain eligible. Hourly recovery can refresh an unexecuted household plan if the heir has already changed clan, retaining the original heir, Crown, cause, and laws. Once a cadet, payment, property transfer, or foreign-clan move has been committed, its saved receipts are preserved rather than rebuilding the package. `Behaviors/CrownHouseholdRecovery.cs` owns this guard and recovery path.
 
+Forced same-house abdications do not freeze an endowment until its founding heir can leave and the predecessor leads the source household. In particular, an acting caretaker is not extracted from a minor's house. Older unstarted plans missing their founder can rebuild their household and endowment after that handover, retaining the original heir, cause and cadet identity. Committed deliveries and incoming-house preparations are not rebuilt. Focused native-DLL checks: `--campaign-run-recovery`.
+
 Elective realms maintain standing nominations and support during the ruler's life. Law merit contributes 60% and political preference 40%. Military strength plus influence determines standing voting power, not an expenditure. Weighted nominations produce up to three finalists; finalist-house self-support applies after nomination, subject to promises and player choices. Death, abdication, and term expiry freeze the final ballot. Acceptance and challenges are separate from candidate selection.
 
 Term reform affects the sitting mandate. Fixed-to-fixed keeps its start date; lifetime-to-fixed starts at adoption; fixed-to-lifetime removes expiry. An already elapsed mandate schedules an election after notice/deliberation rather than immediately replacing the ruler. Loading an old save alone does not retrospectively change its mandate.
@@ -410,6 +416,8 @@ This route requires a settled hereditary ruling house, an eligible adult founder
 An underage lawful heir becomes a ward. An eligible adult relative acts as engine-facing clan leader; a generated cultural noble covers houses without a suitable adult. The ward takes leadership at adulthood. Regents receive appropriate styling and remain ordinary members after handover.
 
 With legal-heir enforcement enabled, player regency allows control of a regent until a deferred, safe handover to the ward. Accession and partition remain regency-aware, so the acting adult does not become the hereditary beneficiary.
+
+Regency handovers wait for vanilla's complete adulthood event before activating the ward, preserving adult skills and cultural battle/civilian equipment. Daily, load-time and death-time catch-up consumes only an outstanding native birthday; saved completion/failure receipts prevent repeating partial development. Hostage custody remains intact. On session launch, an equipment-only recovery handles adult NPC nobles still wearing an exact cultural childhood battle outfit without weapons or a mount; it does not reroll skills or change ordinary player-clan inventory. Unrelated civilian outfits and adult loadouts are preserved. Native-DLL regression checks: `--regency-adulthood`; source contracts: `Tests/RegencyAdulthood.Tests.ps1`.
 
 Custom adulthood defaults to **16**, configurable from 16 to 21. Education milestones default to **2, 5, 8, 10, 13, 15** and normalize into strictly increasing ages below adulthood. Completed stages are preserved. Disabling the option restores native ages; changes require restart. Marriage minimum ages are clamped to adulthood.
 
@@ -522,14 +530,14 @@ Prisoner leverage reflects **current qualifying custody**. Release, escape, resc
 
 ### Peace Readiness
 
-There is **no fixed minimum war duration**. The configurable **War Duration Reluctance Period** defaults to 100 days. [PeaceReadiness.cs](PeaceReadiness.cs) centralizes willingness; [BellumCivileConstants.cs](BellumCivileConstants.cs) supplies thresholds.
+There is **no fixed minimum war duration**. **Early-War Reluctance (Strength and Days)** defaults to 50: an initial -50 utility penalty fading by one point per day until day 50. The same MCM value controls strength and duration; saved MCM values are retained. [PeaceReadiness.cs](PeaceReadiness.cs) centralizes willingness; [BellumCivileConstants.cs](BellumCivileConstants.cs) supplies thresholds.
 
 With elapsed days `d`, enthusiasm `e` clamped to 0-100, absolute score `s`, reluctance period `P >= 1`, and `clamp01(x)` limiting a value to 0-1:
 
 ```text
 r = clamp01(e / 10)
 Exhaustion           = (20 - e) * 0.5 + 35 * (1 - r)
-Early-war reluctance = -max(0, P - d) * (100 / P) * r
+Early-war reluctance = -max(0, P - d) * r
 Inconclusive war     = -30 * clamp01((50 - s) / 50) * r * clamp01((90 - d) / 60)
 Prolonged exhaustion = +30 when d >= P and e < 10, otherwise 0
 Readiness            = sum of these four components
@@ -584,13 +592,13 @@ Unexchanged foreign nobles can remain captive after peace under retained-prisone
 
 ### Hostage-Backed Pacts
 
-Treaties can demand or offer a blood relative of the supplying ruler for **50 days by default**. Children are eligible. Succession standing supplies four base prices: first heir 30 WS, second heir 24, third heir 18, and later heirs or other eligible relatives 12. The price is `base + (days - 50) / 10`; voluntary pledges use shared half-value offering credit.
+Treaties can demand or offer a blood relative of the supplying ruler for **50 days by default**. The **Minimum Hostage Pact Duration (Days)** MCM setting supplies both the minimum and starting term for new negotiations, bounded to 10-1,000 days and rounded up to ten-day steps. Children are eligible. Succession standing supplies four base prices: first heir 30 WS, second heir 24, third heir 18, and later heirs or other eligible relatives 12. New clauses save this baseline `B`; their price is `base + (days - B) / 10`. Voluntary pledges use shared half-value offering credit.
 
-Duration is negotiated in the parley's Politics tab, from 30 to 1,000 days in ten-day steps. A single control updates both reciprocal pledges and their costs. The duration MCM slider is removed. Duration and pricing are saved before handover and retained through delivery recovery. Existing pacts keep their saved expiry; records without a duration snapshot retain their original 100-day agreement. Pending legacy clauses retain tier-only pricing and arbitrary previously configured durations until explicitly repriced by the duration control. Legacy zero-day pacts still resolve on the next daily tick. New pricing is identified by appended save fields, with absent fields selecting legacy validation.
+Duration is negotiated in the parley's Politics tab, from the clause's saved minimum to 1,000 days in ten-day steps. Shift-click adjusts five steps (50 days); Ctrl-click increases to the longest duration affordable under the full draft's War Score budget, or decreases to the saved minimum. Ctrl takes precedence over Shift. A single control updates both reciprocal pledges and their costs, including shared offering-credit limits for the maximum shortcut. Duration, pricing and baseline are saved before handover and retained through delivery recovery, cloning and AI counteroffers; changing MCM affects only newly created pacts. Existing pacts keep their saved expiry; records without a duration snapshot retain their original 100-day agreement. Pre-baseline negotiated clauses retain their 30-day minimum and 50-day pricing anchor. Older tier-only clauses retain arbitrary previously configured durations until explicitly repriced by the duration control using that historical schedule. Legacy zero-day pacts still resolve on the next daily tick. Appended save fields preserve legacy validation without renumbering existing data. The original public treaty-term constructor remains available for compiled integrations.
 
-Both councils assess the duration once per pact, not per hostage: no penalty through 50 days, then -2 utility per ten days through 100, -4 through 200, and -6 thereafter. Exhaustion below 10 can add up to +15 recovery utility, increasing between 50 and 100 days and never growing beyond 100. Existing hostage-family reluctance remains separate and unchanged. Legacy pending clauses do not acquire these new duration modifiers until repriced.
+Both councils assess the duration once per pact, not per hostage: no penalty at the recorded baseline, then -2 utility per ten extra days for the first 50 extra days, -4 for the next 100, and -6 thereafter. Exhaustion below 10 can add up to +15 recovery utility over the first 50 extra days, with no further growth. For a 100-day baseline, a 150-day pact incurs -10 duration utility and can grant +15 recovery utility at zero enthusiasm. Existing hostage-family reluctance remains separate and unchanged. Legacy tier-only clauses do not acquire duration modifiers until repriced.
 
-NPC drafting normally prefers 50 days, or 100 with strength-weighted realm enthusiasm below 10. Complete exhaustion after at least 200 days of war permits a 150-day preference; after 400 days it permits 200. The shortlist always includes 50 and 30, and never exceeds five durations or 200 days, including capitulation. It is independent of surplus war score. Rejected initial drafts can be retried with shorter hostage terms without rebuilding dynasty candidates; those fallbacks do not recursively generate further alternatives. Player-authored longer pacts face the same council evaluation, while existing forced-capitulation rules still apply. Draft-selection logs include the chosen duration for campaign balance audits.
+NPC drafting normally prefers the saved baseline `B`, or `B + 50` with strength-weighted realm enthusiasm below 10. Complete exhaustion after at least 200 days of war permits `B + 100`; after 400 days it permits `B + 150`. The new-pact shortlist includes the baseline, never exceeds four durations, and is capped at 1,000 days, including capitulation. At a 100-day baseline, these preferences are 100/150/200/250 days. It is independent of surplus war score. Rejected initial drafts can be retried with shorter terms from the same saved baseline without rebuilding dynasty candidates; fallbacks do not recursively generate further alternatives. Player-authored longer pacts face the same council evaluation, while existing forced-capitulation rules still apply. Draft-selection logs include the chosen duration for campaign balance audits.
 
 Hostages remain in their own house but enter protected custody in an eligible captor stronghold. Ordinary escape, ransom, and manual release are blocked. Encyclopedia/clan descriptions identify treaty custody; the broker explains why ordinary ransom is unavailable.
 
@@ -711,7 +719,7 @@ MCM hints compare Bellum and unmodded defaults where there is a meaningful count
 | Group | Important defaults |
 | --- | --- |
 | Presentation | Anglicized titles; Sovereign Title name display; both widgets on |
-| War/peace | Revamp on; reluctance 100 days (1-500); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
+| War/peace | Revamp on; reluctance 50 strength/days (1-500); new hostage baseline 50 days (10-1,000, rounded up to tens); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
 | Treaty wealth/captivity | 5,000 gold or 250 daily tribute per point; dungeon/mobile escape 1%/3% |
 | Court | One-year terms (0.25-4); five-day deliberation; rebellion threshold 100; automatic treason indictments on |
 | Titles/armies | Three-year fabrication; minimum two children for formation; restricted summons on; friend exception +60 relation |
@@ -1010,6 +1018,10 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --inheritance-regression
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --council-captivity
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --royal-peace
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-leadership-diagnostic
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --campaign-run-recovery
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --crown-rebellion-safety
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --court-title-grants
 ```
 
 Use the default Debug configuration for the combined engine harness: its Harmony mocks can otherwise be bypassed by Release JIT inlining. Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Run the startup and version-contract probes against a Release build as well. Record results with the revision/environment rather than maintaining a stale passed-check count here.
@@ -1026,6 +1038,8 @@ The engine harness accepts an installation path as its first positional argument
 
 ### Logs and Console Tools
 
+Ruler-change handling reads the incoming clan from the realm; the native event argument is the displaced clan. Unstarted rebel factions exclude the reigning house before escalation, while existing wars and saved startup journals retain their owners. Succession opportunities are saved and processed after accession settles, outside the synchronous ruler event. Startup and recovery cannot transfer the parent's current ruling clan, and court decree processing rechecks leadership after callbacks. These safeguards do not require the ruler to own land and do not reconstruct already-corrupted saves. Focused native-DLL checks: `--crown-rebellion-safety`.
+
 Logs live under the user's Documents folder:
 
 ```text
@@ -1036,6 +1050,10 @@ Mount and Blade II Bannerlord/Configs/ModLogs/
 ```
 
 `BellumCivileLogger` rotates ordinary logs at about 5 MiB and prunes old dated logs after five days. Capture all numbered segments before expiry. Correlate yearly war/succession summaries with detailed transitions and campaign identity. Accelerated runs can skip telemetry opportunities; missing samples alone do not prove a mechanic failed.
+
+`[BellumCivile realm leadership diagnostic]` is always-on, file-only logging for live realms with a missing/dead ruler, independent of debug notifications. It records previous/current leadership, bounded house and holding lists, pending recovery records, causal call stacks where available, and Harmony patch owners, then flushes immediately. Repeated checks of the same incident are silent; recovery, retirement, and uncompleted destruction requests have separate markers. Observation starts at game-loaded/session-launched readiness, not during partial XML initialization or save hydration. Load/session and hourly audits catch old save state or raw-field changes, explicitly without claiming to know their original call stack. Brief succession/destruction gaps can be legitimate. Nothing is repaired, suppressed or changed by the observer; its session state is not saved.
+
+Restored-realm recovery separately saves the intended successor before allocation and resumes interrupted household transfers and realm retirement. Cleanup verifies actual elimination; a deferred destruction retains its retry. Restored kingdoms publish the native kingdom-created event once membership, leadership, crown delivery and predecessor retirement are ready, with a saved receipt to avoid replaying listeners. Old empty, rulerless restored predecessors can retire only with a valid successor and no pending inheritance/conflict ownership; ordinary live landless realms are preserved. The legacy native duplicate-ruler load migration cannot leave a Bellum-protected realm rulerless after deferred destruction. See [the lifecycle audit and test limits](Tests/RestoredRealmLifecycleAudit.md). Focused engine checks: `--restored-realm-recovery`; source contracts: `Tests/RestoredRealmRecovery.Tests.ps1`.
 
 Treaty openings are counted by creation date; applied, rejected, and cancelled outcomes by their saved resolution date. Pending parleys are a current snapshot, and average war score spent includes applied treaties only. Older resolved proposals without a resolution timestamp are not assigned an invented year. Crown-heir regency creation and replacement contribute to the same succession counters as ordinary regencies.
 

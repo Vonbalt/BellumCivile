@@ -19,7 +19,7 @@ namespace BellumCivile.Behaviors
                 int last = _lastInitiationChecks.TryGetValue(realm.StringId, out int saved) ? saved : -SuccessionChallengeSchedule.IntervalDays;
                 if (!SuccessionChallengeSchedule.IsDue(realm.StringId, day, last)) continue;
                 _lastInitiationChecks[realm.StringId] = day;
-                if (CrownAccessionBehavior.Instance?.IsPending(realm) == true
+                if (manager.HasCivilWarGrace(realm) || CrownAccessionBehavior.Instance?.IsPending(realm) == true
                     || _records.Any(r => (r.WarRealm == realm || r.OutcomeRealm == realm) && (r.IsOpen || r.RealmBlockedUntil > Day))
                     || manager.GetFactionsInKingdom(realm).Any(f => f.IsCivilWarActive())) continue;
                 loyalty.Maintain(realm);

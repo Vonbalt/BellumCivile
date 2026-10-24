@@ -20,7 +20,7 @@ internal static class WhitePeaceFallbackTests
         var behavior = new ForeignTreatyBehavior();
         var validate = AccessTools.Method(typeof(ForeignTreatyBehavior), "TryValidateCouncilControlledWhitePeace");
         bool Valid(WarScoreRecord war, TreatyProposalRecord proposal)
-            => (bool)validate.Invoke(behavior, new object[] { war, proposal, null });
+            => (bool)validate.Invoke(behavior, new object[] { war, proposal, null, false });
         WarScoreRecord War() => new WarScoreRecord("a|b", "a", "b", 0, null);
         TreatyProposalRecord Proposal(bool forced = false)
             => new TreatyProposalRecord("a|b", "a", "b", "a", 0, 20, forced);

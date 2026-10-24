@@ -130,7 +130,8 @@ namespace BellumCivile.Behaviors
         internal bool TryQueueAgendaAppointment(Kingdom kingdom, PrivyCouncilOffice office,
             Clan proposer, FactionObject faction, CampaignTime voteDate, string agendaId, out TextObject failureReason)
         {
-            if (string.IsNullOrEmpty(agendaId) || CourtAgendaBehavior.Current?.ValidateCouncilProceeding(agendaId, kingdom, office, proposer) != true)
+            if (voteDate.ToDays < CampaignTime.Now.ToDays || string.IsNullOrEmpty(agendaId)
+                || CourtAgendaBehavior.Current?.ValidateCouncilProceeding(agendaId, kingdom, office, proposer) != true)
             {
                 failureReason = new TextObject("{=BC_CouncilDelib_InvalidRealm}This appointment is no longer a valid matter for the realm.");
                 return false;

@@ -42,9 +42,9 @@ internal static class InternalInstabilityPresetTests
             (IReadOnlyDictionary<string, int>)getValues.Invoke(null, new object[] { index });
         var names = new[] { "RebellionThreshold", "CourtCrisisMoodThreshold", "CourtChallengeChancePercent",
             "HeirChallengeLoyaltyThreshold", "ElectionChallengeChancePercent", "ClaimFeudStartThreshold",
-            "ClaimedRevocationChancePercent", "TreasonResistanceChancePercent", "ClientLiberationWillingnessThreshold" };
-        var expected = new[] { new[] { 100, -60, 100, 25, 100, 65, 100, 100, 75 },
-            new[] { 125, -80, 50, 15, 50, 80, 50, 50, 85 }, new[] { 75, -40, 100, 35, 125, 55, 150, 150, 65 } };
+            "ClaimedRevocationChancePercent", "TreasonResistanceChancePercent", "ClientLiberationWillingnessThreshold", "CivilWarGraceYears" };
+        var expected = new[] { new[] { 100, -60, 100, 25, 100, 65, 100, 100, 75, 2 },
+            new[] { 125, -80, 50, 15, 50, 80, 50, 50, 85, 3 }, new[] { 75, -40, 100, 35, 125, 55, 150, 150, 65, 1 } };
         object settings = Activator.CreateInstance(settingsType, true);
         int Read(string name) => (int)settingsType.GetProperty(name).GetValue(settings);
         var selector = (Dropdown<string>)settingsType.GetProperty("InstabilityPreset").GetValue(settings);
@@ -52,7 +52,7 @@ internal static class InternalInstabilityPresetTests
         for (int i = 0; i < 3; i++)
         {
             var values = Values(i);
-            check(values.Count == 9, "Preset " + i + " contains only the nine instability settings");
+            check(values.Count == 10, "Preset " + i + " contains only the ten instability settings");
             for (int j = 0; j < names.Length; j++)
             {
                 var slider = settingsType.GetProperty(names[j]).GetCustomAttributes(false).OfType<SettingPropertyIntegerAttribute>().Single();

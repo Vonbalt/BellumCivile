@@ -141,6 +141,7 @@
     <Content Include="GUI\Prefabs\KingdomManagement\Diplomacy\*.xml" />
     <Content Include="GUI\Prefabs\Parley\BellumPeaceParley.xml" />
     <Content Include="GUI\Brushes\BellumMap.xml" />
+    <Content Include="GUI\Brushes\BellumParley.xml" />
     <Content Include="ModuleData\bellum_policy_agendas.xml" />
     <Content Include="ModuleData\bellum_policy_agendas_patch.xml" />
     <Content Include="ModuleData\bellum_title_styles_anglicized.xml" />

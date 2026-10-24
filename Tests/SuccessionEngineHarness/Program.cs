@@ -50,11 +50,43 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--regency-settings"))
+            if (args.Contains("--campaign-run-recovery"))
+            {
+                CampaignRunRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} campaign run recovery checks passed.");
+            }
+            else if (args.Contains("--court-title-grants"))
+            {
+                CourtTitleGrantEngineTests.Run(Check);
+                Console.WriteLine($"{_checks} court title grant checks passed.");
+            }
+            else if (args.Contains("--crown-rebellion-safety"))
+            {
+                CrownRebellionSafetyTests.Run(Check);
+                Console.WriteLine($"{_checks} crown rebellion safety checks passed.");
+            }
+            else if (args.Contains("--regency-adulthood"))
+            {
+                RegencyAdulthoodTests.Run(Check);
+                Console.WriteLine($"{_checks} regency adulthood checks passed.");
+            }
+            else if (args.Contains("--regency-settings"))
             {
                 RegencySettingsTests.Run(Check);
                 TestRegencyContinuity();
                 Console.WriteLine($"{_checks} regency setting checks passed.");
+            }
+            else if (args.Contains("--civil-war-grace"))
+            {
+                CivilWarGraceTests.Run(Check);
+                Console.WriteLine($"{_checks} civil-war grace checks passed.");
+            }
+            else if (args.Contains("--court-player-motions"))
+            {
+                CourtLeadershipHandoverTests.Run(Check);
+                CourtNominationMandateTests.Run(Check);
+                CourtMotionNavigationTests.Run(Check);
+                Console.WriteLine($"{_checks} player court motion checks passed.");
             }
             else if (args.Contains("--internal-instability"))
             {
@@ -261,6 +293,16 @@ internal static class Program
                 CadetRegencyFoundingTests.Run(Check);
                 Console.WriteLine($"{_checks} cadet household preparation checks passed.");
             }
+            else if (args.Contains("--restored-realm-recovery"))
+            {
+                RestoredRealmRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} restored-realm recovery checks passed.");
+            }
+            else if (args.Contains("--realm-leadership-diagnostic"))
+            {
+                RealmLeadershipDiagnosticTests.Run(Check);
+                Console.WriteLine($"{_checks} realm-leadership diagnostic checks passed.");
+            }
             else if (args.Contains("--clan-finance-diagnostic"))
             {
                 ClanFinanceDiagnosticTests.Run(Check);
@@ -272,6 +314,11 @@ internal static class Program
                 EstateSovereignRoutingTests.Run(Check);
                 MarriageCombinedScoreTests.Run(Check);
                 Console.WriteLine($"{_checks} long-run recovery checks passed.");
+            }
+            else if (args.Contains("--crown-player-departure"))
+            {
+                CrownPlayerDepartureTests.Run(Check);
+                Console.WriteLine($"{_checks} Crown player departure checks passed.");
             }
             else if (args.Contains("--crown-household-recovery"))
             {
@@ -287,6 +334,11 @@ internal static class Program
                 TreatyRelationOutcomeTests.Run(Check);
                 ExpulsionRelationTests.Run(Check);
                 Console.WriteLine($"{_checks} gameplay relation memory checks passed.");
+            }
+            else if (args.Contains("--recruitment-rank"))
+            {
+                RecruitmentRankTests.Run(Check);
+                Console.WriteLine($"{_checks} recruitment rank checks passed.");
             }
             else if (args.Contains("--exile-recovery"))
             {
@@ -315,12 +367,45 @@ internal static class Program
                 DiplomacyOverviewTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} client liberation checks passed.");
             }
+            else if (args.Contains("--parley-voting"))
+            {
+                PeaceParleyVotingTests.Run(Check);
+                WhitePeaceFallbackTests.Run(Check);
+                TreatyRelationOutcomeTests.Run(Check);
+                Console.WriteLine($"{_checks} parley voting checks passed.");
+            }
+            else if (args.Contains("--parley-budget-recovery"))
+            {
+                PeaceParleyBudgetRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} parley budget recovery checks passed.");
+            }
+            else if (args.Contains("--parley-explanations"))
+            {
+                PeaceParleyExplanationTests.Run(Check);
+                PeaceParleyPresentationTests.Run(Check);
+                Console.WriteLine($"{_checks} parley explanation checks passed.");
+            }
+            else if (args.Contains("--parley-presentation"))
+            {
+                PeaceParleyPresentationTests.Run(Check);
+                Console.WriteLine($"{_checks} parley presentation checks passed.");
+            }
             else if (args.Contains("--treaty-balance"))
             {
                 PeaceCouncilReadinessTests.Run(Check);
                 PeaceTreatyQuorumTests.Run(Check);
                 TreatyWinnerLeverageTests.Run(Check);
                 Console.WriteLine($"{_checks} treaty balance checks passed.");
+            }
+            else if (args.Contains("--peace-readiness"))
+            {
+                PeaceReadinessTests.Run(Check);
+                Console.WriteLine($"{_checks} peace readiness checks passed.");
+            }
+            else if (args.Contains("--internal-peace"))
+            {
+                InternalPeaceTests.Run(Check);
+                Console.WriteLine($"{_checks} internal peace checks passed.");
             }
             else if (args.Contains("--hostage-adulthood"))
             {

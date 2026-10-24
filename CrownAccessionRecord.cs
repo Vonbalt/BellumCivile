@@ -88,6 +88,18 @@ namespace BellumCivile
         [SaveableField(78)] public RealmUnionRecord Union;
         [SaveableField(79)] public CadetNameRecord CadetNaming;
         [SaveableField(80)] public string CadetNamingSettlementId;
+        [SaveableField(81)] public bool PlayerDepartureCaptured;
+        [SaveableField(82)] public Hero PlayerDepartureObserver;
+        [SaveableField(83)] public Hero PlayerDepartureHero;
+        [SaveableField(84)] public bool PlayerDepartureWantsDialogue;
+        [SaveableField(85)] public bool PlayerDepartureDialogueAttempted;
+        [SaveableField(86)] public bool PlayerDepartureExplained;
+        [SaveableField(87)] public string PlayerDepartureAddress;
+        [SaveableField(88)] public string PlayerDepartureHeroName;
+        [SaveableField(89)] public string PlayerDepartureSourceName;
+        [SaveableField(90)] public string PlayerDepartureRealmName;
+        [SaveableField(91)] public bool PlayerDepartureIsSpouse;
+        [SaveableField(92)] public CampaignTime PlayerDepartureQueuedAt;
         public bool IsAbdication => VoluntaryAbdication || ForcedAbdication;
         public Clan EndowmentHouse => IncomingSourceHouse ?? PreviousHouse;
         public Hero EndowmentDonor => IncomingSourceHead ?? Predecessor;

@@ -36,6 +36,7 @@ namespace BellumCivile
         [SaveableField(18)] public bool ClemencyChosen;
         [SaveableField(19)] public bool ReleaseSucceeded;
         [SaveableField(20)] public bool DurationPriced;
+        [SaveableField(21)] public int DurationBaselineDays;
 
         internal bool TryChoose(HostageCustodyOutcome outcome)
         {
@@ -151,7 +152,7 @@ namespace BellumCivile
             => record == null || (record.Hero != null && record.SupplyingHouse == supplier
                 && record.ReceivingHouse == receiver && record.Holding != null && record.CustodyEstablished
                 && !record.ActionStarted && !record.ActionCompleted && record.Outcome == HostageCustodyOutcome.Pending
-                && HostagePactRules.IsValidPrice(record.Tier, DurationDays, record.NegotiatedCost, record.DurationPriced));
+                && HostagePactRules.IsValidPrice(record.Tier, DurationDays, record.NegotiatedCost, record.DurationPriced, record.DurationBaselineDays));
         private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     }
 }

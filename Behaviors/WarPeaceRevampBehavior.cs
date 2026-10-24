@@ -833,6 +833,11 @@ namespace BellumCivile.Behaviors
             }
 
             FactionObject existingRebellion = factionManager.GetRebelFaction(playerClan);
+            if (factionManager.HasCivilWarGrace(parentRealm))
+            {
+                failureReason = factionManager.CivilWarGraceBlock(parentRealm).ToString();
+                return false;
+            }
             if (existingRebellion?.IsCivilWarActive() == true)
             {
                 failureReason = "player clan is already fighting a civil war";

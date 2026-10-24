@@ -110,6 +110,11 @@ namespace BellumCivile.Behaviors
             if (!accession.Completed || !accession.TitleTransferred) return;
             record.MandateNumber = ElectiveSuccessionBehavior.Instance?.Get(accession.Realm)?.MandateNumber ?? record.MandateNumber;
             record.Arm(CampaignTime.Now.ToDays);
+            if (Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.HasCivilWarGrace(record.Realm) == true)
+            {
+                record.Closed = true;
+                record.ClosedReason = "Post-civil-war grace protects this accession from a new election challenge";
+            }
             BellumCivileLogger.Log($"Elective contest snapshot ready {record.Id}; eligible_day={record.EligibleDay}; controlled_test={record.ManualTest}.");
         }
     }

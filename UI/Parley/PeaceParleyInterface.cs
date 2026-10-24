@@ -54,6 +54,7 @@ namespace BellumCivile.UI.Parley
             if (_layer == null)
                 return;
 
+            _viewModel?.CloseTooltips();
             if (_movie != null)
                 _layer.ReleaseMovie(_movie);
 

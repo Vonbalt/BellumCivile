@@ -17,6 +17,10 @@ Check ($faction -match 'type == FactionType.Abdication && CrownAccessionBehavior
 Check ($faction -match 'BeginForcedAbdication\(' -and $faction -match 'TryBeginAcceptedAbdicationVote\(') 'Accepted demands retain separate hereditary and elective routes.'
 Check (([regex]::Matches($war, 'BeginForcedAbdication\(')).Count -eq 2) 'Normal and collapsed-realm victories both enter the hereditary coordinator.'
 Check ($forced -match 'SuccessionRealmRules.Classify\(laws.SuccessionLaw\) != RealmSuccessionSystem.Hereditary') 'Forced coordinator rejects elective law sets.'
+Check ($forced.Contains('record.PreviousHouse.Leader != record.Predecessor') -and
+    $forced.IndexOf('if (!record.Household.Contains(record.Heir.StringId))') -lt $forced.IndexOf('FillAbdicationEndowment(record);')) 'Forced household preparation waits for the source head and verifies the founder before freezing any endowment.'
+Check ($forced.Contains('HasCommittedHouseholdSettlement(record) || record.IncomingHousePrepared') -and
+    !$forced.Substring($forced.IndexOf('private bool PrepareForcedAbdication')).Contains('Guid.NewGuid()')) 'Malformed household recovery protects committed receipts and does not allocate a new branch identity.'
 Check ($faction -match 'AbdicationLaws' -and $war -match 'faction.AbdicationLaws, faction.AbdicationCauseId, abdicationHeir') 'Collapsed settlement carries the original law, cause and heir context.'
 Check ($war -match 'CrownAccessionBehavior.Instance\?\.IsPending\(rewardKingdom\) == true') 'Tribunals wait for Crown settlement, not merely absence of a ballot.'
 Check ($forced -match 'ResolveWhitePeace\(faction, rebel, demandSatisfied: true\)' -and $crown -match 'SettleSatisfiedAbdicationFactions\(\)') 'Completed lawful succession closes remaining target-specific rebellions as a satisfied demand.'

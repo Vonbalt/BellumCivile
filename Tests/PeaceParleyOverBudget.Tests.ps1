@@ -10,18 +10,21 @@ Check ($header.HeightSizePolicy -eq 'Fixed' -and $header.SuggestedHeight -eq '30
 Check ($vm.Contains('Drafted Terms ({USED} / {BUDGET} WS; +{EXCESS})') -and
     $vm.Contains('.SetTextVariable("EXCESS", proposal?.BudgetOverrun ?? 0)')) 'Compact header shows the shared accounting overrun.'
 Check ($vm.Contains('BudgetColor = isOverBudget ? BuildOutcomeColor(false)')) 'Over-budget header uses the rejection red.'
-Check ($vm.Contains('IsSignDisabled = isOverBudget || !hasValidPlayerResponse;') -and
-    $vm -match 'SignTreatyHint = new HintViewModel\(isOverBudget\s+\? new TextObject\("\{=BC_Parley_FailureWarScoreExceeded\}') 'Budget blocking takes precedence over vote readiness and its hint.'
+Check ($vm.Contains('IsSignDisabled = !hasValidPlayerResponse || (isOverBudget && IsPlayerRuler);') -and
+    $vm.Contains('{=BC_Parley_VassalInvalidBudgetHint}')) 'Valid vassal responses retain an escape from invalid drafts while ruler signing remains budget-blocked.'
 $budgetMessages = [regex]::Matches($vm, '\{=BC_Parley_FailureWarScoreExceeded\}[^"\r\n]+')
 Check ($budgetMessages.Count -eq 2 -and $budgetMessages[0].Value -eq $budgetMessages[1].Value) 'Disabled-sign hint and backend failure report use identical localized text.'
-Check ($vm -match 'public void ExecuteSignTreaty\(\)\s*\{\s*if \(_proposal\?\.IsOverBudget == true\)\s*\{\s*Refresh\(_proposal\);\s*return;') 'Direct signing also blocks an over-budget proposal.'
+Check ($vm -match 'public void ExecuteSignTreaty\(\)\s*\{\s*if \(_proposal\?\.IsOverBudget == true && IsPlayerRuler\)\s*\{\s*Refresh\(_proposal\);\s*return;') 'Direct ruler signing stays blocked; a vassal reaches the backend cancellation path.'
 Check ($vm.Contains('bool playerForced = proposal.IsForced && !isOverBudget;') -and
     $vm.Contains('bool opponentForced = proposal.IsForced && !isOverBudget;') -and
     $vm.Contains('bool treatyWillPass = !isOverBudget && playerAccepts && opponentAccepts;')) 'Forced drafts cannot predict acceptance while over budget.'
-$status = $vm.Substring($vm.IndexOf('private static string BuildCouncilStatusText('))
-Check ($status.IndexOf('if (council.IsBudgetBlocked)') -lt $status.IndexOf('if (forced)')) 'Budget-blocked council status takes precedence over capitulation.'
-Check ($vm.Contains('rulerPosition == null || council.IsBudgetBlocked || council.IsSoleRulerDecision') -and
-    $vm.Contains('if (council == null || council.IsBudgetBlocked)')) 'Budget rejection does not invent ruler override reasons or commitments.'
+$summary = Get-Content -Raw -LiteralPath (Join-Path $root 'UI/Parley/TreatyCouncilSummaryVM.cs')
+Check ($summary.IndexOf('if (council.IsBudgetBlocked)') -lt $summary.IndexOf('if (forced)')) 'Budget-blocked council status takes precedence over capitulation.'
+$rulerReason = $summary.Substring($summary.IndexOf('private static string BuildRulerReason('))
+Check ($rulerReason -match 'if \(council.IsBudgetBlocked\)\s+return new TextObject\("\{=BC_Parley_BudgetBlocksDecision\}' -and
+    $rulerReason.IndexOf('if (council.IsBudgetBlocked)') -lt $rulerReason.IndexOf('if (forced)') -and
+    $rulerReason.IndexOf('if (council.IsBudgetBlocked)') -lt $rulerReason.IndexOf('if (usesOverride)') -and
+    $summary.Contains('bool actualOverride = council != null && !council.IsBudgetBlocked && !forced')) 'Budget rejection gives its actual reason without inventing an override or commitment.'
 Check ($vm.Contains('Math.Max(currentCost, GetMaximumWealthCost(existing, fromKingdom, toKingdom))') -and
     $vm.Contains('nextCost = Math.Max(0, currentCost + (increase ? step : -step));')) 'Ctrl+increase never reduces oversized wealth and ordinary increments remain uncapped.'
 Check ($vm.Contains('return Math.Max(0, _proposal.WarScoreBudget - usedWithoutThisTerm);') -and
@@ -42,7 +45,9 @@ function MethodBody($signature) {
 $sign = MethodBody 'bool TrySignPlayerParley('
 Check ($sign.IndexOf('HasSettlementBudget(proposal, out report)') -ge 0 -and
     $sign.IndexOf('HasSettlementBudget(proposal, out report)') -lt $sign.IndexOf('SpendCouncil')) 'Player signing checks budget before council influence is spent.'
-Check ($sign -match 'if \(!HasSettlementBudget\(proposal, out report\)\)\s+return false;') 'Budget failure leaves the player draft open for correction.'
+Check ($sign.Contains('bool submittedOverBudget = proposal.IsOverBudget;') -and
+    $sign -match 'if \(!HasSettlementBudget\(proposal, out report\) \|\| \(submittedOverBudget && !playerIsRuler\)\)\s*\{\s*if \(playerIsRuler\) return false;\s*CancelInvalidProposal\(war, proposal, report\);\s*return true;') 'Budget failure preserves a ruler draft but closes a vassal parley without political refusal, even if prices change during submission.'
+Check (([regex]::Matches($sign, 'rebuildNpcDraft: false')).Count -eq 2) 'Signing never silently replaces a package after the player has reviewed it.'
 $automatic = MethodBody 'void ResolvePendingParley('
 Check ($automatic.IndexOf('HasSettlementBudget(proposal, out string budgetReport)') -ge 0 -and
     $automatic.IndexOf('HasSettlementBudget(proposal, out string budgetReport)') -lt $automatic.IndexOf('SpendCouncil')) 'Automatic settlement checks budget before council spending.'

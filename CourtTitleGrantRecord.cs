@@ -34,6 +34,9 @@ namespace BellumCivile
         [SaveableField(25)] public bool Refunded;
         [SaveableField(26)] public double RecoveryUntil;
         [SaveableField(27)] public float ApprovalGranted;
+        [SaveableField(28)] public bool RecipientAccepted;
+        [SaveableField(29)] public bool RecipientRefused;
+        [SaveableField(30)] public bool RefusalRelationApplied;
     }
     internal static class CourtTitleGrantRules
     {

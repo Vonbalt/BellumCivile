@@ -76,8 +76,11 @@ namespace BellumCivile.Behaviors
                 Clan victor = record.OutcomeVictor;
                 if (record.RestoredRealmRequested && record.Realm != realm)
                 {
-                    if (record.Realm.IsEliminated) TransferLiveClansFromEliminatedKingdom(record.Realm, realm, victor);
-                    else DrainAndDestroyRebelKingdom(record.Realm, realm);
+                    if (record.Realm.IsEliminated)
+                    {
+                        if (!TransferLiveClansFromEliminatedKingdom(record.Realm, realm, victor)) return;
+                    }
+                    else if (!DrainAndDestroyRebelKingdom(record.Realm, realm)) return;
                 }
                 if (record.WarOutcome == SuccessionChallengeOutcome.Victory && !record.HasWarCrownReceipt)
                 {

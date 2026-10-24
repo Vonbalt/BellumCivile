@@ -22,6 +22,7 @@ namespace BellumCivile
         [SaveableField(16)] private int _hostageTier;
         [SaveableField(17)] private string _hostageReceivingClanId;
         [SaveableField(18)] private bool _hostageDurationPriced;
+        [SaveableField(19)] private int _hostageDurationBaselineDays;
 
         public TreatyTermType Type => _type;
         public int WarScoreCost => _warScoreCost;
@@ -41,6 +42,21 @@ namespace BellumCivile
         public int HostageTier => _hostageTier;
         public string HostageReceivingClanId => _hostageReceivingClanId;
         public bool HostageDurationPriced => _hostageDurationPriced;
+        public int HostageDurationBaselineDays => _hostageDurationBaselineDays;
+
+        // Keep the original public constructor intact for compiled integration consumers.
+        internal TreatyTermRecord(TreatyTermType type, int warScoreCost, int hostageDurationBaselineDays,
+            string settlementId = "", int goldAmount = 0, int dailyGold = 0, int durationDays = 0,
+            string fromKingdomId = "", string toKingdomId = "", bool wasOccupiedAtDrafting = false,
+            string heroId = "", string clanId = "", string titleId = "", string secondaryHeroId = "",
+            string thirdKingdomId = "", bool wasVoluntaryOffering = false, int hostageTier = 0,
+            string hostageReceivingClanId = "", bool hostageDurationPriced = false)
+            : this(type, warScoreCost, settlementId, goldAmount, dailyGold, durationDays, fromKingdomId,
+                toKingdomId, wasOccupiedAtDrafting, heroId, clanId, titleId, secondaryHeroId, thirdKingdomId,
+                wasVoluntaryOffering, hostageTier, hostageReceivingClanId, hostageDurationPriced)
+        {
+            _hostageDurationBaselineDays = hostageDurationBaselineDays;
+        }
 
         public TreatyTermRecord(
             TreatyTermType type,

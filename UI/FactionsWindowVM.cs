@@ -204,6 +204,8 @@ namespace BellumCivile.UI
 
                 bool isEnabled = true;
                 string disabledReason = "";
+                var grace = !isIdeology ? factionManager?.CivilWarGraceBlock(politicalKingdom) : null;
+                if (grace != null) { isEnabled = false; disabledReason = grace.ToString(); }
 
                 if (isMercenary)
                 {
@@ -310,11 +312,10 @@ namespace BellumCivile.UI
             if (preview == null)
                 return string.Empty;
 
-            TextObject description = new TextObject("{=BC_UI_Hint_StartClaimFeud}Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.\n\nCurrent holder: {HOLDER_CLAN}\nFeud pressure score: {SCORE}\n\nStarting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler.");
+            TextObject description = new TextObject("{=BC_UI_Hint_StartClaimFeud}Press your {CLAIM_STRENGTH} claim to the {TITLE_NAME}.\n\nCurrent holder: {HOLDER_CLAN}\n\nStarting this feud will begin a private dispute between your house and the title holder. If tensions escalate, the matter may be brought before the ruler.");
             description.SetTextVariable("CLAIM_STRENGTH", GetClaimStrengthText(preview.Strength));
             description.SetTextVariable("TITLE_NAME", preview.TitleName);
             description.SetTextVariable("HOLDER_CLAN", preview.HolderName);
-            description.SetTextVariable("SCORE", preview.Score.ToString("0"));
 
             if (string.IsNullOrWhiteSpace(disabledReason))
                 return description.ToString();
@@ -615,6 +616,12 @@ namespace BellumCivile.UI
                 }
             }
 
+            if (selectedBackendFaction?.Members.Contains(Clan.PlayerClan) != true
+                && factionManager?.CivilWarGraceJoinBlock(selectedBackendFaction) is TextObject joinGrace)
+            {
+                IsJoinLeaveEnabled = false;
+                JoinLeaveHint = new HintViewModel(joinGrace);
+            }
             FactionObject playerRebelFaction = factionManager?.GetRebelFaction(Clan.PlayerClan);
 
             ClaimFeudRecord selectedClaimFeud = GetSelectedClaimFeudRecord();
@@ -684,7 +691,11 @@ namespace BellumCivile.UI
                 else if (AvailableFactionTypes.Count == 0 || AvailableFactionTypes.All(f => !f.IsEnabled))
                 {
                     IsCreateDestroyEnabled = false;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Err_NoValidFactions}There are no valid factions for you to found right now."));
+                    var grace = !isRuler && AvailableFactionTypes.Any(f =>
+                        f.ActionKind == PoliticalActionKind.FoundFaction && !IsIdeologyType(f.FactionType))
+                        ? factionManager?.CivilWarGraceBlock(GetPlayerPoliticalKingdom(factionManager)) : null;
+                    CreateDestroyHint = new HintViewModel(grace
+                        ?? new TextObject("{=BC_UI_Err_NoValidFactions}There are no valid factions for you to found right now."));
                     IsFoundCostVisible = false;
                 }
                 else if (!AvailableFactionTypes.Any(CanAffordAction))
@@ -915,7 +926,14 @@ namespace BellumCivile.UI
                     FactionLikesList.Clear();
                     FactionDislikesList.Clear();
 
-                    if (selectedBackendFaction.Leader != Clan.PlayerClan)
+                    var grace = factionManager?.IsCivilWarGraceBlocked(selectedBackendFaction) == true
+                        ? factionManager.CivilWarGraceBlock(selectedBackendFaction.ParentKingdom) : null;
+                    if (grace != null)
+                    {
+                        IsUltimatumEnabled = false;
+                        UltimatumHint = new HintViewModel(grace);
+                    }
+                    else if (selectedBackendFaction.Leader != Clan.PlayerClan)
                     {
                         IsUltimatumEnabled = false;
                         UltimatumHint = new HintViewModel(new TextObject("{=BC_UI_Err_UltimatumLeader}Only the faction leader can issue an ultimatum."));
@@ -1102,6 +1120,13 @@ namespace BellumCivile.UI
             FactionObject selectedBackendFaction = SelectedFaction?.BackendFactionModel as FactionObject;
             if (selectedBackendFaction == null) return;
             bool isPlayerInSelectedFaction = selectedBackendFaction.Members.Contains(Clan.PlayerClan);
+            var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
+            if (!isPlayerInSelectedFaction && manager?.CivilWarGraceJoinBlock(selectedBackendFaction) is TextObject joinGrace)
+            {
+                BellumCivileNotifications.ShowPersonal(joinGrace, BellumNotificationColors.Warning);
+                RefreshButtonStates();
+                return;
+            }
             if (!isPlayerInSelectedFaction && selectedBackendFaction.IsIdeology
                 && !CourtMembershipEligibility.CanBelong(Clan.PlayerClan, selectedBackendFaction.ParentKingdom))
             {
@@ -1327,6 +1352,14 @@ namespace BellumCivile.UI
 
                 var factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
                 bool isIdeology = IsIdeologyType(SelectedFactionType.FactionType);
+                var grace = !isIdeology ? factionManager?.CivilWarGraceBlock(Clan.PlayerClan.Kingdom) : null;
+                if (grace != null)
+                {
+                    BellumCivileNotifications.ShowPersonal(grace, BellumNotificationColors.Warning);
+                    RefreshAvailableFactionTypes();
+                    RefreshButtonStates();
+                    return;
+                }
 
                 if (isIdeology)
                 {
@@ -1656,6 +1689,13 @@ namespace BellumCivile.UI
         public void ExecuteUltimatum()
         {
             FactionObject selectedBackendFaction = SelectedFaction?.BackendFactionModel as FactionObject;
+            var manager = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
+            if (manager?.IsCivilWarGraceBlocked(selectedBackendFaction) == true)
+            {
+                BellumCivileNotifications.ShowPersonal(manager.CivilWarGraceBlock(selectedBackendFaction.ParentKingdom), BellumNotificationColors.Warning);
+                RefreshButtonStates();
+                return;
+            }
 
             if (selectedBackendFaction != null
                 && !selectedBackendFaction.IsIdeology
