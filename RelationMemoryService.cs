@@ -67,6 +67,7 @@ namespace BellumCivile
         public const string SatisfiedSuccessionDemand = "satisfied_succession_demand";
         public const string RecentFavor = "recent_favor";
         public const string CourtTitleGrant = "court_title_grant";
+        public const string RefusedCourtTitleGrant = "refused_court_title_grant";
         public const string ClientLandGrant = "client_land_grant";
         public const string DeliveredNoblePrisoners = "delivered_noble_prisoners";
         public const string RecentGrievance = "recent_grievance";
@@ -233,6 +234,9 @@ namespace BellumCivile
                     break;
                 case RecentGrievance:
                     text = new TextObject("{=BC_RelationMemory_RecentGrievance}Recent grievance");
+                    break;
+                case RefusedCourtTitleGrant:
+                    text = new TextObject("{=BC_TitleGrantOfferRefusalMemory}Refused my title grant");
                     break;
                 case KilledKinsman:
                     text = new TextObject("{=BC_RelationMemory_KilledKinsman}Killed my kinsman");

@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--crown-rebellion-safety"))
+            if (args.Contains("--court-title-grants"))
+            {
+                CourtTitleGrantEngineTests.Run(Check);
+                Console.WriteLine($"{_checks} court title grant checks passed.");
+            }
+            else if (args.Contains("--crown-rebellion-safety"))
             {
                 CrownRebellionSafetyTests.Run(Check);
                 Console.WriteLine($"{_checks} crown rebellion safety checks passed.");

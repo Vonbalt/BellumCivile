@@ -4774,6 +4774,17 @@
     <string id="BC_TitleGrantLegalRights" text="Legal rights only" />
     <string id="BC_TitleGrantMemory" text="Granted me a title" />
     <string id="BC_TitleGrantNoInfluence" text="You need 100 influence to grant this title." />
+    <string id="BC_TitleGrantOfferTitle" text="A Royal Honor" />
+    <string id="BC_TitleGrantOfferBody" text="An envoy from {RULER} brings word that the Crown wishes to bestow {TITLE} upon your household, honoring your house's claim.&#xA;&#xA;{RIGHTS}&#xA;Your household will remain a vassal of {REALM}. This grant does not include its subordinate towns or castles.&#xA;&#xA;Refusing this honor will offend {RULER}. (Relations: {PENALTY})" />
+    <string id="BC_TitleGrantOfferBothRights" text="The grant conveys both lawful title and practical authority." />
+    <string id="BC_TitleGrantOfferLegalRights" text="The grant conveys lawful title only; practical authority remains unchanged." />
+    <string id="BC_TitleGrantOfferPracticalRights" text="The grant conveys practical authority only; lawful ownership remains unchanged." />
+    <string id="BC_TitleGrantOfferAccept" text="Accept the honor" />
+    <string id="BC_TitleGrantOfferRefuse" text="Refuse" />
+    <string id="BC_TitleGrantOfferUnavailable" text="The Crown's offer is no longer available. No response has been delivered." />
+    <string id="BC_TitleGrantOfferDeclined" text="You have declined {RULER}'s offer of {TITLE}. The grant has been withdrawn." />
+    <string id="BC_TitleGrantOfferRefusalMemory" text="Refused my title grant" />
+    <string id="BC_TitleGrantOfferPending" text="The Crown has offered {TITLE} to your household and awaits your answer before {DATE}. No rights or influence change hands until you accept." />
     <string id="BC_TitleGrantPetitionBegun" text="The nobility of {REALM} petitions the Crown to bestow {TITLE} upon {RECIPIENT}, citing the house's lawful claim. They ask that their appeal be honored before {DATE}." />
     <string id="BC_TitleGrantPetitionLabel" text="Petition for {TITLE} for {RECIPIENT}" />
     <string id="BC_TitleGrantPracticalRights" text="Practical rights only" />

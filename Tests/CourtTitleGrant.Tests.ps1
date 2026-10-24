@@ -5,6 +5,7 @@ function Check($v,$message) { if (!$v) {throw $message}; "PASS: $message" }
 $behavior=Read 'Behaviors/CourtTitleGrantAgendas.cs'
 $source=Read 'CourtTitleGrantObjectiveSource.cs'
 $flow=Read 'Behaviors/CourtTitleGrantPlayerFlow.cs'
+$recipientFlow=Read 'Behaviors/CourtTitleGrantRecipientFlow.cs'
 $picker=Read 'Behaviors/CourtPlayerMotionPicker.cs'
 $backend=Read 'Behaviors/FeudalTitleBehavior.cs'
 $agenda=Read 'Behaviors/CourtAgendaBehavior.cs'
@@ -25,10 +26,14 @@ Check ($flow.Contains('new InquiryElement("grant"') -and $flow.Contains('new Inq
 Check ($flow.Contains('!PlayerTitlePetition(a)') -and $flow.Contains('!GrantUnchanged(p)') -and $flow.Contains('selected.Count != 1')) 'Player callback revalidates authority, rights and selection.'
 Check ($picker.Contains('agenda.TitleGrant = prepared.TitleGrant') -and $picker.Contains('CourtTitleGrantRules.Petition) && identity.HasTermSnapshot')) 'Substitution copies the title plan and early term schedule.'
 Check ($agenda.Contains('BC_CourtTitleDeliveries') -and (Read 'BellumCivileSaveDefiner.cs').Contains('AddClassDefinition(typeof(CourtTitleGrantRecord), 102)')) 'Delivery journal is saved under appended identifiers.'
+Check ($behavior.IndexOf('if (TitleOfferNeedsConsent(p)) return;') -lt $behavior.IndexOf('p.PaymentAttempted = true')) 'Recipient consent is checked before the first payment.'
+Check ((Read 'Behaviors/CourtAgendaPlayerFlow.cs').Contains('if (ProcessTitleGrantOfferInquiry()) return;')) 'Recipient offers use the existing safe map-screen inquiry pump.'
+Check ($recipientFlow.Contains('!p.PaymentAttempted && !p.TransferAttempted && !p.TransferComplete') -and $recipientFlow.Contains('SameTitleOffer')) 'Paid recovery is not interrupted and consent is bound to the exact authorization.'
+Check ($recipientFlow.Contains('CourtObjectiveState.Cancelled, "recipient_refused"') -and $recipientFlow.Contains('TitleOfferRefusalYears = 2')) 'Recipient refusal cancels rather than expires petitions and records a two-year grievance.'
 [xml]$ui=Read 'GUI/Prefabs/KingdomManagement/Factions/BellumFactionsPanel.xml'
 Check ($null -ne $ui.SelectSingleNode('//*[@Command.Click="ExecuteReviewTitlePetition"]')) 'Faction panel exposes deferred petition review.'
 [xml]$xml=Read 'ModuleData/Languages/EN/strings.xml'
-$texts=$behavior+$flow+$picker+(Read 'CourtAgendaPresentation.cs')+(Read 'UI/FactionItemVM.cs')+(Read 'RelationMemoryService.cs')
+$texts=$behavior+$flow+$recipientFlow+$picker+(Read 'CourtAgendaPresentation.cs')+(Read 'UI/FactionItemVM.cs')+(Read 'RelationMemoryService.cs')
 $ids=[regex]::Matches($texts,'\{=(BC_TitleGrant[^}]+)\}') | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Unique
 foreach ($id in $ids) {
     $nodes=@($xml.SelectNodes("//string[@id='$id']"))

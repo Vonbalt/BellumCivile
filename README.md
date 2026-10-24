@@ -130,6 +130,8 @@ Player faction leaders receive **Approve / Block / Substitute** choices. Taking 
 
 The agenda saves dates, targets, deadlines, outcomes, and execution receipts. Success, failure, invalidation, and player neglect are distinct results. An objective can encourage war, marriage, trade, or peace without guaranteeing acceptance by the relevant parties.
 
+An authorized higher-title court grant to the player opens **A Royal Honor**, offering **Accept the honor / Refuse** before the Crown spends influence or transfers rights. Acceptance uses the ordinary grant rewards; refusal withdraws matching motions without charging the Crown or penalizing a nobility petition, and adds a **-10 personal grievance for two in-game years** under the normal relation-memory rules. The offer describes legal and/or practical rights, never transfers subordinate settlements, and does not change settlement votes or direct hierarchy grants. Recipient responses are saved; already-paid grants from older saves retain their recovery path. Focused engine checks: `--court-title-grants`.
+
 | Motion family | Main owners and purpose |
 | --- | --- |
 | Laws and council | Eligible blocs propose policies or appointments; Nobility seeks longer elective terms and Liberty shorter ones |
@@ -1004,6 +1006,7 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --royal-peace
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --realm-leadership-diagnostic
 dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --crown-rebellion-safety
+dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.csproj --no-build -- "$game" --court-title-grants
 ```
 
 Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Record results with the revision/environment rather than maintaining a stale passed-check count here.

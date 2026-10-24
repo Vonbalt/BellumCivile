@@ -85,6 +85,7 @@ namespace BellumCivile.Behaviors
             _activePlayerInquiry = null;
             if (ProcessProtectionInquiry()) return;
             if (ProcessTitlePetitionInquiry()) return;
+            if (ProcessTitleGrantOfferInquiry()) return;
             var agenda = _agendas.Where(ValidPlayerAgenda)
                 .Where(a => a.Faction != null)
                 .Where(a => a.CrisisInterventionPending || a.State == CourtAgendaState.AwaitingPlayerDecision
