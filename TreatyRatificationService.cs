@@ -191,9 +191,9 @@ namespace BellumCivile
                 // Both courts lose freedom of action, regardless of how many hostages secure the pact.
                 if (negotiatedPact != null)
                 {
-                    Add(reasons, ref utility, -HostagePactRules.GetDurationPenalty(negotiatedPact.DurationDays),
+                    Add(reasons, ref utility, -HostagePactRules.GetDurationPenalty(negotiatedPact.DurationDays, negotiatedPact.HostageDurationBaselineDays),
                         "Lengthy peace commitment");
-                    Add(reasons, ref utility, HostagePactRules.GetRecoveryUtility(negotiatedPact.DurationDays, effectiveWill),
+                    Add(reasons, ref utility, HostagePactRules.GetRecoveryUtility(negotiatedPact.DurationDays, effectiveWill, negotiatedPact.HostageDurationBaselineDays),
                         "Time to recover");
                 }
 

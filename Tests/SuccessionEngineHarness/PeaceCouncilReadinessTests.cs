@@ -94,8 +94,8 @@ internal static class PeaceCouncilReadinessTests
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.FeudalTitleStylePresetCatalog", true), "CreateDropdown"), nameof(Skip));
             object settings = Activator.CreateInstance(settingsType, true);
             settingsCache.SetValue(null, settings);
-            check((int)period.GetValue(settings) == 100 && (int)option.GetValue(null) == 100,
-                "New reluctance setting and option default to one hundred days");
+            check((int)period.GetValue(settings) == 50 && (int)option.GetValue(null) == 50,
+                "New reluctance setting and option default to fifty strength/days");
             check(AccessTools.Property(settingsType, "MinimumWarDurationDays") == null
                 && AccessTools.Property(optionsType, "MinimumWarDurationDays") == null,
                 "Old thirty-day serialized property is not an alias for the new setting");
@@ -246,6 +246,20 @@ internal static class PeaceCouncilReadinessTests
                         check(!forcedPact || member.Utility >= 200,
                             "Duration assessment preserves deliberate forced-capitulation behavior");
                     }
+                }
+                var savedBaselineProposal = new TreatyProposalRecord(war.WarKey, kingdom.StringId, loser.StringId,
+                    kingdom.StringId, _day, 100, false);
+                var rebasedPact = new TreatyTermRecord(TreatyTermType.HostagePeace, 35, durationDays: 150,
+                    fromKingdomId: loser.StringId, toKingdomId: kingdom.StringId, hostageTier: 1, hostageDurationPriced: true);
+                AccessTools.Field(typeof(TreatyTermRecord), "_hostageDurationBaselineDays").SetValue(rebasedPact, 100);
+                savedBaselineProposal.ReplaceTerms(new[] { rebasedPact, Demand(65) });
+                AccessTools.Property(settingsType, "HostagePactMinimumDurationDays").SetValue(settings, 500);
+                foreach (bool winnerSide in new[] { false, true })
+                {
+                    var member = BudgetCouncil(savedBaselineProposal, winnerSide).Members.Single();
+                    check(Near(Amount(member, "Lengthy peace commitment"), -10)
+                        && Near(Amount(member, "Time to recover"), 15),
+                        "Actual council evaluates the saved hostage baseline, not a later MCM setting; winner=" + winnerSide);
                 }
                 check(!HasBudget(null, out _), "Settlement budget guard rejects a missing proposal");
 

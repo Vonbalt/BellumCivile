@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using BellumCivile;
 using BellumCivile.Behaviors;
+using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
@@ -47,6 +48,8 @@ internal static class CivilWarGraceTests
     private static InquiryData _confirmation;
     private static int _memories, _notices;
     private static bool _warActive;
+    private static Clan _ruler;
+    private static bool _mercenary;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool Campaign(ref Campaign __result) { __result = _campaign; return false; }
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days((float)_day); return false; }
@@ -57,6 +60,8 @@ internal static class CivilWarGraceTests
     private static bool Skip() => false;
     private static bool NoUnsafe(ref bool __result) { __result = false; return false; }
     private static bool Player(ref Clan __result) { __result = _clan; return false; }
+    private static bool Ruler(ref Clan __result) { __result = _ruler; return false; }
+    private static bool Mercenary(ref bool __result) { __result = _mercenary; return false; }
     private static bool All(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(Realms); return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool Two(ref int __result) { __result = 2; return false; }
@@ -288,6 +293,61 @@ internal static class CivilWarGraceTests
                 "Accelerated campaigns receive their actual 24-day year, not a hardcoded 84-day delay");
             calendar[0].SetValue(null, 7); calendar[1].SetValue(null, 3);
 
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Ruler));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "IsUnderMercenaryService"), nameof(Mercenary));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "Influence"), nameof(Influence));
+            foreach (bool startup in new[] { true, false })
+            {
+                Setup(); _ruler = Blank<Clan>(); _mercenary = false;
+                if (startup)
+                {
+                    Call(behavior, "ArmInitialCivilWarGrace", new object[] { null });
+                    Call(behavior, "ApplyInitialCivilWarGrace", new object[] { null });
+                }
+                else { Queue(Faction(_parent, fought: true), shell); Gone.Add(shell); Maintain(); }
+                var window = Blank<FactionsWindowVM>();
+                window.AvailableFactionTypes = new MBBindingList<PoliticalActionVM>();
+                window.AgendaListLeft = new MBBindingList<AgendaItemVM>();
+                window.AgendaListRight = new MBBindingList<AgendaItemVM>();
+                window.FactionLikesList = new MBBindingList<AgendaItemVM>();
+                window.FactionDislikesList = new MBBindingList<AgendaItemVM>();
+                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Abdication, "Abdication", null, false, "", 100));
+                string FoundHint()
+                {
+                    Call(window, "RefreshButtonStates");
+                    object tooltip = AccessTools.Property(window.GetType(), "CreateDestroyHint").GetValue(window);
+                    return ((TextObject)AccessTools.Field(tooltip.GetType(), "HintText").GetValue(tooltip)).ToString();
+                }
+                string pacified = Call(behavior, "CivilWarGraceBlock", _parent).ToString();
+                check(FoundHint() == pacified && !window.IsCreateDestroyEnabled && !window.IsFoundCostVisible,
+                    "Found displays the shared countdown when rebellion choices are disabled by " + (startup ? "startup" : "postwar") + " grace");
+                _day += 1;
+                check(FoundHint() == Call(behavior, "CivilWarGraceBlock", _parent).ToString() && FoundHint() != pacified,
+                    "Found refreshes the remaining pacification days rather than keeping a stale reason");
+                window.AvailableFactionTypes.Add(PoliticalActionVM.ForClaimFeud(new ClaimFeudActionPreview { IsEnabled = true }, null, "Private feud", ""));
+                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
+                    "An available private feud keeps Found enabled during pacification");
+                window.AvailableFactionTypes.RemoveAt(1);
+                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Nobility, "Nobility", null, true, "", 100));
+                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
+                    "An available court faction keeps Found enabled during pacification");
+                window.AvailableFactionTypes.RemoveAt(1);
+                _mercenary = true;
+                check(FoundHint().Contains("Mercenaries cannot found"), "Mercenary restrictions retain their own Found explanation");
+                _mercenary = false; _ruler = _clan;
+                check(FoundHint().Contains("There are no valid factions"), "A ruler is not misleadingly told that waiting out grace permits rebellion against themselves");
+                _ruler = Blank<Clan>(); window.AvailableFactionTypes.Clear();
+                window.AvailableFactionTypes.Add(PoliticalActionVM.ForClaimFeud(new ClaimFeudActionPreview { IsEnabled = false }, null, "Private feud", ""));
+                check(FoundHint().Contains("There are no valid factions"), "Disabled private feuds alone are not misattributed to crown pacification");
+                window.AvailableFactionTypes.Clear();
+                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Abdication, "Abdication", null, false, "", 100));
+                _day += 2 * year;
+                check(FoundHint().Contains("There are no valid factions"), "Expired grace cannot leave a stale pacification message on Found");
+                window.AvailableFactionTypes[0].IsEnabled = true;
+                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
+                    "Found becomes available once grace expires and a rebellion choice is eligible again");
+            }
+
             Setup(); war = Faction(_parent, fought: true); Queue(war, shell); Gone.Add(shell); Maintain();
             court = new CourtAgendaBehavior(); manager.Items.Add(court); bloc = Faction(_parent, FactionType.Nobility); bloc.Mood = -100;
             check(!(bool)Call(court, "ShouldStartCourtCrisis", bloc, _parent), "Player-led low mood cannot turn an ordinary agenda into a new crisis during grace");
@@ -302,7 +362,6 @@ internal static class CivilWarGraceTests
             check(Call(behavior, "CivilWarGraceJoinBlock", bloc) == null && Call(behavior, "CivilWarGraceJoinBlock", resistance) == null,
                 "Court affiliation and resistance to judgment retain their join exceptions");
 
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "Influence"), nameof(Influence));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Name"), nameof(Name));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "CanChooseTermBusiness"), nameof(Yes));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "Eligible"), nameof(Yes));

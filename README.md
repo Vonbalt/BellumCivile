@@ -522,14 +522,14 @@ Prisoner leverage reflects **current qualifying custody**. Release, escape, resc
 
 ### Peace Readiness
 
-There is **no fixed minimum war duration**. The configurable **War Duration Reluctance Period** defaults to 100 days. [PeaceReadiness.cs](PeaceReadiness.cs) centralizes willingness; [BellumCivileConstants.cs](BellumCivileConstants.cs) supplies thresholds.
+There is **no fixed minimum war duration**. **Early-War Reluctance (Strength and Days)** defaults to 50: an initial -50 utility penalty fading by one point per day until day 50. The same MCM value controls strength and duration; saved MCM values are retained. [PeaceReadiness.cs](PeaceReadiness.cs) centralizes willingness; [BellumCivileConstants.cs](BellumCivileConstants.cs) supplies thresholds.
 
 With elapsed days `d`, enthusiasm `e` clamped to 0-100, absolute score `s`, reluctance period `P >= 1`, and `clamp01(x)` limiting a value to 0-1:
 
 ```text
 r = clamp01(e / 10)
 Exhaustion           = (20 - e) * 0.5 + 35 * (1 - r)
-Early-war reluctance = -max(0, P - d) * (100 / P) * r
+Early-war reluctance = -max(0, P - d) * r
 Inconclusive war     = -30 * clamp01((50 - s) / 50) * r * clamp01((90 - d) / 60)
 Prolonged exhaustion = +30 when d >= P and e < 10, otherwise 0
 Readiness            = sum of these four components
@@ -584,13 +584,13 @@ Unexchanged foreign nobles can remain captive after peace under retained-prisone
 
 ### Hostage-Backed Pacts
 
-Treaties can demand or offer a blood relative of the supplying ruler for **50 days by default**. Children are eligible. Succession standing supplies four base prices: first heir 30 WS, second heir 24, third heir 18, and later heirs or other eligible relatives 12. The price is `base + (days - 50) / 10`; voluntary pledges use shared half-value offering credit.
+Treaties can demand or offer a blood relative of the supplying ruler for **50 days by default**. The **Minimum Hostage Pact Duration (Days)** MCM setting supplies both the minimum and starting term for new negotiations, bounded to 10-1,000 days and rounded up to ten-day steps. Children are eligible. Succession standing supplies four base prices: first heir 30 WS, second heir 24, third heir 18, and later heirs or other eligible relatives 12. New clauses save this baseline `B`; their price is `base + (days - B) / 10`. Voluntary pledges use shared half-value offering credit.
 
-Duration is negotiated in the parley's Politics tab, from 30 to 1,000 days in ten-day steps. A single control updates both reciprocal pledges and their costs. The duration MCM slider is removed. Duration and pricing are saved before handover and retained through delivery recovery. Existing pacts keep their saved expiry; records without a duration snapshot retain their original 100-day agreement. Pending legacy clauses retain tier-only pricing and arbitrary previously configured durations until explicitly repriced by the duration control. Legacy zero-day pacts still resolve on the next daily tick. New pricing is identified by appended save fields, with absent fields selecting legacy validation.
+Duration is negotiated in the parley's Politics tab, from the clause's saved minimum to 1,000 days in ten-day steps. A single control updates both reciprocal pledges and their costs. Duration, pricing and baseline are saved before handover and retained through delivery recovery, cloning and AI counteroffers; changing MCM affects only newly created pacts. Existing pacts keep their saved expiry; records without a duration snapshot retain their original 100-day agreement. Pre-baseline negotiated clauses retain their 30-day minimum and 50-day pricing anchor. Older tier-only clauses retain arbitrary previously configured durations until explicitly repriced by the duration control using that historical schedule. Legacy zero-day pacts still resolve on the next daily tick. Appended save fields preserve legacy validation without renumbering existing data. The original public treaty-term constructor remains available for compiled integrations.
 
-Both councils assess the duration once per pact, not per hostage: no penalty through 50 days, then -2 utility per ten days through 100, -4 through 200, and -6 thereafter. Exhaustion below 10 can add up to +15 recovery utility, increasing between 50 and 100 days and never growing beyond 100. Existing hostage-family reluctance remains separate and unchanged. Legacy pending clauses do not acquire these new duration modifiers until repriced.
+Both councils assess the duration once per pact, not per hostage: no penalty at the recorded baseline, then -2 utility per ten extra days for the first 50 extra days, -4 for the next 100, and -6 thereafter. Exhaustion below 10 can add up to +15 recovery utility over the first 50 extra days, with no further growth. For a 100-day baseline, a 150-day pact incurs -10 duration utility and can grant +15 recovery utility at zero enthusiasm. Existing hostage-family reluctance remains separate and unchanged. Legacy tier-only clauses do not acquire duration modifiers until repriced.
 
-NPC drafting normally prefers 50 days, or 100 with strength-weighted realm enthusiasm below 10. Complete exhaustion after at least 200 days of war permits a 150-day preference; after 400 days it permits 200. The shortlist always includes 50 and 30, and never exceeds five durations or 200 days, including capitulation. It is independent of surplus war score. Rejected initial drafts can be retried with shorter hostage terms without rebuilding dynasty candidates; those fallbacks do not recursively generate further alternatives. Player-authored longer pacts face the same council evaluation, while existing forced-capitulation rules still apply. Draft-selection logs include the chosen duration for campaign balance audits.
+NPC drafting normally prefers the saved baseline `B`, or `B + 50` with strength-weighted realm enthusiasm below 10. Complete exhaustion after at least 200 days of war permits `B + 100`; after 400 days it permits `B + 150`. The new-pact shortlist includes the baseline, never exceeds four durations, and is capped at 1,000 days, including capitulation. At a 100-day baseline, these preferences are 100/150/200/250 days. It is independent of surplus war score. Rejected initial drafts can be retried with shorter terms from the same saved baseline without rebuilding dynasty candidates; fallbacks do not recursively generate further alternatives. Player-authored longer pacts face the same council evaluation, while existing forced-capitulation rules still apply. Draft-selection logs include the chosen duration for campaign balance audits.
 
 Hostages remain in their own house but enter protected custody in an eligible captor stronghold. Ordinary escape, ransom, and manual release are blocked. Encyclopedia/clan descriptions identify treaty custody; the broker explains why ordinary ransom is unavailable.
 
@@ -711,7 +711,7 @@ MCM hints compare Bellum and unmodded defaults where there is a meaningful count
 | Group | Important defaults |
 | --- | --- |
 | Presentation | Anglicized titles; Sovereign Title name display; both widgets on |
-| War/peace | Revamp on; reluctance 100 days (1-500); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
+| War/peace | Revamp on; reluctance 50 strength/days (1-500); new hostage baseline 50 days (10-1,000, rounded up to tens); renewed-war peace interval 20 days (0-500), with client-liberation exemption |
 | Treaty wealth/captivity | 5,000 gold or 250 daily tribute per point; dungeon/mobile escape 1%/3% |
 | Court | One-year terms (0.25-4); five-day deliberation; rebellion threshold 100; automatic treason indictments on |
 | Titles/armies | Three-year fabrication; minimum two children for formation; restricted summons on; friend exception +60 relation |

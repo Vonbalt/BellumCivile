@@ -28,7 +28,7 @@ namespace BellumCivile.Behaviors
                     var term = terms.FirstOrDefault(t => t.FromKingdomId == from.StringId);
                     if (term == null) return null;
                     var record = Prepare(TreatyHostageEligibility.GetCandidates(from)
-                        .First(c => c.Hero.StringId == term.HeroId), from.RulingClan, to.RulingClan);
+                        .First(c => c.Hero.StringId == term.HeroId), from.RulingClan, to.RulingClan, term.HostageDurationBaselineDays);
                     var war = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(first, second);
                     var holding = TreatyHostageTerms.SettlementHolding(to.RulingClan, war, proposal.Terms);
                     if (record == null || holding == null) return null;

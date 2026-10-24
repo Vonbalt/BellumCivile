@@ -39,9 +39,20 @@ internal static class PeaceReadinessTests
         check(!White(10.01f, 0, 0, 100) && !White(-10.01f, 0, 0, 100), "White peace excludes leverage above ten");
         check(!White(0, 0, 10.01f, 100) && !White(0, 10.01f, 0, 100), "Both sides must meet white-peace exhaustion limits");
         check(!White(0, 10, 10, 100), "White-peace eligibility limits do not guarantee willingness");
-        check(Near(Part(Assessment(25, 50, 50, 50), "EarlyWarReluctance"), -50), "Configured period scales decay rather than the initial penalty");
+        check(Near(Part(Assessment(25, 50, 50, 50), "EarlyWarReluctance"), -25), "Configured strength and duration remain in sync");
         check(Part(Assessment(50, 50, 5, 50), "ProlongedExhaustion") == 30 && Concede(20, 0, 50, 50),
             "Configured period aligns the bonus and prolonged concession fallback");
+
+        foreach (int configured in new[] { 1, 25, 50, 80, 100, 200, 500 })
+        {
+            check(Near(Part(Assessment(0, 50, 50, configured), "EarlyWarReluctance"), -configured),
+                "Reluctance starts at the configured strength: " + configured);
+            check(Near(Part(Assessment(configured / 2f, 50, 50, configured), "EarlyWarReluctance"), -configured / 2f)
+                && Near(Part(Assessment(configured, 50, 50, configured), "EarlyWarReluctance"), 0),
+                "Reluctance loses one point per day until its configured boundary: " + configured);
+            check(Near(Part(Assessment(0, 50, 5, configured), "EarlyWarReluctance"), -configured / 2f),
+                "Low enthusiasm still proportionally softens synchronized reluctance: " + configured);
+        }
 
         for (int day = 0; day <= 150; day += 5)
         for (int score = -100; score <= 100; score += 5)

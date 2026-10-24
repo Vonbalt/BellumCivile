@@ -352,6 +352,16 @@ internal static class Program
                 TreatyWinnerLeverageTests.Run(Check);
                 Console.WriteLine($"{_checks} treaty balance checks passed.");
             }
+            else if (args.Contains("--peace-readiness"))
+            {
+                PeaceReadinessTests.Run(Check);
+                Console.WriteLine($"{_checks} peace readiness checks passed.");
+            }
+            else if (args.Contains("--internal-peace"))
+            {
+                InternalPeaceTests.Run(Check);
+                Console.WriteLine($"{_checks} internal peace checks passed.");
+            }
             else if (args.Contains("--hostage-adulthood"))
             {
                 HostageAdulthoodGuardTests.Run(Check);

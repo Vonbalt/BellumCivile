@@ -780,5 +780,6 @@ Reworked Enforce Peace into a realm-wide decree for player and AI rulers, ending
 Fixed peace parley softlocks.
 Improved peace parley explanations to match nobles’ votes, clarify abstention reasons, and reflect rulers’ final decisions.
 Added dialogue and popup letters explaining when player-clan family members leave to establish their own household and inherit a throne.
-Fixed recruitment allowing player rulers to recruit equal- or higher-ranked nobles.
-Added a configurable realm-wide grace period after civil wars.
+Fixed dialogue option allowing player rulers to recruit equal or higher-ranked nobles.
+Added a configurable realm-wide pacification period after civil-wars with a starting 1 in-game year pacification for new saves.
+Small rebalance to peace treaty war length consideration and hostage pacts duration with added MCM settings.

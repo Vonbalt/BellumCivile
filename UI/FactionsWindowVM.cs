@@ -692,7 +692,11 @@ namespace BellumCivile.UI
                 else if (AvailableFactionTypes.Count == 0 || AvailableFactionTypes.All(f => !f.IsEnabled))
                 {
                     IsCreateDestroyEnabled = false;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Err_NoValidFactions}There are no valid factions for you to found right now."));
+                    var grace = !isRuler && AvailableFactionTypes.Any(f =>
+                        f.ActionKind == PoliticalActionKind.FoundFaction && !IsIdeologyType(f.FactionType))
+                        ? factionManager?.CivilWarGraceBlock(GetPlayerPoliticalKingdom(factionManager)) : null;
+                    CreateDestroyHint = new HintViewModel(grace
+                        ?? new TextObject("{=BC_UI_Err_NoValidFactions}There are no valid factions for you to found right now."));
                     IsFoundCostVisible = false;
                 }
                 else if (!AvailableFactionTypes.Any(CanAffordAction))

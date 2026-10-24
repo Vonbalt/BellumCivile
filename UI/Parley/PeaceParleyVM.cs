@@ -1170,6 +1170,7 @@ namespace BellumCivile.UI.Parley
                 .Select(term => new TreatyTermRecord(
                     term.Type,
                     term.WarScoreCost,
+                    term.HostageDurationBaselineDays,
                     term.SettlementId,
                     term.GoldAmount,
                     term.DailyGold,

@@ -10,7 +10,7 @@ namespace BellumCivile.Behaviors
         // Direct creation uses the standard term; parleys supply their own saved duration.
         internal bool TryEstablish(Kingdom first, Kingdom second, Hero firstHostage, Hero secondHostage)
         {
-            int durationDays = HostagePactRules.DefaultDurationDays;
+            int durationDays = BellumCivileOptions.HostagePactMinimumDurationDays;
             if (_maintaining || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first == null || second == null
                 || first == second || first.IsEliminated || second.IsEliminated || first.IsAtWarWith(second)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(first)
@@ -24,8 +24,8 @@ namespace BellumCivile.Behaviors
             var a = firstHostage == null ? null : TreatyHostageEligibility.GetCandidates(first).FirstOrDefault(c => c.Hero == firstHostage);
             var b = secondHostage == null ? null : TreatyHostageEligibility.GetCandidates(second).FirstOrDefault(c => c.Hero == secondHostage);
             if ((firstHostage != null && a == null) || (secondHostage != null && b == null)) return false;
-            var firstRecord = Prepare(a, first.RulingClan, second.RulingClan);
-            var secondRecord = Prepare(b, second.RulingClan, first.RulingClan);
+            var firstRecord = Prepare(a, first.RulingClan, second.RulingClan, durationDays);
+            var secondRecord = Prepare(b, second.RulingClan, first.RulingClan, durationDays);
             if ((a != null && firstRecord == null) || (b != null && secondRecord == null)) return false;
             var pact = new HostagePactRecord { Id = Guid.NewGuid().ToString("N"), FirstRealm = first, SecondRealm = second,
                 FirstHouse = first.RulingClan, SecondHouse = second.RulingClan,
@@ -50,15 +50,15 @@ namespace BellumCivile.Behaviors
             return false;
         }
 
-        private static TreatyHostageRecord Prepare(TreatyHostageCandidate candidate, Clan supplier, Clan receiver)
+        private static TreatyHostageRecord Prepare(TreatyHostageCandidate candidate, Clan supplier, Clan receiver, int baselineDays)
         {
             if (candidate == null) return null;
             var holding = SelectHolding(receiver);
             return holding == null ? null : new TreatyHostageRecord { Hero = candidate.Hero, SupplyingHouse = supplier,
                 ReceivingHouse = receiver, Holding = holding, PreviousHome = candidate.Hero.CurrentSettlement,
                 PreviousHeroState = (int)candidate.Hero.HeroState, Tier = candidate.Tier,
-                NegotiatedCost = HostagePactRules.GetNegotiatedCost(candidate.Tier, HostagePactRules.DefaultDurationDays),
-                DurationPriced = true };
+                NegotiatedCost = HostagePactRules.GetTreatyCost(candidate.Tier),
+                DurationPriced = true, DurationBaselineDays = baselineDays };
         }
 
         private static bool Place(TreatyHostageRecord record)

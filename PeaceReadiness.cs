@@ -30,7 +30,7 @@ namespace BellumCivile
             float period = Math.Max(1, reluctanceDays);
             float resolve = Unit(enthusiasm / C.WarPeaceRevampPeaceProposalThreshold);
             float exhaustion = (20f - enthusiasm) * .5f + 35f * (1f - resolve);
-            float early = -Math.Max(0f, period - days) * (100f / period) * resolve;
+            float early = -Math.Max(0f, period - days) * resolve;
             float inconclusive = -30f * Unit((50f - Math.Abs(score)) / 50f)
                 * resolve * Unit((90f - days) / 60f);
             float prolonged = days >= period && enthusiasm < C.WarPeaceRevampPeaceProposalThreshold ? 30f : 0f;

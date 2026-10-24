@@ -139,7 +139,7 @@ namespace BellumCivile
         public const float WarPeaceRevampWarProposalThreshold = 75f;
         public const float WarPeaceRevampPeaceProposalThreshold = 10f;
         public const float WarPeaceRevampMutualWhitePeaceThreshold = 10f;
-        public const int WarPeaceDurationReluctanceDays = 100;
+        public const int WarPeaceDurationReluctanceDays = 50;
         public const float WarPeaceReadinessSupportThreshold = 11f;
         public const int WarPeaceRevampRecentPeaceBlockDays = 20;
         public const float WarPeaceRevampLocalLandBorderTargetScore = 25f;

@@ -69,7 +69,8 @@ namespace BellumCivile
         {
             var pact = draft.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace);
             if (pact == null) yield break;
-            foreach (int days in new[] { 150, 100, 50, 30 })
+            int baseline = TreatyHostageTerms.BaselineForDraft(draft.Terms);
+            foreach (int days in HostagePactRules.GetAiDurations(0, 400, baseline))
                 if (days < pact.DurationDays)
                     yield return new TreatyAiDraftResult(TreatyHostageTerms.WithDuration(draft.Terms, days),
                         draft.Posture, draft.TargetSpend, draft.Summary + $"; shorten pact to {days} days",
@@ -193,7 +194,8 @@ namespace BellumCivile
             AddCandidates(prisonerCandidates, terms, reasons, ref spent, targetSpend, budget, bundledPrisoners);
 
             List<TreatyAiTermCandidate> politicalCandidates = BuildPoliticalCandidates(
-                winner, loser, drafter, posture, voluntaryOffering, budget, noCoreTerritoryFits,war);
+                winner, loser, drafter, posture, voluntaryOffering, budget, noCoreTerritoryFits, war,
+                proposal.Terms.FirstOrDefault(t => t.Type == TreatyTermType.HostagePeace));
             AddCandidates(politicalCandidates, terms, reasons, ref spent, targetSpend, budget, bundledPrisoners);
 
             AddCandidates(optionalTerritory, terms, reasons, ref spent, targetSpend, budget, bundledPrisoners);
@@ -223,7 +225,9 @@ namespace BellumCivile
                 var pledge = TreatyHostageTerms.Available(winner, loser, durationDays).OrderByDescending(c => c.Tier).FirstOrDefault();
                 if (pledge != null)
                 {
-                    var offer = TreatyHostageTerms.Create(winner, loser, pledge, true, durationDays);
+                    var source = terms.First(t => t.Type == TreatyTermType.HostagePeace);
+                    var offer = TreatyHostageTerms.Create(winner, loser, pledge, true, durationDays,
+                        source.HostageDurationPriced, source.HostageDurationBaselineDays);
                     if (CanCombineWithSelectedTerms(offer, terms))
                     { terms.Add(offer); reasons.Add("pledge our own kin in reciprocal good faith"); }
                 }
@@ -471,7 +475,7 @@ namespace BellumCivile
             TreatyNegotiationPosture posture,
             bool voluntaryOffering,
             int budget,
-            bool noCoreTerritoryFits, WarScoreRecord war)
+            bool noCoreTerritoryFits, WarScoreRecord war, TreatyTermRecord existingPact)
         {
             List<TreatyAiTermCandidate> candidates = new List<TreatyAiTermCandidate>();
             Hero ruler = (drafter ?? winner)?.RulingClan?.Leader;
@@ -479,7 +483,10 @@ namespace BellumCivile
             {
                 float enthusiasm = CalculateRealmWarWill(drafter ?? winner, war);
                 float warDays = Math.Max(0, (float)CampaignTime.Now.ToDays - war.StartedDay);
-                int[] durations = HostagePactRules.GetAiDurations(enthusiasm, warDays);
+                int baseline = existingPact?.HostageDurationBaselineDays ?? BellumCivileOptions.HostagePactMinimumDurationDays;
+                bool durationPriced = existingPact?.HostageDurationPriced ?? true;
+                int[] durations = durationPriced ? HostagePactRules.GetAiDurations(enthusiasm, warDays, baseline)
+                    : new[] { existingPact.DurationDays };
                 // Availability is independent of duration; scan the dynasty only once.
                 foreach (var hostage in TreatyHostageTerms.Available(loser, winner))
                 {
@@ -491,8 +498,8 @@ namespace BellumCivile
                             GetTrait(ruler, DefaultTraits.Mercy), ruler == null ? 0 : ruler.GetRelation(hostage.Hero)) * .5f;
                     if (priority >= 20)
                         foreach (int duration in durations)
-                            candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering, duration),
-                                priority + HostagePactRules.GetAiDurationAdjustment(duration, enthusiasm, warDays),
+                            candidates.Add(new TreatyAiTermCandidate(TreatyHostageTerms.Create(loser, winner, hostage, voluntaryOffering, duration, durationPriced, baseline),
+                                priority + HostagePactRules.GetAiDurationAdjustment(duration, enthusiasm, warDays, baseline),
                                 $"secure the peace with a royal hostage for {duration} days"));
                 }
             }

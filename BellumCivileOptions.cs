@@ -47,6 +47,9 @@ namespace BellumCivile
         public static bool EnableClientStateMapWidget => Settings?.EnableClientStateMapWidget ?? true;
         public static int WarDurationReluctanceDays => Math.Max(1, Math.Min(500,
             Settings?.WarDurationReluctanceDays ?? C.WarPeaceDurationReluctanceDays));
+        public static int HostagePactMinimumDurationDays =>
+            ((Math.Max(10, Math.Min(HostagePactRules.MaximumDurationDays,
+                Settings?.HostagePactMinimumDurationDays ?? HostagePactRules.DefaultDurationDays)) + 9) / 10) * 10;
         public static int MinimumPeaceBeforeRenewedWarDays =>
             Math.Max(0, Math.Min(500, Settings?.MinimumPeaceBeforeRenewedWarDays ?? C.WarPeaceRevampRecentPeaceBlockDays));
         public static int TreatyReparationsGoldPerWarScore =>
