@@ -3440,7 +3440,7 @@ internal static class Program
         var harmony = new Harmony("BellumCivile.Tests.HouseholdFoundation");
         try
         {
-            foreach (var patch in new[] { typeof(SeparateSpouseBirthClanPatch), typeof(ConsistentSpouseVisitPatch) })
+            foreach (var patch in new[] { typeof(SeparateSpouseBirthClanPatch), typeof(ConsistentSpouseVisitPatch), typeof(BirthEquipmentFallbackPatch) })
                 Check(harmony.CreateClassProcessor(patch).Patch().Count > 0, "Harmony compiles " + patch.Name);
         }
         finally { harmony.UnpatchAll(harmony.Id); }
@@ -3477,6 +3477,19 @@ internal static class Program
             "Shared-household births retain their existing clan");
         Check(SeparateSpouseBirthClanPatch.ResolveBirthClan(father, null, father) == newMaternal,
             "Incomplete parental data retains the native destination instead of inventing a clan");
+        Check(BirthEquipmentFallbackPatch.Prefix(mother, null), "Missing equipment outside childbirth keeps native behavior");
+        Check(BirthEquipmentFallbackPatch.Finalizer(new NullReferenceException(), mother) != null,
+            "Equipment failures outside childbirth still surface");
+        SeparateSpouseBirthClanPatch.BirthDepth++;
+        try
+        {
+            Check(!BirthEquipmentFallbackPatch.Prefix(mother, null), "Missing newborn equipment template is skipped during childbirth");
+            Check(BirthEquipmentFallbackPatch.Finalizer(new NullReferenceException(), mother) == null,
+                "Incomplete newborn equipment template no longer aborts childbirth");
+            Check(BirthEquipmentFallbackPatch.Finalizer(new InvalidOperationException(), mother) != null,
+                "Unrelated childbirth equipment errors still surface");
+        }
+        finally { SeparateSpouseBirthClanPatch.BirthDepth--; }
         var visit = AccessTools.Method(typeof(ConsistentSpouseVisitPatch), "IsVisitEligible");
         Func<bool, bool, bool, float, bool> eligible = (c, w, t, r) => (bool)visit.Invoke(null, new object[] { c, w, t, r });
         Check(eligible(false, false, true, 1f), "Peaceful spouses together need no abstract visit roll");

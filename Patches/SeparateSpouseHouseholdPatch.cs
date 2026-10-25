@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
+using Helpers;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
@@ -14,6 +15,15 @@ namespace BellumCivile.Patches
     [HarmonyPatch(typeof(HeroCreator), nameof(HeroCreator.DeliverOffSpring))]
     public static class SeparateSpouseBirthClanPatch
     {
+        // Native birth initialization depth, so the equipment guard below stays scoped to childbirth.
+        internal static int BirthDepth;
+
+        [HarmonyPrefix]
+        public static void Prefix() => BirthDepth++;
+
+        [HarmonyFinalizer]
+        public static void Finalizer() => BirthDepth--;
+
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -38,6 +48,30 @@ namespace BellumCivile.Patches
         public static Clan ResolveBirthClan(Hero nativeParent, Hero mother, Hero father) =>
             mother?.Clan != null && father?.Clan != null && mother.Clan != father.Clan
                 ? mother.Clan : nativeParent?.Clan;
+    }
+
+    // Custom cultures can lack the child equipment templates native birth initialization
+    // copies from, so the newborn keeps its template equipment instead of crashing the daily tick.
+    [HarmonyPatch(typeof(EquipmentHelper), nameof(EquipmentHelper.AssignHeroEquipmentFromEquipment))]
+    public static class BirthEquipmentFallbackPatch
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(Hero hero, Equipment equipment)
+        {
+            if (SeparateSpouseBirthClanPatch.BirthDepth <= 0 || hero != null && equipment != null) return true;
+            BellumCivileLogger.Log($"Skipped missing newborn equipment template; hero={hero?.StringId}; "
+                + $"culture={hero?.Culture?.StringId}; clan={hero?.Clan?.StringId}; equipment_missing={equipment == null}.");
+            return false;
+        }
+
+        [HarmonyFinalizer]
+        public static Exception Finalizer(Exception __exception, Hero hero)
+        {
+            if (!(__exception is NullReferenceException) || SeparateSpouseBirthClanPatch.BirthDepth <= 0) return __exception;
+            BellumCivileLogger.Log($"Recovered incomplete newborn equipment template; hero={hero?.StringId}; "
+                + $"culture={hero?.Culture?.StringId}; clan={hero?.Clan?.StringId}; error={__exception.Message}");
+            return null;
+        }
     }
 
     [HarmonyPatch(typeof(PregnancyCampaignBehavior), "CheckAreNearby")]
