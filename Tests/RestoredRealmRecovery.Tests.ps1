@@ -25,6 +25,10 @@ Check ($recovery.IndexOf('source retirement pending') -lt $recovery.IndexOf('OnK
     $recovery.IndexOf('record.CreatedNotified = true') -lt $recovery.IndexOf('OnKingdomCreated(realm)')) 'Publication follows verified transfer, retirement and crown delivery with a pre-callback receipt.'
 Check ($collapse.Contains('record.CreatedNotified = true') -and
     (Read 'CivilWarCollapseRecord.cs').Contains('[SaveableField(21)] public bool CreatedNotified;')) 'Staged collapse uses an append-only publication receipt too.'
+Check ($collapse.Contains('c.Stage == 2 && c.Winner == faction') -and $collapse.Contains('c.WinnerClans.Contains(clan)') -and
+    (Read 'Behaviors/FactionManagerBehavior.cs').Contains('OwnsCollapseHouseholdTransfer(faction, clan, oldKingdom, newKingdom)')) 'Only the running collapse owner can preserve coalition membership during its captured household transfers.'
+Check ($collapse.Contains('claim.OutcomeVictor != record.WinnerHouse') -and $collapse.Contains('CollapseCrownDelivered(record)') -and
+    $collapse.Contains('claim.HasWarCrownReceipt') -and $collapse.Contains('"restored hereditary challenge victory"')) 'Hereditary collapse recovery validates the saved victor and verifies legal Crown delivery without reelecting a coalition leader.'
 foreach ($gate in @('realm.Leader != null', 'CountStrongholds(realm) > 0', 'Clan.All.Any', 'Settlement.All.Any',
     'IsRealmTransferPending', 'IsPending(realm)', 'IsRealmUnionProtected', 'PendingDeposition',
     'IsCrownPromotionRealmProtected', 'IsKingdomIdReferencedByBellumCivileState', 'FindExistingRestoredSuccessor')) {

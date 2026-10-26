@@ -5,6 +5,7 @@ using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Party.PartyComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -764,6 +765,25 @@ namespace BellumCivile
             _kingdomColor2Property = typeof(Kingdom).GetProperty("Color2", flags);
         }
 
+        private static Clan GetSettlementVisualClan(Settlement settlement)
+        {
+            if (settlement?.Village != null)
+                return settlement.Village.Bound?.Town?.OwnerClan;
+            return settlement?.Town?.OwnerClan;
+        }
+
+        private static Clan GetPartyVisualClan(MobileParty party)
+        {
+            // Native settlement-party Owner getters assume complete settlement data.
+            // Visual invalidation needs the owning clan, not its potentially absent leader.
+            var component = party?.PartyComponent;
+            if (component is MilitiaPartyComponent militia) return GetSettlementVisualClan(militia.Settlement);
+            if (component is GarrisonPartyComponent garrison) return GetSettlementVisualClan(garrison.Settlement);
+            if (component is VillagerPartyComponent villagers) return GetSettlementVisualClan(villagers.Village?.Bound);
+            if (component is PatrolPartyComponent patrol) return GetSettlementVisualClan(patrol.HomeSettlement);
+            return party?.ActualClan ?? party?.Party?.Owner?.Clan;
+        }
+
         private static void MarkKingdomVisualsDirty(Kingdom kingdom)
         {
             if (kingdom == null)
@@ -771,8 +791,9 @@ namespace BellumCivile
 
             foreach (MobileParty mobileParty in MobileParty.All)
             {
-                if (mobileParty?.Party?.Owner?.Clan?.Kingdom == kingdom)
-                    mobileParty.Party.SetVisualAsDirty();
+                var party = mobileParty?.Party;
+                if (party != null && GetPartyVisualClan(mobileParty)?.Kingdom == kingdom)
+                    party.SetVisualAsDirty();
             }
 
             foreach (Settlement settlement in kingdom.Settlements)
@@ -793,8 +814,9 @@ namespace BellumCivile
 
             foreach (MobileParty mobileParty in MobileParty.All)
             {
-                if (mobileParty?.Party?.Owner?.Clan == clan)
-                    mobileParty.Party.SetVisualAsDirty();
+                var party = mobileParty?.Party;
+                if (party != null && GetPartyVisualClan(mobileParty) == clan)
+                    party.SetVisualAsDirty();
             }
 
             foreach (Town fief in clan.Fiefs)

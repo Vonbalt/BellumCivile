@@ -182,3 +182,38 @@ Suggested in-game checks on each version:
 3. Load an affected old save; confirm empty orphan retirement only when the strict
    successor/ownership checks hold, and retain the always-on leadership diagnostics
    for anything that remains broken.
+
+## October 26 Follow-Up
+
+The supplied Rhodok logs identify a distinct continuing-collapse failure: native
+clan-change callbacks pruned the winning coalition during its move to the restored
+realm. A later stage-three retry then compared the changed faction leader with the
+original challenger and stopped before retiring the empty rebel realm. The saved
+winner, outcome and restored kingdom were still available. Registration of the
+restored mantle alone also did not deliver the legal Crown required by challenge
+victory legalization.
+
+Recovery now preserves captured coalition members only inside the coordinator's
+own stage-two source-to-successor transfers. The original challenge and winning
+house must agree; an uncommitted claimant must still live, lead that house, and
+belong to the recorded realms. Legal Crown delivery is verified against the exact
+successor and saved victor before its receipt is recorded. Actual matching legal
+ownership can recover an interruption after delivery; existing receipts retain
+historical outcomes without deposing a later ruler. Empty predecessors still use
+the ordinary guarded drain, including retry when destruction is refused. No new
+save fields or broad native-rebellion suppression are introduced.
+
+`--collapse-claimant-recovery` exercises the real faction-change handler and
+settlement coordinator with native movement/title/publication endpoints doubled,
+including an older empty-coalition stage-three journal, interrupted legal delivery,
+dead or defected uncommitted claimants, later rulers, save-data continuation and
+blocked retirement. It is not an in-game reproduction of the user's full mod stack.
+
+The second supplied report is separate: native militia ownership throws while
+Bellum invalidates party visuals during grand-coalition creation. Both visual
+scans now avoid the native hero-owner getters for settlement parties.
+`--party-visual-refresh` reproduces the native getter failure and verifies healthy
+party updates, ownership changes, absent leaders, missing settlement/binding data,
+and the actual palette entry point. Neither fix identifies which mod or earlier
+event produced that incomplete militia. The second report's orphaned-feud warning
+remains a separate investigation, not a proven cause of its visual-refresh crash.

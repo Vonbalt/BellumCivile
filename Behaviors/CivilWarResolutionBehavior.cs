@@ -798,6 +798,8 @@ namespace BellumCivile.Behaviors
         public bool IsKingdomIdReferencedByBellumCivileState(string kingdomId)
         {
             if (string.IsNullOrEmpty(kingdomId)) return false;
+            if (_collapses.Any(c => !c.Completed && (c.Parent?.StringId == kingdomId
+                || c.WinnerRealm?.StringId == kingdomId || c.SuccessorId == kingdomId))) return true;
             if (IsKingdomIdReferencedByResolutionState(kingdomId)) return true;
 
             Kingdom kingdom = ResolveKingdomById(kingdomId);
