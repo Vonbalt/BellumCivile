@@ -1797,6 +1797,7 @@
     <string id="BC_Msg_AvoidedWar_InstallRuler" text="to surrender the crown to {LEADER_NAME} of the {CLAN_NAME}" />
     <string id="BC_Msg_AvoidedWar_Abdication" text="to abdicate the throne" />
     <string id="BC_Msg_AvoidedWar_Independence" text="to recognize the independence of the {REALM_NAME}" />
+    <string id="BC_Msg_AvoidedWar_IndependenceRealms" text="to recognize the independence of these realms: {REALM_NAMES}" />
     <string id="BC_FacName_Coalition" text="{FACTION_NAME}" />
     <string id="BC_Msg_RealmFractures" text="The realm fractures. {LEADER_NAME} has raised their banners in open rebellion against {KINGDOM_NAME}." />
 

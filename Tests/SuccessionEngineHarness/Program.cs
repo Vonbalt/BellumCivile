@@ -50,7 +50,17 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--parley-capitulation"))
+            if (args.Contains("--independence-ruler-repair"))
+            {
+                IndependenceRulerRepairTests.Run(Check);
+                Console.WriteLine($"{_checks} independence ruler save-repair checks passed.");
+            }
+            else if (args.Contains("--accepted-independence"))
+            {
+                AcceptedIndependenceTests.Run(Check);
+                Console.WriteLine($"{_checks} accepted independence checks passed.");
+            }
+            else if (args.Contains("--parley-capitulation"))
             {
                 PeaceParleyCapitulationTests.Run(Check);
                 Console.WriteLine($"{_checks} parley capitulation checks passed.");

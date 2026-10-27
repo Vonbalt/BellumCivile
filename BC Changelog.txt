@@ -794,3 +794,4 @@ Fixed stalled forced-abdication settlements, stale council appointments charging
 Fixed stalled civil-war settlements leaving empty, leaderless rebel kingdoms behind.
 Fixed crashes during kingdom and clan banner refreshes caused by incomplete militia ownership data.
 Fixed capitulated player rulers being able to remove the victor’s peace demands.
+Fixed accepted independence ultimatums assigning foreign rulers and ignoring rank-based realm splits with one-time repair for affected saves.

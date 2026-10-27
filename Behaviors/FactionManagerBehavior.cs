@@ -494,7 +494,7 @@ namespace BellumCivile.Behaviors
                 _rulerRepairSuppressionDepths[kingdomId] = depth - 1;
         }
 
-        private bool IsRulerRepairSuppressed(Kingdom kingdom)
+        internal bool IsRulerRepairSuppressed(Kingdom kingdom)
         {
             if (CrownAccessionBehavior.Instance?.IsRealmUnionProtected(kingdom) == true) return true;
             if (Campaign.Current?.GetCampaignBehavior<PartitionSuccessionBehavior>()?
