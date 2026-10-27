@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--party-visual-refresh"))
+            if (args.Contains("--parley-capitulation"))
+            {
+                PeaceParleyCapitulationTests.Run(Check);
+                Console.WriteLine($"{_checks} parley capitulation checks passed.");
+            }
+            else if (args.Contains("--party-visual-refresh"))
             {
                 PartyVisualRefreshTests.Run(Check);
                 Console.WriteLine($"{_checks} party visual refresh checks passed.");

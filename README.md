@@ -558,6 +558,8 @@ Automatic mutual white peace requires absolute score **<=10**, both strength-wei
 - There is no minimum-participation quorum. With no votes, an NPC ruler uses their own assessment and a player ruler decides explicitly. No opposition means no override payment, not exemption from legal/budget checks.
 - Internal wars expose restricted white-peace/concession outcomes, not general foreign territorial bargaining.
 
+At forced capitulation, a defeated player ruler can review and sign the victorious ruler's terms but cannot edit or reset them. Disabled controls explain this restriction. The same authority check guards backend draft replacement, including saved pending parleys. Ordinary negotiations remain editable, and a victorious player ruler may still grant lenient terms or white peace. If a forced NPC draft becomes over budget while the defeated player is reviewing it, signing requests a within-budget revision by the victor and leaves the new terms open for review before a second signature; an unrecoverable draft closes without spending influence or applying terms.
+
 Rejected voluntary foreign treaties have a **seven-day minimum automatic retry window**, with early reconsideration for significant military changes. Expiry does not force a proposal. Explicit player negotiation and forced settlement remain separate. Repeated penalty application is guarded.
 
 ### Budgets and Demands

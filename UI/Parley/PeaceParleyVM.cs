@@ -50,6 +50,7 @@ namespace BellumCivile.UI.Parley
         private bool _isPoliticsTabSelected;
         private bool _isWealthTabSelected;
         private bool _isDraftEditingDisabled;
+        private bool _isCapitulationDraftLocked;
         private string _reparationsText;
         private string _reparationsCostText;
         private string _tributeText;
@@ -72,6 +73,7 @@ namespace BellumCivile.UI.Parley
         private TreatyProposalRecord _proposal;
         private const int WealthAdjustmentStep = 1;
         private const int WealthShiftAdjustmentStep = 5;
+        private const string CapitulatedDraftHintTemplate = "{=BC_Parley_CapitulatedDraftHint}Your realm has capitulated. The victorious ruler dictates the terms of peace; you can no longer alter them.";
 
         public PeaceParleyVM(TreatyProposalRecord proposal, Action closeAction)
         {
@@ -120,7 +122,9 @@ namespace BellumCivile.UI.Parley
             BudgetColor = isOverBudget ? BuildOutcomeColor(false) : Color.ConvertStringToColor("#FFFFFFFF");
             IsPlayerRuler = playerKingdom?.RulingClan == Clan.PlayerClan;
             IsPlayerVassal = playerKingdom != null && !IsPlayerRuler;
-            IsDraftEditingDisabled = !IsPlayerRuler;
+            IsDraftEditingDisabled = !ForeignTreatyBehavior.CanPlayerEditDraft(proposal, playerKingdom, Clan.PlayerClan, out string editingReason);
+            bool capitulatedRuler = editingReason == ForeignTreatyBehavior.CapitulationDraftLockedReason;
+            IsCapitulationDraftLocked = capitulatedRuler;
             UpperPanelHeight = IsPlayerVassal ? 280 : 538;
             LowerPanelHeight = IsPlayerVassal ? 609 : 351;
             DraftEditorHeight = IsPlayerVassal ? 118 : 376;
@@ -195,7 +199,7 @@ namespace BellumCivile.UI.Parley
                 bool hasValidPlayerResponse = IsPlayerRuler
                     || (proposal.PlayerVoteSubmitted
                         && (playerStance == TreatyCouncilVoteStance.Abstain || proposal.PlayerInfluenceCommitment > 0));
-                IsSignDisabled = !hasValidPlayerResponse || (isOverBudget && IsPlayerRuler);
+                IsSignDisabled = !hasValidPlayerResponse || (isOverBudget && IsPlayerRuler && !IsDraftEditingDisabled);
                 foreach (TreatyCouncilMemberEvaluation member in OrderCouncilMembers(playerCouncil.Members, playerSide?.RulingClan))
                 {
                     bool isRuler = member?.Clan == playerSide?.RulingClan;
@@ -506,13 +510,13 @@ namespace BellumCivile.UI.Parley
                 TributeCostText = BuildWealthCostText(tributeScore);
             }
 
-            PrisonersTabHint = new HintViewModel(IsDraftEditingDisabled
+            PrisonersTabHint = new HintViewModel(capitulatedRuler ? new TextObject(CapitulatedDraftHintTemplate) : IsDraftEditingDisabled
                 ? new TextObject("{=BC_Parley_PrisonersRulerOnly}Only the ruler may alter prisoner terms in the treaty.")
                 : TextObject.GetEmpty());
-            PoliticsTabHint = new HintViewModel(IsDraftEditingDisabled
+            PoliticsTabHint = new HintViewModel(capitulatedRuler ? new TextObject(CapitulatedDraftHintTemplate) : IsDraftEditingDisabled
                 ? new TextObject("{=BC_Parley_PoliticsRulerOnly}Only the ruler may alter political terms in the treaty.")
                 : TextObject.GetEmpty());
-            DraftTabDisabledHint = new HintViewModel(IsDraftEditingDisabled
+            DraftTabDisabledHint = new HintViewModel(capitulatedRuler ? new TextObject(CapitulatedDraftHintTemplate) : IsDraftEditingDisabled
                 ? new TextObject("{=BC_Parley_RulerOnlyDrafting}Only the ruler may alter the terms of the treaty.")
                 : TextObject.GetEmpty());
 
@@ -522,13 +526,17 @@ namespace BellumCivile.UI.Parley
                     : new TextObject("{=BC_Parley_RejectTreatyDisabledHint}Only your ruler might outright reject a treaty of peace")
                 : TextObject.GetEmpty());
             SignTreatyHint = new HintViewModel(isOverBudget
-                ? IsPlayerVassal
+                ? capitulatedRuler
+                    ? new TextObject("{=BC_Parley_CapitulatedBudgetHint}The victor must revise these demands to fit the available war score. Continue to refresh the terms for review; no influence will be spent.")
+                    : IsPlayerVassal
                     ? new TextObject("{=BC_Parley_VassalInvalidBudgetHint}This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect.")
                     : new TextObject("{=BC_Parley_FailureWarScoreExceeded}These demands exceed the leverage won in this war. Reduce the demands or offer concessions before sealing the peace; even capitulation cannot compel these terms.")
                 : IsSignDisabled
                 ? new TextObject("{=BC_Parley_SignTreatyDisabledHint}You need to select an outcome and how much you want to support that outcome.")
-                : new TextObject("{=BC_Parley_SignTreatyHint}Submit the drafted treaty to both councils. Committed influence will be spent even if ratification fails."));
-            ResetTreatyHint = new HintViewModel(IsDraftEditingDisabled
+                : capitulatedRuler
+                    ? new TextObject("{=BC_Parley_CapitulatedSignHint}Accept the terms dictated by the victorious ruler.")
+                    : new TextObject("{=BC_Parley_SignTreatyHint}Submit the drafted treaty to both councils. Committed influence will be spent even if ratification fails."));
+            ResetTreatyHint = new HintViewModel(capitulatedRuler ? new TextObject(CapitulatedDraftHintTemplate) : IsDraftEditingDisabled
                 ? new TextObject("{=BC_Parley_RulerOnlyDrafting}Only the ruler may alter the terms of the treaty.")
                 : new TextObject("{=BC_Parley_ResetTreatyHint}Restore the treaty to the terms first presented at this parley."));
         }
@@ -606,7 +614,7 @@ namespace BellumCivile.UI.Parley
 
         public void ExecuteSignTreaty()
         {
-            if (_proposal?.IsOverBudget == true && IsPlayerRuler)
+            if (_proposal?.IsOverBudget == true && IsPlayerRuler && !IsDraftEditingDisabled)
             {
                 Refresh(_proposal);
                 return;
@@ -622,6 +630,8 @@ namespace BellumCivile.UI.Parley
                 return;
             }
 
+            if (report == ForeignTreatyBehavior.CapitulationDraftRevisedReason)
+                Refresh(_proposal);
             DisplayActionFailure(report);
         }
 
@@ -1274,6 +1284,12 @@ namespace BellumCivile.UI.Parley
                 case "only a ruler participating in the parley may draft these terms":
                     template = "{=BC_Parley_FailureRulerDraftOnly}Only a ruler participating in the parley may draft these terms.";
                     break;
+                case ForeignTreatyBehavior.CapitulationDraftLockedReason:
+                    template = CapitulatedDraftHintTemplate;
+                    break;
+                case ForeignTreatyBehavior.CapitulationDraftRevisedReason:
+                    template = "{=BC_Parley_CapitulatedDraftRevised}The victorious ruler has revised the terms of peace. Review the updated demands before signing.";
+                    break;
                 case "invalid treaty draft":
                     template = "{=BC_Parley_FailureInvalidDraft}The treaty draft is invalid.";
                     break;
@@ -1665,6 +1681,9 @@ namespace BellumCivile.UI.Parley
         public bool IsWealthTabSelected { get => _isWealthTabSelected; set { if (value != _isWealthTabSelected) { _isWealthTabSelected = value; OnPropertyChangedWithValue(value, nameof(IsWealthTabSelected)); } } }
         [DataSourceProperty]
         public bool IsDraftEditingDisabled { get => _isDraftEditingDisabled; set { if (value != _isDraftEditingDisabled) { _isDraftEditingDisabled = value; OnPropertyChangedWithValue(value, nameof(IsDraftEditingDisabled)); } } }
+
+        [DataSourceProperty]
+        public bool IsCapitulationDraftLocked { get => _isCapitulationDraftLocked; set { if (value != _isCapitulationDraftLocked) { _isCapitulationDraftLocked = value; OnPropertyChangedWithValue(value, nameof(IsCapitulationDraftLocked)); } } }
         [DataSourceProperty]
         public string ReparationsText { get => _reparationsText; set { if (value != _reparationsText) { _reparationsText = value; OnPropertyChangedWithValue(value, nameof(ReparationsText)); } } }
         [DataSourceProperty]
