@@ -1,4 +1,5 @@
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 namespace BellumCivile
 {
@@ -130,6 +131,7 @@ namespace BellumCivile
     {
         public bool CanRevoke { get; set; }
         public string Reason { get; set; }
+        public TextObject RestrictionReason { get; set; }
         public float InfluenceCost { get; set; }
         public Clan HolderClan { get; set; }
         public FeudalClaimStrength ClaimStrength { get; set; }

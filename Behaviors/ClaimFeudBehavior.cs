@@ -604,19 +604,9 @@ namespace BellumCivile.Behaviors
             if (claimant.Kingdom == null || holder.Kingdom == null || claimant.Kingdom != holder.Kingdom)
                 return false;
 
-            ClaimFeudRecord cooldown = _feuds.FirstOrDefault(record => record != null
-                && record.TargetTitleId == title.TitleId
-                && ((record.ClaimantClanId == claimant.StringId && record.HolderClanId == holder.StringId)
-                    || (record.ClaimantClanId == holder.StringId && record.HolderClanId == claimant.StringId))
-                && !IsActiveFeudState(record.State)
-                && record.CooldownUntilDay > CurrentDay);
-
-            if (cooldown == null)
+            TextObject disabled = GetDisputeCooldownBlockReason(claimant, holder, title);
+            if (disabled == null)
                 return false;
-
-            int remainingDays = Math.Max(1, (int)Math.Ceiling(cooldown.CooldownUntilDay - CurrentDay));
-            TextObject disabled = new TextObject("{=BC_UI_Err_ClaimFeudCooldown}This dispute is cooling down for {DAYS} more days.");
-            disabled.SetTextVariable("DAYS", remainingDays.ToString());
 
             preview = new ClaimFeudActionPreview
             {
@@ -631,6 +621,29 @@ namespace BellumCivile.Behaviors
             };
 
             return true;
+        }
+
+        internal TextObject GetDisputeCooldownBlockReason(Clan claimant, Clan holder, FeudalTitleRecord title)
+        {
+            EnsureCollectionsInitialized();
+            if (claimant == null || holder == null || title == null
+                || string.IsNullOrWhiteSpace(claimant.StringId) || string.IsNullOrWhiteSpace(holder.StringId)
+                || string.IsNullOrWhiteSpace(title.TitleId))
+                return null;
+
+            float currentDay = CurrentDay;
+            float until = currentDay;
+            foreach (ClaimFeudRecord record in _feuds)
+            {
+                if (record != null && record.TargetTitleId == title.TitleId
+                    && ((record.ClaimantClanId == claimant.StringId && record.HolderClanId == holder.StringId)
+                        || (record.ClaimantClanId == holder.StringId && record.HolderClanId == claimant.StringId)))
+                    until = Math.Max(until, record.CooldownUntilDay);
+            }
+
+            return until <= currentDay ? null
+                : new TextObject("{=BC_UI_Err_ClaimFeudCooldown}This dispute is cooling down for {DAYS} more days.")
+                    .SetTextVariable("DAYS", (int)Math.Ceiling(until - currentDay));
         }
 
         public bool TryStartPlayerFeud(Clan clan, string titleId, out ClaimFeudRecord record, out string report)
@@ -732,6 +745,13 @@ namespace BellumCivile.Behaviors
             if (peaceBlock != null)
             {
                 report = peaceBlock.ToString();
+                return false;
+            }
+
+            TextObject cooldownBlock = GetDisputeCooldownBlockReason(revoker, holder, title);
+            if (cooldownBlock != null)
+            {
+                report = cooldownBlock.ToString();
                 return false;
             }
 
@@ -1540,17 +1560,19 @@ namespace BellumCivile.Behaviors
                     break;
                 case ClaimFeudJudgment.Abstain:
                     record.SetState(ClaimFeudState.Settled);
-                    record.SetCooldownUntilDay(CurrentDay + GetCampaignDaysInYear() * C.ClaimFeudCooldownYears);
                     break;
                 default:
                     record.SetState(ClaimFeudState.Resolved);
                     break;
             }
 
+            if (record.State == ClaimFeudState.Settled || record.State == ClaimFeudState.SuppressedCooldown)
+            {
+                record.SetCooldownUntilDay(CurrentDay + GetCampaignDaysInYear() * C.ClaimFeudCooldownYears);
+                _yearlyPeacefulSettlements++;
+            }
             ApplyRulingRelations(ruler, claimant, holder, judgment, claimantResponse, holderResponse);
             record.SetDebugReason($"{record.DebugReason}; judgment={judgment}; result={result}");
-            if (record.State == ClaimFeudState.Settled || record.State == ClaimFeudState.SuppressedCooldown)
-                _yearlyPeacefulSettlements++;
         }
 
         private void TryShowPendingPlayerRulingInquiry(ClaimFeudRecord record, Clan claimant, Clan holder, FeudalTitleRecord title)
@@ -3189,6 +3211,9 @@ namespace BellumCivile.Behaviors
                 return null;
             }
 
+            if (GetDisputeCooldownBlockReason(candidate.Claimant, candidate.Holder, candidate.Title) != null)
+                return null;
+
             float currentDay = CurrentDay;
             string recordId = BuildRecordId(candidate.Claimant, candidate.Holder, candidate.Title);
             ClaimFeudRecord existing = _feuds.FirstOrDefault(feud => feud != null && feud.RecordId == recordId);
@@ -3335,11 +3360,7 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (_feuds.Any(record => record != null
-                                  && record.TargetTitleId == title.TitleId
-                                  && ((record.ClaimantClanId == claimant.StringId && record.HolderClanId == holder.StringId)
-                                      || (record.ClaimantClanId == holder.StringId && record.HolderClanId == claimant.StringId))
-                                  && record.CooldownUntilDay > CurrentDay))
+            if (GetDisputeCooldownBlockReason(claimant, holder, title) != null)
             {
                 return false;
             }

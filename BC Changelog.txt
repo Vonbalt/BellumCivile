@@ -787,4 +787,12 @@ Fixed restored kingdom cleanup and recovery to prevent leaderless remnants, dupl
 Fixed heirs on regency skipping adult skills and equipment when coming of age.
 Fixed succession-related rebellion errors that could leave kingdoms leaderless and crash court processing.
 Added immersive accept/refuse popups for royal higher-title grants to the player, with a relation penalty for refusal.
-Fixed stalled forced-abdication settlements, stale council appointments charging influence, and false leaderless-realm alerts during campaign startup
+Fixed stalled forced-abdication settlements, stale council appointments charging influence, and false leaderless-realm alerts during campaign startup.
+
+1.4.7 CHANGELOG
+
+Fixed stalled civil-war settlements leaving empty, leaderless rebel kingdoms behind.
+Fixed crashes during kingdom and clan banner refreshes caused by incomplete militia ownership data.
+Fixed capitulated player rulers being able to remove the victor’s peace demands.
+Fixed accepted independence ultimatums assigning foreign rulers and ignoring rank-based realm splits with one-time repair for affected saves.
+Fixed repeated private feuds after accepted judgments and blocked claimed-title revocations during dispute cooldowns or Royal Peace.

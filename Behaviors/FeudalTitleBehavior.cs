@@ -73,6 +73,9 @@ namespace BellumCivile.Behaviors
         {
             Instance = this;
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, SkipNewGameIndependenceRulerRepair);
+            CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, StartIndependenceRulerRepair);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ProcessIndependenceRulerRepair);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, OnHourlyTick);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, OnSettlementOwnerChanged);
@@ -113,6 +116,7 @@ namespace BellumCivile.Behaviors
             RebuildRuntimeIndexes();
             if (duplicateClaimsDeactivated > 0)
                 BellumCivileLogger.Log($"Feudal claim load repair deactivated duplicate active clan/title claims; duplicates={duplicateClaimsDeactivated}.");
+            SyncIndependenceRulerRepair(dataStore);
         }
 
         public FeudalTitleRecord GetTitle(string titleId)

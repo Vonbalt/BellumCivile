@@ -66,8 +66,12 @@ namespace BellumCivile
 
         public static IndependentKingdomProfile Create(Clan leaderClan, Kingdom parentKingdom)
         {
+            return CreateForTitle(leaderClan, parentKingdom, ResolveSourceTitle(leaderClan, parentKingdom));
+        }
+
+        internal static IndependentKingdomProfile CreateForTitle(Clan leaderClan, Kingdom parentKingdom, FeudalTitleRecord sourceTitle)
+        {
             CultureObject culture = leaderClan?.Culture ?? parentKingdom?.Culture;
-            FeudalTitleRecord sourceTitle = ResolveSourceTitle(leaderClan, parentKingdom);
             if (sourceTitle != null)
                 return CreateTitleBasedProfile(leaderClan, parentKingdom, culture, sourceTitle);
 

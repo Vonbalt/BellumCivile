@@ -144,6 +144,8 @@
                         </ListPanel>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="SPKingdom\Diplomacy\divider_left" MarginTop="8" MarginBottom="10" AlphaFactor="0.6" />
 
+                        <Widget Id="DraftEditor" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@DraftEditorHeight">
+                          <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@DraftEditorHeight" IsVisible="@IsFiefsTabSelected">
                           <Children>
                             <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" AutoHideScrollBars="true" ClipRect="FiefDraftClip" InnerPanel="FiefDraftClip\FiefDraftList" VerticalScrollbar="..\FiefDraftScrollbar">
@@ -299,6 +301,13 @@
                             </ListPanel>
                           </Children>
                         </ListPanel>
+                        <Widget Id="CapitulationDraftHint" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@IsCapitulationDraftLocked">
+                          <Children>
+                            <HintWidget DataSource="{DraftTabDisabledHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsDisabled="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                          </Children>
+                        </Widget>
+                          </Children>
+                        </Widget>
 
                           </Children>
                         </ListPanel>

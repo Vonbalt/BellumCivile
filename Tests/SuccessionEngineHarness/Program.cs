@@ -50,7 +50,37 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--campaign-run-recovery"))
+            if (args.Contains("--claim-feud-cooldowns"))
+            {
+                ClaimFeudCooldownTests.Run(Check);
+                Console.WriteLine($"{_checks} claim-feud cooldown checks passed.");
+            }
+            else if (args.Contains("--independence-ruler-repair"))
+            {
+                IndependenceRulerRepairTests.Run(Check);
+                Console.WriteLine($"{_checks} independence ruler save-repair checks passed.");
+            }
+            else if (args.Contains("--accepted-independence"))
+            {
+                AcceptedIndependenceTests.Run(Check);
+                Console.WriteLine($"{_checks} accepted independence checks passed.");
+            }
+            else if (args.Contains("--parley-capitulation"))
+            {
+                PeaceParleyCapitulationTests.Run(Check);
+                Console.WriteLine($"{_checks} parley capitulation checks passed.");
+            }
+            else if (args.Contains("--party-visual-refresh"))
+            {
+                PartyVisualRefreshTests.Run(Check);
+                Console.WriteLine($"{_checks} party visual refresh checks passed.");
+            }
+            else if (args.Contains("--collapse-claimant-recovery"))
+            {
+                CollapseClaimantRecoveryTests.Run(Check);
+                Console.WriteLine($"{_checks} collapse claimant recovery checks passed.");
+            }
+            else if (args.Contains("--campaign-run-recovery"))
             {
                 CampaignRunRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} campaign run recovery checks passed.");

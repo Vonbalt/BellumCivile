@@ -1797,6 +1797,7 @@
     <string id="BC_Msg_AvoidedWar_InstallRuler" text="to surrender the crown to {LEADER_NAME} of the {CLAN_NAME}" />
     <string id="BC_Msg_AvoidedWar_Abdication" text="to abdicate the throne" />
     <string id="BC_Msg_AvoidedWar_Independence" text="to recognize the independence of the {REALM_NAME}" />
+    <string id="BC_Msg_AvoidedWar_IndependenceRealms" text="to recognize the independence of these realms: {REALM_NAMES}" />
     <string id="BC_FacName_Coalition" text="{FACTION_NAME}" />
     <string id="BC_Msg_RealmFractures" text="The realm fractures. {LEADER_NAME} has raised their banners in open rebellion against {KINGDOM_NAME}." />
 
@@ -2245,6 +2246,10 @@
     <string id="BC_Parley_SignTreaty" text="Sign Treaty" />
     <string id="BC_Parley_RejectTreatyDisabledHint" text="Only your ruler might outright reject a treaty of peace" />
     <string id="BC_Parley_ForcedTreatyRejectHint" text="Terminal war score compels both realms to conclude a treaty of peace." />
+    <string id="BC_Parley_CapitulatedDraftHint" text="Your realm has capitulated. The victorious ruler dictates the terms of peace; you can no longer alter them." />
+    <string id="BC_Parley_CapitulatedBudgetHint" text="The victor must revise these demands to fit the available war score. Continue to refresh the terms for review; no influence will be spent." />
+    <string id="BC_Parley_CapitulatedSignHint" text="Accept the terms dictated by the victorious ruler." />
+    <string id="BC_Parley_CapitulatedDraftRevised" text="The victorious ruler has revised the terms of peace. Review the updated demands before signing." />
     <string id="BC_Parley_SignTreatyDisabledHint" text="You need to select an outcome and how much you want to support that outcome." />
     <string id="BC_Parley_SignTreatyHint" text="Submit the drafted treaty to both councils. Committed influence will be spent even if ratification fails." />
     <string id="BC_Parley_ResetTreatyHint" text="Restore the treaty to the terms first presented at this parley." />

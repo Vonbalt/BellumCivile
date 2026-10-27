@@ -798,6 +798,8 @@ namespace BellumCivile.Behaviors
         public bool IsKingdomIdReferencedByBellumCivileState(string kingdomId)
         {
             if (string.IsNullOrEmpty(kingdomId)) return false;
+            if (_collapses.Any(c => !c.Completed && (c.Parent?.StringId == kingdomId
+                || c.WinnerRealm?.StringId == kingdomId || c.SuccessorId == kingdomId))) return true;
             if (IsKingdomIdReferencedByResolutionState(kingdomId)) return true;
 
             Kingdom kingdom = ResolveKingdomById(kingdomId);
@@ -3177,18 +3179,24 @@ namespace BellumCivile.Behaviors
 
         private static List<IndependencePartitionGroup> BuildIndependencePartitionGroups(FactionObject faction, Kingdom rebelKingdom, Clan victoriousLeader)
         {
-            List<Clan> rebelClans = rebelKingdom?.Clans
+            return BuildIndependencePartitionGroupsForClans(faction?.ParentKingdom, rebelKingdom?.Clans, victoriousLeader);
+        }
+
+        private static List<IndependencePartitionGroup> BuildIndependencePartitionGroupsForClans(
+            Kingdom parentKingdom, IEnumerable<Clan> candidates, Clan victoriousLeader)
+        {
+            List<Clan> rebelClans = candidates?
                 .Where(clan => clan != null && !clan.IsEliminated && !clan.IsUnderMercenaryService)
                 .Distinct()
                 .ToList() ?? new List<Clan>();
             if (victoriousLeader == null || !rebelClans.Contains(victoriousLeader))
                 return new List<IndependencePartitionGroup>();
 
-            FeudalTitleRecord leaderTitle = GetHighestDeFactoTitle(victoriousLeader, faction?.ParentKingdom);
+            FeudalTitleRecord leaderTitle = GetHighestDeFactoTitle(victoriousLeader, parentKingdom);
             int leaderRank = GetTitleRank(leaderTitle);
             Dictionary<Clan, FeudalTitleRecord> highestTitles = rebelClans.ToDictionary(
                 clan => clan,
-                clan => GetHighestDeFactoTitle(clan, faction?.ParentKingdom));
+                clan => GetHighestDeFactoTitle(clan, parentKingdom));
 
             HashSet<Clan> rootClans = new HashSet<Clan> { victoriousLeader };
             foreach (Clan clan in rebelClans)

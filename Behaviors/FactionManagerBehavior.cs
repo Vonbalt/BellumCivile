@@ -494,7 +494,7 @@ namespace BellumCivile.Behaviors
                 _rulerRepairSuppressionDepths[kingdomId] = depth - 1;
         }
 
-        private bool IsRulerRepairSuppressed(Kingdom kingdom)
+        internal bool IsRulerRepairSuppressed(Kingdom kingdom)
         {
             if (CrownAccessionBehavior.Instance?.IsRealmUnionProtected(kingdom) == true) return true;
             if (Campaign.Current?.GetCampaignBehavior<PartitionSuccessionBehavior>()?
@@ -717,6 +717,8 @@ namespace BellumCivile.Behaviors
             foreach (FactionObject faction in _activeFactions.ToList())
             {
                 if (!faction.Members.Contains(clan)) continue;
+                if (!faction.IsIdeology && Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?
+                    .OwnsCollapseHouseholdTransfer(faction, clan, oldKingdom, newKingdom) == true) continue;
                 if (!faction.IsIdeology && Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?
                     .IsRestoredCreationPending(faction.ParentKingdom) == true) continue;
 
