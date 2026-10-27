@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--independence-ruler-repair"))
+            if (args.Contains("--claim-feud-cooldowns"))
+            {
+                ClaimFeudCooldownTests.Run(Check);
+                Console.WriteLine($"{_checks} claim-feud cooldown checks passed.");
+            }
+            else if (args.Contains("--independence-ruler-repair"))
             {
                 IndependenceRulerRepairTests.Run(Check);
                 Console.WriteLine($"{_checks} independence ruler save-repair checks passed.");

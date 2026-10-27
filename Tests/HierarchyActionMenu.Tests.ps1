@@ -15,6 +15,16 @@ foreach ($command in $commands) {
     if ($matches.Count -ne 1) { throw "Missing or duplicate action: $command" }
     if (!$matches[0].ParentNode.SelectSingleNode('HintWidget')) { throw "Missing tooltip: $command" }
 }
+$revoke = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='ExecuteRevoke']")
+if ($revoke.IsEnabled -ne '@IsRevocationEnabled' -or
+    $revoke.ParentNode.SelectSingleNode('HintWidget').DataSource -ne '{RevocationHint}') {
+    throw 'Revocation availability and tooltip must share the selected title preview.'
+}
+$view = Get-Content (Join-Path $root 'UI/VanillaTabs/Kingdoms/Hierarchy/HierarchyTitleNodeVM.cs') -Raw
+if ($view -notmatch 'IsRevocationEnabled\s*=\s*revocation\.CanRevoke' -or
+    $view -notmatch 'RevocationHint\s*=\s*new HintViewModel\(BuildRevocationHint\(revocation\)\)') {
+    throw 'Hierarchy revocation must bind both its disabled state and hint from the same preview.'
+}
 $slot = $node.SelectSingleNode('//*[@Id="ButtonContainer"]')
 if ($slot.HeightSizePolicy -ne 'Fixed') { throw 'Selection must not change node height.' }
 if (!$slot.SelectSingleNode('.//HierarchyOptionsButtonWidget[@IsVisible="@IsSelected"]')) { throw 'Options must be selection-only.' }

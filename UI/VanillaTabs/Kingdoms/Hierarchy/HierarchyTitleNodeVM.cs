@@ -679,7 +679,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             FeudalRevocationPreview preview = FeudalTitlePlayerActionService.GetRevocationPreview(Clan.PlayerClan, Title);
             if (!FeudalTitlePlayerActionService.TryExecuteRevocation(Clan.PlayerClan, Title, out bool holderDefied, out string reason))
             {
-                ShowActionFailure(reason);
+                if (preview.RestrictionReason != null)
+                    InformationManager.DisplayMessage(new InformationMessage(preview.RestrictionReason.ToString(), Colors.Red));
+                else
+                    ShowActionFailure(reason);
                 RefreshPlayerActions();
                 return;
             }
@@ -1113,6 +1116,9 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private TextObject BuildRevocationHint(FeudalRevocationPreview preview)
         {
+            if (preview?.CanRevoke == false && preview.RestrictionReason != null)
+                return preview.RestrictionReason;
+
             TextObject text = preview != null && preview.CanRevoke
                 ? new TextObject("{=BC_Hierarchy_RevokeHintEnabled}Demand revocation of the {TITLE_NAME} from the {HOLDER_CLAN}. Cost: {INFLUENCE_COST} influence.\n\nRequires direct de facto liege authority and a weak or strong claim. If the vassal refuses, the dispute immediately becomes a private feud war.\n\nLikely response: {RESPONSE}")
                 : new TextObject("{=BC_Hierarchy_RevokeHintDisabled}You cannot revoke the {TITLE_NAME}: {REASON}\n\nOnly a direct de facto liege with a weak or strong claim can demand revocation from an immediate vassal.");
