@@ -8,9 +8,9 @@ For download of released versions go to the mod nexus page in: https://www.nexus
 
 | Item | Current state |
 | --- | --- |
-| Documentation revision | October 26, 2026 |
+| Documentation revision | October 27, 2026 |
 | Release version | Bellum Civile 1.4.7b |
-| Target game version | Bannerlord 1.5.5 beta |
+| Target game version | Bannerlord 1.5.6 beta |
 | Core runtime | .NET Framework 4.7.2 (`net472`) |
 | Required mod dependencies | Harmony, UIExtenderEx, Mod Configuration Menu v5 |
 | Optional integrations | Diplomacy, True Noble Opinion, Harvest and Production Overhaul (HAP), custom-banner integrations, Naval DLC / War Sails |
@@ -722,7 +722,7 @@ Use `BellumCivileNotifications` for optional political chat messages. Its Disabl
 
 [BellumCivileSettings.cs](BellumCivileSettings.cs) declares MCM. Runtime callers use [BellumCivileOptions.cs](BellumCivileOptions.cs) for safe access/defaults. [BellumCivileConstants.cs](BellumCivileConstants.cs) contains compiled balance values. Do not expose a toggle solely to preserve an obsolete implementation detail.
 
-MCM hints compare Bellum and unmodded defaults where there is a meaningful counterpart; Bellum-only mechanics keep their own defaults. The comparisons were rechecked against Bannerlord **1.5.5 beta**: `PrisonerReleaseCampaignBehavior.DailyHeroTick` uses 4% in settlements and `4% * (5 - min(81, healthy members)^0.25)` in travelling parties (8-20%), before the player-captor reduction, perks and applicable Valor modifier. Vanilla normally releases prisoners at peace. `DefaultAgeModel`, `DefaultMarriageModel` and `EducationCampaignBehavior.ChildStateToAge` supply the unchanged age comparisons. Bellum's deliberation delay is additional to, not a replacement for, `KingdomDecision`'s 48-hour response window. Recheck these references when updating the target game version, and keep attribute fallbacks and English localization entries synchronized.
+MCM hints compare Bellum and unmodded defaults where there is a meaningful counterpart; Bellum-only mechanics keep their own defaults. The comparisons were rechecked against Bannerlord **1.5.6 beta**: `PrisonerReleaseCampaignBehavior.DailyHeroTick` uses 4% in settlements and `4% * (5 - min(81, healthy members)^0.25)` in travelling parties (8-20%), before the player-captor reduction, perks and applicable Valor modifier. Vanilla normally releases prisoners at peace. `DefaultAgeModel`, `DefaultMarriageModel` and `EducationCampaignBehavior.ChildStateToAge` supply the unchanged age comparisons. Bellum's deliberation delay is additional to, not a replacement for, `KingdomDecision`'s 48-hour response window. Recheck these references when updating the target game version, and keep attribute fallbacks and English localization entries synchronized.
 
 | Group | Important defaults |
 | --- | --- |
@@ -950,7 +950,7 @@ Build on Windows with a .NET SDK capable of SDK-style projects, .NET Framework 4
 
 `Directory.Build.props` supplies a shared `GameFolder` default based on Windows' Program Files (x86) location and the standard Steam library layout. It is independent of where the repository is cloned. An explicit `-p:GameFolder` takes priority over the `GameFolder` environment variable, which in turn overrides the default.
 
-Build `1.5-beta` against the 1.5.5 installation and `main` against the separate 1.4.8 installation with its matching dependencies. These are separate binaries, not one cross-version DLL. Prefer separate worktrees and output folders; after changing installations in the same checkout, rebuild with `--no-incremental`. Nested test `bin/` and `obj/` directories are excluded from reference discovery so stale test DLLs cannot silently override the chosen game's references.
+Build `1.5-beta` against the 1.5.6 installation and `main` against the separate 1.4.8 installation with its matching dependencies. These are separate binaries, not one cross-version DLL. Prefer separate worktrees and output folders; after changing installations in the same checkout, rebuild with `--no-incremental`. Nested test `bin/` and `obj/` directories are excluded from reference discovery so stale test DLLs cannot silently override the chosen game's references.
 
 From the repository root, select the installation below. For a custom Steam library or another storefront, replace `$game` with that installation's absolute path. Setting the environment variable also configures the PowerShell tests and engine harness for this session:
 
@@ -986,13 +986,15 @@ BellumCivile/
 
 Ship manifest, XML, localization, and prefabs from the DLL's revision. A rebuilt DLL alone does not install Concepts articles. Do not redistribute game/dependency assemblies merely because they appear in test output.
 
-`main` maintains 1.4.8 support; `1.5-beta` is the 1.5.5 migration branch. Generated `bin/` and `obj/` outputs, local IDE/tool settings, and private research under `docs/` are excluded from source control. Keep credentials, saves, and logs out of commits as well. Build runtime packages from the tracked source and assets; a source checkout or Git push does not install or publish a packaged release.
+`main` maintains 1.4.8 support; `1.5-beta` is the 1.5.6 migration branch. Generated `bin/` and `obj/` outputs, local IDE/tool settings, and private research under `docs/` are excluded from source control. Keep credentials, saves, and logs out of commits as well. Build runtime packages from the tracked source and assets; a source checkout or Git push does not install or publish a packaged release.
 
 ### Beta Migration Boundaries
 
 The beta integration uses `Kingdom.FormalName` and the three-argument rename API while keeping native names at the save boundary. Council incidents use the new string type IDs and hint objects. Relation calculations, execution/rescue hooks, fief-confirmation callbacks, prisoner perks and UIExtenderEx prefab attributes follow the beta APIs. Active treaty hostages are excluded from the new native blood-feud execution queues; ordinary prisoners and Bellum's explicit treaty judgments retain their execution paths.
 
-Bellum's saveable type IDs, field IDs and stored records are unchanged. This does not guarantee that the game itself can roundtrip a 1.4.8 save through 1.5.5. Test with copies, keep the stable installation and saves separate, and do not overwrite a stable campaign with beta results. A new campaign, an existing-save load/save/reload, and live UI/event testing are still required before declaring release compatibility.
+The 1.5.6 update moves `BattleEnvironment` to the optional final argument of `PerkHelper.AddPerkBonusForCharacter`. Retained-prisoner escape uses this signature with the same secondary perk bonus and `Any` environment as native prisoner release. The engine harness's `--game-version-compatibility` suite verifies the installed helper, its native and Bellum callers, and the by-reference escape bonus.
+
+Bellum's saveable type IDs, field IDs and stored records are unchanged. This does not guarantee that the game itself can roundtrip a 1.4.8 save through 1.5.6. Test with copies, keep the stable installation and saves separate, and do not overwrite a stable campaign with beta results. A new campaign, an existing-save load/save/reload, and live UI/event testing are still required before declaring release compatibility.
 
 ## Verification and Diagnostics
 
@@ -1034,7 +1036,7 @@ dotnet run --project Tests/SuccessionEngineHarness/SuccessionEngineHarness.cspro
 
 Use the default Debug configuration for the combined engine harness: its Harmony mocks can otherwise be bypassed by Release JIT inlining. Keep name-cache checks isolated because Harmony/JIT fixtures can affect other checks. Run the startup and version-contract probes against a Release build as well. Record results with the revision/environment rather than maintaining a stale passed-check count here.
 
-`--campaign-ui-startup` installs the startup and deferred encyclopedia patches against the selected DLLs. `--game-version-compatibility` checks reflected members, council model hooks, incident construction, native prefab insertion anchors and view-model refresh hooks. Build the Release War Sails companion first when its game module is installed, and run this probe from the repository root. These checks do not render Gauntlet screens or validate third-party mods in a live campaign. The harness-only `App.config` permits loading locally installed dependencies marked as downloaded by Windows; it does not change game or system-wide loader settings.
+`--campaign-ui-startup` installs the startup and deferred encyclopedia patches against the selected DLLs. `--game-version-compatibility` checks reflected members, council model hooks, incident construction, retained-prisoner perk calls, native prefab insertion anchors and view-model refresh hooks. Build the Release War Sails companion first when its game module is installed, and run this probe from the repository root. These checks do not render Gauntlet screens or validate third-party mods in a live campaign. The harness-only `App.config` permits loading locally installed dependencies marked as downloaded by Windows; it does not change game or system-wide loader settings.
 
 The engine harness accepts an installation path as its first positional argument, ahead of the `GameFolder` environment variable and the standard Steam default. `ChildhoodEducation.Tests.ps1` accepts `-GameFolder` with the same precedence. Court prototypes resolve Sandbox data through `GameFolder`; their existing `-ModuleData` parameter overrides that location. Prototypes supporting `-SyntheticOnly` can run without game data.
 

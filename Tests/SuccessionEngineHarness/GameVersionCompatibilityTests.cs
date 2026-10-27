@@ -32,6 +32,8 @@ internal static class GameVersionCompatibilityTests
             else { failures.Add(name); Console.Error.WriteLine("CONTRACT FAILED: " + name); }
         }
 
+        RetainedPrisonerPerkTests.Run(Verify);
+
         // Include reflected members that are read at runtime rather than patched at startup.
         foreach (var type in mod.GetTypes())
         foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))

@@ -255,7 +255,7 @@ namespace BellumCivile.Behaviors
             if (!captor.IsMobile)
                 return;
             MobileParty party = captor.MobileParty;
-            PerkHelper.AddPerkBonusForCharacter(DefaultPerks.Roguery.FleetFooted, BattleEnvironment.Any, hero.CharacterObject, false, ref chance);
+            PerkHelper.AddPerkBonusForCharacter(DefaultPerks.Roguery.FleetFooted, hero.CharacterObject, false, ref chance, BattleEnvironment.Any);
             PerkHelper.AddPerkBonusForParty(DefaultPerks.Riding.MountedPatrols, party, true, ref chance);
             PerkHelper.AddPerkBonusForParty(DefaultPerks.Roguery.RansomBroker, party, false, ref chance);
             PerkHelper.AddPerkBonusForParty(DefaultPerks.Scouting.KeenSight, party, false, ref chance);
