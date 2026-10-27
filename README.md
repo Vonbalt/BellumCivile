@@ -4,11 +4,13 @@ Bellum Civile extends Mount & Blade II: Bannerlord with a connected political si
 
 This README provides a technical orientation and maintenance reference for contributors. Players can find the gameplay guide in **Encyclopedia > Concepts > Bellum Civile**.
 
+For download of released versions go to the mod nexus page in: https://www.nexusmods.com/mountandblade2bannerlord/mods/10609
+
 | Item | Current state |
 | --- | --- |
-| Documentation revision | October 13, 2026 |
-| Release version | Bellum Civile 1.4.4 |
-| Target game version | Bannerlord 1.5.5 beta (`1.5-beta` branch) |
+| Documentation revision | October 26, 2026 |
+| Release version | Bellum Civile 1.4.7b |
+| Target game version | Bannerlord 1.5.5 beta |
 | Core runtime | .NET Framework 4.7.2 (`net472`) |
 | Required mod dependencies | Harmony, UIExtenderEx, Mod Configuration Menu v5 |
 | Optional integrations | Diplomacy, True Noble Opinion, Harvest and Production Overhaul (HAP), custom-banner integrations, Naval DLC / War Sails |
