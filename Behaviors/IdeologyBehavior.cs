@@ -904,7 +904,7 @@ namespace BellumCivile.Behaviors
 
             FactionType blueprint = FactionType.Abdication;
             string sourceFactionName = triggeringFaction.GetDisplayName().ToString();
-            string coalitionName = $"{kingdom.Name} {sourceFactionName} Grand Coalition";
+            string coalitionName = $"{DynamicKingdomTitleNameHelper.GetRanklessNameText(kingdom)} {sourceFactionName} Grand Coalition";
             FactionObject grandCoalition = new FactionObject(coalitionName, kingdom, coalitionLeader, blueprint);
             if (committedCrisis) grandCoalition.MarkCommittedCourtChallenge();
             grandCoalition.MarkAsGrandCoalition(triggeringFaction.Type);

@@ -800,3 +800,4 @@ Fixed repeated private feuds after accepted judgments and blocked claimed-title 
 1.4.8 CHANGELOG
 
 Fixed internal fief redistribution rewriting de jure hierarchy and granting dispossession claims after voluntary surrender.
+Shortened grand coalition names by omitting the realm rank.
