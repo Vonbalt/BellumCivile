@@ -221,15 +221,16 @@ namespace BellumCivile
 
         private TextObject GetGrandCoalitionDisplayName()
         {
+            TextObject realmName = DynamicKingdomTitleNameHelper.GetRanklessNameText(ParentKingdom);
             if (!_hasGrandCoalitionSourceIdeology)
             {
                 TextObject legacyName = new TextObject("{=BC_FacName_GrandCoalitionLegacy}{KINGDOM_NAME} Grand Coalition");
-                legacyName.SetTextVariable("KINGDOM_NAME", ParentKingdom?.Name ?? new TextObject(""));
+                legacyName.SetTextVariable("KINGDOM_NAME", realmName);
                 return legacyName;
             }
 
             TextObject localizedName = new TextObject("{=BC_FacName_GrandCoalition}{KINGDOM_NAME} {FACTION_NAME} Grand Coalition");
-            localizedName.SetTextVariable("KINGDOM_NAME", ParentKingdom?.Name ?? new TextObject(""));
+            localizedName.SetTextVariable("KINGDOM_NAME", realmName);
             localizedName.SetTextVariable("FACTION_NAME", GetIdeologyDisplayName(_grandCoalitionSourceIdeology, ParentKingdom));
             return localizedName;
         }

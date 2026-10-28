@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--claim-feud-cooldowns"))
+            if (args.Contains("--fief-redistribution"))
+            {
+                FiefRedistributionTests.Run(Check);
+                Console.WriteLine($"{_checks} fief redistribution checks passed.");
+            }
+            else if (args.Contains("--claim-feud-cooldowns"))
             {
                 ClaimFeudCooldownTests.Run(Check);
                 Console.WriteLine($"{_checks} claim-feud cooldown checks passed.");
