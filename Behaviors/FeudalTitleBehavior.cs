@@ -3720,8 +3720,9 @@ namespace BellumCivile.Behaviors
             string previousDeFacto = oldOwner?.Clan?.StringId ?? titleBeforeTransfer?.DeFactoHolderClanId;
             bool possessionOnly = titleBeforeTransfer != null
                 && string.Equals(_deFactoOnlySettlementTransferTitleId, titleBeforeTransfer.TitleId, StringComparison.Ordinal);
+            bool preserveLegalHierarchy = ShouldPreserveDomesticBaronyHierarchy(titleBeforeTransfer, newOwner?.Clan ?? settlement.OwnerClan);
             string previousParent = titleBeforeTransfer?.ParentTitleId;
-            string previousOrigin = possessionOnly ? GetDriftOriginKingdomId(titleBeforeTransfer) : null;
+            string previousOrigin = possessionOnly || preserveLegalHierarchy ? GetDriftOriginKingdomId(titleBeforeTransfer) : null;
             FeudalTitleRecord title = EnsureBaronyTitle(settlement, "settlement owner changed");
             if (title == null)
                 return;
@@ -3731,7 +3732,7 @@ namespace BellumCivile.Behaviors
             if (titleBeforeTransfer != null)
             {
                 title.SetDeJureHolder(previousDeJure);
-                if (possessionOnly)
+                if (possessionOnly || preserveLegalHierarchy)
                 {
                     // Empty legal topology is not permission to adopt the recipient's realm.
                     title.SetParentTitle(previousParent);
@@ -3747,6 +3748,8 @@ namespace BellumCivile.Behaviors
             Clan newClan = newOwner?.Clan ?? settlement.OwnerClan;
             string newClanId = newClan?.StringId ?? string.Empty;
             bool wasAllocationCustody = ConsumeAllocationCustody(title.TitleId, previousDeFacto, newClanId, detail);
+            bool voluntaryRelinquishment = detail == ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.ByKingDecision
+                && Patches.FiefVoteResolutionPatch.IsVoluntaryRelinquishment(settlement, previousDeFacto, newClan);
             Clan sellerClan = isBarter ? oldOwner?.Clan ?? ResolveClan(previousDeFacto) : null;
 
             if (TryApplySubinfeudationOwnershipChange(
@@ -3775,8 +3778,11 @@ namespace BellumCivile.Behaviors
                     RemoveRedundantClaimsForHolder(newClan, title);
                 if (!isBarter)
                 {
-                    UpdateBaronyParentToCurrentKingdom(title, newClan);
-                    if (!wasAllocationCustody || previousDeJure != previousDeFacto)
+                    if (!preserveLegalHierarchy)
+                        UpdateBaronyParentToCurrentKingdom(title, newClan);
+                    if (voluntaryRelinquishment && previousDeJure == previousDeFacto)
+                        BellumCivileLogger.Log($"Voluntary legal fief grant completed without a dispossession claim; title={title.TitleId}; grantor={previousDeFacto}; recipient={newClanId}.");
+                    else if (!wasAllocationCustody || previousDeJure != previousDeFacto)
                         RegisterDisplacedLegalOwnerClaimIfNeeded(title, previousDeJure, newClan, detail);
                     else
                         BellumCivileLogger.Log($"Feudal allocation completed without custodian claim; title={title.TitleId}; custodian={previousDeFacto}; recipient={newClanId}; detail={detail}.");
@@ -3785,6 +3791,8 @@ namespace BellumCivile.Behaviors
 
             if (isBarter && newClan != null && sellerClan != null && sellerClan != newClan)
                 DeactivateClaimsForTitle(sellerClan, title);
+            if (voluntaryRelinquishment)
+                DeactivateClaimsForTitle(ResolveClan(previousDeFacto), title);
 
             bool politicalParentChanged = false;
             if (IsValidPermanentKingdom(newClan?.Kingdom))
@@ -3801,7 +3809,7 @@ namespace BellumCivile.Behaviors
                     BellumCivileLogger.Log($"Challenge cadet barter trace; settlement={settlement.StringId}; seller={sellerClan.StringId}; buyer={newClanId}; remaining_fiefs={sellerClan.Fiefs.Count}; caller={new System.Diagnostics.StackTrace(false)}");
             }
             BellumCivileLogger.Log(
-                $"Feudal barony synced after ownership change; settlement={settlement.StringId}; detail={detail}; legal_transfer={legalTransfer}; political_parent_changed={politicalParentChanged}; de_jure={previousDeJure}->{title.DeJureHolderClanId}; de_facto={previousDeFacto}->{title.DeFactoHolderClanId}; de_facto_parent={title.DeFactoParentTitleId}; de_jure_parent={title.ParentTitleId}; origin_realm={GetDriftOriginKingdomId(title)}; inherited_possession={possessionOnly}.");
+                $"Feudal barony synced after ownership change; settlement={settlement.StringId}; detail={detail}; legal_transfer={legalTransfer}; political_parent_changed={politicalParentChanged}; de_jure={previousDeJure}->{title.DeJureHolderClanId}; de_facto={previousDeFacto}->{title.DeFactoHolderClanId}; de_facto_parent={title.DeFactoParentTitleId}; de_jure_parent={title.ParentTitleId}; origin_realm={GetDriftOriginKingdomId(title)}; inherited_possession={possessionOnly}; legal_hierarchy_preserved={preserveLegalHierarchy}; voluntary_relinquishment={voluntaryRelinquishment}.");
         }
 
         private bool TryApplySubinfeudationOwnershipChange(
@@ -4635,6 +4643,18 @@ namespace BellumCivile.Behaviors
             return record;
         }
 
+        private bool ShouldPreserveDomesticBaronyHierarchy(FeudalTitleRecord title, Clan recipient)
+        {
+            if (title == null || recipient?.Kingdom == null)
+                return false;
+
+            FeudalTitleRecord parent = GetTitle(title.ParentTitleId);
+            // A change of lawful house within a realm is not de jure territorial integration.
+            return parent != null && parent.IsActive && parent.TitleType > title.TitleType
+                && (ResolveClan(title.DeJureHolderClanId)?.Kingdom == recipient.Kingdom
+                    || ResolveClan(title.DeFactoHolderClanId)?.Kingdom == recipient.Kingdom);
+        }
+
         private void UpdateBaronyParentToCurrentKingdom(FeudalTitleRecord title, Clan ownerClan)
         {
             Kingdom kingdom = ownerClan?.Kingdom;
@@ -4782,7 +4802,7 @@ namespace BellumCivile.Behaviors
 
         private bool ShouldDecoupleFromLegalParent(FeudalTitleRecord title, FeudalTitleRecord legalParent, Clan holderClan, Kingdom holderKingdom)
         {
-            if (title == null || legalParent == null || holderClan == null || !IsLegalParentCompatibleWithKingdom(title, legalParent, holderKingdom))
+            if (title == null || legalParent == null || holderClan == null || !IsDeFactoParentControlledByKingdom(title, legalParent, holderKingdom))
                 return false;
 
             if (string.Equals(legalParent.DeFactoHolderClanId, holderClan.StringId, StringComparison.Ordinal))

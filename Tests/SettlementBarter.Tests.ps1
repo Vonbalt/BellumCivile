@@ -34,7 +34,8 @@ $handler = $handler.Substring(0, $handler.IndexOf('        private bool TryApply
 if ($handler.IndexOf('string previousDeJure =') -gt $handler.IndexOf('FeudalTitleRecord title = EnsureBaronyTitle')) {
     throw 'Barter rights captured after synchronization.'
 }
-if ($handler -notmatch 'if \(!isBarter\)\s*\{\s*UpdateBaronyParentToCurrentKingdom\(title, newClan\);\s*if \(!wasAllocationCustody \|\| previousDeJure != previousDeFacto\)\s*RegisterDisplacedLegalOwnerClaimIfNeeded') {
+if ($handler -notmatch 'if \(!isBarter\)\s*\{\s*if \(!preserveLegalHierarchy\)\s*UpdateBaronyParentToCurrentKingdom\(title, newClan\);' -or
+    $handler -notmatch 'else if \(!wasAllocationCustody \|\| previousDeJure != previousDeFacto\)\s*RegisterDisplacedLegalOwnerClaimIfNeeded') {
     throw 'Barter must not create displaced-owner claims or move the legal parent.'
 }
 if ($handler -notmatch 'if \(isBarter && newClan != null && sellerClan != null && sellerClan != newClan\)\s*DeactivateClaimsForTitle\(sellerClan, title\);') {

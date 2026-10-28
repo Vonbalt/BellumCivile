@@ -40,6 +40,9 @@ public class CrownAccessionBehavior { public static CrownAccessionBehavior Insta
     public bool Protected; public bool IsRealmUnionTitleProtected(string id) { return Protected; } }
 public class FeudalDeJureDriftBehavior { public Action<FeudalTitleRecord> Refresh;
     public void RefreshTitleFamily(FeudalTitleRecord title) { if (Refresh != null) Refresh(title); } }
+namespace Patches { public static class FiefVoteResolutionPatch {
+    public static bool IsVoluntaryRelinquishment(Settlement settlement, string formerHolder, Clan recipient) { return false; }
+} }
 public static class BellumCivileLogger { public static void Log(string message) {} }
 public static class ChangeOwnerOfSettlementAction {
     public enum ChangeOwnerOfSettlementDetail { BySiege, ByKingDecision, ByGift, ByBarter }
