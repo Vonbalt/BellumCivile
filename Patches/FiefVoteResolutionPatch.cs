@@ -24,6 +24,7 @@ namespace BellumCivile.Patches
         private sealed class AwardScope
         {
             internal SettlementClaimantDecision Decision;
+            internal Clan VoluntaryGrantor;
             internal bool Transferred;
         }
         private static readonly List<AwardScope> ActiveAwards = new List<AwardScope>();
@@ -41,9 +42,25 @@ namespace BellumCivile.Patches
             return true;
         }
 
+        internal static bool IsVoluntaryRelinquishment(Settlement settlement, string formerHolderId, Clan recipient)
+        {
+            var scope = ActiveAwards.LastOrDefault(s => s.Decision.Settlement == settlement);
+            return scope?.VoluntaryGrantor != null
+                && scope.VoluntaryGrantor.StringId == formerHolderId
+                && recipient != null && recipient != scope.VoluntaryGrantor
+                && recipient.Kingdom == scope.Decision.Kingdom;
+        }
+
         public static void Prefix(SettlementClaimantDecision __instance)
         {
-            ActiveAwards.Add(new AwardScope { Decision = __instance });
+            Clan excluded = __instance.ClanToExclude;
+            // Both the delayed queue and native decision save this self-proposed surrender.
+            // Capture it before ownership callbacks clear the completed allocation metadata.
+            Clan voluntaryGrantor = excluded != null && __instance.ProposerClan == excluded
+                && __instance.Settlement?.OwnerClan == excluded
+                && excluded.Kingdom != null && excluded.Kingdom == __instance.Kingdom
+                    ? excluded : null;
+            ActiveAwards.Add(new AwardScope { Decision = __instance, VoluntaryGrantor = voluntaryGrantor });
         }
 
         public static Exception Finalizer(SettlementClaimantDecision __instance, Exception __exception)

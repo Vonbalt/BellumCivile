@@ -354,6 +354,8 @@ Claimed revocation requires immediate de facto liege authority, a different same
 
 Transfer handlers capture existing rights before synchronization. **Temporary Crown custody pending distribution must not create free claims or legal ownership**, including confiscated land. Dispossession preserves appropriate claims; voluntary grants and barter use their relinquishment rules. Barter can convey the seller's legal rights, not a third party's.
 
+Redistribution within the same realm preserves valid legal parentage and territorial origin, including land whose de jure realm differs from its current allegiance. A self-proposed relinquishment vote gives up the donor's claims to that fief only when it is awarded, without creating a new dispossession claim. Actual vassalage still follows political control and rank. Existing saved proposer/exclusion fields retain this distinction through pending and reopened votes; no new save fields are required.
+
 ### Formation, Reorganization, and Drift
 
 Formation normally needs at least two contiguous same-tier children. Detaching children from an existing legal parent requires full legal and actual control. Changes are validated before rebinding; eligible empty non-sovereign parents are then cleaned up.

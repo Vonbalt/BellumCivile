@@ -89,6 +89,22 @@ internal static class RealmNameTests
             check(Short.ToString() == shortName, context + ": short name");
             check(Encyclopedia.ToString() == full, context + ": encyclopedia title");
         }
+        void AssertCoalitionNames(string root, string context)
+        {
+            foreach (var source in new[] { FactionType.Nobility, FactionType.Glory, FactionType.Liberty })
+            {
+                var coalition = Blank<FactionObject>();
+                AccessTools.Field(typeof(FactionObject), "_parentKingdom").SetValue(coalition, _realm);
+                AccessTools.Field(typeof(FactionObject), "_name").SetValue(coalition, "Old ranked realm " + source + " Grand Coalition");
+                coalition.MarkAsGrandCoalition(source);
+                check(coalition.GetDisplayName().ToString() == root + " " + source + " Grand Coalition",
+                    context + ": existing " + source + " coalition uses only the realm root");
+            }
+            var legacy = Blank<FactionObject>();
+            AccessTools.Field(typeof(FactionObject), "_parentKingdom").SetValue(legacy, _realm);
+            AccessTools.Field(typeof(FactionObject), "_name").SetValue(legacy, "Old ranked realm Grand Coalition");
+            check(legacy.GetDisplayName().ToString() == root + " Grand Coalition", context + ": untagged legacy coalition also omits rank");
+        }
         void AddRoot(string id, string native, string root)
         {
             var entryType = Type("RealmNameConfig").GetNestedType("Entry", BindingFlags.NonPublic);
@@ -159,7 +175,7 @@ internal static class RealmNameTests
 
             object config = Activator.CreateInstance(Type("FeudalTitleConfig"), true);
             var xml = new XmlDocument();
-            xml.LoadXml("<TitleStyle kingdom='vlandia'><Rank tier='Kingdom' titleName='{=BC_Test_RealmRank}Kingdom' titleFormat='{=BC_Test_RealmFormat}{TITLE_NOUN} of {TITLE_NAME}' /></TitleStyle>");
+            xml.LoadXml("<TitleStyle kingdom='vlandia'><Rank tier='Kingdom' titleName='{=BC_Test_RealmRank}Kingdom' titleFormat='{=BC_Test_RealmFormat}{TITLE_NOUN} of {TITLE_NAME}' /><CourtFactions nobility='Nobility' glory='Glory' liberty='Liberty' /></TitleStyle>");
             var style = AccessTools.Method(Type("FeudalTitleConfig"), "ReadTitleStyle").Invoke(null, new object[] { xml.DocumentElement });
             ((IList)AccessTools.Field(config.GetType(), "_styles").GetValue(config)).Add(style);
             configField.SetValue(null, config);
@@ -186,6 +202,7 @@ internal static class RealmNameTests
             AssertNames("Kingdom of Vlandia", "Vlandia", "Identity mode");
             for (int i = 0; i < 1000; i++) { var name = Full; var shortName = Short; }
             check(_resolutions == 1, "Two thousand full/short reads reuse one sovereign lookup");
+            AssertCoalitionNames("Vlandia", "Identity mode");
             check(Full.Value == "{=BC_Test_RealmFormat}{TITLE_NOUN} of {TITLE_NAME}"
                 && ((TextObject)Full.Attributes["TITLE_NAME"]).Value == "{=BC_Test_RealmRoot}Vlandia",
                 "Display names retain localized format and root tokens");
@@ -193,15 +210,19 @@ internal static class RealmNameTests
             AssertNames("Kingdom of Vlandia", "Vlandia", "Save suppression has ended");
             Mode(settings, 2);
             AssertNames("Kingdom of Morcomb", "Morcomb", "Sovereign mode");
+            AssertCoalitionNames("Morcomb", "Sovereign mode");
             _title.SetName("New Morcomb"); Revise();
             AssertNames("Kingdom of New Morcomb", "New Morcomb", "Title rename invalidates cache");
+            AssertCoalitionNames("New Morcomb", "Title rename");
             var kingdomTitle = _title;
             _title = new FeudalTitleRecord("county", "Morcomb", FeudalTitleType.County,
                 _house.StringId, _house.StringId, "", "", _realm.StringId, 0, 0); Revise();
             AssertNames("County of Morcomb", "Morcomb", "Independent county rank");
+            AssertCoalitionNames("Morcomb", "Independent county");
             _title = new FeudalTitleRecord("empire", "Calradia", FeudalTitleType.Empire,
                 _house.StringId, _house.StringId, "", "", _realm.StringId, 0, 0); Revise();
             AssertNames("Empire of Calradia", "Calradia", "Sovereign promotion");
+            AssertCoalitionNames("Calradia", "Sovereign promotion");
             _title = kingdomTitle; Revise();
             int before = _resolutions;
             _leader = Blank<Hero>(); Full.ToString();
@@ -211,6 +232,7 @@ internal static class RealmNameTests
             Rename(projected, projectedShort);
             check(Full.ToString() == "Vlandia" && Short.ToString() == "Vlandian short",
                 "Projected readback after cache invalidation cannot overwrite native full/short names");
+            AssertCoalitionNames("Vlandia", "Native mode avoids native informal demonyms");
             check(Encyclopedia.ToString() == "Native encyclopedia",
                 "Native mode leaves the original formal source intact");
             Mode(settings, 1);
@@ -221,9 +243,11 @@ internal static class RealmNameTests
             foreach (var translation in Translations) languageTexts[translation.Key] = translation.Value;
             languageField.SetValue(null, "BellumTestLanguage"); languageIndex.SetValue(null, 42);
             AssertNames("Valandie (Royaume)", "Valandie", "Translated identity, rank and word order");
+            AssertCoalitionNames("Valandie", "Translated identity and suffix rank format");
             check(savedDisplay.ToString() == "Valandie (Royaume)", "Previously returned TextObject also follows language changes");
             Mode(settings, 2);
             AssertNames("Morcombie (Royaume)", "Morcombie", "Translated sovereign territory");
+            AssertCoalitionNames("Morcombie", "Translated sovereign territory");
             languageField.SetValue(null, previousLanguage); languageIndex.SetValue(null, previousIndex);
 
             Call("Patches.ArtemRealmNameCompatibility", "TryApply", h);
@@ -407,6 +431,33 @@ internal static class RealmNameTests
                 "Explicit realm rename stops generated-root recovery");
             Mode(settings, 1);
             AssertNames("Kingdom of My Chosen Realm", "My Chosen Realm", "Explicit realm identity rename remains authoritative");
+
+            LoadGeneratedRealm("aserai", new TextObject("Aserai"));
+            AddRoot("aserai", "Aserai", "Aserai");
+            xml.LoadXml("<TitleStyle kingdom='aserai'><Rank tier='Kingdom' titleName='Saltanat' titleFormat='{TITLE_NOUN} {TITLE_NAME}' /><CourtFactions nobility='Nobility' glory='Glory' liberty='Liberty' /></TitleStyle>");
+            ((IList)AccessTools.Field(config.GetType(), "_styles").GetValue(config)).Add(
+                AccessTools.Method(Type("FeudalTitleConfig"), "ReadTitleStyle").Invoke(null, new object[] { xml.DocumentElement }));
+            _title = new FeudalTitleRecord("aserai_crown", "al-Asarin", FeudalTitleType.Kingdom,
+                _house.StringId, _house.StringId, "", "", "aserai", 0, 0); Revise(); Mode(settings, 2);
+            check(Full.ToString() == "Saltanat al-Asarin", "Full immersive realm name retains its sovereign rank");
+            AssertCoalitionNames("al-Asarin", "Immersive Aserai example");
+
+            Mode(settings, 0);
+            LoadGeneratedRealm("nord2", new TextObject("Kingdom of Rhodok"));
+            AddRoot("nord2", "Kingdom of Rhodok", "Rhodok");
+            check(((TextObject)Call("DynamicKingdomTitleNameHelper", "GetRanklessNameText", _realm)).ToString() == "Rhodok"
+                && Full.ToString() == "Kingdom of Rhodok", "Configured native rank-free root leaves the actual native realm name unchanged");
+            Rename(new TextObject("{=!}Kingdom of My Choice"), new TextObject("Chosen people"));
+            check(((TextObject)Call("DynamicKingdomTitleNameHelper", "GetRanklessNameText", _realm)).ToString() == "Kingdom of My Choice",
+                "Rank-free fallback does not strip words from an explicit custom realm identity");
+            LoadGeneratedRealm("test_indep_coalition", Generated("{=BC_Resolution_AseraiIndep}Emirate of {CLAN_NAME}", "Banu Test"));
+            check(((TextObject)Call("DynamicKingdomTitleNameHelper", "GetRanklessNameText", _realm)).ToString() == "Banu Test",
+                "Generated native realm names recover their stored root without string stripping");
+            check(((TextObject)Call("DynamicKingdomTitleNameHelper", "GetRanklessNameText", new object[] { null })).IsEmpty(),
+                "Missing parent realm has a safe empty naming fallback");
+            check(PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(IdeologyBehavior), "TriggerGrandCoalition"))
+                .Any(i => i.Calls(AccessTools.Method(Type("DynamicKingdomTitleNameHelper"), "GetRanklessNameText"))),
+                "New coalition records use the same rank-free root as their localized display");
         }
         finally
         {

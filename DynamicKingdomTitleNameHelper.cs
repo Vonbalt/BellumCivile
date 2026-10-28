@@ -350,6 +350,20 @@ namespace BellumCivile
             return !string.IsNullOrWhiteSpace(displayName);
         }
 
+        internal static TextObject GetRanklessNameText(Kingdom kingdom)
+        {
+            if (kingdom == null)
+                return TextObject.GetEmpty();
+            if (TryResolveDisplayText(kingdom, KingdomDisplayNameField.InformalName, out TextObject root))
+                return root;
+
+            // Native informal names can be demonyms, not the realm's territorial name.
+            TextObject nativeName = GetNativeNameText(kingdom);
+            return RealmNameConfig.ResolveRootText(kingdom.StringId, nativeName?.ToString())
+                ?? IndependentKingdomProfileHelper.ResolveFallbackNameRoot(nativeName)
+                ?? nativeName ?? TextObject.GetEmpty();
+        }
+
         public static bool TryResolveDisplayText(Kingdom kingdom, KingdomDisplayNameField field, out TextObject displayText)
         {
             displayText = null;
