@@ -66,15 +66,18 @@ namespace BellumCivile.ViewModelMixin
                         <EncyclopediaDivider Id='BellumInheritanceDivider' MarginTop='20' Parameter.Title='@BellumInheritanceText' Parameter.ItemList='..\BellumInheritanceParent' GamepadNavigationIndex='0'/>
                         <Widget Id='BellumInheritanceParent' DoNotAcceptEvents='true' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' MarginTop='10' MarginLeft='30'>
                           <Children>
-                            <GridWidget DataSource='{BellumInheritance}' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' DefaultCellWidth='325' DefaultCellHeight='65' ColumnCount='2' UseDynamicCellHeight='true' HorizontalAlignment='Left'>
+                            <GridWidget DataSource='{BellumInheritance}' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' DefaultCellWidth='325' DefaultCellHeight='30' ColumnCount='2' UseDynamicCellHeight='true' HorizontalAlignment='Left'>
                               <ItemTemplate>
                                 <!-- GridWidget premeasures dynamic-height cells at zero width; constrain text before that pass. -->
-                                <ListPanel WidthSizePolicy='Fixed' SuggestedWidth='295' HeightSizePolicy='CoverChildren' VerticalAlignment='Top' MarginLeft='15' MarginRight='15' MarginTop='3' MarginBottom='12' StackLayout.LayoutMethod='VerticalTopToBottom'>
+                                <Widget WidthSizePolicy='Fixed' SuggestedWidth='295' HeightSizePolicy='CoverChildren' VerticalAlignment='Top' MarginLeft='15' MarginRight='15' MarginTop='3' MarginBottom='5'>
                                   <Children>
-                                    <TextWidget DoNotAcceptEvents='true' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' Brush='Encyclopedia.Stat.DefinitionText' Brush.TextHorizontalAlignment='Left' Text='@Definition'/>
-                                    <TextWidget DoNotAcceptEvents='true' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' Brush='Encyclopedia.Stat.ValueText' Brush.TextHorizontalAlignment='Left' Text='@Value' MarginTop='2'/>
+                                    <TextWidget DoNotAcceptEvents='true' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' Brush='Encyclopedia.Stat.DefinitionText' Brush.TextHorizontalAlignment='Left' Text='@Definition'>
+                                      <Children>
+                                        <HintWidget DataSource='{Hint}' WidthSizePolicy='StretchToParent' HeightSizePolicy='StretchToParent' Command.HoverBegin='ExecuteBeginHint' Command.HoverEnd='ExecuteEndHint'/>
+                                      </Children>
+                                    </TextWidget>
                                   </Children>
-                                </ListPanel>
+                                </Widget>
                               </ItemTemplate>
                             </GridWidget>
                           </Children>
@@ -85,6 +88,7 @@ namespace BellumCivile.ViewModelMixin
                     <EncyclopediaDivider Id='AlliesDivider' MarginTop='50' Parameter.Title='@AlliesText' Parameter.ItemList='..\..\AlliesGridParent' GamepadNavigationIndex='0'/>
                   </Children>
                 </ListPanel>");
+            EncyclopediaHeroFamilyPrefabPatch.InsertSection(_document);
         }
 
         [PrefabExtensionXmlNode]

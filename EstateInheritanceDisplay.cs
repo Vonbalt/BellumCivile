@@ -13,6 +13,18 @@ namespace BellumCivile
     {
         private const int TooltipAssetLimit = 5;
 
+        private enum AssetKind { Ordinary, CrownEstate, Sovereign }
+
+        private sealed class Asset
+        {
+            internal string Name { get; }
+            internal AssetKind Kind { get; }
+            internal string Label => Kind == AssetKind.Sovereign ? SovereignTitle(Name)
+                : Kind == AssetKind.CrownEstate ? CrownEstateAsset(Name) : Name;
+
+            internal Asset(string name, AssetKind kind = AssetKind.Ordinary) { Name = name; Kind = kind; }
+        }
+
         internal static string Caveat => new TextObject("{=BC_EstatePreview_Caveat}Expected inheritance reflects current circumstances, not a guarantee. Pending inheritance is recorded but not yet fully settled.").ToString();
 
         internal static List<StringPairItemVM> BuildHeroEntries(Hero hero)
@@ -47,10 +59,10 @@ namespace BellumCivile
                 if (pendingSources.Contains(realm?.RulingClan) || !HereditaryRealmSuccession.IsBloodRelative(hero, sovereign)
                     || !TryGetCrownHeir(realm, out Hero heir, out FeudalTitleRecord title) || heir != hero)
                     continue;
-                entries.Add(new StringPairItemVM(
-                    SovereignTitle(title == null ? realm.Name.ToString() : FeudalTitleDisplayHelper.FormatTitleName(title, realm.RulingClan)),
+                entries.Add(HeroEntry(
+                    new Asset(title == null ? realm.Name.ToString() : FeudalTitleDisplayHelper.FormatTitleName(title, realm.RulingClan), AssetKind.Sovereign),
                     FromPerson(sovereign, realm.RulingClan,
-                        "{=BC_EstatePreview_CrownFrom}Expected crown succession from {PERSON} of {HOUSE}"), null));
+                        "{=BC_EstatePreview_ExpectedFrom}Expected from {PERSON} of {HOUSE}")));
             }
             return entries;
         }
@@ -115,12 +127,27 @@ namespace BellumCivile
                 && share.Heir == hero && !share.IsEscheat && (!pending || !share.Completed)))
             {
                 string context = FromEstate(record, pending);
-                List<string> assets = GetAssets(record, share, pending);
+                List<Asset> assets = GetAssets(record, share, pending);
                 if (assets.Count == 0 && pending)
-                    assets.Add(new TextObject("{=BC_EstatePreview_SettlementPending}Estate settlement outstanding").ToString());
-                foreach (string asset in assets)
-                    entries.Add(new StringPairItemVM(asset, context, null));
+                    assets.Add(new Asset(new TextObject("{=BC_EstatePreview_SettlementPending}Estate settlement outstanding").ToString()));
+                foreach (Asset asset in assets)
+                    entries.Add(HeroEntry(asset, context));
             }
+        }
+
+        private static StringPairItemVM HeroEntry(Asset asset, string context)
+        {
+            string hint = context;
+            if (asset.Kind != AssetKind.Ordinary)
+            {
+                var text = new TextObject("{=BC_EstatePreview_HeroHint}{KIND} - {SOURCE}");
+                text.SetTextVariable("KIND", new TextObject(asset.Kind == AssetKind.CrownEstate
+                    ? "{=BC_EstatePreview_CrownEstateKind}Crown estate"
+                    : "{=BC_EstatePreview_SovereignKind}Sovereign succession"));
+                text.SetTextVariable("SOURCE", context);
+                hint = text.ToString();
+            }
+            return new StringPairItemVM(asset.Name, string.Empty, new BasicTooltipViewModel(() => hint));
         }
 
         private static void AddClanShares(List<TooltipProperty> rows, CrossClanEstateRecord record, bool pending)
@@ -137,7 +164,7 @@ namespace BellumCivile
                 });
             foreach (var group in beneficiaries)
             {
-                List<string> assets = group.SelectMany(share => GetAssets(record, share, pending)).ToList();
+                List<string> assets = group.SelectMany(share => GetAssets(record, share, pending)).Select(asset => asset.Label).ToList();
                 if (assets.Count == 0 && !pending)
                     continue;
                 string beneficiary;
@@ -173,9 +200,9 @@ namespace BellumCivile
             return summary + "\n" + text;
         }
 
-        private static List<string> GetAssets(CrossClanEstateRecord record, CrossClanEstateShare share, bool pending)
+        private static List<Asset> GetAssets(CrossClanEstateRecord record, CrossClanEstateShare share, bool pending)
         {
-            var assets = new List<string>();
+            var assets = new List<Asset>();
             var shownBaronySettlements = new HashSet<string>();
             bool crownEstate = !share.DomesticOnly && record.PolicyVersion > 0
                 || share.SovereignTransfers?.Count > 0;
@@ -209,7 +236,7 @@ namespace BellumCivile
                 }
                 bool sovereign = crownEstate && id == share.RootTitleId
                     || share.SovereignTransfers?.Contains(id) == true;
-                assets.Add(sovereign ? SovereignTitle(name) : crownEstate ? CrownEstateAsset(name) : name);
+                assets.Add(new Asset(name, sovereign ? AssetKind.Sovereign : crownEstate ? AssetKind.CrownEstate : AssetKind.Ordinary));
             }
             foreach (string id in Outstanding(share.Fiefs, share.DeliveredFiefs, share.SupersededFiefs, pending))
             {
@@ -218,7 +245,7 @@ namespace BellumCivile
                     continue;
                 var text = new TextObject("{=BC_EstatePreview_Fief}Fief: {FIEF}");
                 text.SetTextVariable("FIEF", Settlement.Find(id)?.Name?.ToString() ?? id);
-                assets.Add(crownEstate ? CrownEstateAsset(text.ToString()) : text.ToString());
+                assets.Add(new Asset(text.ToString(), crownEstate ? AssetKind.CrownEstate : AssetKind.Ordinary));
             }
             return assets;
         }

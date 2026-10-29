@@ -7042,6 +7042,9 @@
     <string id="BC_EstatePreview_LegacyPending" text="Older recorded allocations are preserved. Pending shares may include foreign beneficiaries and are not recalculated under the current same-realm rule." />
     <string id="BC_EstatePreview_MoreAssets" text="Plus {COUNT} more" />
     <string id="BC_EstatePreview_CrownEstateAsset" text="{ASSET} (Crown estate)" />
+    <string id="BC_EstatePreview_CrownEstateKind" text="Crown estate" />
+    <string id="BC_EstatePreview_SovereignKind" text="Sovereign succession" />
+    <string id="BC_EstatePreview_HeroHint" text="{KIND} - {SOURCE}" />
     <string id="BC_EstateInheritance_Reverted" text="Following the death of {PARENT}, {ESTATE} of {HOUSE} reverted to {RECIPIENT}, the ruling house of {REALM}, because no eligible blood heir remained within the realm." />
     <string id="BC_EstateInheritance_Delivered" text="Following the death of {PARENT}, {HEIR} inherited {ESTATE} from {HOUSE}. The inheritance is now held by {RECIPIENT} in {REALM}." />
     <string id="BC_EstateInheritance_NoRealm" text="an independent house" />
@@ -7120,5 +7123,28 @@
     <string id="BC_Parley_OutcomeUnavailable" text="Predicted outcome unavailable" />
     <string id="BC_Parley_VassalInvalidBudgetHint" text="This draft exceeds the available war score. Submit a valid vote to close the failed parley without spending influence; the treaty will not take effect." />
     <string id="BC_Parley_OutcomeBudgetCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} exceeds the available war score and could not be ratified. The parley has closed without spending influence or applying any treaty terms. The war continues." />
+    <string id="BC_HeroFamily_Header" text="Family" />
+    <string id="BC_HeroFamily_Parents" text="Parents" />
+    <string id="BC_HeroFamily_Grandparents" text="Grandparents" />
+    <string id="BC_HeroFamily_Spouse" text="Spouse" />
+    <string id="BC_HeroFamily_Children" text="Children ({COUNT})" />
+    <string id="BC_HeroFamily_Siblings" text="Siblings ({COUNT})" />
+    <string id="BC_HeroFamily_Grandchildren" text="Grandchildren ({COUNT})" />
+    <string id="BC_HeroFamily_Father" text="Father" />
+    <string id="BC_HeroFamily_Mother" text="Mother" />
+    <string id="BC_HeroFamily_PaternalGrandfather" text="Paternal grandfather" />
+    <string id="BC_HeroFamily_PaternalGrandmother" text="Paternal grandmother" />
+    <string id="BC_HeroFamily_MaternalGrandfather" text="Maternal grandfather" />
+    <string id="BC_HeroFamily_MaternalGrandmother" text="Maternal grandmother" />
+    <string id="BC_HeroFamily_Wife" text="Wife" />
+    <string id="BC_HeroFamily_Husband" text="Husband" />
+    <string id="BC_HeroFamily_FormerWife" text="Former wife" />
+    <string id="BC_HeroFamily_FormerHusband" text="Former husband" />
+    <string id="BC_HeroFamily_Daughter" text="Daughter" />
+    <string id="BC_HeroFamily_Son" text="Son" />
+    <string id="BC_HeroFamily_Sister" text="Sister" />
+    <string id="BC_HeroFamily_Brother" text="Brother" />
+    <string id="BC_HeroFamily_Granddaughter" text="Granddaughter" />
+    <string id="BC_HeroFamily_Grandson" text="Grandson" />
   </strings>
 </base>
