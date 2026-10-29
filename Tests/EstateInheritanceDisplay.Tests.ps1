@@ -64,6 +64,7 @@ $labels = $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}']//Tex
 Check ($labels.Count -eq 1 -and $labels[0].Text -eq '@Definition' -and @($labels | Where-Object {
     $_.WidthSizePolicy -ne 'StretchToParent' -or $_.HeightSizePolicy -ne 'CoverChildren'
 }).Count -eq 0 -and $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}']//HintWidget[@DataSource='{Hint}']").Count -eq 1) 'Each compact inheritance cell wraps its title and exposes provenance through a hover target.'
+Check ($labels[0].DoNotAcceptEvents -eq 'false') 'Inheritance title text accepts the parent hover events required by passive native hints in 1.5.'
 Check ($xml.SelectNodes("//*[@Id='AlliesDivider']").Count -eq 1 -and
     !($xml.SelectNodes('//*[@Id]') | Group-Object Id | Where-Object Count -gt 1)) 'The vanilla allies divider remains and prefab IDs are unique.'
 $ids = [regex]::Matches($display, '\{=([^}]+)\}') | ForEach-Object { $_.Groups[1].Value }

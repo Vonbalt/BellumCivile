@@ -71,7 +71,7 @@ namespace BellumCivile.ViewModelMixin
                                 <!-- GridWidget premeasures dynamic-height cells at zero width; constrain text before that pass. -->
                                 <Widget WidthSizePolicy='Fixed' SuggestedWidth='295' HeightSizePolicy='CoverChildren' VerticalAlignment='Top' MarginLeft='15' MarginRight='15' MarginTop='3' MarginBottom='5'>
                                   <Children>
-                                    <TextWidget DoNotAcceptEvents='true' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' Brush='Encyclopedia.Stat.DefinitionText' Brush.TextHorizontalAlignment='Left' Text='@Definition'>
+                                    <TextWidget DoNotAcceptEvents='false' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' Brush='Encyclopedia.Stat.DefinitionText' Brush.TextHorizontalAlignment='Left' Text='@Definition'>
                                       <Children>
                                         <HintWidget DataSource='{Hint}' WidthSizePolicy='StretchToParent' HeightSizePolicy='StretchToParent' Command.HoverBegin='ExecuteBeginHint' Command.HoverEnd='ExecuteEndHint'/>
                                       </Children>
