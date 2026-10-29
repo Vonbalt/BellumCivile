@@ -10,6 +10,8 @@ namespace BellumCivile.UI
 {
     internal sealed class EncyclopediaHeroFamilyVM : ViewModel
     {
+        private const int GroupGap = 16;
+
         [DataSourceProperty] public MBBindingList<EncyclopediaFamilyPortraitVM> Parents { get; } = new MBBindingList<EncyclopediaFamilyPortraitVM>();
         [DataSourceProperty] public MBBindingList<EncyclopediaFamilyPortraitVM> Grandparents { get; } = new MBBindingList<EncyclopediaFamilyPortraitVM>();
         [DataSourceProperty] public MBBindingList<EncyclopediaFamilyPortraitVM> Spouses { get; } = new MBBindingList<EncyclopediaFamilyPortraitVM>();
@@ -27,6 +29,9 @@ namespace BellumCivile.UI
         [DataSourceProperty] public bool HasGrandchildren => Grandchildren.Count > 0;
         [DataSourceProperty] public bool HasHousehold => HasSpouses || HasChildren;
         [DataSourceProperty] public bool HasDescendantsOrSiblings => HasSiblings || HasGrandchildren;
+        [DataSourceProperty] public int ParentsGap => HasParents && HasGrandparents ? GroupGap : 0;
+        [DataSourceProperty] public int SpousesGap => HasSpouses && HasChildren ? GroupGap : 0;
+        [DataSourceProperty] public int SiblingsGap => HasSiblings && HasGrandchildren ? GroupGap : 0;
         [DataSourceProperty] public int ChildrenColumns => HasSpouses ? 6 : 7;
         [DataSourceProperty] public int SiblingsColumns => HasGrandchildren ? 3 : 7;
         [DataSourceProperty] public int GrandchildrenColumns => HasSiblings ? 4 : 7;
@@ -79,7 +84,8 @@ namespace BellumCivile.UI
 
             IsVisible = IsVisible && (HasAncestors || HasHousehold || HasDescendantsOrSiblings);
             foreach (string property in new[] { nameof(IsVisible), nameof(HasParents), nameof(HasGrandparents), nameof(HasAncestors), nameof(HasSpouses), nameof(HasChildren), nameof(HasSiblings),
-                nameof(HasGrandchildren), nameof(HasHousehold), nameof(HasDescendantsOrSiblings), nameof(ChildrenColumns),
+                nameof(HasGrandchildren), nameof(HasHousehold), nameof(HasDescendantsOrSiblings), nameof(ParentsGap), nameof(SpousesGap),
+                nameof(SiblingsGap), nameof(ChildrenColumns),
                 nameof(SiblingsColumns), nameof(GrandchildrenColumns), nameof(ChildrenWidth), nameof(SiblingsWidth), nameof(GrandchildrenWidth) })
                 OnPropertyChanged(property);
             RefreshValues();

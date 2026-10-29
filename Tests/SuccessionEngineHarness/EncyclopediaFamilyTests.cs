@@ -100,6 +100,8 @@ internal static class EncyclopediaFamilyTests
                 "Empty optional rows do not appear");
             check(!(bool)Get("HasParents") && !(bool)Get("HasGrandparents") && !(bool)Get("HasAncestors"),
                 "All-unknown ancestry hides the headings and the entire ancestry row");
+            check((int)Get("ParentsGap") == 0 && (int)Get("SpousesGap") == 0 && (int)Get("SiblingsGap") == 0,
+                "Empty family rows do not reserve a gap");
 
             var father = Person("father", 500);
             var mother = Person("mother", 510, true);
@@ -109,9 +111,11 @@ internal static class EncyclopediaFamilyTests
             Refresh(hero);
             check((bool)Get("HasParents") && !(bool)Get("HasGrandparents") && (bool)Get("HasAncestors"),
                 "Known parents display independently of an empty grandparents section");
+            check((int)Get("ParentsGap") == 0, "Parents alone have no trailing group gap");
             father.Father = paternalGrandfather; mother.Mother = maternalGrandmother;
             Refresh(hero);
             check(Heroes("Parents").SequenceEqual(new[] { father, mother }), "Parents occupy father and mother slots");
+            check((int)Get("ParentsGap") == 16, "Parents and grandparents have a distinct inter-group gap");
             check(Heroes("Grandparents").SequenceEqual(new[] { paternalGrandfather, null, null, maternalGrandmother }),
                 "Partially known grandparents retain their paternal and maternal positions");
             check(Roles("Grandparents")[0] == "Paternal grandfather" && Roles("Grandparents")[3] == "Maternal grandmother",
@@ -134,6 +138,7 @@ internal static class EncyclopediaFamilyTests
                 "Birth-order sorting does not compare frozen ages at death");
             check((int)Get("ChildrenColumns") == 7 && (int)Get("ChildrenWidth") == 700 && ActiveColumns("Children") == 7,
                 "Children use seven literal portrait columns when no spouse is present");
+            check((int)Get("SpousesGap") == 0, "Children alone do not inherit an empty spouse-column gap");
 
             var currentSpouse = Person("current_spouse", 1100, true);
             var formerSpouse = Person("former_spouse", 1050, true, true);
@@ -147,6 +152,8 @@ internal static class EncyclopediaFamilyTests
             check((int)Get("ChildrenColumns") == 6 && (int)Get("ChildrenWidth") == 600 && (bool)Get("HasHousehold")
                 && ActiveColumns("Children") == 6,
                 "Spouse column leaves six literal native-sized child portrait columns");
+            check((int)Get("SpousesGap") == (int)Get("ParentsGap"),
+                "Spouse and children use the same separation as parents and grandparents");
 
             var paternalHalf = Person("paternal_half", 800); paternalHalf.Father = father;
             var maternalHalf = Person("maternal_half", 900, true); maternalHalf.Mother = mother;
@@ -160,6 +167,7 @@ internal static class EncyclopediaFamilyTests
             Refresh(hero);
             check(Heroes("Siblings").Length == 4 && ActiveColumns("Siblings") == 7,
                 "Four siblings without grandchildren remain on one seven-column row");
+            check((int)Get("SiblingsGap") == 0, "Siblings alone keep the full row without a trailing gap");
 
             var grandson = Person("grandson", 4000); grandson.Father = young;
             var granddaughter = Person("granddaughter", 3500, true); granddaughter.Father = tiedA;
@@ -172,6 +180,8 @@ internal static class EncyclopediaFamilyTests
             check((int)Get("SiblingsColumns") == 3 && (int)Get("GrandchildrenColumns") == 4
                 && ActiveColumns("Siblings") == 3 && ActiveColumns("Grandchildren") == 4,
                 "Siblings and grandchildren share seven native-sized slots without stretching portraits");
+            check((int)Get("SiblingsGap") == (int)Get("ParentsGap") && (int)Get("SiblingsGap") == (int)Get("SpousesGap"),
+                "Every paired family row uses the same group separation");
 
             for (int i = 0; i < 23; i++) Person("extra_child_" + i, 5000 + i).Father = hero;
             Refresh(hero);
@@ -190,6 +200,7 @@ internal static class EncyclopediaFamilyTests
                 && !Heroes("Grandchildren").Contains(grandson), "Native visibility filtering is applied to every family group");
             check((string)Get("ChildrenText") == "Children (26)" && (int)Get("ChildrenColumns") == 7 && ActiveColumns("Children") == 7,
                 "Hidden relatives do not inflate counts or reserve a spouse column");
+            check((int)Get("SpousesGap") == 0, "Hiding the spouse group also removes its separation");
             hidden.Add(mother); Refresh(hero);
             check(!(bool)Get("HasAncestors") && (bool)Get("IsVisible") && (bool)Get("HasChildren"),
                 "A family with visible descendants but unknown ancestry has no empty ancestry band");
@@ -201,7 +212,8 @@ internal static class EncyclopediaFamilyTests
                 "Hidden viewed heroes clear every group without examining their relatives");
             Refresh(null);
             check(!(bool)Get("IsVisible"), "A missing viewed hero cannot leave stale family portraits");
-            check(notifications.Contains("ChildrenText") && notifications.Contains("ChildrenColumns") && notifications.Contains("IsVisible"),
+            check(notifications.Contains("ChildrenText") && notifications.Contains("ChildrenColumns") && notifications.Contains("IsVisible")
+                && notifications.Contains("ParentsGap") && notifications.Contains("SpousesGap") && notifications.Contains("SiblingsGap"),
                 "Refresh notifies headings, layout dimensions, and visibility bindings");
 
             hidden.Clear();
@@ -223,6 +235,7 @@ internal static class EncyclopediaFamilyTests
                 "Current and former husbands use their correct relationship labels");
             check(!(bool)Get("HasAncestors") && (bool)Get("HasHousehold") && (bool)Get("IsVisible"),
                 "Spouse-only families display without a blank ancestor row");
+            check((int)Get("SpousesGap") == 0, "Spouses alone have no trailing group separation");
 
             ((ViewModel)vm).OnFinalize();
             check(Entries("Parents").Length == 0 && Entries("Children").Length == 0,
@@ -309,6 +322,12 @@ internal static class EncyclopediaFamilyTests
             "Family has exactly three logical two-column rows");
         check(section.SelectNodes(".//NavigatableGridWidget").Count == 9,
             "Six family groups use literal-count grids with shared and full-width variants where needed");
+        foreach (string group in new[] { "Parents", "Spouses", "Siblings" })
+            check(section.SelectSingleNode(".//*[@Id='BellumFamily" + group + "' and @MarginRight='@" + group + "Gap']") != null,
+                "Group spacing binds on the family view model, not on a portrait list: " + group);
+        foreach (string group in new[] { "Grandparents", "Children", "Grandchildren" })
+            check(section.SelectSingleNode(".//*[@Id='BellumFamily" + group + "' and @MarginRight='0']") != null,
+                "Right-hand family group has no extra trailing margin: " + group);
         check(section.SelectSingleNode(".//*[@Id='BellumFamilyAncestors' and @IsVisible='@HasAncestors']") != null
             && section.SelectSingleNode(".//*[@Id='BellumFamilyParents' and @IsVisible='@HasParents']") != null
             && section.SelectSingleNode(".//*[@Id='BellumFamilyGrandparents' and @IsVisible='@HasGrandparents']") != null,
@@ -344,10 +363,15 @@ internal static class EncyclopediaFamilyTests
         check(absent.OuterXml == original, "Original family remains when another layout has removed the replacement insertion point");
         AccessTools.Method(patchType, "InsertSection").Invoke(null, new object[] { injected });
         check(injected.SelectNodes("//*[@Id='BellumFamilySection']").Count == 1, "Family insertion is idempotent");
-        CheckNativeMeasurement(section, check);
+        var nativePage = new XmlDocument();
+        nativePage.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaHeroPage.xml"));
+        var nativeContent = (XmlElement)nativePage.SelectSingleNode("//*[@Id='FamilyGrid']/ancestor::Widget[@SuggestedWidth][1]");
+        var body = (XmlElement)section.SelectSingleNode(".//*[@Id='BellumFamilyBody']");
+        float availableWidth = float.Parse(nativeContent.GetAttribute("SuggestedWidth")) - float.Parse(body.GetAttribute("MarginLeft"));
+        CheckNativeMeasurement(section, availableWidth, check);
     }
 
-    private static void CheckNativeMeasurement(XmlElement section, Action<bool, string> check)
+    private static void CheckNativeMeasurement(XmlElement section, float availableWidth, Action<bool, string> check)
     {
         var assembly = Assembly.Load("TaleWorlds.GauntletUI");
         var gridType = Assembly.Load("TaleWorlds.MountAndBlade.GauntletUI.Widgets")
@@ -398,6 +422,46 @@ internal static class EncyclopediaFamilyTests
                     && Math.Abs(width - columns * 100 * scale) < 0.01
                     && widths.All(w => Math.Abs(w - 100 * scale) < 0.01),
                     "Actual prefab grid keeps 100-unit portrait spacing and wraps at its literal count: " + template.GetAttribute("Id") + ", scale=" + scale);
+            }
+            foreach (var pair in new[] { ("Parents", "Grandparents"), ("Spouses", "Children"), ("Siblings", "Grandchildren") })
+            {
+                var leftTemplate = (XmlElement)section.SelectSingleNode(".//*[@Id='BellumFamily" + pair.Item1 + "']");
+                var rightTemplate = (XmlElement)section.SelectSingleNode(".//*[@Id='BellumFamily" + pair.Item2 + "']");
+                int Columns(XmlElement template) => int.Parse(((XmlElement)template.SelectSingleNode(".//NavigatableGridWidget")).GetAttribute("ColumnCount"));
+                foreach (int visible in new[] { 1, 2, 3 })
+                {
+                    bool hasLeft = (visible & 1) != 0, hasRight = (visible & 2) != 0;
+                    var row = Activator.CreateInstance(cellType, context);
+                    Set(row, "WidthSizePolicy", "Fixed"); Set(row, "SuggestedWidth", availableWidth);
+                    Set(row, "HeightSizePolicy", "CoverChildren");
+                    Set(AccessTools.Property(cellType, "StackLayout").GetValue(row), "LayoutMethod", "HorizontalLeftToRight");
+                    var left = Activator.CreateInstance(cellType, context);
+                    var right = Activator.CreateInstance(cellType, context);
+                    int leftColumns = !hasRight && pair.Item1 == "Siblings" ? 7 : Columns(leftTemplate);
+                    int rightColumns = !hasLeft && pair.Item2 != "Grandparents" ? 7 : Columns(rightTemplate);
+                    foreach (object group in new[] { left, right })
+                    {
+                        Set(group, "WidthSizePolicy", "Fixed"); Set(group, "HeightSizePolicy", "Fixed");
+                        Set(group, "SuggestedHeight", 140f); Set(group, "ParentWidget", row);
+                    }
+                    Set(left, "SuggestedWidth", leftColumns * 100f); Set(right, "SuggestedWidth", rightColumns * 100f);
+                    Set(left, "IsVisible", hasLeft); Set(right, "IsVisible", hasRight);
+                    Set(left, "MarginRight", hasLeft && hasRight ? 16f : 0f);
+                    var measure = AccessTools.Method(cellType, "Measure");
+                    var vectorType = measure.GetParameters()[0].ParameterType;
+                    measure.Invoke(row, new[] { Activator.CreateInstance(vectorType) });
+                    AccessTools.Method(cellType, "Layout").Invoke(row, new object[] { 0f, 140 * scale, availableWidth * scale, 0f });
+                    float leftStart = (float)AccessTools.Property(cellType, "Left").GetValue(left);
+                    float leftEnd = (float)AccessTools.Property(cellType, "Right").GetValue(left);
+                    float rightStart = (float)AccessTools.Property(cellType, "Left").GetValue(right);
+                    float rightEnd = (float)AccessTools.Property(cellType, "Right").GetValue(right);
+                    bool spacing = hasLeft && hasRight ? Math.Abs(rightStart - leftEnd - 16 * scale) < 0.01
+                        : Math.Abs(hasLeft ? leftStart : rightStart) < 0.01;
+                    check(spacing && (!hasLeft || leftEnd <= availableWidth * scale + 0.01)
+                        && (!hasRight || rightEnd <= availableWidth * scale + 0.01),
+                        "Native paired row has a gap only between visible groups and fits the page: " + pair.Item1 + "/" + pair.Item2
+                        + ", visible=" + visible + ", scale=" + scale);
+                }
             }
         }
     }

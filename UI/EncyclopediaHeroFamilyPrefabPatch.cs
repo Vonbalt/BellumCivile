@@ -38,15 +38,15 @@ namespace BellumCivile.ViewModelMixin
             var rows = Children(body);
             var ancestors = Row(document, "Ancestors", "@HasAncestors");
             rows.AppendChild(ancestors);
-            Group(ancestors, "Parents", "200", "2", "@HasParents", marginRight: "20");
+            Group(ancestors, "Parents", "200", "2", "@HasParents", marginRight: "@ParentsGap");
             Group(ancestors, "Grandparents", "400", "4", "@HasGrandparents");
             var household = Row(document, "Household", "@HasHousehold");
             rows.AppendChild(household);
-            Group(household, "Spouses", "100", "1", "@HasSpouses");
+            Group(household, "Spouses", "100", "1", "@HasSpouses", marginRight: "@SpousesGap");
             Group(household, "Children", "@ChildrenWidth", "6", "@HasChildren", sharedWhen: "@HasSpouses");
             var relatives = Row(document, "SiblingsAndGrandchildren", "@HasDescendantsOrSiblings");
             rows.AppendChild(relatives);
-            Group(relatives, "Siblings", "@SiblingsWidth", "3", "@HasSiblings", sharedWhen: "@HasGrandchildren");
+            Group(relatives, "Siblings", "@SiblingsWidth", "3", "@HasSiblings", sharedWhen: "@HasGrandchildren", marginRight: "@SiblingsGap");
             Group(relatives, "Grandchildren", "@GrandchildrenWidth", "4", "@HasGrandchildren", sharedWhen: "@HasSiblings");
             allies.ParentNode.InsertBefore(section, allies);
         }
