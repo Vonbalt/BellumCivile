@@ -177,6 +177,11 @@ internal static class Program
                 TestRoyalCadetNames();
                 Console.WriteLine($"{_checks} inheritance regression checks passed.");
             }
+            else if (args.Contains("--encyclopedia-family"))
+            {
+                EncyclopediaFamilyTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} encyclopedia family checks passed.");
+            }
             else if (args.Contains("--encyclopedia-inheritance"))
             {
                 EncyclopediaInheritanceLayoutTests.Run(Check);

@@ -38,14 +38,17 @@ Check ($display.Contains('id == record.RealmCrownTitleId || id == politicalCrown
     $display.Contains('HereditaryRealmSuccession.GetLine(realm).FirstOrDefault()') -and
     $display.Contains('!share.DomesticOnly && record.PolicyVersion > 0')) 'Political crowns use realm succession while sovereign estate packages are distinctly labeled.'
 Check ($display.Contains('bool sovereign = crownEstate && id == share.RootTitleId') -and
-    $display.Contains('sovereign ? SovereignTitle(name) : crownEstate ? CrownEstateAsset(name) : name') -and
-    $display.Contains('crownEstate ? CrownEstateAsset(text.ToString()) : text.ToString()')) 'Only sovereign roots use sovereign succession labels; package assets use Crown estate.'
+    $display.Contains('sovereign ? AssetKind.Sovereign : crownEstate ? AssetKind.CrownEstate : AssetKind.Ordinary') -and
+    $display.Contains('new Asset(text.ToString(), crownEstate ? AssetKind.CrownEstate : AssetKind.Ordinary)') -and
+    $display.Contains('Select(asset => asset.Label)')) 'Structured asset kinds distinguish sovereign roots from Crown estates while retaining clan tooltip labels.'
 Check ($display -match '(?s)pending.Any\(record => record.PolicyVersion == 0\)\s*\? new TextObject\("\{=BC_EstatePreview_LegacyPending\}.*?: new TextObject\("\{=BC_EstatePreview_SameRealm\}') 'Legacy pending allocations use a preservation caveat instead of a contradictory current-rule statement.'
 Check ($display.Contains('private const int TooltipAssetLimit = 5;') -and
     $display.Contains('assets.Take(TooltipAssetLimit)') -and $display.Contains('assets.Count - TooltipAssetLimit') -and
     $display.Contains('group.SelectMany(share => GetAssets(record, share, pending))')) 'Tooltips cap combined beneficiary packages at five assets plus a remaining count.'
 $heroShares = [regex]::Match($display, '(?s)private static void AddHeroShares\(.*?(?=private static void AddClanShares)').Value
-Check ($heroShares.Contains('foreach (string asset in assets)') -and $heroShares -notmatch 'SummarizeAssets|\.Take\(') 'Hero-page inheritance retains every asset.'
+Check ($heroShares.Contains('foreach (Asset asset in assets)') -and $heroShares -notmatch 'SummarizeAssets|\.Take\(') 'Hero-page inheritance retains every asset.'
+Check ($display.Contains('new StringPairItemVM(asset.Name, string.Empty, new BasicTooltipViewModel(() => hint))') -and
+    $display.Contains('{=BC_EstatePreview_HeroHint}{KIND} - {SOURCE}')) 'Hero entries show bare title names with context in a native hover hint.'
 Check ($display.Contains('BC_EstatePreview_SameRealm') -and $display.Contains('BC_EstatePreview_Caveat')) 'Same-realm ordinary-land restrictions and current-circumstances caveats are present.'
 Check ($display -notmatch 'DailyTick|HourlyTick|RegisterEvents|\.Shares\.Add\(|share\.\w+\s*=(?!=)|record\.\w+\s*=(?!=)') 'Presentation has no scheduled scans or estate mutations.'
 
@@ -55,12 +58,12 @@ Check (([regex]::Matches($refresh, 'EstateInheritanceDisplay.BuildHeroEntries\(_
         $refresh.IndexOf('if (_hero?.Clan == null || _hero.Clan.Leader != _hero)')) 'Inheritance is built once per refresh before the clan-leader-only guard.'
 Check ($refresh.Contains('BellumInheritance.Clear()') -and $refresh.Contains('HasBellumInheritance = BellumInheritance.Count > 0')) 'Refresh clears old inheritance rows and updates empty-state visibility.'
 Check ($xml.SelectNodes("//ListPanel[@IsVisible='@HasBellumInheritance']").Count -eq 1 -and
-    $xml.SelectNodes("//ListPanel[@DataSource='{BellumInheritance}']").Count -eq 1 -and
-    $xml.SelectNodes("//*[@Text='@BellumInheritanceCaveat']").Count -eq 1) 'Prefab binds the inheritance visibility, list and caveat.'
-$labels = $xml.SelectNodes("//ListPanel[@DataSource='{BellumInheritance}']//TextWidget")
-Check ($labels.Count -eq 2 -and @($labels | Where-Object {
+    $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}' and @ColumnCount='2']").Count -eq 1 -and
+    $xml.SelectNodes("//*[@Text='@BellumInheritanceCaveat']").Count -eq 0) 'Prefab binds the two-column inheritance section without a repeated caveat.'
+$labels = $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}']//TextWidget")
+Check ($labels.Count -eq 1 -and $labels[0].Text -eq '@Definition' -and @($labels | Where-Object {
     $_.WidthSizePolicy -ne 'StretchToParent' -or $_.HeightSizePolicy -ne 'CoverChildren'
-}).Count -eq 0) 'Title and provenance occupy separate full-width wrapping rows without fixed-height cells.'
+}).Count -eq 0 -and $xml.SelectNodes("//GridWidget[@DataSource='{BellumInheritance}']//HintWidget[@DataSource='{Hint}']").Count -eq 1) 'Each compact inheritance cell wraps its title and exposes provenance through a hover target.'
 Check ($xml.SelectNodes("//*[@Id='AlliesDivider']").Count -eq 1 -and
     !($xml.SelectNodes('//*[@Id]') | Group-Object Id | Where-Object Count -gt 1)) 'The vanilla allies divider remains and prefab IDs are unique.'
 $ids = [regex]::Matches($display, '\{=([^}]+)\}') | ForEach-Object { $_.Groups[1].Value }

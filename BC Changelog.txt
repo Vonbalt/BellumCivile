@@ -799,5 +799,6 @@ Fixed repeated private feuds after accepted judgments and blocked claimed-title 
 
 1.4.8 CHANGELOG
 
-Fixed internal fief redistribution rewriting de jure hierarchy and granting dispossession claims after voluntary surrender.
+Fixed internal fief redistribution rewriting de jure hierarchy when player voluntarily relinquish fief.
 Shortened grand coalition names by omitting the realm rank.
+Reorganized noble encyclopedia inheritance and family sections.

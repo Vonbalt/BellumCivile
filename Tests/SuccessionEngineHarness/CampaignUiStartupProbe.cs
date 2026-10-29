@@ -27,6 +27,16 @@ internal static class CampaignUiStartupProbe
         }
         var hostagePatch = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.HostageEncyclopediaHistoryPatch");
         check(!patchTypes.Contains(hostagePatch), "Hostage encyclopedia patch is deferred beyond module load");
+        var familyMixin = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.ViewModelMixin.EncyclopediaHeroFamilyMixin", true);
+        var familyAttribute = familyMixin.GetCustomAttributes(false).Single(a => a.GetType().Name == "ViewModelMixinAttribute");
+        string familyRefresh = (string)AccessTools.Property(familyAttribute.GetType(), "RefreshMethodName").GetValue(familyAttribute);
+        var page = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Pages.EncyclopediaHeroPageVM");
+        var uiExtender = Assembly.Load("Bannerlord.UIExtenderEx");
+        var mixinPatches = uiExtender.GetType("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch", true);
+        harmony.Patch(AccessTools.Method(page, familyRefresh), transpiler: new HarmonyMethod(
+            AccessTools.Method(mixinPatches, "ViewModel_Refresh_Transpiler")));
+        check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
+            "Family mixin registers through the real UIExtender refresh transpiler before game texts exist");
         GameTexts.Initialize(new GameTextManager());
         var module = (BellumCivile.SubModule)FormatterServices.GetUninitializedObject(typeof(BellumCivile.SubModule));
         AccessTools.Field(typeof(BellumCivile.SubModule), "_harmony").SetValue(module, harmony);
