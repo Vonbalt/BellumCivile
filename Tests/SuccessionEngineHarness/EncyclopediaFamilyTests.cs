@@ -30,6 +30,8 @@ internal static class EncyclopediaFamilyTests
 
     internal static void Run(Action<bool, string> check, string game)
     {
+        using var compatibility = new EncyclopediaFamilyCompatibilityTests();
+        compatibility.Run(check, game);
         CheckLayout(check, game);
         var assembly = typeof(FeudalTitleRecord).Assembly;
         var type = assembly.GetType("BellumCivile.UI.EncyclopediaHeroFamilyVM", true);
@@ -248,6 +250,17 @@ internal static class EncyclopediaFamilyTests
             var pageType = Type.GetType("TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Pages.EncyclopediaHeroPageVM, TaleWorlds.CampaignSystem.ViewModelCollection", true);
             var page = (ViewModel)FormatterServices.GetUninitializedObject(pageType);
             var mixin = Activator.CreateInstance(mixinType, new object[] { page });
+            var policy = assembly.GetType("BellumCivile.UI.EncyclopediaFamilyLayoutCompatibility", true);
+            var changed = AccessTools.Field(policy, "Changed");
+            check(((Delegate)changed.GetValue(null)).GetInvocationList().Any(d => ReferenceEquals(d.Target, mixin)),
+                "Open hero pages subscribe to family layout ownership changes");
+            var layoutNotifications = new HashSet<string>();
+            page.PropertyChanged += (_, args) => layoutNotifications.Add(args.PropertyName);
+            compatibility.SetSharedLayout(true);
+            check(!(bool)Value(mixin, "BellumUseFamilyLayout") && layoutNotifications.Contains("BellumUseFamilyLayout")
+                && !(bool)Value(Value(mixin, "BellumFamily"), "IsVisible"),
+                "Falling back notifies an already constructed page and hides its grouped family section");
+            compatibility.SetSharedLayout(false);
             var refreshes = new List<object>();
             harmony.Patch(AccessTools.Method(mixinType, "OnRefresh"), prefix: new HarmonyMethod(
                 typeof(EncyclopediaFamilyTests), nameof(RecordRefresh)));
@@ -264,6 +277,8 @@ internal static class EncyclopediaFamilyTests
                 AccessTools.Property(pageType, "IsLoadingOver").SetValue(page, true);
                 check(refreshes.Count == 2, "Repeated native page refreshes keep updating the family");
                 AccessTools.Method(mixinType, "OnFinalize").Invoke(mixin, null);
+                check(changed.GetValue(null) == null || !((Delegate)changed.GetValue(null)).GetInvocationList().Any(d => ReferenceEquals(d.Target, mixin)),
+                    "Closing the page releases its family layout ownership subscription");
                 AccessTools.Property(pageType, "IsLoadingOver").SetValue(page, false);
                 AccessTools.Property(pageType, "IsLoadingOver").SetValue(page, true);
                 check(refreshes.Count == 2, "Closing the page unsubscribes its family completion handler");
@@ -302,9 +317,10 @@ internal static class EncyclopediaFamilyTests
                 && dividers.IndexOf("BellumFamilyDivider") < dividers.IndexOf("AlliesDivider")
                 && dividers.IndexOf("AlliesDivider") < dividers.IndexOf("EnemiesDivider"),
                 "Family follows Bellum titles and precedes Friends/Enemies regardless of patch order: " + familyFirst);
-            check(document.SelectNodes("//*[@Id='FamilyGrid' or @Id='FamilyDivider']").Count == 0
-                && document.SelectNodes("//NavigationScopeTargeter[@ScopeParent='..\\FamilyGrid']").Count == 0,
-                "Old family grid, divider and gamepad scope are removed together: " + familyFirst);
+            check(document.SelectNodes("//*[@Id='FamilyGrid' or @Id='FamilyDivider']").Count == 2
+                && document.SelectNodes("//NavigationScopeTargeter[@ScopeParent='..\\FamilyGrid']").Count == 1
+                && document.SelectNodes("//*[@IsHidden='true' and (@Id='FamilyGrid' or @Id='FamilyDivider' or @ScopeParent='..\\FamilyGrid')]").Count == 3,
+                "Native family anchors remain in place and hide only while Bellum owns the layout: " + familyFirst);
             check(document.SelectNodes("//*[@Id='AlliesGridParent' or @Id='EnemiesGridParent']").Count == 2,
                 "Friends and Enemies lists remain untouched: " + familyFirst);
             var newAllies = (XmlElement)document.SelectSingleNode("//*[@Id='AlliesDivider']");
@@ -312,7 +328,7 @@ internal static class EncyclopediaFamilyTests
                 && newAllies.ParentNode.ParentNode.ParentNode.SelectSingleNode("Widget[@Id='AlliesGridParent']") != null,
                 "Friends collapse still reaches its original list after the insertion");
             string once = document.OuterXml; Apply(document);
-            check(document.OuterXml == once, "Family cleanup is idempotent: " + familyFirst);
+            check(document.OuterXml == once, "Family visibility patch is idempotent: " + familyFirst);
         }
 
         var section = (XmlElement)injected.SelectSingleNode("//*[@Id='BellumFamilySection']");
@@ -357,10 +373,13 @@ internal static class EncyclopediaFamilyTests
             "Reused native portrait supports encyclopedia links and hero tooltips on this game version");
         var absent = new XmlDocument(); absent.LoadXml("<Prefab><Window><Widget /></Window></Prefab>");
         string original = absent.OuterXml; Apply(absent);
-        check(absent.OuterXml == original, "Cleanup leaves an unfamiliar replacement page alone");
+        check(absent.OuterXml == original, "Family patch leaves an unfamiliar replacement page alone");
         absent.LoadXml("<Prefab><Window><Children><EncyclopediaDivider Id='FamilyDivider' /><NavigatableGridWidget Id='FamilyGrid' DataSource='{Family}' /></Children></Window></Prefab>");
         original = absent.OuterXml; Apply(absent);
         check(absent.OuterXml == original, "Original family remains when another layout has removed the replacement insertion point");
+        var restored = new XmlDocument();
+        restored.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaHeroPage.xml"));
+        Apply(restored);
         AccessTools.Method(patchType, "InsertSection").Invoke(null, new object[] { injected });
         check(injected.SelectNodes("//*[@Id='BellumFamilySection']").Count == 1, "Family insertion is idempotent");
         var nativePage = new XmlDocument();

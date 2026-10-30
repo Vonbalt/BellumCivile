@@ -1,26 +1,37 @@
-using System.Linq;
 using System.Xml;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs;
+using BellumCivile.UI;
 
 namespace BellumCivile.ViewModelMixin
 {
     [PrefabExtension("EncyclopediaHeroPage", null)]
     internal sealed class EncyclopediaHeroFamilyPrefabPatch : CustomPatch<XmlDocument>
     {
+        private static readonly ConditionalWeakTable<XmlDocument, List<XmlElement>> HiddenNativeNodes
+            = new ConditionalWeakTable<XmlDocument, List<XmlElement>>();
+
         public override string Id => "BellumHeroFamily";
 
         public override void Apply(XmlDocument document)
         {
-            // The replacement is inserted with Titles, so patch registration order cannot move it above Titles.
-            if (document.SelectSingleNode("//EncyclopediaDivider[@Id='AlliesDivider']") == null) return;
+            var hidden = HiddenNativeNodes.GetValue(document, _ => new List<XmlElement>());
+            foreach (var node in hidden)
+                if (node.GetAttribute("IsHidden") == "true") node.RemoveAttribute("IsHidden");
+            hidden.Clear();
+            EncyclopediaFamilyLayoutCompatibility.Refresh(document);
+            if (!EncyclopediaFamilyLayoutCompatibility.Enabled) return;
             var grid = document.SelectSingleNode("//NavigatableGridWidget[@Id='FamilyGrid' and @DataSource='{Family}']");
             var divider = grid?.ParentNode?.SelectSingleNode("EncyclopediaDivider[@Id='FamilyDivider']");
-            if (grid == null || divider == null) return;
-            foreach (XmlNode scope in grid.ParentNode.SelectNodes("NavigationScopeTargeter[@ScopeParent='..\\FamilyGrid']").Cast<XmlNode>().ToList())
-                scope.ParentNode.RemoveChild(scope);
-            divider.ParentNode.RemoveChild(divider);
-            grid.ParentNode.RemoveChild(grid);
+            // Preserve native anchors, data sources and sibling paths for other prefab extensions.
+            foreach (XmlElement node in grid.ParentNode.SelectNodes("NavigationScopeTargeter[@ScopeParent='..\\FamilyGrid']"))
+                hidden.Add(node);
+            hidden.Add((XmlElement)divider);
+            hidden.Add((XmlElement)grid);
+            // The grid is list-bound, so it cannot resolve a visibility property on the page VM.
+            foreach (var node in hidden) node.SetAttribute("IsHidden", "true");
         }
 
         internal static void InsertSection(XmlDocument document)
