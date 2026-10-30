@@ -11,10 +11,13 @@ namespace BellumCivile.ViewModelMixin
     internal sealed class EncyclopediaHeroFamilyMixin : BaseViewModelMixin<EncyclopediaHeroPageVM>
     {
         [DataSourceProperty] public EncyclopediaHeroFamilyVM BellumFamily { get; } = new EncyclopediaHeroFamilyVM();
+        [DataSourceProperty] public bool BellumUseFamilyLayout => EncyclopediaFamilyLayoutCompatibility.Enabled;
 
         public EncyclopediaHeroFamilyMixin(EncyclopediaHeroPageVM vm) : base(vm)
         {
             vm.PropertyChangedWithBoolValue += OnPageChanged;
+            EncyclopediaFamilyLayoutCompatibility.Changed += OnLayoutChanged;
+            EncyclopediaFamilyLayoutCompatibility.Refresh();
         }
 
         private void OnPageChanged(object sender, PropertyChangedWithBoolValueEventArgs args)
@@ -26,14 +29,26 @@ namespace BellumCivile.ViewModelMixin
 
         public override void OnRefresh()
         {
+            RefreshFamily();
+        }
+
+        private void OnLayoutChanged()
+        {
+            ViewModel.OnPropertyChanged(nameof(BellumUseFamilyLayout));
+            RefreshFamily();
+        }
+
+        private void RefreshFamily()
+        {
             var page = Campaign.Current?.EncyclopediaManager?.GetPageOf(typeof(Hero));
-            BellumFamily.Refresh(ViewModel.Obj as Hero, ViewModel.IsInformationHidden,
+            BellumFamily.Refresh(ViewModel.Obj as Hero, ViewModel.IsInformationHidden || !BellumUseFamilyLayout,
                 page == null ? (System.Func<Hero, bool>)null : hero => page.IsValidEncyclopediaItem(hero));
         }
 
         public override void OnFinalize()
         {
             ViewModel.PropertyChangedWithBoolValue -= OnPageChanged;
+            EncyclopediaFamilyLayoutCompatibility.Changed -= OnLayoutChanged;
             BellumFamily.OnFinalize();
             base.OnFinalize();
         }

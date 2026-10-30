@@ -78,6 +78,7 @@ namespace BellumCivile
             base.OnBeforeInitialModuleScreenSetAsRoot();
             InitializeDiplomacyIntegration(finalAttempt: false);
             Patches.ArtemRealmNameCompatibility.TryApply(_harmony);
+            Patches.FamilyTreeRefreshCompatibility.TryApply(_harmony);
             Patches.PocBannerCompatibility.TryApply(_harmony);
             Patches.BannerPersistenceCompatibility.Initialize();
         }

@@ -37,6 +37,10 @@ internal static class CampaignUiStartupProbe
             AccessTools.Method(mixinPatches, "ViewModel_Refresh_Transpiler")));
         check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
             "Family mixin registers through the real UIExtender refresh transpiler before game texts exist");
+        AccessTools.Method(typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.FamilyTreeRefreshCompatibility", true), "TryApply")
+            .Invoke(null, new object[] { harmony });
+        check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
+            "Optional Family Tree refresh inspection does not initialize native game texts");
         GameTexts.Initialize(new GameTextManager());
         var module = (BellumCivile.SubModule)FormatterServices.GetUninitializedObject(typeof(BellumCivile.SubModule));
         AccessTools.Field(typeof(BellumCivile.SubModule), "_harmony").SetValue(module, harmony);
