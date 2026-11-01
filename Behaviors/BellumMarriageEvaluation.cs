@@ -48,7 +48,7 @@ namespace BellumCivile.Behaviors
                         if (houses != null && !houses.Contains(clan) || !IsStrategicMarriageClanAllowed(clan, includePlayer)) continue;
                         Realms[clan] = MarriagePoliticalRealm(clan);
                         Participants[clan] = new List<Hero>();
-                        foreach (var hero in clan.Heroes)
+                        foreach (var hero in HouseholdMembership.Members(clan))
                         {
                             if (stats != null) stats.ParticipantChecks++;
                             var rejection = GetOfferParticipantRejectionReason(hero, includePlayer, allowTemporary);
@@ -161,8 +161,8 @@ namespace BellumCivile.Behaviors
             public bool IsBloodMember(Hero member)
             {
                 if (!_bloodMembers.TryGetValue(member, out bool value))
-                    _bloodMembers[member] = value = member == member.Clan.Leader
-                        || SuccessionLawHelper.IsBloodRelative(member, member.Clan.Leader);
+                    _bloodMembers[member] = value = HouseholdMembership.IsBloodRelative(member,
+                        MarriageHouseholdPolicy.LegalHead(member.Clan));
                 return value;
             }
         }
@@ -358,6 +358,9 @@ namespace BellumCivile.Behaviors
             float status = System.Math.Max(0, house.Tier - other.Tier) * C.MarriageScoreRankGapPenalty;
             status *= preference;
             score -= status;
+            float retainerCost = MarriageParticipantPolicy.RetainerCost(member, spouse);
+            score -= retainerCost;
+            if (retainerCost > 0) reasons.Add($"{house.StringId}: family marriage priority -{retainerCost:0}");
 
             bool bloodMember = context.IsBloodMember(member);
             float kinship = MarriageHealthRules.OutgoingKinshipValue(risk, outcome.HasReproductiveOpportunity,
@@ -366,7 +369,8 @@ namespace BellumCivile.Behaviors
             if (kinship > 0) reasons.Add($"{house.StringId}: outgoing bloodline alliance +{kinship:0}");
             if (outcome.HasReproductiveOpportunity)
             {
-                float continuity = MarriageHealthRules.Continuity(risk, true, outcome.NewbornHouse == house, bloodMember);
+                float continuity = HouseholdMembership.IsFamily(member)
+                    ? MarriageHealthRules.Continuity(risk, true, outcome.NewbornHouse == house, bloodMember) : 0;
                 score += continuity;
                 reasons.Add($"{house.StringId}: household/bloodline continuity +{continuity:0}");
                 if (context.CrownHeirs.Contains(member))

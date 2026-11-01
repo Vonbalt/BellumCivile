@@ -322,7 +322,9 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new ForeignPolicyBehavior());
                 campaignStarter.AddBehavior(new DiplomacyCompatibilityBehavior());
                 campaignStarter.AddBehavior(new RegencyBehavior());
+                campaignStarter.AddBehavior(new LordshipBehavior());
                 campaignStarter.AddBehavior(new CrownAccessionBehavior());
+                campaignStarter.AddBehavior(new TitleAcquisitionBehavior());
                 campaignStarter.AddBehavior(new ElectiveSuccessionBehavior());
                 campaignStarter.AddBehavior(new ElectionLobbyingBehavior());
                 campaignStarter.AddBehavior(new ElectiveContestBehavior());

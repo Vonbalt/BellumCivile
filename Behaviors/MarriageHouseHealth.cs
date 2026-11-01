@@ -20,10 +20,10 @@ namespace BellumCivile.Behaviors
         {
             var health = new HouseHealth();
             float coverage = 0;
-            foreach (Hero hero in clan.Heroes)
+            foreach (Hero hero in HouseholdMembership.Members(clan))
             {
                 // Captivity and campaign activity do not remove a living family member.
-                if (hero == null || !hero.IsAlive || !hero.IsLord) continue;
+                if (!hero.IsAlive || !MarriageParticipantPolicy.IsParticipant(hero) || !HouseholdMembership.IsFamily(hero)) continue;
                 if (hero.IsChild) { health.Children++; continue; }
                 health.Adults++;
                 if (HouseholdMarriageProspect(hero)) health.Prospects.Add(hero);

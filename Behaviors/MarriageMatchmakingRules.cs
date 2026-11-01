@@ -40,10 +40,11 @@ namespace BellumCivile.Behaviors
             return clan.Kingdom;
         }
 
-        internal static bool HouseholdMarriageProspect(Hero hero) => hero?.IsAlive == true && hero.IsLord
+        internal static bool HouseholdMarriageProspect(Hero hero) => hero?.IsAlive == true && MarriageParticipantPolicy.IsParticipant(hero)
             && !hero.IsChild && hero.Spouse == null && IsWithinStrategicMarriageAge(hero);
 
-        internal static bool HasHouseholdFertileCouple(Clan clan) => clan?.Heroes.Any(h => h.IsAlive && h.IsLord
+        internal static bool HasHouseholdFertileCouple(Clan clan) => HouseholdMembership.Members(clan).Any(h => h.IsAlive
+            && MarriageParticipantPolicy.IsParticipant(h) && HouseholdMembership.IsFamily(h)
             && h.IsFemale && !h.IsChild && h.Age <= 45 && h.Spouse?.IsAlive == true && h.Spouse.Clan == clan) == true;
     }
 }

@@ -94,7 +94,7 @@
   <TitleName id="county_zeos" name="{=BC_TitleRoot_Bannerkings_county_zeos}Zeon" />
   <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
   <TitleStyle culture="Empire">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRank}Imperatrix"
@@ -107,7 +107,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRank}Regina"
@@ -125,7 +125,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_titleName}Baronatum" maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_maleRank}Baro" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_femaleRank}Baronessa" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle kingdom="empire_s">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_titleName}Basileía"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_maleRank}Basileús"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRank}Basíleia"
@@ -140,7 +140,7 @@
           heroNameFormat="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle kingdom="empire_w">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_titleName}Diktatoría"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_maleRank}Autokrátor"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRank}Autokratórissa"
@@ -155,7 +155,7 @@
           heroNameFormat="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle kingdom="empire">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_titleName}Politeia"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_maleRank}Hypatos"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRank}Hypatissa"
@@ -170,7 +170,7 @@
           heroNameFormat="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Vlandia">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_titleName}Empires"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_maleRank}Emperere"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRank}Emperesse"
@@ -183,7 +183,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_titleFormat}{TITLE_NAME} {TITLE_NOUN}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
 	      heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_titleName}Ríce"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_maleRank}Reis"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRank}Reigne"
@@ -201,7 +201,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_titleName}Baronie" maleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_maleRank}Bers" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_femaleRank}Beresse" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_titleFormat}{TITLE_NAME} {TITLE_NOUN}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Battania">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_titleName}Pendreiciaeth"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_maleRank}Pendreic"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRank}Pendreices"
@@ -214,7 +214,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_titleFormat}{TITLE_NOUN} y {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_titleName}Uchelbrenhinaeth"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_maleRank}Uchelbrenhin"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRank}Uchelbrenhines"
@@ -232,7 +232,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_titleName}Teyrnas" maleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_maleRank}Teyrn" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_femaleRank}Teyrnes" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_titleFormat}{TITLE_NOUN} y {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Khuzait">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_titleName}Ulus"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_maleRank}Erxem Khagan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRank}Erxem Khatun"
@@ -245,7 +245,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_titleFormat}{TITLE_NAME} {TITLE_NOUN}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_titleName}Khaganlik"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_maleRank}Khagan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRank}Khatun"
@@ -263,7 +263,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_titleName}Beglik" maleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_maleRank}Beg" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_femaleRank}Begum" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_titleFormat}{TITLE_NAME} {TITLE_NOUN}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Aserai">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_titleName}Khilaafa"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_maleRank}Khalifa"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRank}Khalifa"
@@ -276,7 +276,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_titleName}Saltana"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_maleRank}Sultan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRank}Sultana"
@@ -294,7 +294,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_titleName}Walya" maleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_maleRank}Wali" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_femaleRank}Walia" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Sturgia">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_titleName}Korolévstvo"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_maleRank}Koról"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRank}Koroléva"
@@ -307,7 +307,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_titleName}Velykyy Knjazývstvo"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_maleRank}Velykyy Knjaz"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRank}Velykyy Knjahýnja"
@@ -325,7 +325,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_titleName}Vojevódastvo" maleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_maleRank}Vojevóda" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_femaleRank}Vojevodýnja" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Nord">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleName}Storkungendómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_maleRank}Storkungen"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRank}Riksdrottning"
@@ -338,7 +338,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_titleName}Konungdómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRank}Drottning"
@@ -357,7 +357,7 @@
   </TitleStyle>
    <!-- Mod supported cultures. -->
   <TitleStyle culture="Rhodok">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_titleName}Vronenentriich"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_maleRank}Vronenent"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRank}Vronenentin"
@@ -370,7 +370,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_titleName}Hougekunicriich"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_maleRank}Hougekunic"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRank}Hougekunigin"
@@ -388,7 +388,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_titleName}Vriherreschaft" maleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_maleRank}Vriherre" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_femaleRank}Vrifrou" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Empire_n">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRank}Imperatrix"
@@ -401,7 +401,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRank}Regina"
@@ -419,7 +419,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_titleName}Baronatum" maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_maleRank}Baro" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_femaleRank}Baronessa" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Empire_s">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRank}Imperatrix"
@@ -432,7 +432,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRank}Regina"
@@ -450,7 +450,7 @@
     <Rank tier="Barony" titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_titleName}Baronatum" maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_maleRank}Baro" femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_femaleRank}Baronessa" titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
   </TitleStyle>
   <TitleStyle culture="Empire_w">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRank}Imperatrix"
@@ -463,7 +463,7 @@
           titleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRank}Regina"

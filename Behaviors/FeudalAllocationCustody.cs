@@ -41,5 +41,8 @@ namespace BellumCivile.Behaviors
 
         private bool IsAllocationCustodian(string titleId, string clanId)
             => _allocationCustodianByTitle.TryGetValue(titleId, out string custodian) && custodian == clanId;
+
+        internal bool IsHeldForAllocation(Settlement settlement, Clan clan)
+            => settlement != null && clan != null && IsAllocationCustodian(BuildBaronyTitleId(settlement), clan.StringId);
     }
 }

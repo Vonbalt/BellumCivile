@@ -17,8 +17,6 @@ internal static class MarriageClaimForecastTests
     private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
     private static bool Ambition(ref float __result) { __result = 1; return false; }
     private static bool Eligible(ref bool __result) { __result = _eligible; return false; }
-    private static bool Children(ref MBReadOnlyList<Hero> __result)
-    { __result = new MBReadOnlyList<Hero>(new List<Hero>()); return false; }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -30,6 +28,7 @@ internal static class MarriageClaimForecastTests
         _birth = Blank<Clan>(); _birth.StringId = "birth";
         _realm = Blank<Kingdom>(); _realm.StringId = "home";
         var hero = Blank<Hero>(); hero.StringId = "carrier";
+        AccessTools.Field(typeof(Hero), "_children").SetValue(hero, new MBList<Hero>());
         var title = new FeudalTitleRecord("land", "Land", FeudalTitleType.Barony,
             "birth", "birth", "county", "", "home", 0, 0);
         var claims = new List<FeudalClaimRecord>();
@@ -54,7 +53,6 @@ internal static class MarriageClaimForecastTests
         try
         {
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), nameof(Birth));
-            Patch(AccessTools.PropertyGetter(typeof(Hero), "Children"), nameof(Children));
             Patch(AccessTools.Method(helper, "MarriagePoliticalRealm"), nameof(Realm));
             Patch(AccessTools.Method(helper, "CalculateTitleAmbitionMultiplier"), nameof(Ambition));
             Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "IsCloseBloodClaimantOfClan"), nameof(Eligible));

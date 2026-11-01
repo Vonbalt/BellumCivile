@@ -157,11 +157,11 @@ namespace BellumCivile.Behaviors
             if (clan == null || clan.IsEliminated || clan.IsClanTypeMercenary || clan.IsMinorFaction || clan.IsBanditFaction)
                 return 0f;
 
-            List<Hero> adultNobles = clan.Heroes
-                .Where(h => h != null && h.IsAlive && h.IsLord && !h.IsChild)
+            List<Hero> adultNobles = HouseholdMembership.Members(clan)
+                .Where(h => h.IsAlive && MarriageParticipantPolicy.IsParticipant(h) && !h.IsChild && HouseholdMembership.IsFamily(h))
                 .ToList();
 
-            int childCount = clan.Heroes.Count(h => h != null && h.IsAlive && h.IsChild);
+            int childCount = HouseholdMembership.Members(clan).Count(h => h.IsAlive && h.IsChild && HouseholdMembership.IsFamily(h));
             float score = 0f;
 
             if (!HasHouseholdFertileCouple(clan))
@@ -235,7 +235,7 @@ namespace BellumCivile.Behaviors
                         continue;
                     }
 
-                    foreach (Hero candidate in clan.Heroes)
+                    foreach (Hero candidate in HouseholdMembership.Members(clan))
                     {
                         BellumMarriageRejectionReason heroRejection = GetCandidateRejectionReason(suitor, candidate);
                         if (heroRejection != BellumMarriageRejectionReason.None)
@@ -274,12 +274,12 @@ namespace BellumCivile.Behaviors
 
             BellumMarriageMatch best = null;
             var context = new EvaluationContext(factionManager, true);
-            foreach (Hero suitor in offeringClan.Heroes)
+            foreach (Hero suitor in HouseholdMembership.Members(offeringClan))
             {
                 if (GetOfferParticipantRejectionReason(suitor, allowPlayerClan: false) != BellumMarriageRejectionReason.None)
                     continue;
 
-                foreach (Hero playerClanHero in Clan.PlayerClan.Heroes)
+                foreach (Hero playerClanHero in HouseholdMembership.Members(Clan.PlayerClan))
                 {
                     BellumMarriageRejectionReason playerRejection = GetOfferParticipantRejectionReason(playerClanHero, allowPlayerClan: true);
                     if (playerRejection != BellumMarriageRejectionReason.None)
@@ -328,7 +328,7 @@ namespace BellumCivile.Behaviors
                     continue;
 
                 offeringClans++;
-                foreach (Hero suitor in clan.Heroes)
+                foreach (Hero suitor in HouseholdMembership.Members(clan))
                 {
                     BellumMarriageRejectionReason suitorRejection = GetOfferParticipantRejectionReason(suitor, allowPlayerClan: false);
                     if (suitorRejection != BellumMarriageRejectionReason.None)
@@ -338,7 +338,7 @@ namespace BellumCivile.Behaviors
                     }
 
                     validOfferingParticipants++;
-                    foreach (Hero playerClanHero in Clan.PlayerClan.Heroes)
+                    foreach (Hero playerClanHero in HouseholdMembership.Members(Clan.PlayerClan))
                     {
                         BellumMarriageRejectionReason playerRejection = GetOfferParticipantRejectionReason(playerClanHero, allowPlayerClan: true);
                         if (playerRejection != BellumMarriageRejectionReason.None)
@@ -678,7 +678,7 @@ namespace BellumCivile.Behaviors
             if (candidate.IsFemale == suitor.IsFemale)
                 return BellumMarriageRejectionReason.SameSex;
 
-            if (!candidate.IsLord || !candidate.IsAlive || !candidate.IsActive || candidate.IsChild)
+            if (!MarriageParticipantPolicy.IsParticipant(candidate) || !candidate.IsAlive || !candidate.IsActive || candidate.IsChild)
                 return BellumMarriageRejectionReason.InvalidOrInactiveHero;
 
             if (candidate.Spouse != null)
@@ -709,7 +709,8 @@ namespace BellumCivile.Behaviors
             if (clanRejection != BellumMarriageRejectionReason.None)
                 return clanRejection;
 
-            if (!hero.IsLord || !hero.IsAlive || (!hero.IsActive && !(allowTemporary && (hero.IsFugitive || hero.IsPrisoner))) || hero.IsChild)
+            if (!MarriageParticipantPolicy.IsParticipant(hero) || !hero.IsAlive
+                || (!hero.IsActive && !(allowTemporary && (hero.IsFugitive || hero.IsPrisoner))) || hero.IsChild)
                 return BellumMarriageRejectionReason.InvalidOrInactiveHero;
 
             if (hero.Spouse != null)

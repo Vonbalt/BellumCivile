@@ -37,6 +37,11 @@ internal static class CampaignUiStartupProbe
             AccessTools.Method(mixinPatches, "ViewModel_Refresh_Transpiler")));
         check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
             "Family mixin registers through the real UIExtender refresh transpiler before game texts exist");
+        var clanPage = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Pages.EncyclopediaClanPageVM");
+        harmony.Patch(AccessTools.Method(clanPage, "RefreshValues"), transpiler: new HarmonyMethod(
+            AccessTools.Method(mixinPatches, "ViewModel_Refresh_Transpiler")));
+        check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
+            "Clan household mixin registration does not initialize native game texts early");
         AccessTools.Method(typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.FamilyTreeRefreshCompatibility", true), "TryApply")
             .Invoke(null, new object[] { harmony });
         check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
@@ -56,6 +61,39 @@ internal static class CampaignUiStartupProbe
         var helper = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.CampaignUIHelper");
         RuntimeHelpers.RunClassConstructor(helper.TypeHandle);
         check(true, "Startup patches leave CampaignUIHelper usable after game-text initialization");
+        var occupationDisplay = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.HouseholdOccupationDisplayPatch", true);
+        check(!patchTypes.Contains(occupationDisplay), "Retainer occupation display is not patched before native game texts exist");
+        AccessTools.Method(occupationDisplay, "Initialize").Invoke(null, null);
+        AccessTools.Method(occupationDisplay, "Initialize").Invoke(null, null);
+        foreach (var target in new[] { AccessTools.Method(typeof(Helpers.HeroHelper), "GetCharacterTypeName"),
+            AccessTools.Method(helper, "GetHeroOccupationName") })
+            check(Harmony.GetPatchInfo(target).Postfixes.Count(p => p.PatchMethod.DeclaringType == occupationDisplay) == 1,
+                "Deferred retainer display installs once for " + target.Name);
+        var lordships = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.LordshipAppointmentPatches", true);
+        AccessTools.Method(lordships, "Initialize").Invoke(null, null);
+        AccessTools.Method(lordships, "Initialize").Invoke(null, null);
+        var governor = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.ChangeGovernorAction), "Apply");
+        check(Harmony.GetPatchInfo(governor).Prefixes.Count(p => p.PatchMethod.DeclaringType == lordships) == 1,
+            "Deferred lordship appointment/UI hooks install successfully and only once");
+        var vassal = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.VassalLordshipPatches", true);
+        AccessTools.Method(vassal, "Initialize").Invoke(null, null);
+        AccessTools.Method(vassal, "Initialize").Invoke(null, null);
+        var oath = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.CampaignBehaviors.LordConversationsCampaignBehavior),
+            "conversation_player_is_accepted_as_a_vassal_on_consequence");
+        check(Harmony.GetPatchInfo(oath).Postfixes.Count(p => p.PatchMethod.DeclaringType == vassal) == 1,
+            "Deferred vassal grant and local village hooks install once after game texts exist");
+        var notices = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.TitleAcquisitionNotificationPatch", true);
+        AccessTools.Method(notices, "Initialize").Invoke(null, null);
+        AccessTools.Method(notices, "Initialize").Invoke(null, null);
+        var map = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapNotificationVM");
+        check(Harmony.GetPatchInfo(AccessTools.GetDeclaredConstructors(map)[0]).Postfixes.Count(p => p.PatchMethod.DeclaringType == notices) == 1,
+            "Deferred title notification registration installs once after native game texts exist");
+        var bannerPatch = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.LordshipMapBannerPatch", true);
+        AccessTools.Method(bannerPatch, "Initialize").Invoke(null, null);
+        AccessTools.Method(bannerPatch, "Initialize").Invoke(null, null);
+        var nameplate = Type.GetType("SandBox.ViewModelCollection.Nameplate.SettlementNameplateVM, SandBox.ViewModelCollection", true);
+        check(Harmony.GetPatchInfo(AccessTools.Method(nameplate, "RefreshBindValues")).Transpilers.Count(p => p.PatchMethod.DeclaringType == bannerPatch) == 1,
+            "Deferred lordship banner binding installs once after native game texts exist");
         harmony.UnpatchAll(harmony.Id);
     }
 }

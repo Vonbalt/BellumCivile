@@ -342,9 +342,10 @@ namespace BellumCivile.Behaviors
             if (Clan.PlayerClan == null || otherClan == null)
                 return new List<Hero>();
 
-            return Clan.PlayerClan.AliveLords
-                .Where(hero => hero != null && GetOtherCandidates(hero, otherClan).Count > 0)
+            return HouseholdMembership.Members(Clan.PlayerClan)
+                .Where(hero => hero.IsAlive && MarriageParticipantPolicy.IsParticipant(hero) && GetOtherCandidates(hero, otherClan).Count > 0)
                 .OrderByDescending(hero => hero == Hero.MainHero)
+                .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
                 .ToList();
         }
@@ -354,9 +355,11 @@ namespace BellumCivile.Behaviors
             if (playerClanHero == null || otherClan == null)
                 return new List<Hero>();
 
-            return otherClan.AliveLords
-                .Where(hero => hero != null && Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(playerClanHero, hero))
+            return HouseholdMembership.Members(otherClan)
+                .Where(hero => hero.IsAlive && MarriageParticipantPolicy.IsParticipant(hero)
+                    && Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(playerClanHero, hero))
                 .OrderByDescending(hero => hero == otherClan.Leader)
+                .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
                 .ToList();
         }

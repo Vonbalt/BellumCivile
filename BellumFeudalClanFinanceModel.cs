@@ -23,6 +23,7 @@ namespace BellumCivile
         private int _serviceLedgerDay = -1;
         private int _serviceLedgerTitleRevision = -1;
         private int _serviceLedgerServiceRevision = -1;
+        private int _serviceLedgerLordshipRevision = -1;
 
         public BellumFeudalClanFinanceModel(ClanFinanceModel baseModel)
         {
@@ -33,24 +34,33 @@ namespace BellumCivile
 
         public override ExplainedNumber CalculateClanGoldChange(Clan clan, bool includeDescriptions = false, bool applyWithdrawals = false, bool includeDetails = false)
         {
-            ExplainedNumber result = _baseModel.CalculateClanGoldChange(clan, includeDescriptions, applyWithdrawals, includeDetails);
-            AddContestedLegalTitleIncomePenalty(clan, ref result, includeDetails);
+            LordshipIncome income;
+            ExplainedNumber result;
+            using (income = new LordshipIncome(clan, _baseModel, applyWithdrawals))
+                result = _baseModel.CalculateClanGoldChange(clan, includeDescriptions, applyWithdrawals, includeDetails);
+            AddContestedLegalTitleIncomePenalty(clan, ref result, includeDetails, income);
             AddFeudalServiceOwed(clan, ref result, includeDetails);
             AddSeneschalAdministration(clan, ref result, includeDetails);
             AddSeneschalAssignmentExpense(clan, ref result);
             var council = Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>();
             council?.AddCouncilSalaryIncome(clan, ref result, applyWithdrawals);
+            // Endowed revenues are not available to fund the ruler's council payroll.
+            income.Redirect(ref result);
             council?.AddCouncilSalaryExpenses(clan, ref result, applyWithdrawals);
             return result;
         }
 
         public override ExplainedNumber CalculateClanIncome(Clan clan, bool includeDescriptions = false, bool applyWithdrawals = false, bool includeDetails = false)
         {
-            ExplainedNumber result = _baseModel.CalculateClanIncome(clan, includeDescriptions, applyWithdrawals, includeDetails);
-            AddContestedLegalTitleIncomePenalty(clan, ref result, includeDetails);
+            LordshipIncome income;
+            ExplainedNumber result;
+            using (income = new LordshipIncome(clan, _baseModel, applyWithdrawals))
+                result = _baseModel.CalculateClanIncome(clan, includeDescriptions, applyWithdrawals, includeDetails);
+            AddContestedLegalTitleIncomePenalty(clan, ref result, includeDetails, income);
             AddFeudalServiceOwed(clan, ref result, includeDetails);
             AddSeneschalAdministration(clan, ref result, includeDetails);
             Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>()?.AddCouncilSalaryIncome(clan, ref result, applyWithdrawals);
+            income.Redirect(ref result);
             return result;
         }
 
@@ -99,7 +109,7 @@ namespace BellumCivile
             return _baseModel.RevenueSmoothenFraction();
         }
 
-        private void AddContestedLegalTitleIncomePenalty(Clan clan, ref ExplainedNumber result, bool includeDetails)
+        private void AddContestedLegalTitleIncomePenalty(Clan clan, ref ExplainedNumber result, bool includeDetails, LordshipIncome income)
         {
             if (clan == null)
                 return;
@@ -110,7 +120,7 @@ namespace BellumCivile
                 AddTownPenalty(town, ref result, includeDetails, ref totalPenalty);
 
             foreach (Village village in clan.Villages)
-                AddVillagePenalty(clan, village, ref result, includeDetails, ref totalPenalty);
+                AddVillagePenalty(clan, village, ref result, includeDetails, ref totalPenalty, income);
 
             if (!includeDetails && totalPenalty != 0)
                 result.Add(totalPenalty, new TextObject("{=BC_TitlePenalty_ContestedLegalTitlesIncome}Contested legal titles"));
@@ -174,6 +184,7 @@ namespace BellumCivile
                     town);
                 foreach (Village village in clan.Villages.Where(village => village?.Bound == town.Settlement))
                 {
+                    if (LordshipBehavior.Instance?.GetGrant(village.Settlement) != null) continue;
                     taxableIncome += ApplyContestedTaxFactor(
                         _baseModel.CalculateVillageIncome(clan, village, false),
                         village);
@@ -248,7 +259,8 @@ namespace BellumCivile
             if (_serviceLedger != null
                 && _serviceLedgerDay == day
                 && _serviceLedgerTitleRevision == titleRevision
-                && _serviceLedgerServiceRevision == serviceRevision)
+                && _serviceLedgerServiceRevision == serviceRevision
+                && _serviceLedgerLordshipRevision == (LordshipBehavior.Instance?.Revision ?? 0))
             {
                 return _serviceLedger;
             }
@@ -256,6 +268,7 @@ namespace BellumCivile
             _serviceLedgerDay = day;
             _serviceLedgerTitleRevision = titleRevision;
             _serviceLedgerServiceRevision = serviceRevision;
+            _serviceLedgerLordshipRevision = LordshipBehavior.Instance?.Revision ?? 0;
             _serviceLedger = BuildFeudalServiceLedger(titleBehavior, serviceBehavior);
             return _serviceLedger;
         }
@@ -336,6 +349,7 @@ namespace BellumCivile
 
             foreach (Village village in holder.Villages.Where(village => village?.Bound == settlement))
             {
+                if (LordshipBehavior.Instance?.GetGrant(village.Settlement) != null) continue;
                 int villageIncome = _baseModel.CalculateVillageIncome(holder, village, false);
                 income += ApplyContestedTaxFactor(villageIncome, village);
             }
@@ -395,12 +409,12 @@ namespace BellumCivile
             AddIncomePenalty(baseIncome, town.Name, ref result, includeDetails, ref totalPenalty);
         }
 
-        private void AddVillagePenalty(Clan clan, Village village, ref ExplainedNumber result, bool includeDetails, ref int totalPenalty)
+        private void AddVillagePenalty(Clan clan, Village village, ref ExplainedNumber result, bool includeDetails, ref int totalPenalty, LordshipIncome income)
         {
             if (village == null || !FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(village, out FeudalTitleRecord _))
                 return;
 
-            int baseIncome = _baseModel.CalculateVillageIncome(clan, village, false);
+            int baseIncome = income.Gross(village, _baseModel);
             AddIncomePenalty(baseIncome, village.Settlement?.Name, ref result, includeDetails, ref totalPenalty);
         }
 

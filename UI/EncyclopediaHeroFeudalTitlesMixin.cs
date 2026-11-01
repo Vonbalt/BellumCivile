@@ -151,6 +151,14 @@ namespace BellumCivile.ViewModelMixin
             HasBellumInheritance = BellumInheritance.Count > 0;
             HasBellumTitleOrClaimSection = HasBellumInheritance;
 
+            var lordship = LordshipBehavior.Instance?.GetGrant(_hero);
+            if (lordship != null)
+            {
+                BellumTitles.Add(new StringPairItemVM(LordshipBehavior.Name(lordship.Village).ToString(), string.Empty, null));
+                HasBellumTitles = true;
+                HasBellumTitleOrClaimSection = true;
+            }
+
             if (_hero?.Clan == null || _hero.Clan.Leader != _hero)
                 return;
 

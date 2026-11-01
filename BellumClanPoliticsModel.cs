@@ -74,7 +74,7 @@ namespace BellumCivile
 
         public override bool CanHeroBeGovernor(Hero hero)
         {
-            return _baseModel.CanHeroBeGovernor(hero);
+            return _baseModel.CanHeroBeGovernor(hero) && LordshipEligibility.Permitted(hero, true);
         }
     }
 }

@@ -1313,6 +1313,7 @@ namespace BellumCivile
 
         public const float MarriageScoreDynasticNeedScale = 0.65f;
         public const float MarriageScoreSameKingdom = 45f;
+        public const float MarriageScoreRetainerPenalty = 25f;
         public const float MarriageScoreAlliedKingdom = 45f;
         public const float MarriageScoreSameCulture = 30f;
         public const float MarriageScoreClanRelationScale = 0.35f;

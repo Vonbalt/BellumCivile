@@ -50,7 +50,17 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--fief-redistribution"))
+            if (args.Contains("--title-notifications"))
+            {
+                TitleAcquisitionTests.Run(Check);
+                Console.WriteLine($"{_checks} title acquisition notification checks passed.");
+            }
+            else if (args.Contains("--lordships"))
+            {
+                LordshipTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} lordship checks passed.");
+            }
+            else if (args.Contains("--fief-redistribution"))
             {
                 FiefRedistributionTests.Run(Check);
                 Console.WriteLine($"{_checks} fief redistribution checks passed.");
@@ -210,6 +220,14 @@ internal static class Program
             {
                 MarriageDowrySimulation.Run(Check);
                 Console.WriteLine($"{_checks} marriage dowry simulation checks passed.");
+            }
+            else if (args.Contains("--marriage-retainers"))
+            {
+                RetainerMarriageTests.Run(Check);
+                MarriageHealthCacheTests.Run(Check);
+                MarriageClaimForecastTests.Run(Check);
+                MarriageCombinedScoreTests.Run(Check);
+                Console.WriteLine($"{_checks} retainer marriage checks passed.");
             }
             else if (args.Contains("--marriage-households"))
             {

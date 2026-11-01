@@ -13,12 +13,14 @@ internal static class MarriageCombinedScoreTests
     private static Clan _a, _b;
     private static float _politicsA, _politicsB, _claim;
     private static int _tierA, _tierB, _claimCalls;
+    private static bool _familyA, _familyB;
     private static bool House(Hero __instance, ref Clan __result) { __result = __instance == _first ? _a : _b; return false; }
     private static bool Tier(Clan __instance, ref int __result) { __result = __instance == _a ? _tierA : _tierB; return false; }
     private static bool Age(ref float __result) { __result = 30; return false; }
     private static bool ZeroInt(ref int __result) { __result = 0; return false; }
     private static bool ZeroFloat(ref float __result) { __result = 0; return false; }
-    private static bool Blood(ref bool __result) { __result = true; return false; }
+    private static bool Blood(Hero member, ref bool __result) { __result = member == _first ? _familyA : _familyB; return false; }
+    private static bool Family(Hero hero, ref bool __result) { __result = hero == _first ? _familyA : _familyB; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
     private static bool Court(ref CourtAgendaBehavior __result) { __result = null; return false; }
     private static bool Politics(Clan house, ref float __result) { __result = house == _a ? _politicsA : _politicsB; return false; }
@@ -81,6 +83,8 @@ internal static class MarriageCombinedScoreTests
             Patch(AccessTools.Method(contextType, "HouseholdDepartureCost"), nameof(ZeroFloat));
             Patch(AccessTools.Method(contextType, "PoliticalValue"), nameof(Politics));
             Patch(AccessTools.Method(contextType, "IncomingClaimValue"), nameof(Claim));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Family));
+            _familyA = _familyB = true;
             _tierA = _tierB = 3; _politicsA = _politicsB = 29.5f; _claim = 0;
             var healthy = Scores(0, 0);
             Near(healthy[0], 124.5f, "Healthy ordinary houses: receiver combines continuity and partner utility once");
@@ -110,6 +114,10 @@ internal static class MarriageCombinedScoreTests
                 "Secure donor can consent when the foreign political tie is useful");
             Near(Scores(0, 1, domestic: false)[1], 47.5f,
                 "Endangered donor protects its line despite the same political opportunity");
+            _politicsA = _politicsB = 0; _familyB = false;
+            var retainer = Scores(0, 0);
+            Near(retainer[0], 70, "An otherwise identical offer for a player retainer loses 25 NPC acceptance points");
+            Near(retainer[1], 50, "Retainer marriages remain scored but do not invent the employer's bloodline continuity");
         }
         finally { harmony.UnpatchAll(harmony.Id); }
     }

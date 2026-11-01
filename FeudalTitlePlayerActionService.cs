@@ -434,6 +434,8 @@ namespace BellumCivile
             }
 
             Clan oldHolder = ResolveClan(title.DeJureHolderClanId);
+            string oldLegal = title.DeJureHolderClanId;
+            string oldActual = title.DeFactoHolderClanId;
             if (preview.GoldCost > 0)
                 GiveGoldAction.ApplyBetweenCharacters(clan.Leader, null, preview.GoldCost, true);
             if (preview.InfluenceCost > 0f
@@ -480,6 +482,7 @@ namespace BellumCivile
             FeudalTitleUsurpationBehavior.ApplyUsurpationRelations(clan, oldHolder, title);
 
             NotificationHelper.ShowFeudalTitleUsurped(clan, oldHolder, title);
+            TitleAcquisitionBehavior.Acquired(clan, title, oldLegal, oldActual);
             if (independentKingdom != null)
             {
                 NotificationHelper.ShowSovereignTitleElevated(

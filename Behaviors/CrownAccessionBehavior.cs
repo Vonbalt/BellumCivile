@@ -398,6 +398,7 @@ namespace BellumCivile.Behaviors
                         record.ElectiveElection ? ElectiveSuccessionBehavior.Instance?.Get(record.Realm) : null)) return;
             }
             record.Completed = true;
+            if (!record.RegentReplacement) TitleAcquisitionBehavior.Acceded(record.Realm, record.Predecessor, record.Heir);
             ElectiveContestBehavior.Instance?.CompleteAccession(record);
             if (!record.RegentReplacement) HereditaryLoyaltyBehavior.Instance?.Observe(record.Realm, false);
             if (record.ElectiveElection) ElectiveSuccessionBehavior.Instance?.Complete(record.Realm);

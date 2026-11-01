@@ -7,7 +7,7 @@
     <Constant Name="Bellum.Hierarchy.Tree.Line.Height" BrushLayer="Default" BrushName="Encyclopedia.CharacterTree.Line" BrushValueType="Height" />
   </Constants>
   <Window>
-    <EncyclopediaUnitTreeNodeItemBrushWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MarginLeft="16" MarginRight="@RightMargin" ButtonContainer="ButtonContainer" ChildContainer="ChildContainer" LineContainer="LineContainer" LineBrush="Encyclopedia.CharacterTree.Line" AlternateLineBrush="Encyclopedia.CharacterTree.Line.Alternative">
+    <HierarchyTitleTreeNodeWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MarginLeft="16" MarginRight="@RightMargin" ButtonContainer="ButtonContainer" ChildContainer="ChildContainer" LineContainer="LineContainer" LineBrush="Encyclopedia.CharacterTree.Line" AlternateLineBrush="Encyclopedia.CharacterTree.Line.Alternative">
       <Children>
         <Widget Id="ButtonContainer" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedHeight="150" SuggestedWidth="128" HorizontalAlignment="Center" MarginRight="8">
           <Children>
@@ -39,6 +39,6 @@
           </ItemTemplate>
         </ListPanel>
       </Children>
-    </EncyclopediaUnitTreeNodeItemBrushWidget>
+    </HierarchyTitleTreeNodeWidget>
   </Window>
 </Prefab>

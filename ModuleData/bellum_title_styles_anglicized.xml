@@ -93,7 +93,7 @@
   <TitleName id="county_zeos" name="{=BC_TitleRoot_Anglicized_county_zeos}Zeos" />
   <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
   <TitleStyle culture="Empire_n">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRank}Empress"
@@ -103,7 +103,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_titleName}Exarchate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_maleRank}Exarch"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRank}Exarchissa"
@@ -127,7 +127,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_femaleRank}Archontissa" />
   </TitleStyle>
   <TitleStyle culture="Empire_s">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRank}Empress"
@@ -137,7 +137,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_titleName}Exarchate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_maleRank}Exarch"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRank}Exarchissa"
@@ -161,7 +161,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_femaleRank}Archontissa" />
   </TitleStyle>
   <TitleStyle culture="Empire_w">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRank}Empress"
@@ -171,7 +171,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_titleName}Exarchate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_maleRank}Exarch"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRank}Exarchissa"
@@ -195,7 +195,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_femaleRank}Archontissa" />
   </TitleStyle>
   <TitleStyle culture="Empire">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleRank}Empress"
@@ -205,7 +205,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_Kingdom_titleName}Exarchate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Kingdom_maleRank}Exarch"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleRank}Exarchissa"
@@ -229,7 +229,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_femaleRank}Archontissa" />
   </TitleStyle>
   <TitleStyle kingdom="empire_s">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_titleName}Kingdom"
           maleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_maleRank}King"
           femaleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleRank}Queen"
@@ -241,7 +241,7 @@
           femaleNobleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleNobleRank}Lady" />
   </TitleStyle>
   <TitleStyle kingdom="empire_w">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_titleName}Autocracy"
           maleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_maleRank}Autocrat"
           femaleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleRank}Autocratrix"
@@ -253,7 +253,7 @@
           femaleNobleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleNobleRank}Lady" />
   </TitleStyle>
   <TitleStyle kingdom="empire">
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_titleName}Republic"
           maleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_maleRank}Consul"
           femaleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleRank}Consuless"
@@ -265,7 +265,7 @@
           femaleNobleRank="{=BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleNobleRank}Lady" />
   </TitleStyle>
   <TitleStyle culture="Vlandia">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleRank}Empress"
@@ -275,7 +275,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_titleName}Kingdom"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_maleRank}King"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleRank}Queen"
@@ -299,7 +299,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_femaleRank}Baroness" />
   </TitleStyle>
   <TitleStyle culture="Battania">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleRank}Empress"
@@ -309,7 +309,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Battania_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Battania_Kingdom_titleName}High Kingdom"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Kingdom_maleRank}High King"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleRank}High Queen"
@@ -333,7 +333,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_femaleRank}Chieftess" />
   </TitleStyle>
   <TitleStyle culture="Khuzait">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_titleName}Khaganate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_maleRank}Khagan"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleRank}Khatun"
@@ -345,7 +345,7 @@
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleNobleRank}Lady"
           titleFormat="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_titleFormat}{TITLE_NAME} {TITLE_NOUN}"
           heldTitleFormat="{=BC_TitleStyle_Anglicized_culture_Khuzait_Empire_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_titleName}Khanate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_maleRank}Khan"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleRank}Khanum"
@@ -371,7 +371,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_femaleRank}Chieftess" />
   </TitleStyle>
   <TitleStyle culture="Aserai">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleRank}Empress"
@@ -381,7 +381,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_titleName}Sultanate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_maleRank}Sultan"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleRank}Sultana"
@@ -405,7 +405,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_femaleRank}Sheikha" />
   </TitleStyle>
   <TitleStyle culture="Sturgia">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_titleName}Empire"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_maleRank}Emperor"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleRank}Empress"
@@ -415,7 +415,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_titleName}Grand Principality"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_maleRank}Grand Prince"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleRank}Grand Princess"
@@ -439,7 +439,7 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_femaleRank}Chieftess" />
   </TitleStyle>
   <TitleStyle culture="Nord">
-    <Rank tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleRetainerRank}Dame" tier="Empire"
           titleName="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_titleName}Fylkirate"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_maleRank}Fylkir"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleRank}Fylkja"
@@ -449,7 +449,7 @@
           femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleChildRank}Princess"
           nobleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_nobleRank}Lord"
           femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleNobleRank}Lady" />
-    <Rank tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Nord_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
           titleName="{=BC_TitleStyle_Anglicized_culture_Nord_Kingdom_titleName}Kingdom"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleRank}Dróttning"
