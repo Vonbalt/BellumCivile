@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
@@ -358,19 +359,40 @@ namespace BellumCivile
             int partyLimit = Campaign.Current.Models.ClanTierModel.GetPartyLimitForTier(clan, clan.Tier);
             if (home != null && clan.WarPartyComponents.Count < partyLimit)
             {
-                string partyId = SanitizeId($"{clan.StringId}_{hero.StringId}_{(int)CampaignTime.Now.ToDays}");
-                LordPartyComponent.CreateLordParty(
-                    partyId,
-                    hero,
-                    home.GatePosition,
-                    3f,
-                    home,
-                    hero);
-                return;
+                CampaignVec2 position = CampaignVec2.Invalid;
+                bool found = false;
+                try { found = TownPartyPositionHelper.TryFindSpawn(home, out position); }
+                catch (Exception ex)
+                {
+                    BellumCivileLogger.Log($"Dynamic mercenary spawn navigation check failed; company={clan.StringId}; hero={hero.StringId}; home={home.StringId}; error={ex.GetType().Name}:{ex.Message}.");
+                }
+                if (found)
+                {
+                    string partyId = SanitizeId($"{clan.StringId}_{hero.StringId}_{(int)CampaignTime.Now.ToDays}");
+                    LordPartyComponent.CreateLordParty(partyId, hero, position, 0f, home, hero);
+                    return;
+                }
+                BellumCivileLogger.Log($"Dynamic mercenary party creation deferred; company={clan.StringId}; hero={hero.StringId}; home={home.StringId}; reason=no verified land spawn outside the town gate.");
             }
 
-            if (home != null)
+            if (home != null && hero.CurrentSettlement != home)
                 EnterSettlementAction.ApplyForCharacterOnly(hero, home);
+        }
+
+        internal static bool HasCreatedPartyId(MobileParty party, Clan clan)
+        {
+            Hero owner = party?.Owner;
+            if (!IsDynamicBand(clan) || owner?.Clan != clan || string.IsNullOrEmpty(owner.StringId)
+                || string.IsNullOrEmpty(party.StringId)) return false;
+            string prefix = SanitizeId($"{clan.StringId}_{owner.StringId}_");
+            if (!party.StringId.StartsWith(prefix, StringComparison.Ordinal)) return false;
+            string receipt = party.StringId.Substring(prefix.Length);
+            int marker = receipt.IndexOf("_party_", StringComparison.Ordinal);
+            // Native uniqueness replaces the final party index, but preserves our creation-day receipt.
+            return marker > 0
+                && int.TryParse(receipt.Substring(0, marker), NumberStyles.None, CultureInfo.InvariantCulture, out _)
+                && uint.TryParse(receipt.Substring(marker + "_party_".Length), NumberStyles.None, CultureInfo.InvariantCulture, out uint index)
+                && index > 0;
         }
 
         private static bool CanConfigureMercenaryFlags()

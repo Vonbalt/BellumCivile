@@ -18,7 +18,7 @@ using C = BellumCivile.BellumCivileConstants;
 
 namespace BellumCivile.Behaviors
 {
-    public sealed class DynamicMercenaryBandBehavior : CampaignBehaviorBase
+    public sealed partial class DynamicMercenaryBandBehavior : CampaignBehaviorBase
     {
         private const string CultureCounterPrefix = "culture::";
         private static readonly string[] CultureSummaryMetrics =
@@ -54,6 +54,7 @@ namespace BellumCivile.Behaviors
 
         public override void RegisterEvents()
         {
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, InitializePartyPositionRepair);
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.TickEvent.AddNonSerializedListener(this, OnTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
@@ -68,6 +69,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_DynamicMercenaryPlayerDepartureIntents", ref _playerDepartureIntents);
             dataStore.SyncData("BellumCivile_DynamicMercenarySummaryYear", ref _summaryYearIndex);
             dataStore.SyncData("BellumCivile_DynamicMercenaryYearlyCounters", ref _yearlyCounters);
+            dataStore.SyncData("BellumCivile_DynamicMercenaryPartyPositionRepair", ref _partyPositionRepairVersion);
             EnsureCollectionsInitialized();
             MigrateLegacyPlayerDepartures();
         }
@@ -107,6 +109,7 @@ namespace BellumCivile.Behaviors
             EnsureCollectionsInitialized();
             MigrateLegacyPlayerDepartures();
             ReconcileBands(recoverUntracked: true);
+            QueuePartyPositionRepair();
             PrunePendingPlayerDepartures();
             FlushSummaryIfYearChanged();
             _postLoadPresentationTicks = 2;
@@ -219,8 +222,9 @@ namespace BellumCivile.Behaviors
 
         private void OnTick(float deltaTime)
         {
-            if (!BellumCivileOptions.EnableDynamicMercenaryBands || Campaign.Current == null)
-                return;
+            if (Campaign.Current == null) return;
+            RepairLegacyPartyPositions();
+            if (!BellumCivileOptions.EnableDynamicMercenaryBands) return;
 
             EnsureCollectionsInitialized();
             MigrateLegacyPlayerDepartures();
