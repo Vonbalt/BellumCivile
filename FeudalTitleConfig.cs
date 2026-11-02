@@ -58,6 +58,8 @@ namespace BellumCivile
             public FeudalTitleType Tier;
             public string TitleName;
             public string TitleFormat;
+            public string LordshipName;
+            public string LordshipFormat;
             public string HeldTitleFormat;
             public string HeroNameFormat;
             public string MaleRank;
@@ -258,6 +260,8 @@ namespace BellumCivile
 
                 MergeValue(ref targetRank.TitleName, sourceRank.TitleName);
                 MergeValue(ref targetRank.TitleFormat, sourceRank.TitleFormat);
+                MergeValue(ref targetRank.LordshipName, sourceRank.LordshipName);
+                MergeValue(ref targetRank.LordshipFormat, sourceRank.LordshipFormat);
                 MergeValue(ref targetRank.HeldTitleFormat, sourceRank.HeldTitleFormat);
                 MergeValue(ref targetRank.HeroNameFormat, sourceRank.HeroNameFormat);
                 MergeValue(ref targetRank.MaleRank, sourceRank.MaleRank);
@@ -382,6 +386,8 @@ namespace BellumCivile
                     Tier = tier,
                     TitleName = FirstAttr(child, "titleName", "landedTitle", "title"),
                     TitleFormat = FirstAttr(child, "titleFormat", "landedFormat", "format"),
+                    LordshipName = Attr(child, "lordshipName"),
+                    LordshipFormat = Attr(child, "lordshipFormat"),
                     HeldTitleFormat = FirstAttr(child, "heldTitleFormat", "heldFormat", "rankFormat"),
                     HeroNameFormat = FirstAttr(child, "heroNameFormat", "characterNameFormat", "honorificFormat"),
                     MaleRank = FirstAttr(child, "maleRank", "displayTitle", "rankTitle", "maleTitle"),

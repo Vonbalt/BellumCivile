@@ -105,7 +105,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             _deFactoHolder = village.Village.Bound.OwnerClan;
             Branch = new MBBindingList<HierarchyTitleNodeVM>();
             Name = LordshipBehavior.Name(village).ToString();
-            Tier = new TextObject("{=BC_Hierarchy_TierLordship}Lordship").ToString();
+            Tier = FeudalTitleDisplayHelper.GetLordshipNoun(village).ToString();
             TitleColor = LordshipBehavior.Instance?.IsPlayerLordship(village) == true ? PlayerHeldColor : parent.TitleColor;
             ParentName = parent.Name;
             HolderName = LordshipBehavior.Instance?.GetGrant(village)?.Holder?.Name?.ToString()

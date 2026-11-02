@@ -136,8 +136,7 @@ namespace BellumCivile.Behaviors
             && FeudalTitleBehavior.Instance?.IsHeldForAllocation(v.Village.Bound, clan) != true);
 
         internal static TextObject Text(string key, string value) => new TextObject("{=" + key + "}" + value);
-        public static TextObject Name(Settlement village) => Text("BC_Lordship_Name", "Lordship of {VILLAGE}")
-            .SetTextVariable("VILLAGE", village?.Name ?? TextObject.GetEmpty());
+        public static TextObject Name(Settlement village) => FeudalTitleDisplayHelper.FormatLordshipName(village);
 
         public bool CanGrant(Clan clan, Settlement village, Hero hero, out TextObject reason)
         {

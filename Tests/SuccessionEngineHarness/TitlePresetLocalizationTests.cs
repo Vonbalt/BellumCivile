@@ -68,9 +68,13 @@ internal static class TitlePresetLocalizationTests
                 var retainerRanks = ((IEnumerable)AccessTools.Property(Config, "Styles").GetValue(config)).Cast<object>()
                     .SelectMany(style => ((IEnumerable)AccessTools.Field(style.GetType(), "Ranks").GetValue(style)).Cast<object>())
                     .Where(rank => (FeudalTitleType)AccessTools.Field(rank.GetType(), "Tier").GetValue(rank) >= FeudalTitleType.Kingdom).ToList();
-                check(retainerRanks.Count > 0 && retainerRanks.All(rank => Field(rank, "WandererRank").EndsWith("_retainerRank}Sir")
-                    && Field(rank, "FemaleWandererRank").EndsWith("_femaleRetainerRank}Dame")),
-                    preset + ": dedicated retainer aliases load Sir/Dame without replacing family noble ranks");
+                check(retainerRanks.Count > 0 && retainerRanks.All(rank =>
+                    new[] { Field(rank, "WandererRank"), Field(rank, "FemaleWandererRank") }
+                        .All(raw => !string.IsNullOrEmpty(raw) && english.TryGetValue(new TextObject(raw).GetID(), out string value)
+                            && value == raw.Substring(raw.IndexOf('}') + 1)))
+                    && (preset != "anglicized" || retainerRanks.All(rank => Field(rank, "WandererRank").EndsWith("_retainerRank}Sir")
+                        && Field(rank, "FemaleWandererRank").EndsWith("_femaleRetainerRank}Dame"))),
+                    preset + ": dedicated retainer aliases match their keyed catalog, with Anglicized Sir/Dame unchanged");
                 Language("English");
                 string root = (string)Names(config)["bc_title_kingdom_vlandia"];
                 var rootText = new TextObject(root);
@@ -112,7 +116,8 @@ internal static class TitlePresetLocalizationTests
                 object crown = ranks.Cast<object>().First(rank =>
                     (FeudalTitleType)AccessTools.Field(rank.GetType(), "Tier").GetValue(rank) == FeudalTitleType.Kingdom);
                 string noun = Field(crown, "TitleName"), male = Field(crown, "MaleRank"), female = Field(crown, "FemaleRank");
-                foreach (string raw in new[] { noun, male, female })
+                string retainerMale = Field(crown, "WandererRank"), retainerFemale = Field(crown, "FemaleWandererRank");
+                foreach (string raw in new[] { noun, male, female, retainerMale, retainerFemale })
                 {
                     var text = new TextObject(raw);
                     check(text.GetID().StartsWith("BC_") && text.ToString() == english[text.GetID()],
@@ -126,8 +131,8 @@ internal static class TitlePresetLocalizationTests
                     preset + ": Rhodok realm root follows a language switch without rebuilding the title");
                 check(rootText.ToString() == "Translated " + preset, preset + ": loaded Crown root translates");
                 check(label.ToString() == "Preset " + preset, preset + ": loaded preset label translates");
-                check(new[] { noun, male, female }.All(raw => new TextObject(raw).ToString().StartsWith("Translated ")),
-                    preset + ": loaded landed noun and both holder ranks translate");
+                check(new[] { noun, male, female, retainerMale, retainerFemale }.All(raw => new TextObject(raw).ToString().StartsWith("Translated ")),
+                    preset + ": loaded landed noun, holder ranks and both retainer honorifics translate");
 
                 XmlAttribute formatAttribute = document.SelectSingleNode("/BellumFeudalTitles/TitleStyle/Rank/@titleFormat") as XmlAttribute;
                 var format = new TextObject(formatAttribute.Value);

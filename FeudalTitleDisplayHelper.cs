@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
 
 namespace BellumCivile
@@ -246,6 +247,29 @@ namespace BellumCivile
 
             return FormatLandedTitle(style?.TitleFormat, titleNoun, root);
         }
+
+        internal static TextObject FormatLordshipName(Settlement village)
+        {
+            var style = ResolveLordshipStyle(village);
+            string format = style?.LordshipFormat;
+            if (string.IsNullOrWhiteSpace(format))
+                format = string.IsNullOrWhiteSpace(style?.LordshipName)
+                    ? "{=BC_Lordship_Name}Lordship of {VILLAGE}"
+                    : "{=BC_Lordship_Format}{TITLE_NOUN} of {VILLAGE}";
+            var name = village?.Name ?? TextObject.GetEmpty();
+            return new TextObject(format).SetTextVariable("TITLE_NOUN", ResolveLordshipNoun(style))
+                .SetTextVariable("VILLAGE", name).SetTextVariable("TITLE_NAME", name);
+        }
+
+        internal static TextObject GetLordshipNoun(Settlement village) => ResolveLordshipNoun(ResolveLordshipStyle(village));
+
+        private static FeudalTitleConfig.RankStyle ResolveLordshipStyle(Settlement village)
+            => ResolveRankStyle(FeudalTitleType.Barony, village?.Village?.Bound?.Town?.OwnerClan,
+                fallbackCultureRef: village?.Culture?.StringId ?? string.Empty);
+
+        private static TextObject ResolveLordshipNoun(FeudalTitleConfig.RankStyle style)
+            => new TextObject(string.IsNullOrWhiteSpace(style?.LordshipName)
+                ? "{=BC_Hierarchy_TierLordship}Lordship" : style.LordshipName);
 
         public static string GetLandedTitleNoun(FeudalTitleType type, Clan styleClan, Kingdom fallbackKingdom = null, string fallbackCultureRef = "")
         {
