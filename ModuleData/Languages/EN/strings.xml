@@ -2355,6 +2355,7 @@
     <string id="BC_Parley_OutcomeCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed." />
     <string id="BC_Parley_OutcomeWhitePeaceCancelledBody" text="The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms." />
     <string id="BC_Parley_OutcomeQuestCancelledBody" text="An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeAllianceCancelledBody" text="An active call-to-arms agreement prevents a separate peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without spending influence or applying any treaty terms. The war continues." />
     <string id="BC_Parley_OutcomeBalanceCancelledBody" text="The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement." />
     <string id="BC_Parley_OutcomeHostageCancelledBody" text="The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement." />
     <string id="BC_Parley_OutcomeOtherCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement." />
@@ -2378,6 +2379,7 @@
     <string id="BC_Parley_WarScore" text="War Score: {VALUE}" />
     <string id="BC_Diplomacy_WarScore" text="War Score" />
     <string id="BC_StorylineWar_PeaceBlocked" text="The active campaign quest requires this war to continue until one side is decisively defeated." />
+    <string id="BC_AllianceWar_PeaceBlocked" text="{CALLED_REALM} is bound by its call-to-arms agreement with {CALLING_REALM} and cannot negotiate a separate peace with {ENEMY_REALM} while that agreement remains active." />
     <string id="BC_Parley_DraftedTermsBudget" text="Drafted Terms ({USED} / {BUDGET} WS)" />
     <string id="BC_Parley_Term_WhitePeace" text="White Peace" />
     <string id="BC_Parley_Term_RetainFief" text="Retain {FIEF_NAME}" />

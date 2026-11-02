@@ -173,6 +173,12 @@ namespace BellumCivile.Patches
                 return false;
             }
 
+            if (AlliancePeaceRestriction.TryGetPeaceBlock(playerKingdom, opponent, out TextObject allianceReason))
+            {
+                DiplomacyRuntimeCompatibilityHelper.ShowUnavailable(allianceReason);
+                return false;
+            }
+
             int influenceCost = Math.Max(
                 0,
                 Campaign.Current?.Models?.DiplomacyModel?.GetInfluenceCostOfProposingPeace(Clan.PlayerClan) ?? 0);

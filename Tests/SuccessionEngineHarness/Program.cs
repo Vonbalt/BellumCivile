@@ -453,6 +453,11 @@ internal static class Program
                 DiplomacyOverviewTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} client liberation checks passed.");
             }
+            else if (args.Contains("--alliance-peace"))
+            {
+                AlliancePeaceTests.Run(Check);
+                Console.WriteLine($"{_checks} alliance peace checks passed.");
+            }
             else if (args.Contains("--parley-voting"))
             {
                 PeaceParleyVotingTests.Run(Check);

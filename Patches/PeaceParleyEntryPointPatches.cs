@@ -45,11 +45,12 @@ namespace BellumCivile.Patches
             if (war == null || war.ConflictType != WarScoreConflictType.ForeignWar)
                 return true;
 
-            if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, opponent, out TextObject storylineReason))
+            if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, opponent, out TextObject storylineReason)
+                || AlliancePeaceRestriction.TryGetPeaceBlock(playerKingdom, opponent, out storylineReason))
             {
                 ____opponentFaction = null;
                 InformationManager.DisplayMessage(new InformationMessage(storylineReason.ToString(), BellumNotificationColors.Warning));
-                BellumCivileLogger.Log($"Suppressed a ruler courier peace offer for a Story Mode protected war; war={war.WarKey}.");
+                BellumCivileLogger.Log($"Suppressed a ruler courier peace offer for a protected war; war={war.WarKey}; reason={storylineReason}.");
                 return false;
             }
 
@@ -112,7 +113,8 @@ namespace BellumCivile.Patches
             if (war == null || war.ConflictType != WarScoreConflictType.ForeignWar)
                 return true;
 
-            if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, opponent, out TextObject storylineReason))
+            if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, opponent, out TextObject storylineReason)
+                || AlliancePeaceRestriction.TryGetPeaceBlock(playerKingdom, opponent, out storylineReason))
             {
                 InformationManager.DisplayMessage(new InformationMessage(storylineReason.ToString(), BellumNotificationColors.Warning));
                 return false;
@@ -160,7 +162,7 @@ namespace BellumCivile.Patches
         }
 
         [HarmonyPrefix]
-        private static bool Prefix(KingdomDecision ____decision)
+        private static bool Prefix(KingdomVoteNotificationItemVM __instance, KingdomDecision ____decision)
         {
             if (!WarPeaceRevampBehavior.IsRevampEnabled())
                 return true;
@@ -174,6 +176,14 @@ namespace BellumCivile.Patches
             WarScoreRecord war = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(playerKingdom, opponent);
             if (war == null || war.ConflictType != WarScoreConflictType.ForeignWar)
                 return true;
+
+            if (AlliancePeaceRestriction.TryGetPeaceBlock(playerKingdom, opponent, out TextObject allianceReason))
+            {
+                peaceDecision.Kingdom?.RemoveDecision(peaceDecision);
+                __instance.ExecuteRemove();
+                InformationManager.DisplayMessage(new InformationMessage(allianceReason.ToString(), BellumNotificationColors.Warning));
+                return false;
+            }
 
             if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, opponent, out TextObject storylineReason))
             {
@@ -245,10 +255,11 @@ namespace BellumCivile.Patches
             if (war == null || war.ConflictType != WarScoreConflictType.ForeignWar)
                 return;
 
-            if (StorylineWarProtectionHelper.IsPeaceBlocked(playerKingdom, opponent))
+            if (StorylineWarProtectionHelper.IsPeaceBlocked(playerKingdom, opponent)
+                || AlliancePeaceRestriction.IsPeaceBlocked(playerKingdom, opponent))
             {
                 peaceDecision.Kingdom?.RemoveDecision(peaceDecision);
-                BellumCivileLogger.Log($"Prevented a peace vote notification from queuing during a Story Mode protected war; war={war.WarKey}.");
+                BellumCivileLogger.Log($"Prevented a peace vote notification from queuing during a protected war; war={war.WarKey}.");
                 return;
             }
             if (PeaceParleyDecisionRedirector.RetireDuringRetryWindow(peaceDecision, war)) return;
@@ -275,6 +286,21 @@ namespace BellumCivile.Patches
     [HarmonyPatch(typeof(Kingdom), nameof(Kingdom.AddDecision))]
     public static class KingdomPeaceDecisionAddedParleyCleanupPatch
     {
+        [HarmonyPrefix]
+        private static bool Prefix(KingdomDecision kingdomDecision)
+        {
+            if (!WarPeaceRevampBehavior.IsRevampEnabled() || !(kingdomDecision is MakePeaceKingdomDecision peace))
+                return true;
+            Kingdom first = peace.Kingdom;
+            Kingdom second = peace.FactionToMakePeaceWith as Kingdom;
+            var war = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(first, second);
+            if (war?.ConflictType != WarScoreConflictType.ForeignWar || !AlliancePeaceRestriction.IsPeaceBlocked(first, second))
+                return true;
+
+            BellumCivileLogger.Log($"Suppressed separate peace decision during an active call-to-arms agreement; war={war.WarKey}.");
+            return false;
+        }
+
         [HarmonyPostfix]
         private static void Postfix(Kingdom __instance, KingdomDecision kingdomDecision)
         {
@@ -362,6 +388,13 @@ namespace BellumCivile.Patches
                 .GetActiveWar(playerKingdom, opponent);
             if (war == null || war.ConflictType != WarScoreConflictType.ForeignWar)
                 return false;
+
+            if (AlliancePeaceRestriction.IsPeaceBlocked(playerKingdom, opponent))
+            {
+                peaceDecision.Kingdom?.RemoveDecision(peaceDecision);
+                report = AlliancePeaceRestriction.CancellationReason;
+                return true;
+            }
 
             if (StorylineWarProtectionHelper.IsPeaceBlocked(playerKingdom, opponent))
             {
