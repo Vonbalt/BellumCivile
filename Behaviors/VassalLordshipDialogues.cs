@@ -16,21 +16,21 @@ namespace BellumCivile.Behaviors
         private void AddVassalLordshipDialogues(CampaignGameStarter starter)
         {
             starter.AddDialogLine("bc_vassal_lordship_awarded", "lord_give_oath_go_on_3", "lord_give_conclude",
-                "{=BC_Lordship_VassalAward}As a token of my esteem and to help you maintain your men, I grant you the lordship of {VILLAGE} as your fief. Go to them, protect them, and collect your dues.",
+                "{=BC_Lordship_VassalAward}As a token of my esteem and to help you maintain your men, I grant you {LORDSHIP} as your fief. Go to them, protect them, and collect your dues.",
                 () =>
                 {
                     if (_oathGrant == null || _oathGrant.Grantor != Hero.OneToOneConversationHero || _oathGrant.Holder != Hero.MainHero
                         || GetGrant(Hero.MainHero) != _oathGrant || !_oathGrant.IsValid) return false;
-                    MBTextManager.SetTextVariable("VILLAGE", _oathGrant.Village.Name);
+                    SetConversationEstate(_oathGrant.Village);
                     return true;
                 }, () => _oathGrant = null, 120);
             starter.AddPlayerLine("bc_vassal_lordship_return", "lord_talk_speak_diplomacy_2", "bc_vassal_lordship_return_warning",
-                "{=BC_Lordship_VassalReturn}I wish to return the lordship of {VILLAGE} to your house.",
+                "{=BC_Lordship_VassalReturn}I wish to return {LORDSHIP} to your house.",
                 () =>
                 {
                     var grant = GetGrant(Hero.MainHero);
                     if (grant?.IsVassalGrant != true || !grant.IsValid || grant.GrantingClan.Leader != Hero.OneToOneConversationHero) return false;
-                    MBTextManager.SetTextVariable("VILLAGE", grant.Village.Name);
+                    SetConversationEstate(grant.Village);
                     return true;
                 }, null, 120);
             starter.AddDialogLine("bc_vassal_lordship_return_warning", "bc_vassal_lordship_return_warning", "bc_vassal_lordship_return_choice",
@@ -39,12 +39,12 @@ namespace BellumCivile.Behaviors
             starter.AddDialogLine("bc_vassal_lordship_return_successor_warning", "bc_vassal_lordship_return_warning", "bc_vassal_lordship_return_choice",
                 "{=BC_Lordship_VassalReturnHouseWarning}My house bestowed it as a mark of favor. I shall accept its return, though I cannot help but take it as a slight.", null, null, 100);
             starter.AddPlayerLine("bc_vassal_lordship_return_confirm", "bc_vassal_lordship_return_choice", "bc_vassal_lordship_return_result",
-                "{=BC_Lordship_VassalReturnConfirm}I am resolved. I return the lordship.", null,
+                "{=BC_Lordship_VassalReturnConfirm}I am resolved. I return {LORDSHIP}.", null,
                 () => _conversationCompleted = ReturnVassalLordship(Hero.MainHero, Hero.OneToOneConversationHero), 120);
             starter.AddPlayerLine("bc_vassal_lordship_return_cancel", "bc_vassal_lordship_return_choice", "lord_talk_speak_diplomacy_2",
                 "{=BC_Lordship_VassalReturnCancel}Then I shall continue to hold it.", null, null, 100);
             starter.AddDialogLine("bc_vassal_lordship_return_done", "bc_vassal_lordship_return_result", "lord_talk_speak_diplomacy_2",
-                "{=BC_Lordship_VassalReturnDone}So be it. The lordship returns to my house.", () => _conversationCompleted, null, 120);
+                "{=BC_Lordship_VassalReturnDone}So be it. {LORDSHIP} returns to my house.", () => _conversationCompleted, null, 120);
             starter.AddDialogLine("bc_vassal_lordship_return_unavailable", "bc_vassal_lordship_return_result", "lord_talk_speak_diplomacy_2",
                 "{=BC_Lordship_VassalReturnUnavailable}It seems that grant is no longer yours to return.", () => !_conversationCompleted, null, 100);
             starter.AddDialogLine("bc_vassal_lordship_welcome_known", "start", "lord_start", LocalWelcome,

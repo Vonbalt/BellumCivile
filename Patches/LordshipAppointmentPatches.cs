@@ -177,9 +177,12 @@ namespace BellumCivile.Patches
         {
             if (__1?.FirstOrDefault() is Hero hero && LordshipEligibility.Required(hero)
                 && !CampaignUIHelper.IsHeroInformationHidden(hero, out _))
-                __0.AddProperty(LordshipBehavior.Text("BC_Lordship_TooltipLabel", "Lordship").ToString(),
-                    LordshipBehavior.Instance.GetGrant(hero)?.Village?.Name?.ToString()
-                    ?? LordshipBehavior.Text("BC_Hierarchy_None", "None").ToString());
+            {
+                var village = LordshipBehavior.Instance.GetGrant(hero)?.Village;
+                __0.AddProperty((village != null ? FeudalTitleDisplayHelper.GetLordshipNoun(village)
+                    : FeudalTitleDisplayHelper.GetLordshipNounForClan(hero.Clan)).ToString(),
+                    village?.Name?.ToString() ?? LordshipBehavior.Text("BC_Hierarchy_None", "None").ToString());
+            }
         }
 
         private static void PartyCandidates(ref IEnumerable<ClanCardSelectionItemInfo> __result) => __result = Filter(__result, false);

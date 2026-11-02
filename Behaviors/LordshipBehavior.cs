@@ -138,20 +138,28 @@ namespace BellumCivile.Behaviors
         internal static TextObject Text(string key, string value) => new TextObject("{=" + key + "}" + value);
         public static TextObject Name(Settlement village) => FeudalTitleDisplayHelper.FormatLordshipName(village);
 
+        internal static TextObject EstateText(string key, string value, Settlement village = null, Clan clan = null)
+        {
+            var noun = village != null ? FeudalTitleDisplayHelper.GetLordshipNoun(village)
+                : FeudalTitleDisplayHelper.GetLordshipNounForClan(clan);
+            return Text(key, value).SetTextVariable("LORDSHIP", village != null ? Name(village) : noun)
+                .SetTextVariable("LORDSHIP_TYPE", noun).SetTextVariable("VILLAGE", village?.Name ?? TextObject.GetEmpty());
+        }
+
         public bool CanGrant(Clan clan, Settlement village, Hero hero, out TextObject reason)
         {
             reason = null;
             if (!HouseholdMembership.Supports(clan) || village?.Village?.Bound?.OwnerClan != clan)
-                reason = Text("BC_Lordship_NotOwner", "Only the holder of the parent barony may grant this lordship.");
+                reason = Text("BC_Lordship_NotOwner", "Only the holder of the parent barony may make this grant.");
             else if (FeudalTitleBehavior.Instance?.IsHeldForAllocation(village.Village.Bound, clan) == true)
-                reason = Text("BC_Lordship_AwaitingAllocation", "This barony is awaiting allocation. Its temporary custodian cannot grant its lordships.");
+                reason = Text("BC_Lordship_AwaitingAllocation", "This barony is awaiting allocation. Its temporary custodian cannot grant its village revenues.");
             else if (GetGrant(village) != null)
-                reason = Text("BC_Lordship_Occupied", "This lordship already has a holder.");
+                reason = EstateText("BC_Lordship_Occupied", "{LORDSHIP} already has a holder.", village);
             else if (hero?.Clan != clan || !hero.IsAlive || hero.IsDisabled || hero.IsChild || hero.IsNotable || hero.IsSpecial || hero.IsTemplate
                 || hero == clan.Leader || hero == RegencyBehavior.Instance?.GetWard(clan))
                 reason = Text("BC_Lordship_InvalidMember", "Choose an eligible adult member of your household.");
-            else if (GetGrant(hero) != null)
-                reason = Text("BC_Lordship_AlreadyHolds", "This character already holds a lordship.");
+            else if (GetGrant(hero) is PersonalLordshipRecord existing)
+                reason = EstateText("BC_Lordship_AlreadyHolds", "This character already holds {LORDSHIP}.", existing.Village);
             return reason == null;
         }
 
@@ -173,7 +181,7 @@ namespace BellumCivile.Behaviors
             var grant = GetGrant(village);
             if (grant == null || grant.GrantingClan != clan || village.Village.Bound.OwnerClan != clan)
             {
-                reason = Text("BC_Lordship_NotOwner", "Only the holder of the parent barony may grant this lordship.");
+                reason = Text("BC_Lordship_NotOwner", "Only the holder of the parent barony may make this grant.");
                 return false;
             }
             reason = null;
@@ -311,13 +319,13 @@ namespace BellumCivile.Behaviors
             if (pending.Count == 0) { _warned = true; return; }
             _warned = true;
             foreach (var record in pending) record.Deadline = Now + 5f;
-            var body = Text("BC_Lordship_MigrationBody", "The following retainers command parties or govern settlements in your name without lordships:\n{RETAINERS}\n\nGrant them lordships within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties.")
+            var body = Text("BC_Lordship_MigrationBody", "The following retainers command parties or govern settlements in your name without village endowments:\n{RETAINERS}\n\nGrant them land within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties.")
                 .SetTextVariable("RETAINERS", string.Join("\n", pending.Select(a => a.Hero.Name + " - " + (a.Town?.Name?.ToString() ?? a.Party.Name.ToString()))));
             InformationManager.ShowInquiry(new InquiryData(Text("BC_Lordship_MigrationTitle", "Retainers Await Endowment").ToString(),
-                body.ToString(), true, true, Text("BC_Lordship_GrantPlural", "Grant Lordships").ToString(),
+                body.ToString(), true, true, Text("BC_Lordship_GrantPlural", "Endow Retainers").ToString(),
                 Text("BC_Lordship_Attend", "I Will Attend to It").ToString(), () => LordshipPlayerActions.ShowMigration(), null,
                 isAffirmativeOptionEnabled: () => (Villages(Clan.PlayerClan).Any(v => pending.Any(a => CanGrant(Clan.PlayerClan, v, a.Hero, out _))),
-                    Text("BC_Lordship_NoVacancies", "There are no vacant lordships in your domains.").ToString())), true);
+                    Text("BC_Lordship_NoVacancies", "None of your villages are available for a grant.").ToString())), true);
         }
 
         private static float Now => (float)CampaignTime.Now.ToDays;

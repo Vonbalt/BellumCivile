@@ -12,7 +12,8 @@ namespace BellumCivile
 {
     internal static class LordshipPlayerActions
     {
-        private static string T(string key, string text) => LordshipBehavior.Text(key, text).ToString();
+        private static string T(string key, string text, Settlement village = null)
+            => LordshipBehavior.EstateText(key, text, village, Clan.PlayerClan).ToString();
 
         internal static void ShowGrant(Settlement village, Action changed = null)
         {
@@ -23,10 +24,9 @@ namespace BellumCivile
                 .OrderBy(h => HouseholdMembership.IsFamily(h) ? 1 : 0).ThenByDescending(h => h.Age)
                 .Select(hero => new InquiryElement(hero, hero.Name.ToString(), null,
                     behavior.CanGrant(Clan.PlayerClan, village, hero, out var reason), reason?.ToString() ?? string.Empty)).ToList();
-            var description = LordshipBehavior.Text("BC_Lordship_RecipientDescription", "Choose a member of your household to receive the lordship of {VILLAGE}. Its revenues will belong exclusively to the holder for as long as they hold the grant.")
-                .SetTextVariable("VILLAGE", village.Name);
+            var description = LordshipBehavior.EstateText("BC_Lordship_RecipientDescription", "Choose a member of your household to receive {LORDSHIP}. Its revenues will belong exclusively to the holder for as long as they hold the grant.", village);
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                T("BC_Lordship_GrantTitle", "Grant Lordship"), description.ToString(), choices, true, 1, 1,
+                T("BC_Lordship_GrantTitle", "Grant {LORDSHIP_TYPE}", village), description.ToString(), choices, true, 1, 1,
                 T("BC_Hierarchy_ActionGrant", "Grant"), T("BC_UI_Cancel", "Cancel"), selected =>
                 {
                     Hero hero = selected?.FirstOrDefault()?.Identifier as Hero;
@@ -44,12 +44,12 @@ namespace BellumCivile
                 .Select(v => new InquiryElement(v, LordshipBehavior.Name(v).ToString(), null)).ToList();
             if (choices.Count == 0)
             {
-                Failure(LordshipBehavior.Text("BC_Lordship_NoVacancies", "There are no vacant lordships in your domains."));
+                Failure(LordshipBehavior.Text("BC_Lordship_NoVacancies", "None of your villages are available for a grant."));
                 return;
             }
-            var description = LordshipBehavior.Text("BC_Lordship_ChooseVillage", "Choose a lordship for {HERO}. Its revenues will belong exclusively to the holder.").SetTextVariable("HERO", hero.Name);
+            var description = LordshipBehavior.Text("BC_Lordship_ChooseVillage", "Choose a village grant for {HERO}. Its revenues will belong exclusively to the holder.").SetTextVariable("HERO", hero.Name);
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                T("BC_Lordship_GrantTitle", "Grant Lordship"), description.ToString(), choices, true, 1, 1,
+                T("BC_Lordship_GrantTitle", "Grant {LORDSHIP_TYPE}"), description.ToString(), choices, true, 1, 1,
                 T("BC_Hierarchy_ActionGrant", "Grant"), T("BC_UI_Cancel", "Cancel"), selected =>
                 {
                     var village = selected?.FirstOrDefault()?.Identifier as Settlement;
@@ -63,13 +63,13 @@ namespace BellumCivile
         {
             var grant = LordshipBehavior.Instance?.GetGrant(village);
             if (grant == null) return;
-            var body = LordshipBehavior.Text("BC_Lordship_RevokeConfirm", "Revoke the lordship of {VILLAGE} from {HERO}? Relations will decrease by 15. A retainer without a lordship will also be relieved of party command or governorship when it is safe.")
-                .SetTextVariable("VILLAGE", village.Name).SetTextVariable("HERO", grant.Holder.Name);
-            InformationManager.ShowInquiry(new InquiryData(T("BC_Lordship_RevokeTitle", "Revoke Lordship"), body.ToString(),
+            var body = LordshipBehavior.EstateText("BC_Lordship_RevokeConfirm", "Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without an endowment will also be relieved of party command or governorship when it is safe.", village)
+                .SetTextVariable("HERO", grant.Holder.Name);
+            InformationManager.ShowInquiry(new InquiryData(T("BC_Lordship_RevokeTitle", "Revoke {LORDSHIP_TYPE}", village), body.ToString(),
                 true, true, T("BC_Hierarchy_ActionRevoke", "Revoke"), T("BC_UI_Cancel", "Cancel"), () =>
                 {
                     if (LordshipBehavior.Instance?.TryRevoke(Clan.PlayerClan, village, out var reason) == true) changed?.Invoke();
-                    else Failure(LordshipBehavior.Text("BC_Lordship_Changed", "This lordship is no longer available."));
+                    else Failure(LordshipBehavior.Text("BC_Lordship_Changed", "This grant is no longer available."));
                 }, null), true);
         }
 
@@ -83,7 +83,7 @@ namespace BellumCivile
             if (choices.Count == 0) return;
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                 T("BC_Lordship_MigrationTitle", "Retainers Await Endowment"),
-                T("BC_Lordship_MigrationChoose", "Choose a retainer to receive a lordship. The holder alone will receive its revenues."),
+                T("BC_Lordship_MigrationChoose", "Choose a retainer to receive a village endowment. The holder alone will receive its revenues."),
                 choices, true, 1, 1, T("BC_Hierarchy_ActionGrant", "Grant"), T("BC_UI_Cancel", "Cancel"),
                 selected => { if (selected?.FirstOrDefault()?.Identifier is Hero hero) ShowVillageChoice(hero); }, null), true);
         }

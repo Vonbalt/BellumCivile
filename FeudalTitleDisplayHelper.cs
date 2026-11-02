@@ -263,6 +263,9 @@ namespace BellumCivile
 
         internal static TextObject GetLordshipNoun(Settlement village) => ResolveLordshipNoun(ResolveLordshipStyle(village));
 
+        internal static TextObject GetLordshipNounForClan(Clan clan)
+            => ResolveLordshipNoun(ResolveRankStyle(FeudalTitleType.Barony, clan));
+
         private static FeudalTitleConfig.RankStyle ResolveLordshipStyle(Settlement village)
             => ResolveRankStyle(FeudalTitleType.Barony, village?.Village?.Bound?.Town?.OwnerClan,
                 fallbackCultureRef: village?.Culture?.StringId ?? string.Empty);

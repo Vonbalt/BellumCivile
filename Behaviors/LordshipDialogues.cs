@@ -13,11 +13,17 @@ namespace BellumCivile.Behaviors
         private Hero _conversationRecipient;
         private bool _conversationCompleted;
 
+        private static void SetConversationEstate(Settlement village)
+        {
+            MBTextManager.SetTextVariable("VILLAGE", village?.Name ?? TextObject.GetEmpty());
+            MBTextManager.SetTextVariable("LORDSHIP", Name(village));
+        }
+
         private void AddDialogues(CampaignGameStarter starter)
         {
             AddVassalLordshipDialogues(starter);
             starter.AddPlayerLine("bc_lordship_start", "hero_main_options", "bc_lordship_response",
-                "{=BC_Lordship_DialogueOffer}You have served my household faithfully. I would entrust a lordship to you.",
+                "{=BC_Lordship_DialogueOffer}You have served my household faithfully. I would entrust an estate to you.",
                 () => Ready && Hero.OneToOneConversationHero?.Clan == Clan.PlayerClan
                     && Villages(Clan.PlayerClan).Any(v => CanGrant(Clan.PlayerClan, v, Hero.OneToOneConversationHero, out _)),
                 () => { _conversationRecipient = Hero.OneToOneConversationHero; _conversationVillage = null; _conversationCompleted = false; }, 120);
@@ -26,24 +32,25 @@ namespace BellumCivile.Behaviors
                 () => ConversationSentence.SetObjectsToRepeatOver(Villages(Clan.PlayerClan)
                     .Where(v => CanGrant(Clan.PlayerClan, v, _conversationRecipient, out _)).Cast<object>().ToList()), 120);
             starter.AddRepeatablePlayerLine("bc_lordship_village", "bc_lordship_villages", "bc_lordship_selected",
-                "{=BC_Lordship_DialogueVillage}The lordship of {VILLAGE}.",
-                "{=BC_Lordship_DialogueAnother}I am considering another lordship.", "bc_lordship_response",
+                "{=BC_Lordship_DialogueVillage}{LORDSHIP}.",
+                "{=BC_Lordship_DialogueAnother}I am considering another estate.", "bc_lordship_response",
                 () =>
                 {
                     if (!(ConversationSentence.CurrentProcessedRepeatObject is Settlement village)) return false;
                     ConversationSentence.SelectedRepeatLine.SetTextVariable("VILLAGE", village.Name);
+                    ConversationSentence.SelectedRepeatLine.SetTextVariable("LORDSHIP", Name(village));
                     return true;
                 }, () =>
                 {
                     _conversationVillage = ConversationSentence.SelectedRepeatObject as Settlement;
-                    MBTextManager.SetTextVariable("VILLAGE", _conversationVillage?.Name ?? TextObject.GetEmpty());
+                    SetConversationEstate(_conversationVillage);
                 }, 120);
             starter.AddPlayerLine("bc_lordship_cancel", "bc_lordship_villages", "hero_main_options",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);
             starter.AddDialogLine("bc_lordship_selected", "bc_lordship_selected", "bc_lordship_confirm",
                 "{=BC_Lordship_DialogueSelected}{VILLAGE}? I would be honored to hold it in your service.", null, null, 120);
             starter.AddPlayerLine("bc_lordship_confirm", "bc_lordship_confirm", "bc_lordship_result",
-                "{=BC_Lordship_DialogueGrant}I grant you the lordship of {VILLAGE}. Its revenues shall be yours, in return for faithful service to my house.",
+                "{=BC_Lordship_DialogueGrant}I grant you {LORDSHIP}. Its revenues shall be yours, in return for faithful service to my house.",
                 null, () =>
                 {
                     _conversationCompleted = _conversationRecipient == Hero.OneToOneConversationHero
@@ -58,13 +65,19 @@ namespace BellumCivile.Behaviors
                 "{=BC_Lordship_DialogueUnavailable}It seems that grant can no longer be made. We may speak of it another time.",
                 () => !_conversationCompleted, null, 100);
             starter.AddPlayerLine("bc_lordship_revoke_start", "hero_main_options", "bc_lordship_revoke_confirm",
-                "{=BC_Lordship_DialogueRevokeOffer}We must speak of the lordship you hold from my household.",
-                () => GetGrant(Hero.OneToOneConversationHero)?.GrantingClan == Clan.PlayerClan,
+                "{=BC_Lordship_DialogueRevokeOffer}We must speak of {LORDSHIP}, which you hold from my household.",
+                () =>
+                {
+                    var grant = GetGrant(Hero.OneToOneConversationHero);
+                    if (grant == null || grant.GrantingClan != Clan.PlayerClan) return false;
+                    SetConversationEstate(grant.Village);
+                    return true;
+                },
                 () =>
                 {
                     _conversationRecipient = Hero.OneToOneConversationHero;
                     _conversationVillage = GetGrant(_conversationRecipient)?.Village;
-                    MBTextManager.SetTextVariable("VILLAGE", _conversationVillage?.Name ?? TextObject.GetEmpty());
+                    SetConversationEstate(_conversationVillage);
                 }, 120);
             starter.AddDialogLine("bc_lordship_revoke_response", "bc_lordship_revoke_confirm", "bc_lordship_revoke_choice",
                 "{=BC_Lordship_DialogueRevokeResponse}What is your wish?", null, null, 120);
@@ -75,7 +88,7 @@ namespace BellumCivile.Behaviors
             starter.AddPlayerLine("bc_lordship_revoke_cancel", "bc_lordship_revoke_choice", "hero_main_options",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);
             starter.AddDialogLine("bc_lordship_revoke_done", "bc_lordship_revoke_done", "hero_main_options",
-                "{=BC_Lordship_DialogueSurrender}As you command. I surrender the lordship.", () => _conversationCompleted, null, 120);
+                "{=BC_Lordship_DialogueSurrender}As you command. I surrender {LORDSHIP}.", () => _conversationCompleted, null, 120);
             starter.AddDialogLine("bc_lordship_revoke_failed", "bc_lordship_revoke_done", "hero_main_options",
                 "{=BC_Lordship_DialogueUnavailable}It seems that grant can no longer be made. We may speak of it another time.",
                 () => !_conversationCompleted, null, 100);
