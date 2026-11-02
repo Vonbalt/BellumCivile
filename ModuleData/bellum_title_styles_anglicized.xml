@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BellumFeudalTitles presetId="anglicized" presetName="{=BC_TitleStylePreset_Anglicized}Anglicized" presetOrder="10">
   <!-- Presentation-only title roots. These never alter holders, ownership, or hierarchy. -->
+  <!-- Barony ranks also configure village lordshipName and lordshipFormat; {VILLAGE} and {TITLE_NAME} both name the village. -->
   <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
        The default is "{DISPLAY_TITLE} {HERO_NAME}"; order and separators may be changed.
        Example: heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
@@ -123,6 +124,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_femaleRank}Strategina" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_femaleRank}Archontissa" />
   </TitleStyle>
@@ -157,6 +160,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_femaleRank}Strategina" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_femaleRank}Archontissa" />
   </TitleStyle>
@@ -191,6 +196,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_femaleRank}Strategina" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_femaleRank}Archontissa" />
   </TitleStyle>
@@ -225,6 +232,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_County_femaleRank}Strategina" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_Barony_femaleRank}Archontissa" />
   </TitleStyle>
@@ -295,6 +304,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_County_femaleRank}Countess" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_titleName}Barony"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_maleRank}Baron"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Vlandia_Barony_femaleRank}Baroness" />
   </TitleStyle>
@@ -329,6 +340,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Battania_County_femaleRank}Banmormaer" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_titleName}Tribe"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_maleRank}Chief"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Battania_Barony_femaleRank}Chieftess" />
   </TitleStyle>
@@ -367,6 +380,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_County_femaleRank}Noyan" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_titleName}Tribe"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_maleRank}Chief"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Khuzait_Barony_femaleRank}Chieftess" />
   </TitleStyle>
@@ -401,6 +416,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_County_femaleRank}Emira" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_titleName}Sheikhdom"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_maleRank}Sheikh"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Aserai_Barony_femaleRank}Sheikha" />
   </TitleStyle>
@@ -435,6 +452,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_County_femaleRank}Boyarina" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_titleName}Tribe"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_maleRank}Chief"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Sturgia_Barony_femaleRank}Chieftess" />
   </TitleStyle>
@@ -469,6 +488,8 @@
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Nord_County_femaleRank}High Chieftess" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_titleName}Tribe"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
           maleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_maleRank}Chief"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_femaleRank}Chieftess" />
   </TitleStyle>

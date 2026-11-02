@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BellumFeudalTitles presetId="immersive" presetName="{=BC_TitleStylePreset_Immersive}Immersive" presetOrder="20">
   <!-- Presentation-only title roots. These never alter holders, ownership, or hierarchy. -->
+  <!-- Barony ranks also configure village lordshipName and lordshipFormat; {VILLAGE} and {TITLE_NAME} both name the village. -->
   <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
        Examples: heroNameFormat="{DISPLAY_TITLE} &#xB7; {HERO_NAME}"
        or heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
@@ -94,7 +95,7 @@
   <TitleName id="county_zeos" name="{=BC_TitleRoot_Immersive_county_zeos}Zeon" />
   <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
   <TitleStyle culture="Empire">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRank}Imperatrix"
@@ -106,7 +107,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Empire_Empire_femaleNobleRank}Patrikia"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_Empire_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_Empire_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_titleName}Exarchatus"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_maleRank}Exarchos"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRank}Exarchissa"
@@ -132,13 +133,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_County_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_Barony_titleName}Toparchia"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipName}Pronoia"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipFormat}{TITLE_NOUN} tōn {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_Barony_femaleRank}Archontissa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_Barony_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_Barony_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle kingdom="empire_s">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_titleName}Basileia"
           maleRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_maleRank}Basileus"
           femaleRank="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRank}Basilissa"
@@ -152,7 +155,7 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle kingdom="empire_w">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_titleName}Autokrateia"
           maleRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_maleRank}Autokrator"
           femaleRank="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRank}Autokratorissa"
@@ -166,7 +169,7 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle kingdom="empire">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_titleName}Politeia"
           maleRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_maleRank}Hypatos"
           femaleRank="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRank}Hypatissa"
@@ -180,7 +183,7 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_kingdom_empire_Kingdom_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Vlandia">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_retainerRank}Miles" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRetainerRank}Militissa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRank}Imperatrix"
@@ -192,7 +195,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleNobleRank}Domina"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_retainerRank}Miles" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRetainerRank}Militissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRank}Regina"
@@ -218,13 +221,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_County_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_titleName}Baronatus"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_lordshipName}Feodum"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_lordshipFormat}{TITLE_NOUN} {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_maleRank}Baro"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_femaleRank}Baronissa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Vlandia_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Battania">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_retainerRank}Ridire" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRetainerRank}Banridire" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Battania_Empire_titleName}Ríocht Ruirech"
           maleRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_maleRank}Rí Ruirech"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRank}Banrí Ruirech"
@@ -236,7 +241,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Battania_Empire_femaleNobleRank}Bantighearna"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Battania_Empire_titleFormat}{TITLE_NOUN} na {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Battania_Empire_heldTitleFormat}{DISPLAY_TITLE} na {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_retainerRank}Ridire" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRetainerRank}Banridire" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_titleName}Ard Ríocht"
           maleRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_maleRank}Ard Rí"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRank}Ardbhainríon"
@@ -262,13 +267,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Battania_County_heldTitleFormat}{DISPLAY_TITLE} na {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Battania_Barony_titleName}Tuath"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Battania_Barony_lordshipName}Baile"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Battania_Barony_lordshipFormat}{TITLE_NOUN} na {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Battania_Barony_maleRank}Taoiseach"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Battania_Barony_femaleRank}Bantaoiseach"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Battania_Barony_titleFormat}{TITLE_NOUN} na {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Battania_Barony_heldTitleFormat}{DISPLAY_TITLE} na {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Khuzait">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_retainerRank}Nökör" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRetainerRank}Nökör" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_titleName}Khaganliqi"
           maleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_maleRank}Khagan"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRank}Khatun"
@@ -280,7 +287,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleNobleRank}Tarkhanah"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_titleFormat}{TITLE_NAME} {TITLE_NOUN}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_Empire_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_retainerRank}Nökör" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRetainerRank}Nökör" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_titleName}Khanliqi"
           maleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_maleRank}Khan"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRank}Khanum"
@@ -306,13 +313,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_County_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_titleName}Noyanliqi"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_lordshipName}Nutug"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_lordshipFormat}{VILLAGE} {TITLE_NOUN}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_maleRank}Noyan"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_femaleRank}Noyan"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_titleFormat}{TITLE_NAME} {TITLE_NOUN}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Khuzait_Barony_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}" />
   </TitleStyle>
   <TitleStyle culture="Aserai">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_retainerRank}Faris" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRetainerRank}Farisa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_titleName}Saltanat Uzma"
           maleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_maleRank}Sultan al-Salatin"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRank}Sultana al-Salatin"
@@ -324,7 +333,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleNobleRank}Sharifa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Aserai_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_retainerRank}Faris" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRetainerRank}Farisa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_titleName}Saltanat"
           maleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_maleRank}Sultan"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRank}Sultana"
@@ -350,13 +359,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Aserai_County_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_titleName}Mashyakhat"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_lordshipName}Iqta"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_lordshipFormat}{TITLE_NOUN} {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_maleRank}Shaykh"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_femaleRank}Shaykha"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Aserai_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Sturgia">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_retainerRank}Druzhinnik" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRetainerRank}Druzhinnitsa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_titleName}Samoderzhaviye"
           maleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_maleRank}Samoderzhets"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRank}Samoderzhitsa"
@@ -368,7 +379,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleNobleRank}Boyaryshnya"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_retainerRank}Druzhinnik" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRetainerRank}Druzhinnitsa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_titleName}Velikoye Knyazhestvo"
           maleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_maleRank}Velikiy Knyaz"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRank}Velikaya Knyaginya"
@@ -394,13 +405,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_County_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_titleName}Votchina"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_lordshipName}Pomestie"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_lordshipFormat}{TITLE_NOUN} {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_maleRank}Dvoryanin"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_femaleRank}Dvoryanka"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Sturgia_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Nord">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRetainerRank}Hirðkona" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Nord_Empire_titleName}Fylkirate"
           maleRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_maleRank}Fylkir"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRank}Fylkja"
@@ -412,7 +425,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleNobleRank}Frú"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Nord_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Nord_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRetainerRank}Hirðkona" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_titleName}Konungsríki"
           maleRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRank}Dróttning"
@@ -438,6 +451,8 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Nord_County_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Nord_Barony_titleName}Hersirsdæmi"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Nord_Barony_lordshipName}Lén"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Nord_Barony_lordshipFormat}{TITLE_NOUN} {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Nord_Barony_maleRank}Hersir"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Nord_Barony_femaleRank}Hersirkona"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Nord_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
@@ -445,7 +460,7 @@
   </TitleStyle>
    <!-- Mod supported cultures. -->
   <TitleStyle culture="Rhodok">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_retainerRank}Riter" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleRetainerRank}Riterin" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_titleName}Vronenentriich"
           maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_maleRank}Vronenent"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleRank}Vronenentin"
@@ -458,7 +473,7 @@
           titleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Empire_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_retainerRank}Riter" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleRetainerRank}Riterin" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_titleName}Hougekunicriich"
           maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_maleRank}Hougekunic"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleRank}Hougekunigin"
@@ -473,10 +488,13 @@
           heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
     <Rank tier="Duchy" titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_titleName}Kunicriich" maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_maleRank}Kunic" femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_femaleRank}Kunigin" titleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Duchy_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
     <Rank tier="County" titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_County_titleName}Graveschaft" maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_County_maleRank}Grave" femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_County_femaleRank}Gravin" titleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_County_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_County_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_County_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
-    <Rank tier="Barony" titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_titleName}Vriherreschaft" maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_maleRank}Vriherre" femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_femaleRank}Vrifrou" titleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
+    <Rank tier="Barony" titleName="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_titleName}Vriherreschaft"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_lordshipName}Lehen"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_lordshipFormat}{TITLE_NOUN} {VILLAGE}"
+          maleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_maleRank}Vriherre" femaleRank="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_femaleRank}Vrifrou" titleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_titleFormat}{TITLE_NOUN} {TITLE_NAME}" heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" heroNameFormat="{=BC_TitleStyle_Immersive_culture_Rhodok_Barony_heroNameFormat}{DISPLAY_TITLE} {HERO_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Empire_n">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRank}Imperatrix"
@@ -488,7 +506,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleNobleRank}Patrikia"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_Empire_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_titleName}Exarchatus"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_maleRank}Exarchos"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRank}Exarchissa"
@@ -514,13 +532,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_County_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_titleName}Toparchia"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_lordshipName}Pronoia"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_lordshipFormat}{TITLE_NOUN} tōn {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_femaleRank}Archontissa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_n_Barony_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Empire_s">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRank}Imperatrix"
@@ -532,7 +552,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleNobleRank}Patrikia"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_Empire_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_titleName}Exarchatus"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_maleRank}Exarchos"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRank}Exarchissa"
@@ -558,13 +578,15 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_County_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_titleName}Toparchia"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_lordshipName}Pronoia"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_lordshipFormat}{TITLE_NOUN} tōn {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_femaleRank}Archontissa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_s_Barony_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
   </TitleStyle>
   <TitleStyle culture="Empire_w">
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRetainerRank}Dame" tier="Empire"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRank}Imperatrix"
@@ -576,7 +598,7 @@
           femaleNobleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleNobleRank}Patrikia"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_w_Empire_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
-    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+    <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_titleName}Exarchatus"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_maleRank}Exarchos"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRank}Exarchissa"
@@ -602,6 +624,8 @@
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Empire_w_County_heldTitleFormat}{DISPLAY_TITLE} tōn {TITLE_NAME}" />
     <Rank tier="Barony"
           titleName="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_titleName}Toparchia"
+          lordshipName="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_lordshipName}Pronoia"
+          lordshipFormat="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_lordshipFormat}{TITLE_NOUN} tōn {VILLAGE}"
           maleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_maleRank}Archon"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_femaleRank}Archontissa"
           titleFormat="{=BC_TitleStyle_Immersive_culture_Empire_w_Barony_titleFormat}{TITLE_NOUN} tōn {TITLE_NAME}"

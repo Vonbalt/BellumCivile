@@ -787,6 +787,45 @@ Bannerlord text uses `{=KEY}Fallback text`. Keep the key when translating its `<
 
 Shipped title presets localize their labels, territorial roots, ranks, and formats. Unchanged Anglicized roots for Vlandia, Sturgia, Battania, and Khuzait reuse vanilla translation keys. Bellum-specific roots use `BC_TitleRoot_*`; terminology and formats use `BC_TitleStyle_*`. Preset and cultural contexts have separate keys so translating one does not change another. Preserve format variables such as `{TITLE_NOUN}`, `{TITLE_NAME}`, `{DISPLAY_TITLE}`, and `{HERO_NAME}`, while changing their order as the language requires.
 
+Village lordship terminology uses optional `lordshipName` and `lordshipFormat` attributes on the existing
+`<Rank tier="Barony">`. They follow the parent barony owner's normal rank-style selection (kingdom,
+inherited realm style, ruler culture, then holder culture), not the recipient's culture. This works for
+vacant lordships as well as grants, and does not introduce a new landed title tier. For example:
+
+```xml
+<TitleStyle culture="Vlandia">
+  <Rank tier="Barony"
+        lordshipName="{=MyMod_Feodum}Feodum"
+        lordshipFormat="{=MyMod_FeodumFormat}{TITLE_NOUN} {VILLAGE}" />
+</TitleStyle>
+```
+
+`{TITLE_NOUN}` is the localized lordship noun; `{VILLAGE}` and `{TITLE_NAME}` both retain the village's
+localized name. Anglicized retains `Lordship of Calioc` and `Sir`/`Dame` for every culture. The other
+presets use cultural terminology and follow the parent barony's existing connectors and word order:
+
+| Culture | Immersive Lordship | BannerKings Lordship | Immersive Retainer (Male/Female) | BannerKings Retainer (Male/Female) |
+| --- | --- | --- | --- | --- |
+| Empire (all variants) | Pronoia tōn Calioc | Pronoia Calioc | Pronoiarios / Pronoiarissa | Pronoiarios / Pronoiarissa |
+| Vlandia | Feodum Calioc | Calioc Fief | Miles / Militissa | Chevaler / Chevaleresse |
+| Battania | Baile na Calioc | Maenor y Calioc | Ridire / Banridire | Marchog / Marchoges |
+| Khuzait | Calioc Nutug | Calioc Nutug | Nökör / Nökör | Nökör / Nökör |
+| Aserai | Iqta Calioc | Iqta Calioc | Faris / Farisa | Faris / Farisa |
+| Sturgia | Pomestie Calioc | Pomestie Calioc | Druzhinnik / Druzhinnitsa | Druzhinnik / Druzhinnitsa |
+| Nord | Lén Calioc | Lén Calioc | Hirðmaðr / Hirðkona | Hirðmaðr / Hirðkona |
+| Rhodok | Lehen Calioc | Lehen Calioc | Riter / Riterin | Riter / Riterin |
+
+These are cultural game adaptations, not assertions of uniform historical rank or inheritance rules.
+Feminine adaptations follow the preset's existing patterns; the grants remain personal and nonhereditary.
+Retainer honorifics are configured by `retainerRank` and `femaleRetainerRank` on sovereign ranks and
+apply only to adult retainers holding lordships, never replacing the noble family's own honorifics.
+All entries are editable and keyed separately for translation. The same noun labels the hierarchy's Tier field,
+and the shared name formatter supplies hierarchy nodes, encyclopedia entries, grant-selection lists,
+income labels and title-acquisition notices. General dialogue/category text can still say "lordship".
+Partial patch attributes merge independently without erasing other rank values. When both attributes
+are absent, the original localized `Lordship of {VILLAGE}` remains the fallback; supplying only a noun
+uses `{TITLE_NOUN} of {VILLAGE}`. No grants, ownership, honorifics, save data or API IDs change.
+
 The active **Realm Name Display** mode determines which configuration supplies the name:
 
 - **Native:** the game's or conversion module's kingdom name and translation.

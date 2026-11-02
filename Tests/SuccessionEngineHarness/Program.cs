@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--lordship-api"))
+            if (args.Contains("--lordship-naming"))
+            {
+                LordshipNamingTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship naming checks passed.");
+            }
+            else if (args.Contains("--lordship-api"))
             {
                 LordshipApiTests.Run(Check);
                 Console.WriteLine($"{_checks} lordship API checks passed.");

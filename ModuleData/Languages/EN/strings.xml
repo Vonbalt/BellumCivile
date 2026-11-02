@@ -7238,106 +7238,106 @@
     <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_retainerRank" text="Sir" />
     <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Dame" />
     <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_retainerRank" text="Sir" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Dame" />
-    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_retainerRank" text="Sir" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRetainerRank" text="Farisa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_retainerRank" text="Faris" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRetainerRank" text="Farisa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_retainerRank" text="Faris" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRetainerRank" text="Marchoges" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_retainerRank" text="Marchog" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRetainerRank" text="Marchoges" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_retainerRank" text="Marchog" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRetainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_retainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRetainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_retainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRetainerRank" text="Hirðkona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_retainerRank" text="Hirðmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRetainerRank" text="Hirðkona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_retainerRank" text="Hirðmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRetainerRank" text="Riterin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_retainerRank" text="Riter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRetainerRank" text="Riterin" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_retainerRank" text="Riter" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRetainerRank" text="Druzhinnitsa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_retainerRank" text="Druzhinnik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRetainerRank" text="Druzhinnitsa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_retainerRank" text="Druzhinnik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRetainerRank" text="Chevaleresse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_retainerRank" text="Chevaler" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRetainerRank" text="Chevaleresse" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_retainerRank" text="Chevaler" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleRetainerRank" text="Farisa" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_retainerRank" text="Faris" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleRetainerRank" text="Farisa" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_retainerRank" text="Faris" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleRetainerRank" text="Banridire" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_retainerRank" text="Ridire" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleRetainerRank" text="Banridire" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_retainerRank" text="Ridire" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleRetainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_retainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleRetainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_retainerRank" text="Nökör" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRetainerRank" text="Hirðkona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_retainerRank" text="Hirðmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRetainerRank" text="Hirðkona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_retainerRank" text="Hirðmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleRetainerRank" text="Riterin" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_retainerRank" text="Riter" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleRetainerRank" text="Riterin" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_retainerRank" text="Riter" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleRetainerRank" text="Druzhinnitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_retainerRank" text="Druzhinnik" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleRetainerRank" text="Druzhinnitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_retainerRank" text="Druzhinnik" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleRetainerRank" text="Militissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_retainerRank" text="Miles" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleRetainerRank" text="Militissa" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_retainerRank" text="Miles" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_retainerRank" text="Pronoiarios" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_retainerRank" text="Pronoiarios" />
     <string id="BC_RelationMemory_LordshipReturned" text="Returned a granted lordship" />
     <string id="BC_Lordship_VassalAward" text="As a token of my esteem and to help you maintain your men, I grant you the lordship of {VILLAGE} as your fief. Go to them, protect them, and collect your dues." />
     <string id="BC_Lordship_VassalReturn" text="I wish to return the lordship of {VILLAGE} to your house." />
@@ -7350,5 +7350,70 @@
     <string id="BC_Lordship_LocalWelcome" text="Greetings, my {?PLAYER.GENDER}lady{?}lord{\?}. We have heard that {GRANTOR} has placed our village under your protection. We hope you will be a good {?PLAYER.GENDER}lady{?}lord{\?} to us." />
     <string id="BC_TitleAcquired_Header" text="Title Acquired" />
     <string id="BC_TitleAcquired_Body" text="New holder of the {TITLE} is {HOLDER}." />
+    <string id="BC_Lordship_Format" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipFormat" text="{TITLE_NOUN} tōn {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_lordshipName" text="Feodum" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_lordshipName" text="Baile" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Barony_lordshipFormat" text="{TITLE_NOUN} na {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_lordshipName" text="Nutug" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Barony_lordshipFormat" text="{VILLAGE} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_lordshipName" text="Iqta" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_lordshipName" text="Pomestie" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_lordshipName" text="Lén" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Barony_lordshipName" text="Lehen" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Barony_lordshipFormat" text="{TITLE_NOUN} tōn {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Barony_lordshipFormat" text="{TITLE_NOUN} tōn {VILLAGE}" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Barony_lordshipFormat" text="{TITLE_NOUN} tōn {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_lordshipName" text="Fief" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Barony_lordshipFormat" text="{VILLAGE} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_lordshipName" text="Maenor" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Barony_lordshipFormat" text="{TITLE_NOUN} y {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_lordshipName" text="Nutug" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Barony_lordshipFormat" text="{VILLAGE} {TITLE_NOUN}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_lordshipName" text="Iqta" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_lordshipName" text="Pomestie" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_lordshipName" text="Lén" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_lordshipName" text="Lehen" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipName" text="Pronoia" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
   </strings>
 </base>
