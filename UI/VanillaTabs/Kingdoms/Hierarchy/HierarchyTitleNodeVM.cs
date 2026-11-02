@@ -1065,8 +1065,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 bool occupied = registry?.GetGrant(LordshipVillage) != null;
                 IsGrantEnabled = owner && !occupied;
                 IsRevocationEnabled = owner && occupied;
-                GrantHint = new HintViewModel(LordshipBehavior.Text("BC_Lordship_RevenueHint", "The holder alone will receive this lordship's revenues."));
-                RevocationHint = new HintViewModel(LordshipBehavior.Text("BC_Lordship_RevokeHint", "Return this lordship's revenues to the household. Relations decrease by 15."));
+                GrantHint = new HintViewModel(LordshipBehavior.EstateText("BC_Lordship_RevenueHint", "The holder alone will receive the revenues of {LORDSHIP}.", LordshipVillage));
+                RevocationHint = new HintViewModel(LordshipBehavior.EstateText("BC_Lordship_RevokeHint", "Return the revenues of {LORDSHIP} to the household. Relations decrease by 15.", LordshipVillage));
                 return;
             }
             var renounceBlock = FeudalTitlePlayerActionService.GetRenunciationBlock(Title, out bool renounceVisible);
@@ -1615,10 +1615,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 var villages = settlement?.BoundVillages;
                 if (villages?.Count > 0)
                 {
-                    properties.Add(new TooltipProperty(LordshipBehavior.Text("BC_Lordship_Count", "Lordships ({COUNT})")
+                    properties.Add(new TooltipProperty(LordshipBehavior.Text("BC_Lordship_Count", "Village Grants ({COUNT})")
                         .SetTextVariable("COUNT", villages.Count).ToString(), string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.Title));
                     foreach (var village in villages)
-                        properties.Add(new TooltipProperty(village.Name.ToString(), LordshipBehavior.Instance?.GetGrant(village.Settlement)?.Holder?.Name?.ToString() ?? vacant, 0));
+                        properties.Add(new TooltipProperty(LordshipBehavior.Name(village.Settlement).ToString(), LordshipBehavior.Instance?.GetGrant(village.Settlement)?.Holder?.Name?.ToString() ?? vacant, 0));
                 }
             }
             AddFabricationTooltip(properties, title, playerFabrication);

@@ -2355,6 +2355,7 @@
     <string id="BC_Parley_OutcomeCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} is no longer valid because the war or one of its parties has ceased to exist. The obsolete parley has been dismissed." />
     <string id="BC_Parley_OutcomeWhitePeaceCancelledBody" text="The proposed white peace between {FIRST_REALM} and {SECOND_REALM} no longer meets the conditions for an automatic settlement. The parley has closed without applying any treaty terms." />
     <string id="BC_Parley_OutcomeQuestCancelledBody" text="An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement." />
+    <string id="BC_Parley_OutcomeAllianceCancelledBody" text="An active call-to-arms agreement prevents a separate peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without spending influence or applying any treaty terms. The war continues." />
     <string id="BC_Parley_OutcomeBalanceCancelledBody" text="The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement." />
     <string id="BC_Parley_OutcomeHostageCancelledBody" text="The promised royal hostage could not be delivered, so the treaty between {FIRST_REALM} and {SECOND_REALM} could not be concluded. The parley has closed without agreement." />
     <string id="BC_Parley_OutcomeOtherCancelledBody" text="The proposed treaty between {FIRST_REALM} and {SECOND_REALM} can no longer be concluded under the current circumstances. The parley has closed without agreement." />
@@ -2378,6 +2379,7 @@
     <string id="BC_Parley_WarScore" text="War Score: {VALUE}" />
     <string id="BC_Diplomacy_WarScore" text="War Score" />
     <string id="BC_StorylineWar_PeaceBlocked" text="The active campaign quest requires this war to continue until one side is decisively defeated." />
+    <string id="BC_AllianceWar_PeaceBlocked" text="{CALLED_REALM} is bound by its call-to-arms agreement with {CALLING_REALM} and cannot negotiate a separate peace with {ENEMY_REALM} while that agreement remains active." />
     <string id="BC_Parley_DraftedTermsBudget" text="Drafted Terms ({USED} / {BUDGET} WS)" />
     <string id="BC_Parley_Term_WhitePeace" text="White Peace" />
     <string id="BC_Parley_Term_RetainFief" text="Retain {FIEF_NAME}" />
@@ -7148,46 +7150,46 @@
     <string id="BC_HeroFamily_Granddaughter" text="Granddaughter" />
     <string id="BC_HeroFamily_Grandson" text="Grandson" />
     <string id="BC_Hierarchy_Holder" text="Holder" />
-    <string id="BC_Lordship_AlreadyHolds" text="This character already holds a lordship." />
+    <string id="BC_Lordship_AlreadyHolds" text="This character already holds {LORDSHIP}." />
     <string id="BC_Lordship_Attend" text="I Will Attend to It" />
-    <string id="BC_Lordship_Changed" text="This lordship is no longer available." />
-    <string id="BC_Lordship_ChooseVillage" text="Choose a lordship for {HERO}. Its revenues will belong exclusively to the holder." />
-    <string id="BC_Lordship_CommandRequired" text="This retainer must hold a lordship before leading a clan party." />
-    <string id="BC_Lordship_Count" text="Lordships ({COUNT})" />
+    <string id="BC_Lordship_Changed" text="This grant is no longer available." />
+    <string id="BC_Lordship_ChooseVillage" text="Choose a village grant for {HERO}. Its revenues will belong exclusively to the holder." />
+    <string id="BC_Lordship_CommandRequired" text="This retainer must receive a village endowment before leading a clan party." />
+    <string id="BC_Lordship_Count" text="Village Grants ({COUNT})" />
     <string id="BC_Lordship_Dame" text="Dame" />
     <string id="BC_Lordship_DialogueAccept" text="You honor me, my {?PLAYER.GENDER}lady{?}lord{\?}. I will hold {VILLAGE} faithfully in your service." />
-    <string id="BC_Lordship_DialogueAnother" text="I am considering another lordship." />
+    <string id="BC_Lordship_DialogueAnother" text="I am considering another estate." />
     <string id="BC_Lordship_DialogueCancel" text="Let us leave this for another time." />
-    <string id="BC_Lordship_DialogueGrant" text="I grant you the lordship of {VILLAGE}. Its revenues shall be yours, in return for faithful service to my house." />
-    <string id="BC_Lordship_DialogueOffer" text="You have served my household faithfully. I would entrust a lordship to you." />
+    <string id="BC_Lordship_DialogueGrant" text="I grant you {LORDSHIP}. Its revenues shall be yours, in return for faithful service to my house." />
+    <string id="BC_Lordship_DialogueOffer" text="You have served my household faithfully. I would entrust an estate to you." />
     <string id="BC_Lordship_DialogueResponse" text="You honor me. Which lands would you have me hold?" />
     <string id="BC_Lordship_DialogueRevoke" text="Your tenure of {VILLAGE} is at an end. Its revenues will return to the household." />
-    <string id="BC_Lordship_DialogueRevokeOffer" text="We must speak of the lordship you hold from my household." />
+    <string id="BC_Lordship_DialogueRevokeOffer" text="We must speak of {LORDSHIP}, which you hold from my household." />
     <string id="BC_Lordship_DialogueRevokeResponse" text="What is your wish?" />
     <string id="BC_Lordship_DialogueSelected" text="{VILLAGE}? I would be honored to hold it in your service." />
-    <string id="BC_Lordship_DialogueSurrender" text="As you command. I surrender the lordship." />
+    <string id="BC_Lordship_DialogueSurrender" text="As you command. I surrender {LORDSHIP}." />
     <string id="BC_Lordship_DialogueUnavailable" text="It seems that grant can no longer be made. We may speak of it another time." />
-    <string id="BC_Lordship_DialogueVillage" text="The lordship of {VILLAGE}." />
-    <string id="BC_Lordship_GovernorRequired" text="This retainer must hold a lordship before serving as governor." />
-    <string id="BC_Lordship_GrantPlural" text="Grant Lordships" />
-    <string id="BC_Lordship_GrantTitle" text="Grant Lordship" />
+    <string id="BC_Lordship_DialogueVillage" text="{LORDSHIP}." />
+    <string id="BC_Lordship_GovernorRequired" text="This retainer must receive a village endowment before serving as governor." />
+    <string id="BC_Lordship_GrantPlural" text="Endow Retainers" />
+    <string id="BC_Lordship_GrantTitle" text="Grant {LORDSHIP_TYPE}" />
     <string id="BC_Lordship_IncomeAssigned" text="{VILLAGE}: revenues assigned to {HERO}" />
     <string id="BC_Lordship_InvalidMember" text="Choose an eligible adult member of your household." />
-    <string id="BC_Lordship_MigrationBody" text="The following retainers command parties or govern settlements in your name without lordships:&#10;{RETAINERS}&#10;&#10;Grant them lordships within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties." />
-    <string id="BC_Lordship_MigrationChoose" text="Choose a retainer to receive a lordship. The holder alone will receive its revenues." />
+    <string id="BC_Lordship_MigrationBody" text="The following retainers command parties or govern settlements in your name without village endowments:&#10;{RETAINERS}&#10;&#10;Grant them land within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties." />
+    <string id="BC_Lordship_MigrationChoose" text="Choose a retainer to receive a village endowment. The holder alone will receive its revenues." />
     <string id="BC_Lordship_MigrationTitle" text="Retainers Await Endowment" />
     <string id="BC_Lordship_Name" text="Lordship of {VILLAGE}" />
-    <string id="BC_Lordship_NotOwner" text="Only the holder of the parent barony may grant this lordship." />
-    <string id="BC_Lordship_AwaitingAllocation" text="This barony is awaiting allocation. Its temporary custodian cannot grant its lordships." />
-    <string id="BC_Lordship_NoVacancies" text="There are no vacant lordships in your domains." />
-    <string id="BC_Lordship_Occupied" text="This lordship already has a holder." />
-    <string id="BC_Lordship_RecipientDescription" text="Choose a member of your household to receive the lordship of {VILLAGE}. Its revenues will belong exclusively to the holder for as long as they hold the grant." />
+    <string id="BC_Lordship_NotOwner" text="Only the holder of the parent barony may make this grant." />
+    <string id="BC_Lordship_AwaitingAllocation" text="This barony is awaiting allocation. Its temporary custodian cannot grant its village revenues." />
+    <string id="BC_Lordship_NoVacancies" text="None of your villages are available for a grant." />
+    <string id="BC_Lordship_Occupied" text="{LORDSHIP} already has a holder." />
+    <string id="BC_Lordship_RecipientDescription" text="Choose a member of your household to receive {LORDSHIP}. Its revenues will belong exclusively to the holder for as long as they hold the grant." />
     <string id="BC_Lordship_Retainer" text="Retainer" />
     <string id="BC_Lordship_Retainers" text="Retainers" />
-    <string id="BC_Lordship_RevenueHint" text="The holder alone will receive this lordship&apos;s revenues." />
-    <string id="BC_Lordship_RevokeConfirm" text="Revoke the lordship of {VILLAGE} from {HERO}? Relations will decrease by 15. A retainer without a lordship will also be relieved of party command or governorship when it is safe." />
-    <string id="BC_Lordship_RevokeHint" text="Return this lordship&apos;s revenues to the household. Relations decrease by 15." />
-    <string id="BC_Lordship_RevokeTitle" text="Revoke Lordship" />
+    <string id="BC_Lordship_RevenueHint" text="The holder alone will receive the revenues of {LORDSHIP}." />
+    <string id="BC_Lordship_RevokeConfirm" text="Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without an endowment will also be relieved of party command or governorship when it is safe." />
+    <string id="BC_Lordship_RevokeHint" text="Return the revenues of {LORDSHIP} to the household. Relations decrease by 15." />
+    <string id="BC_Lordship_RevokeTitle" text="Revoke {LORDSHIP_TYPE}" />
     <string id="BC_Lordship_Sir" text="Sir" />
     <string id="BC_Lordship_TooltipLabel" text="Lordship" />
     <string id="BC_RelationMemory_LordshipGranted" text="Granted me a lordship" />
@@ -7339,13 +7341,13 @@
     <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleRetainerRank" text="Pronoiarissa" />
     <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_retainerRank" text="Pronoiarios" />
     <string id="BC_RelationMemory_LordshipReturned" text="Returned a granted lordship" />
-    <string id="BC_Lordship_VassalAward" text="As a token of my esteem and to help you maintain your men, I grant you the lordship of {VILLAGE} as your fief. Go to them, protect them, and collect your dues." />
-    <string id="BC_Lordship_VassalReturn" text="I wish to return the lordship of {VILLAGE} to your house." />
+    <string id="BC_Lordship_VassalAward" text="As a token of my esteem and to help you maintain your men, I grant you {LORDSHIP} as your fief. Go to them, protect them, and collect your dues." />
+    <string id="BC_Lordship_VassalReturn" text="I wish to return {LORDSHIP} to your house." />
     <string id="BC_Lordship_VassalReturnWarning" text="I bestowed it as a mark of my favor. I shall accept its return, though I cannot help but take it as a slight." />
     <string id="BC_Lordship_VassalReturnHouseWarning" text="My house bestowed it as a mark of favor. I shall accept its return, though I cannot help but take it as a slight." />
-    <string id="BC_Lordship_VassalReturnConfirm" text="I am resolved. I return the lordship." />
+    <string id="BC_Lordship_VassalReturnConfirm" text="I am resolved. I return {LORDSHIP}." />
     <string id="BC_Lordship_VassalReturnCancel" text="Then I shall continue to hold it." />
-    <string id="BC_Lordship_VassalReturnDone" text="So be it. The lordship returns to my house." />
+    <string id="BC_Lordship_VassalReturnDone" text="So be it. {LORDSHIP} returns to my house." />
     <string id="BC_Lordship_VassalReturnUnavailable" text="It seems that grant is no longer yours to return." />
     <string id="BC_Lordship_LocalWelcome" text="Greetings, my {?PLAYER.GENDER}lady{?}lord{\?}. We have heard that {GRANTOR} has placed our village under your protection. We hope you will be a good {?PLAYER.GENDER}lady{?}lord{\?} to us." />
     <string id="BC_TitleAcquired_Header" text="Title Acquired" />

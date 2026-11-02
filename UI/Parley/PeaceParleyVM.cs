@@ -1474,6 +1474,9 @@ namespace BellumCivile.UI.Parley
                     case "the active campaign quest prevents peace in this war":
                         description = new TextObject("{=BC_Parley_OutcomeQuestCancelledBody}An active campaign quest prevents peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without agreement.");
                         break;
+                    case AlliancePeaceRestriction.CancellationReason:
+                        description = new TextObject("{=BC_Parley_OutcomeAllianceCancelledBody}An active call-to-arms agreement prevents a separate peace between {FIRST_REALM} and {SECOND_REALM}. The parley has closed without spending influence or applying any treaty terms. The war continues.");
+                        break;
                     case "the balance of the war changed before the treaty could be ratified":
                         description = new TextObject("{=BC_Parley_OutcomeBalanceCancelledBody}The balance of the war between {FIRST_REALM} and {SECOND_REALM} has changed, and the proposed terms no longer reflect its outcome. The parley has closed without agreement.");
                         break;

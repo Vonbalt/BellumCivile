@@ -821,10 +821,19 @@ Retainer honorifics are configured by `retainerRank` and `femaleRetainerRank` on
 apply only to adult retainers holding lordships, never replacing the noble family's own honorifics.
 All entries are editable and keyed separately for translation. The same noun labels the hierarchy's Tier field,
 and the shared name formatter supplies hierarchy nodes, encyclopedia entries, grant-selection lists,
-income labels and title-acquisition notices. General dialogue/category text can still say "lordship".
+income labels and title-acquisition notices. Dialogues, grant/revoke confirmations and specific-estate
+tooltips also use the full cultural name, including its connectors and word order. General text that
+does not identify a particular estate uses neutral terms such as "village grant" or "endowment";
+grant/revoke menu headings use the cultural noun with the usual localized Lordship fallback.
 Partial patch attributes merge independently without erasing other rank values. When both attributes
 are absent, the original localized `Lordship of {VILLAGE}` remains the fallback; supplying only a noun
 uses `{TITLE_NOUN} of {VILLAGE}`. No grants, ownership, honorifics, save data or API IDs change.
+
+On a successful vassalage oath, the ruler's joining gift is chosen uniformly from up to three of the
+lowest effective-income eligible vacant villages. Income accounts for contested legal ownership;
+nonpositive-income estates, existing grants and baronies awaiting allocation are excluded. The choice
+is made once when the oath completes, not during dialogue previews or duplicate callbacks. A single
+eligible vacancy is granted directly; no vacancy means no gift. Existing grants are not rerolled.
 
 The active **Realm Name Display** mode determines which configuration supplies the name:
 

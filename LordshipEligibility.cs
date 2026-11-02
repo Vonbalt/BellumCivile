@@ -26,7 +26,7 @@ namespace BellumCivile
         }
 
         internal static TextObject Reason(bool governor) => governor
-            ? LordshipBehavior.Text("BC_Lordship_GovernorRequired", "This retainer must hold a lordship before serving as governor.")
-            : LordshipBehavior.Text("BC_Lordship_CommandRequired", "This retainer must hold a lordship before leading a clan party.");
+            ? LordshipBehavior.Text("BC_Lordship_GovernorRequired", "This retainer must receive a village endowment before serving as governor.")
+            : LordshipBehavior.Text("BC_Lordship_CommandRequired", "This retainer must receive a village endowment before leading a clan party.");
     }
 }

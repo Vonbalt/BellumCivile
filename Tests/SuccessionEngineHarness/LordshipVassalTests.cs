@@ -7,6 +7,7 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 
 internal static partial class LordshipTests
@@ -15,6 +16,10 @@ internal static partial class LordshipTests
     private static Kingdom _feudParent;
     private static readonly HashSet<Clan> Mercenaries = new HashSet<Clan>();
     private static readonly Dictionary<Hero, Settlement> Homes = new Dictionary<Hero, Settlement>();
+    private static int _grantRoll, _grantRandomCalls, _grantRandomBound;
+    private static bool GrantRoll(int __0, ref int __result)
+    { _grantRandomCalls++; _grantRandomBound = __0; __result = _grantRoll; return false; }
+    private static bool GrantIncome(Village __1, ref int __result) { __result = __1.TradeTaxAccumulated; return false; }
     private static bool MainHero(ref Hero __result) { __result = _main; return false; }
     private static bool Speaker(ref Hero __result) { __result = _speaker; return false; }
     private static bool Home(Hero __instance, ref Settlement __result) { Homes.TryGetValue(__instance, out __result); return false; }
@@ -42,23 +47,47 @@ internal static partial class LordshipTests
         AccessTools.Field(typeof(Clan), "_leader").SetValue(_player, _main);
         Realm(source, realmA); Ruler(realmA, source);
         var third = villageOf(source, "third");
+        villageOf(source, "fourth");
         int tax = 1500;
         foreach (var village in Villages[source]) { village.TradeTaxAccumulated = tax; tax -= 400; }
         var native = Blank<DefaultClanFinanceModel>(); var model = new BellumFeudalClanFinanceModel(native);
+        var incomeMethod = AccessTools.Method(typeof(DefaultClanFinanceModel), "CalculateVillageIncome");
+        harmony.Unpatch(incomeMethod, AccessTools.Method(typeof(LordshipTests), nameof(Tax)));
+        harmony.Patch(incomeMethod, prefix: new HarmonyMethod(typeof(LordshipTests), nameof(GrantIncome)));
+        harmony.Patch(AccessTools.Method(typeof(MBRandom), "RandomInt", new[] { typeof(int) }),
+            prefix: new HarmonyMethod(typeof(LordshipTests), nameof(GrantRoll)));
+        _grantRoll = _grantRandomCalls = 0;
         var financeCode = PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(BellumFeudalClanFinanceModel), "CalculateClanGoldChange")).ToList();
         int redirect = financeCode.FindIndex(i => i.operand is System.Reflection.MethodInfo m && m.Name == "Redirect");
         int payroll = financeCode.FindIndex(i => i.operand is System.Reflection.MethodInfo m && m.Name == "AddCouncilSalaryExpenses");
         check(redirect >= 0 && payroll > redirect, "The source removes endowed income before budgeting council wages");
-        var expected = Villages[source].OrderBy(v => native.CalculateVillageIncome(source, v, false)).First().Settlement;
+        var expected = Villages[source].OrderBy(v => native.CalculateVillageIncome(source, v, false))
+            .ThenBy(v => v.Settlement.StringId, StringComparer.Ordinal).Take(3).Select(v => v.Settlement).ToList();
         object Capture() => Call(typeof(LordshipBehavior), "CaptureVassalOath", registry);
         void Complete(object oath) => Call(typeof(LordshipBehavior), "CompleteVassalOath", registry, oath, native);
+        var awarded = new HashSet<Settlement>();
+        for (int roll = 0; roll < expected.Count; roll++)
+        {
+            _grantRoll = roll;
+            var sample = Capture(); Realm(_player, realmA); Complete(sample);
+            var sampled = registry.GetGrant(_main);
+            check(sampled?.Village == expected[roll] && _grantRandomBound == 3,
+                "Joining grant can select each of the three lowest-income vacant villages: " + roll);
+            awarded.Add(sampled.Village);
+            Call(typeof(LordshipBehavior), "ReturnVassalLordship", registry, _main, lord); Realm(_player, null);
+        }
+        check(awarded.Count == 3 && !awarded.Contains(Villages[source].OrderByDescending(v => v.TradeTaxAccumulated).First().Settlement),
+            "Joining gifts vary without selecting the most valuable fourth candidate");
+        _grantRoll = 0;
         int rewards = _rewards;
+        int draws = _grantRandomCalls;
         var failedOath = Capture(); Complete(failedOath);
-        check(registry.GetGrant(_main) == null && _rewards == rewards, "An unsuccessful oath cannot grant land or relations");
+        check(registry.GetGrant(_main) == null && _rewards == rewards && _grantRandomCalls == draws,
+            "An unsuccessful oath cannot grant land, relations or consume a random draw");
         var oath = Capture(); Realm(_player, realmA); _contested = false; Complete(oath);
         var grant = registry.GetGrant(_main);
-        check(grant?.IsVassalGrant == true && grant.Village == expected && grant.BeneficiaryClan == _player,
-            "Successful oath endows the lowest-income spare village without changing the player's clan");
+        check(grant?.IsVassalGrant == true && expected.Contains(grant.Village) && grant.BeneficiaryClan == _player,
+            "Successful oath endows one low-income spare village without changing the player's clan");
         var grantNotice = new TitleAcquiredMapNotification(null, grant, _main, 0);
         check(grantNotice.IsValid() && grantNotice.DescriptionText.ToString().Contains(LordshipBehavior.Name(grant.Village).ToString())
             && grantNotice.DescriptionText.ToString().Contains(_main.Name.ToString()),
@@ -75,7 +104,8 @@ internal static partial class LordshipTests
         check(grant.Parent.OwnerClan == source && !registry.CanGrant(source, third, _main, out _),
             "Cross-clan oath grants do not relax household grant ownership rules");
         Complete(oath);
-        check(_rewards == rewards + 1 && Capture() == null, "Repeated oath callbacks and existing vassalage cannot award another gift");
+        check(_rewards == rewards + 1 && Capture() == null && _grantRandomCalls == draws + 1,
+            "Repeated oath callbacks and existing vassalage cannot reroll or award another gift");
         check(!(bool)Call(Type("HouseholdMembership"), "IsRetainer", null, _main), "Receiving a joining fief does not make the player a retainer");
         CheckLordshipVisuals(check, registry, grant);
 
@@ -183,5 +213,24 @@ internal static partial class LordshipTests
         Realm(_player, null); var noLand = Capture(); Realm(_player, realmA); rewards = _rewards; Complete(noLand);
         check(registry.GetGrant(_main) == null && _rewards == rewards,
             "With no spare lordship, vassalage proceeds without displacing holders or awarding gift goodwill");
+        var single = Villages[source][0].Settlement;
+        check(registry.TryRevoke(source, single, out _), "One household estate can become vacant for the single-choice test");
+        draws = _grantRandomCalls;
+        Realm(_player, null); var singleOath = Capture(); Realm(_player, realmA); Complete(singleOath);
+        check(registry.GetGrant(_main)?.Village == single && _grantRandomCalls == draws,
+            "A single eligible vacancy is granted without a random draw or displacing another holder");
+        Call(typeof(LordshipBehavior), "ReturnVassalLordship", registry, _main, lord);
+        var next = Villages[source][1].Settlement;
+        check(registry.TryRevoke(source, next, out _), "A second estate can enter the available gift pool");
+        _grantRoll = 1;
+        Realm(_player, null); var pairOath = Capture(); Realm(_player, realmA); Complete(pairOath);
+        check(registry.GetGrant(_main)?.Village == next && _grantRandomBound == 2,
+            "Two eligible vacancies both participate in the joining lottery");
+        Call(typeof(LordshipBehavior), "ReturnVassalLordship", registry, _main, lord);
+        single.Village.TradeTaxAccumulated = 0; next.Village.TradeTaxAccumulated = -10;
+        draws = _grantRandomCalls; rewards = _rewards;
+        Realm(_player, null); var noIncome = Capture(); Realm(_player, realmA); Complete(noIncome);
+        check(registry.GetGrant(_main) == null && _grantRandomCalls == draws && _rewards == rewards,
+            "Nonpositive-income vacancies never generate a gift, random draw or relation reward");
     }
 }

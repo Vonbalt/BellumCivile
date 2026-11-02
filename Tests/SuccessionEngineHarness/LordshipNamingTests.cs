@@ -16,9 +16,11 @@ using TaleWorlds.Localization;
 internal static class LordshipNamingTests
 {
     private static readonly Dictionary<Clan, CultureObject> Cultures = new Dictionary<Clan, CultureObject>();
+    private static readonly Dictionary<string, TextObject> DialogueVariables = new Dictionary<string, TextObject>();
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool Culture(Clan __instance, ref CultureObject __result) { Cultures.TryGetValue(__instance, out __result); return false; }
     private static bool VillageName(ref TextObject __result) { __result = new TextObject("{=BC_Test_LordshipVillage}Calioc"); return false; }
+    private static bool DialogueText(string __0, TextObject __1) { DialogueVariables[__0] = __1; return false; }
 
     private static (string Noun, string Name, string Male, string Female) Expected(string preset, string culture)
     {
@@ -81,12 +83,19 @@ internal static class LordshipNamingTests
         {
             h.Patch(AccessTools.PropertyGetter(typeof(Clan), "Culture"), prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(Culture)));
             h.Patch(AccessTools.PropertyGetter(typeof(Settlement), "Name"), prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(VillageName)));
+            h.Patch(AccessTools.Method(typeof(MBTextManager), "SetTextVariable", new[] { typeof(string), typeof(TextObject), typeof(bool) }),
+                prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(DialogueText)));
             Language("English");
             var vlandia = Nation("vlandia"); var aserai = Nation("aserai");
             Cultures[owner] = vlandia; village.Culture = aserai;
             var root = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
             while (root != null && !File.Exists(Path.Combine(root.FullName, "BellumCivile.csproj"))) root = root.Parent;
             if (root == null) throw new InvalidOperationException("Missing shipped lordship presets.");
+            var catalog = new XmlDocument(); catalog.Load(Path.Combine(root.FullName, "ModuleData", "Languages", "EN", "strings.xml"));
+            var english = catalog.SelectNodes("/base/strings/string").Cast<XmlElement>()
+                .ToDictionary(node => node.GetAttribute("id"), node => node.GetAttribute("text"), StringComparer.Ordinal);
+            TextObject Estate(string key, Settlement estate = null) => (TextObject)AccessTools.Method(typeof(LordshipBehavior), "EstateText")
+                .Invoke(null, new object[] { key, english[key], estate, owner });
             foreach (string preset in new[] { "anglicized", "immersive", "bannerkings" })
             {
                 var config = Config();
@@ -98,6 +107,21 @@ internal static class LordshipNamingTests
                     var expected = Expected(preset, culture);
                     Cultures[owner] = Nation(culture.ToLowerInvariant());
                     Expect(expected.Name, expected.Noun, preset + "/" + culture + ": name, connectors, word order and Tier follow the barony owner");
+                    foreach (string key in new[] { "BC_Lordship_VassalAward", "BC_Lordship_VassalReturn", "BC_Lordship_VassalReturnConfirm",
+                        "BC_Lordship_VassalReturnDone", "BC_Lordship_DialogueGrant", "BC_Lordship_DialogueRevokeOffer", "BC_Lordship_DialogueSurrender",
+                        "BC_Lordship_RecipientDescription", "BC_Lordship_RevokeConfirm", "BC_Lordship_RevenueHint", "BC_Lordship_RevokeHint",
+                        "BC_Lordship_Occupied", "BC_Lordship_AlreadyHolds" })
+                    {
+                        string text = Estate(key, village).SetTextVariable("HERO", new TextObject("{=!}Recipient")).ToString();
+                        check(text.Contains(expected.Name) && !text.Contains("{"),
+                            preset + "/" + culture + ": cultural grant reference resolves fully in " + key);
+                    }
+                    check(Estate("BC_Lordship_GrantTitle").ToString() == "Grant " + expected.Noun
+                        && Estate("BC_Lordship_RevokeTitle", village).ToString() == "Revoke " + expected.Noun,
+                        preset + "/" + culture + ": grant/revoke headings use the cultural noun, including before a village is selected");
+                    AccessTools.Method(typeof(LordshipBehavior), "SetConversationEstate").Invoke(null, new object[] { village });
+                    check(DialogueVariables["LORDSHIP"].ToString() == expected.Name && DialogueVariables["VILLAGE"].ToString() == "Calioc",
+                        preset + "/" + culture + ": oath, return and household dialogues receive both the cultural name and legacy village variable");
                     foreach (var tier in new[] { FeudalTitleType.Kingdom, FeudalTitleType.Empire })
                     {
                         var resolved = AccessTools.Method(display, "ResolveRankStyle").Invoke(null, new object[] { tier, owner, null, "" });
@@ -148,6 +172,9 @@ internal static class LordshipNamingTests
             }
             var custom = Config(); configField.SetValue(null, custom); Cultures[owner] = vlandia;
             Expect("Lordship of Calioc", "Lordship", "Configurations without new fields preserve legacy naming");
+            check(Estate("BC_Lordship_VassalAward", village).ToString().Contains("Lordship of Calioc")
+                && Estate("BC_Lordship_GrantTitle").ToString() == "Grant Lordship",
+                "Unconfigured cultures retain complete English grant references and menu labels");
             Translate("BC_Lordship_Name", "Ancien domaine de {VILLAGE}"); Language("BellumLordshipTest");
             Expect("Ancien domaine de Calioc", "Lordship", "Unconfigured legacy names retain their existing translation key"); Language("English");
             var baseStyle = Add(custom, "<TitleStyle culture='Vlandia'><Rank tier='Barony' titleName='Barony' lordshipName='Feodum' lordshipFormat='{TITLE_NOUN} {VILLAGE}' /></TitleStyle>");
@@ -174,10 +201,13 @@ internal static class LordshipNamingTests
             Set(rank, "LordshipName", "{=BC_Test_LordshipNoun}Feodum");
             Set(rank, "LordshipFormat", "{=BC_Test_LordshipFormat}{TITLE_NOUN} {VILLAGE}");
             var localized = LordshipBehavior.Name(village);
+            var localizedAward = Estate("BC_Lordship_VassalAward", village);
             Translate("BC_Test_LordshipNoun", "Domaine"); Translate("BC_Test_LordshipFormat", "{VILLAGE} - {TITLE_NOUN}"); Translate("BC_Test_LordshipVillage", "Calioc traduit");
             Language("BellumLordshipTest");
             check(localized.ToString() == "Calioc traduit - Domaine" && Tier() == "Domaine",
                 "Existing TextObjects preserve nested translation keys and support language-specific word order");
+            check(localizedAward.ToString().Contains("Calioc traduit - Domaine"),
+                "Grant prose preserves nested noun, format and village translations across language changes");
             Language("English"); check(localized.ToString() == "Feodum Calioc", "The same name follows a language switch back without rebuilding the grant");
             check(parent.OwnerClan == owner && village.StringId == "village_A1" && Enum.GetNames(typeof(FeudalTitleType)).All(n => n != "Lordship"),
                 "Terminology leaves native ownership, village IDs and landed title tiers unchanged");
@@ -188,6 +218,7 @@ internal static class LordshipNamingTests
             language.SetValue(null, oldLanguage); languageIndex.SetValue(null, oldIndex);
             foreach (var pair in oldTexts) { if (pair.Value == null) translations.Remove(pair.Key); else translations[pair.Key] = pair.Value; }
             Cultures.Clear();
+            DialogueVariables.Clear();
         }
     }
 }

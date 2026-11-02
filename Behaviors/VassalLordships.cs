@@ -4,6 +4,7 @@ using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -70,10 +71,12 @@ namespace BellumCivile.Behaviors
                 || oath.Realm?.Leader != oath.Ruler || oath.Realm.RulingClan != clan) return;
             model = model ?? Campaign.Current?.Models?.ClanFinanceModel;
             if (model == null) return;
-            var village = Villages(clan).Where(v => CanGrantVassal(clan, v, oath.Recipient))
+            // Draw once from a small low-income pool after the oath succeeds.
+            var candidates = Villages(clan).Where(v => CanGrantVassal(clan, v, oath.Recipient))
                 .Select(v => new { Village = v, Income = EffectiveVillageIncome(clan, v, model) })
                 .Where(v => v.Income > 0).OrderBy(v => v.Income).ThenBy(v => v.Village.StringId, StringComparer.Ordinal)
-                .Select(v => v.Village).FirstOrDefault();
+                .Take(3).Select(v => v.Village).ToList();
+            var village = candidates.Count == 0 ? null : candidates[candidates.Count == 1 ? 0 : MBRandom.RandomInt(candidates.Count)];
             if (village != null && TryGrantVassal(clan, village, oath.Recipient, oath.Ruler, out var grant)) _oathGrant = grant;
         }
 
