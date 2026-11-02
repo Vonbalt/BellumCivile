@@ -72,8 +72,7 @@ namespace BellumCivile.Behaviors
             Patches.VassalLordshipPatches.Initialize();
             try { Patches.HouseholdOccupationDisplayPatch.Initialize(); }
             catch (Exception ex) { BellumCivileLogger.Log("Retainer occupation display is unavailable: " + ex); }
-            try { Patches.LordshipMapBannerPatch.Initialize(); }
-            catch (Exception ex) { BellumCivileLogger.Log("Lordship village banner display is unavailable: " + ex); }
+            Patches.LordshipMapBannerPatch.Initialize();
             Reindex();
             Validate();
             if (_schema == 0)

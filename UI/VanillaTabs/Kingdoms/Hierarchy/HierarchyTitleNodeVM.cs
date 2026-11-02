@@ -111,7 +111,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             HolderName = LordshipBehavior.Instance?.GetGrant(village)?.Holder?.Name?.ToString()
                 ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant").ToString();
             var hero = LordshipBehavior.Instance?.GetGrant(village)?.Holder;
-            if (_deFactoHolder?.Banner != null) BannerVisual = new BannerImageIdentifierVM(_deFactoHolder.Banner, true);
+            BannerVisual = Patches.LordshipMapBannerPatch.GetPlayerBannerImage(village)
+                ?? (_deFactoHolder?.Banner != null ? new BannerImageIdentifierVM(_deFactoHolder.Banner, true) : null);
             if (hero?.CharacterObject != null) PortraitVisual = new CharacterImageIdentifierVM(UI.PortraitAppearance.Create(hero.CharacterObject));
             _tooltip = new BasicTooltipViewModel(() => new List<TooltipProperty>
             {

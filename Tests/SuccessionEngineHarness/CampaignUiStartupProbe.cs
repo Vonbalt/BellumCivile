@@ -14,6 +14,14 @@ internal static class CampaignUiStartupProbe
     {
         check(AccessTools.Field(typeof(GameTexts), "_gameTextManager").GetValue(null) == null,
             "Startup probe begins before native game texts are initialized");
+        var bannerPatch = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.LordshipMapBannerPatch", true);
+        check(!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "SandBox.ViewModelCollection"),
+            "Startup probe begins before the optional Sandbox view-model assembly is loaded");
+        AccessTools.Method(bannerPatch, "Initialize").Invoke(null, null);
+        check(!(bool)AccessTools.Field(bannerPatch, "_installed").GetValue(null)
+            && !(bool)AccessTools.Field(bannerPatch, "_unavailable").GetValue(null)
+            && !AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "SandBox.ViewModelCollection"),
+            "Missing Sandbox UI defers banner registration without forcing assembly loading or permanently disabling it");
         var harmony = new Harmony("bellum.tests.campaign-ui-startup");
         Assembly.Load("TaleWorlds.CampaignSystem.ViewModelCollection");
         var patchTypes = typeof(KingdomPolicyButtonPatch).Assembly.GetTypes()
@@ -88,12 +96,19 @@ internal static class CampaignUiStartupProbe
         var map = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapNotificationVM");
         check(Harmony.GetPatchInfo(AccessTools.GetDeclaredConstructors(map)[0]).Postfixes.Count(p => p.PatchMethod.DeclaringType == notices) == 1,
             "Deferred title notification registration installs once after native game texts exist");
-        var bannerPatch = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.LordshipMapBannerPatch", true);
+        Assembly.Load("SandBox.ViewModelCollection");
         AccessTools.Method(bannerPatch, "Initialize").Invoke(null, null);
         AccessTools.Method(bannerPatch, "Initialize").Invoke(null, null);
         var nameplate = Type.GetType("SandBox.ViewModelCollection.Nameplate.SettlementNameplateVM, SandBox.ViewModelCollection", true);
         check(Harmony.GetPatchInfo(AccessTools.Method(nameplate, "RefreshBindValues")).Transpilers.Count(p => p.PatchMethod.DeclaringType == bannerPatch) == 1,
-            "Deferred lordship banner binding installs once after native game texts exist");
+            "Deferred lordship banner binding installs once after Sandbox UI is loaded normally");
+        var overlay = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.GameMenu.Overlay.SettlementMenuOverlayVM");
+        foreach (string name in new[] { "UpdateSettlementOwnerBanner", "Refresh" })
+            check(Harmony.GetPatchInfo(AccessTools.Method(overlay, name)).Postfixes.Count(p => p.PatchMethod.DeclaringType == bannerPatch) == 1,
+                "The deferred village menu banner hook installs exactly once: " + name);
+        var tick = PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(BellumCivile.SubModule), "OnApplicationTick"));
+        check(tick.Any(i => i.operand is MethodInfo m && m.DeclaringType == bannerPatch && m.Name == "Initialize"),
+            "Deferred banner registration is retried from application frames, including while the campaign is paused");
         harmony.UnpatchAll(harmony.Id);
     }
 }

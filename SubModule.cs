@@ -230,6 +230,13 @@ namespace BellumCivile
             return false;
         }
 
+        protected override void OnApplicationTick(float dt)
+        {
+            base.OnApplicationTick(dt);
+            if (Behaviors.LordshipBehavior.Instance?.Ready == true)
+                Patches.LordshipMapBannerPatch.Initialize();
+        }
+
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
         {
             base.OnGameStart(game, gameStarterObject);

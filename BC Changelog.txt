@@ -819,4 +819,4 @@ Added side notifications when the player acquires titles or lordships.
 Fixed lordship hierarchy actions and lingering connector lines, and standardized lordship tooltips.
 Highlighted player-held lordships in green and displayed the player’s banner on their village map nameplates.
 Added display-only Retainer labels to hero tooltips, encyclopedia pages, and marriage offers.
-Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives.
+Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
