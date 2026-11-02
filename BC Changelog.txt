@@ -809,14 +809,10 @@ Small compatibility fix with mods that modify the family section of the encyclop
 
 1.4.9 CHANGELOG
 
-Added personal, nonhereditary village lordships that redirect village income to their holders.
-Split clan encyclopedia members into Family and Retainers sections.
-Added Sir/Dame honorifics for retainers holding lordships.
-Required lordships for new retainer party leaders and governors, with migration support for existing saves.
-Added spare lordship grants when joining a realm, with grant and surrender dialogues.
-Added village greetings and ownership descriptions recognizing the player’s granted lordship.
+Added personal, nonhereditary village lordships, the player may receive a spare one when joining a kingdom as his first fief like in warband.
+Split clan encyclopedia members into Family and Retainers (non-blood related clan members) sections.
+Lordships now are required so retainers can lead parties or govern settlements.
+Added Sir/Dame honorifics for retainers while holding lordships.
 Added side notifications when the player acquires titles or lordships.
-Fixed lordship hierarchy actions and lingering connector lines, and standardized lordship tooltips.
-Highlighted player-held lordships in green and displayed the player’s banner on their village map nameplates.
-Added display-only Retainer labels to hero tooltips, encyclopedia pages, and marriage offers.
 Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
+Added read-only API queries for the player’s personal village lordship.

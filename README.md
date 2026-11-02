@@ -838,6 +838,7 @@ Additive API extensions keep version 1; probe for the particular method/event wh
 | --- | --- |
 | `ManagesRelationPair(first, second)` | Includes the enabled setting and Bellum's hero-pair eligibility. Temporary relation-patch suppression does not surrender ownership. |
 | `GetHostageStatus(hero)` | Returns a copied status, or null when no relevant reservation/captivity remains. Distinguishes reserved, active peace pledge, awaiting disposition and ordinary retained prisoner; also exposes expiry, agreement validity, protection and actual treaty custody. |
+| `IsPlayerNominalFief(village)`, `GetPlayerNominalFiefIds()` | Read-only queries for the active player character's valid personal village lordship. Returns a boolean or a copied zero-or-one village StringId list, excluding native holdings and grants to other household members. |
 | `GetCourtAgendas(realm)` | Copies current/retained agendas with persistent IDs, objective kind/target/action, enact/repeal direction, state and dates. Session dates are scheduling data, not record identity. |
 | `GetPendingVotes(realm)` | Read-only snapshots of open expulsion, fief allocation and council appointment votes, covering deliberation and unresolved ballots. Includes stable IDs, subjects, proposers and current candidate houses. |
 | `CouncilAppointmentDecided`, `GetRecentCouncilAppointments()` | Verified council ballot results, delivered on a later campaign tick and retained in saved recent history. Includes incumbent confirmations. |
@@ -845,6 +846,26 @@ Additive API extensions keep version 1; probe for the particular method/event wh
 | `CanBeginElectionPersuasion`, `TryBeginElectionPersuasion`, `CompleteElectionPersuasion` | Share native dialogue's relation requirement and once-per-speaker/realm court-term attempt limit. The returned attempt binds completion to the original election and term. |
 | `IsIllegitimate`, `MarkIllegitimate`, `Legitimize` | Explicit, saved, idempotent legitimacy support for companion mods. No hero is marked automatically. |
 | `PartitionCompleted`, `GetRecentPartitions()` | Committed inheritance notifications and a saved recent history, described below. |
+
+The lordship queries are available by reflection on `BellumCivile.BellumIntegration, BellumCivile`.
+`GetPlayerNominalFiefIds()` is public, static and parameterless, returning `IReadOnlyList<string>`.
+Query after campaign setup finishes (a normal campaign tick is safe), not during deserialization or
+`OnSessionLaunched`: lordships rebuild their indexes in `OnAfterSessionLaunched`. Until that registry
+is ready, or when no valid personal grant exists, results are false/empty. Null inputs and non-village
+settlements are not nominal fiefs. As with the rest of the API, calls require the active campaign thread.
+Re-query after every load and as campaign state changes; returned lists are snapshots, not live collections.
+The queries do not award grants, prune records, rebuild indexes or change ownership. They do not depend
+on grant events firing during load, and this extension adds no grant/revoke events or new save data.
+
+A personal grant ceases to qualify when returned/revoked, its recipient dies or leaves their clan, the
+granting house loses the parent barony, or the two houses cease to share a realm. Shared transfers into
+the same rebellion and changes of monarch alone preserve it; private-feud shells resolve to their parent
+realm. During an incomplete protected realm transfer, a currently invalid grant is excluded even if
+Bellum retains its record pending completion. The grant can qualify again if both houses arrive together.
+These queries never include villages merely attached to a player-owned castle/town or lordships held by
+the player's relatives/retainers. Settlement.OwnerClan, Hero.OwnedSettlements and clan holdings remain
+native: local greetings and banner image bindings are adapted separately, and village tax revenue is
+redirected through clan finance. A village raid alone does not revoke a grant.
 
 The influence pledge methods record an already negotiated agreement; the caller owns persuasion, payment
 and dialogue. Invoke the checked setter **before** taking payment and honor its return value. Policy

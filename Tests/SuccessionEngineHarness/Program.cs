@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--mercenary-position-repair"))
+            if (args.Contains("--lordship-api"))
+            {
+                LordshipApiTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship API checks passed.");
+            }
+            else if (args.Contains("--mercenary-position-repair"))
             {
                 DynamicMercenaryPartyRepairTests.Run(Check);
                 Console.WriteLine($"{_checks} mercenary position repair checks passed.");
