@@ -134,6 +134,7 @@ namespace BellumCivile
             return hero != null
                 && hero.Clan == realm.RulingClan
                 && hero != realm.RulingClan.Leader
+                && HouseholdMembership.IsBloodRelative(hero, MarriageHouseholdPolicy.LegalHead(realm.RulingClan))
                 && !protectedHeirs.Contains(hero)
                 && hero.IsLord
                 && hero.IsAlive

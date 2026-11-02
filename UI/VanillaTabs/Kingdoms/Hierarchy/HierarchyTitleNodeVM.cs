@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
 using TaleWorlds.Core.ViewModelCollection.Information;
@@ -11,7 +12,7 @@ using TaleWorlds.Localization;
 
 namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 {
-    public sealed class HierarchyTitleNodeVM : ViewModel
+    public class HierarchyTitleNodeVM : ViewModel
     {
         private static readonly Color PlayerHeldColor = Color.ConvertStringToColor("#82E06AFF");
         private static readonly Color RealmHeldColor = Color.ConvertStringToColor("#F1D8A4FF");
@@ -94,7 +95,43 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             RefreshPlayerActions();
         }
 
+        protected HierarchyTitleNodeVM(Settlement village, HierarchyTitleNodeVM parent,
+            Action<HierarchyTitleNodeVM> onSelect, Action<string> onChanged)
+        {
+            LordshipVillage = village;
+            LordshipParent = parent;
+            _onSelect = onSelect;
+            _onHierarchyChanged = onChanged;
+            _deFactoHolder = village.Village.Bound.OwnerClan;
+            Branch = new MBBindingList<HierarchyTitleNodeVM>();
+            Name = LordshipBehavior.Name(village).ToString();
+            Tier = new TextObject("{=BC_Hierarchy_TierLordship}Lordship").ToString();
+            TitleColor = LordshipBehavior.Instance?.IsPlayerLordship(village) == true ? PlayerHeldColor : parent.TitleColor;
+            ParentName = parent.Name;
+            HolderName = LordshipBehavior.Instance?.GetGrant(village)?.Holder?.Name?.ToString()
+                ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant").ToString();
+            var hero = LordshipBehavior.Instance?.GetGrant(village)?.Holder;
+            BannerVisual = Patches.LordshipMapBannerPatch.GetPlayerBannerImage(village)
+                ?? (_deFactoHolder?.Banner != null ? new BannerImageIdentifierVM(_deFactoHolder.Banner, true) : null);
+            if (hero?.CharacterObject != null) PortraitVisual = new CharacterImageIdentifierVM(UI.PortraitAppearance.Create(hero.CharacterObject));
+            _tooltip = new BasicTooltipViewModel(() => new List<TooltipProperty>
+            {
+                new TooltipProperty(LordshipBehavior.Instance?.GetGrant(village)?.Holder?.Name?.ToString()
+                    ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant").ToString(), string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.Title),
+                new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator),
+                new TooltipProperty(new TextObject("{=BC_Hierarchy_Tier}Tier").ToString(), Tier, 0),
+                new TooltipProperty(new TextObject("{=BC_Hierarchy_Tenure}Tenure").ToString(),
+                    FeudalTitleDisplayHelper.GetHierarchyTenure(parent.Title), 0),
+                new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator),
+                new TooltipProperty(new TextObject("{=BC_Hierarchy_LiegeTitle}De jure liege").ToString(), ParentName, 0)
+            });
+            RefreshPlayerActions();
+        }
+
         public FeudalTitleRecord Title { get; }
+        public Settlement LordshipVillage { get; }
+        public HierarchyTitleNodeVM LordshipParent { get; }
+        [DataSourceProperty] public bool IsTitleNode => LordshipVillage == null;
         [DataSourceProperty] public MBBindingList<HierarchyTitleNodeVM> Branch { get; }
         [DataSourceProperty] public string Name { get; }
         [DataSourceProperty] public Color TitleColor { get; }
@@ -117,7 +154,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
         [DataSourceProperty] public bool IsRenounceVisible { get; private set; }
         [DataSourceProperty] public bool IsRenounceEnabled { get; private set; }
         [DataSourceProperty] public HintViewModel RenounceHint { get; private set; }
-        [DataSourceProperty] public int ActionMenuHeight => 288 + (IsChallengeVisible ? 34 : 0) + (IsRenounceVisible ? 34 : 0);
+        [DataSourceProperty] public int ActionMenuHeight => !IsTitleNode ? 84 : 288 + (IsChallengeVisible ? 34 : 0) + (IsRenounceVisible ? 34 : 0);
 
         public void ExecuteRenounce()
         {
@@ -298,6 +335,11 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         public void ExecuteRevoke()
         {
+            if (!IsTitleNode)
+            {
+                LordshipPlayerActions.ShowRevoke(LordshipVillage, () => _onHierarchyChanged?.Invoke(LordshipParent.Title.TitleId));
+                return;
+            }
             FeudalRevocationPreview preview = FeudalTitlePlayerActionService.GetRevocationPreview(Clan.PlayerClan, Title);
             if (!preview.CanRevoke)
             {
@@ -469,6 +511,11 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         public void ExecuteGrant()
         {
+            if (!IsTitleNode)
+            {
+                LordshipPlayerActions.ShowGrant(LordshipVillage, () => _onHierarchyChanged?.Invoke(LordshipParent.Title.TitleId));
+                return;
+            }
             FeudalGrantPreview preview = FeudalTitlePlayerActionService.GetGrantPreview(Clan.PlayerClan, Title);
             if (!preview.CanOpen)
             {
@@ -1011,6 +1058,17 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private void RefreshPlayerActions()
         {
+            if (!IsTitleNode)
+            {
+                var registry = LordshipBehavior.Instance;
+                bool owner = LordshipVillage.Village?.Bound?.OwnerClan == Clan.PlayerClan;
+                bool occupied = registry?.GetGrant(LordshipVillage) != null;
+                IsGrantEnabled = owner && !occupied;
+                IsRevocationEnabled = owner && occupied;
+                GrantHint = new HintViewModel(LordshipBehavior.Text("BC_Lordship_RevenueHint", "The holder alone will receive this lordship's revenues."));
+                RevocationHint = new HintViewModel(LordshipBehavior.Text("BC_Lordship_RevokeHint", "Return this lordship's revenues to the household. Relations decrease by 15."));
+                return;
+            }
             var renounceBlock = FeudalTitlePlayerActionService.GetRenunciationBlock(Title, out bool renounceVisible);
             IsRenounceVisible = renounceVisible;
             IsRenounceEnabled = renounceVisible && renounceBlock == null;
@@ -1551,6 +1609,18 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             properties.Add(new TooltipProperty(new TextObject("{=BC_Hierarchy_Allegiance}Allegiance").ToString(), allegiance, 0));
 
             AddDriftTooltip(properties, title);
+            if (title?.TitleType == FeudalTitleType.Barony)
+            {
+                var settlement = Campaign.Current?.Settlements?.FirstOrDefault(s => s.StringId == title.CapitalSettlementId);
+                var villages = settlement?.BoundVillages;
+                if (villages?.Count > 0)
+                {
+                    properties.Add(new TooltipProperty(LordshipBehavior.Text("BC_Lordship_Count", "Lordships ({COUNT})")
+                        .SetTextVariable("COUNT", villages.Count).ToString(), string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.Title));
+                    foreach (var village in villages)
+                        properties.Add(new TooltipProperty(village.Name.ToString(), LordshipBehavior.Instance?.GetGrant(village.Settlement)?.Holder?.Name?.ToString() ?? vacant, 0));
+                }
+            }
             AddFabricationTooltip(properties, title, playerFabrication);
 
             List<FeudalClaimRecord> claims = titleBehavior?.GetActiveClaimsByTitle(title)
@@ -1847,5 +1917,11 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
             return Colors.Red;
         }
+    }
+
+    public sealed class HierarchyLordshipNodeVM : HierarchyTitleNodeVM
+    {
+        public HierarchyLordshipNodeVM(Settlement village, HierarchyTitleNodeVM parent,
+            Action<HierarchyTitleNodeVM> onSelect, Action<string> onChanged) : base(village, parent, onSelect, onChanged) { }
     }
 }

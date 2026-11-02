@@ -68,6 +68,7 @@ internal static class MarriageHealthCacheTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), nameof(Leader));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Spouse"), nameof(Spouse));
             Patch(AccessTools.Method(helper, "HouseholdMarriageProspect"), nameof(Prospect));
+            Patch(AccessTools.Method(typeof(BellumCivile.BellumMarriageModel).Assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Yes));
             Patch(AccessTools.Method(helper, "CalculateDirectionalTitleClaimMarriageValue"), nameof(Claim));
             Patch(AccessTools.Method(contextType, "CalculatePoliticalValue"), nameof(Politics));
             var context = Context();

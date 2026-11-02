@@ -159,6 +159,7 @@ internal static class MarriageHeiressSimulation
             Patch(AccessTools.PropertyGetter(typeof(CourtAgendaBehavior), "Current"), nameof(Court));
             Patch(AccessTools.Method(helper, "AreKingdomsAllied"), nameof(Allied));
             Patch(AccessTools.Method(_contextType, "IsBloodMember"), nameof(Yes));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Yes));
             Patch(AccessTools.Method(_contextType, "PoliticalValue"), nameof(Politics));
             Patch(AccessTools.Method(_contextType, "IncomingClaimValue"), nameof(Claim));
 

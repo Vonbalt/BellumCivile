@@ -1313,7 +1313,8 @@ namespace BellumCivile.Behaviors
                 return true;
             if (hero == Hero.MainHero || hero.Clan == Clan.PlayerClan)
                 return true;
-            if (!hero.IsLord || hero.Clan == null)
+            if ((!hero.IsLord && !(LordshipBehavior.Instance?.Ready == true && (HouseholdMembership.IsRetainer(hero)
+                || (HouseholdMembership.Supports(hero.Clan) && HouseholdMembership.IsFamily(hero))))) || hero.Clan == null)
                 return false;
             if (hero.Clan.IsNoble)
                 return true;

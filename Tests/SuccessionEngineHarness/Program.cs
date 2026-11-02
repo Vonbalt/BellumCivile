@@ -50,7 +50,37 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--fief-redistribution"))
+            if (args.Contains("--lordship-api"))
+            {
+                LordshipApiTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship API checks passed.");
+            }
+            else if (args.Contains("--mercenary-position-repair"))
+            {
+                DynamicMercenaryPartyRepairTests.Run(Check);
+                Console.WriteLine($"{_checks} mercenary position repair checks passed.");
+            }
+            else if (args.Contains("--highwaymen-cleanup"))
+            {
+                HighwaymenCleanupTests.Run(Check);
+                Console.WriteLine($"{_checks} highwaymen cleanup checks passed.");
+            }
+            else if (args.Contains("--mercenary-spawning"))
+            {
+                DynamicMercenarySpawnTests.Run(Check);
+                Console.WriteLine($"{_checks} mercenary spawning checks passed.");
+            }
+            else if (args.Contains("--title-notifications"))
+            {
+                TitleAcquisitionTests.Run(Check);
+                Console.WriteLine($"{_checks} title acquisition notification checks passed.");
+            }
+            else if (args.Contains("--lordships"))
+            {
+                LordshipTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} lordship checks passed.");
+            }
+            else if (args.Contains("--fief-redistribution"))
             {
                 FiefRedistributionTests.Run(Check);
                 Console.WriteLine($"{_checks} fief redistribution checks passed.");
@@ -225,6 +255,14 @@ internal static class Program
             {
                 MarriageDowrySimulation.Run(Check);
                 Console.WriteLine($"{_checks} marriage dowry simulation checks passed.");
+            }
+            else if (args.Contains("--marriage-retainers"))
+            {
+                RetainerMarriageTests.Run(Check);
+                MarriageHealthCacheTests.Run(Check);
+                MarriageClaimForecastTests.Run(Check);
+                MarriageCombinedScoreTests.Run(Check);
+                Console.WriteLine($"{_checks} retainer marriage checks passed.");
             }
             else if (args.Contains("--marriage-households"))
             {

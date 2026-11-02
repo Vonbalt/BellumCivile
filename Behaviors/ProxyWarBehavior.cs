@@ -151,11 +151,13 @@ namespace BellumCivile.Behaviors
 
         private Hero _activeCompanion;
         private Kingdom _selectedTarget;
+        private bool _highwaymenCleanupPending;
 
         public override void RegisterEvents()
         {
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+            CampaignEvents.TickEvent.AddNonSerializedListener(this, OnTick);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -383,7 +385,7 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
-            CleanUpStuckHighwaymenParties();
+            _highwaymenCleanupPending = true;
             SeedMissingAiEvaluationSchedules();
 
             starter.AddPlayerLine("spymaster_start", "hero_main_options", "spymaster_response",
@@ -421,17 +423,47 @@ namespace BellumCivile.Behaviors
                 100);
         }
 
+        private void OnTick(float dt)
+        {
+            if (!_highwaymenCleanupPending) return;
+            // Even OnAfterSessionLaunched precedes native saved-battle restoration.
+            _highwaymenCleanupPending = false;
+            CleanUpStuckHighwaymenParties();
+        }
+
+        private static bool CanCleanUpHighwayman(MobileParty party) => party?.StringId != null
+            && party.StringId.StartsWith(HighwaymenPartyIdPrefix, StringComparison.Ordinal)
+            && party.IsActive && party != MobileParty.MainParty && party.Party != null
+            && party.CurrentSettlement == null && party.MapEvent == null && party.MapEventSide == null
+            && party.BesiegerCamp == null && party.SiegeEvent == null && party.Army == null
+            && !party.IsCurrentlyUsedByAQuest && !party.IsCurrentlyAtSea
+            && !party.IsTransitionInProgress && !party.IsDisbanding;
+
         private void CleanUpStuckHighwaymenParties()
         {
-            foreach (MobileParty party in MobileParty.All
-                .Where(p => p.StringId.StartsWith(HighwaymenPartyIdPrefix) && p.IsActive)
-                .ToList())
+            var towns = Settlement.All.Where(s => s?.IsTown == true).ToList();
+            foreach (MobileParty party in MobileParty.All.Where(CanCleanUpHighwayman).ToList())
             {
-                bool isStuck = party.CurrentSettlement != null ||
-                               Settlement.All.Any(s => s.IsTown &&
-                                   party.Position.DistanceSquared(s.GatePosition) < STUCK_PARTY_THRESHOLD_SQ);
-                if (isStuck)
-                    DestroyPartyAction.Apply(null, party);
+                Settlement town = towns.FirstOrDefault(s =>
+                    party.Position.DistanceSquared(s.GatePosition) < STUCK_PARTY_THRESHOLD_SQ);
+                if (town == null) continue;
+                bool isStuck;
+                try
+                {
+                    isStuck = !TownPartyPositionHelper.IsValidLandPoint(party.Position)
+                        || TownPartyPositionHelper.IsValidLandPoint(town.GatePosition)
+                            && !TownPartyPositionHelper.CanReachLandPoint(party.Position, town.GatePosition,
+                                TownPartyPositionHelper.LongRangePathDistance);
+                }
+                catch (Exception ex)
+                {
+                    BellumCivileLogger.Log($"Highwaymen cleanup navigation check skipped; party={party.StringId}; town={town.StringId}; error={ex.GetType().Name}:{ex.Message}.");
+                    continue;
+                }
+                if (!isStuck || !CanCleanUpHighwayman(party)) continue;
+                string id = party.StringId;
+                DestroyPartyAction.Apply(null, party);
+                BellumCivileLogger.Log($"Removed stranded Bellum highwaymen after campaign startup; party={id}; town={town.StringId}.");
             }
         }
 

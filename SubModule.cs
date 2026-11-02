@@ -230,6 +230,13 @@ namespace BellumCivile
             return false;
         }
 
+        protected override void OnApplicationTick(float dt)
+        {
+            base.OnApplicationTick(dt);
+            if (Behaviors.LordshipBehavior.Instance?.Ready == true)
+                Patches.LordshipMapBannerPatch.Initialize();
+        }
+
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
         {
             base.OnGameStart(game, gameStarterObject);
@@ -322,7 +329,9 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new ForeignPolicyBehavior());
                 campaignStarter.AddBehavior(new DiplomacyCompatibilityBehavior());
                 campaignStarter.AddBehavior(new RegencyBehavior());
+                campaignStarter.AddBehavior(new LordshipBehavior());
                 campaignStarter.AddBehavior(new CrownAccessionBehavior());
+                campaignStarter.AddBehavior(new TitleAcquisitionBehavior());
                 campaignStarter.AddBehavior(new ElectiveSuccessionBehavior());
                 campaignStarter.AddBehavior(new ElectionLobbyingBehavior());
                 campaignStarter.AddBehavior(new ElectiveContestBehavior());

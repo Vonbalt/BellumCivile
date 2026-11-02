@@ -137,7 +137,8 @@ namespace BellumCivile.Patches
             if (!hero.IsAlive || hero.IsDisabled)
                 return false;
 
-            if (!isPlayerClan && (hero.IsWanderer || hero.IsNotable))
+            if (!isPlayerClan && (hero.IsNotable || (hero.IsWanderer && Behaviors.LordshipBehavior.Instance?.GetGrant(hero) == null
+                && !(Behaviors.LordshipBehavior.Instance?.Ready == true && HouseholdMembership.IsFamily(hero)))))
                 return false;
 
             if (hero.Clan.IsMinorFaction && !isPlayerClan && !FeudalTitleDisplayHelper.IsMercenaryLeader(hero))

@@ -26,7 +26,7 @@
     heldTitleFormat="{TITLE_NAME} {TITLE_RANK}"  => Jaculan Count
 
   Recruited wanderers receive no honorific unless the applicable Rank adds:
-    wandererRank="Retainer" femaleWandererRank="Retainer"
+    retainerRank="Sir" femaleRetainerRank="Dame"
 
   Optional landless noble house-leader honorifics on the sovereign Rank tier:
     landlessLeaderRank="Patriarch" femaleLandlessLeaderRank="Matriarch"

@@ -237,6 +237,27 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private void SelectTitle(HierarchyTitleNodeVM node)
         {
+            HierarchyTitleNodeVM expanded = node?.LordshipParent ?? node;
+            foreach (var parent in _titleNodes.Where(n => n.IsTitleNode && n.Title?.TitleType == FeudalTitleType.Barony).ToList())
+            {
+                if (parent == expanded) continue;
+                foreach (var child in parent.Branch.Where(n => !n.IsTitleNode).ToList())
+                { parent.Branch.Remove(child); _titleNodes.Remove(child); child.OnFinalize(); }
+                parent.FinalizeBranchLayout();
+            }
+            if (expanded?.Title?.TitleType == FeudalTitleType.Barony && expanded.Branch.Count == 0
+                && LordshipBehavior.Instance?.Ready == true)
+            {
+                var settlement = Campaign.Current?.Settlements?.FirstOrDefault(s => s.StringId == expanded.Title.CapitalSettlementId);
+                if (settlement != null)
+                    foreach (var village in settlement.BoundVillages)
+                    {
+                        var child = new HierarchyLordshipNodeVM(village.Settlement, expanded, SelectTitle, RefreshHierarchyAfterAction);
+                        expanded.Branch.Add(child);
+                        _titleNodes.Add(child);
+                    }
+                expanded.FinalizeBranchLayout();
+            }
             foreach (HierarchyTitleNodeVM candidate in _titleNodes)
                 candidate.IsSelected = candidate == node;
 

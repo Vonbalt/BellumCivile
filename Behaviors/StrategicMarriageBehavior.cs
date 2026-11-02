@@ -87,8 +87,9 @@ namespace BellumCivile.Behaviors
             if (!ShouldEvaluateToday(clan))
                 return;
 
-            Hero hero = clan.Heroes.FirstOrDefault(BellumMarriageStrategyHelper.IsStrategicMarriageInitiator)
-                ?? clan.Heroes.FirstOrDefault(BellumMarriageStrategyHelper.MarriageProspectEligible);
+            var members = HouseholdMembership.Members(clan).OrderByDescending(HouseholdMembership.IsFamily).ToList();
+            Hero hero = members.FirstOrDefault(BellumMarriageStrategyHelper.IsStrategicMarriageInitiator)
+                ?? members.FirstOrDefault(BellumMarriageStrategyHelper.MarriageProspectEligible);
             if (hero == null) { _yearlySummary.AvailabilityDeferrals++; return; }
             float dynasticNeed = BellumMarriageStrategyHelper.CalculateDynasticNeed(clan);
             int daysPerYear = GetCampaignDaysInYear();

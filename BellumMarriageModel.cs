@@ -17,11 +17,16 @@ namespace BellumCivile
         public override bool IsSuitableForMarriage(Hero hero)
         {
             if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true) return false;
-            if (!MarriageProspectEvaluation.Active || BellumMarriageStrategyHelper.MarriageParticipantReady(hero))
+            if (!MarriageParticipantPolicy.IsCompanion(hero)
+                && (!MarriageProspectEvaluation.Active || BellumMarriageStrategyHelper.MarriageParticipantReady(hero)))
                 return base.IsSuitableForMarriage(hero);
             if (hero?.IsAlive != true || !(hero.IsActive || hero.IsFugitive || hero.IsPrisoner)
-                || hero.Spouse != null || !hero.IsLord || hero.IsMinorFactionHero || hero.IsNotable || hero.IsTemplate)
+                || hero.Spouse != null || !MarriageParticipantPolicy.IsParticipant(hero)
+                || hero.IsMinorFactionHero || hero.IsNotable || hero.IsTemplate
+                || RegencyBehavior.Instance?.IsGeneratedRegent(hero) == true)
                 return false;
+            if (!MarriageProspectEvaluation.Active && (!hero.IsActive
+                || hero.PartyBelongedTo?.MapEvent != null || hero.PartyBelongedTo?.Army != null)) return false;
             var offers = Campaign.Current.GetCampaignBehavior<IMarriageOfferCampaignBehavior>();
             return offers?.IsHeroEngaged(hero) != true
                 && hero.Age >= (hero.IsFemale ? MinimumMarriageAgeFemale : MinimumMarriageAgeMale);

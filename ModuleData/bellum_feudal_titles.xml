@@ -43,9 +43,10 @@
     heroNameFormat="{HERO_NAME}, {HELD_TITLE}"         => Derthert, Count of Jaculan
     heroNameFormat="{DISPLAY_TITLE} &#xB7; {HERO_NAME}" => Count · Derthert
 
-  Recruited wanderers are retainers rather than nobles and receive no
-  honorific by default. A culture or kingdom may style them explicitly:
-    wandererRank="Retainer" femaleWandererRank="Retainer"
+  Household retainers are distinct from the clan head's family. Adult
+  retainers holding a personal village lordship use these honorifics:
+    retainerRank="Sir" femaleRetainerRank="Dame"
+  The older wandererRank/femaleWandererRank attribute names remain aliases.
 
   Vacant titles are supported by omitting deJureClan/deFactoClan.
 

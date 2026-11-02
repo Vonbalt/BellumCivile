@@ -148,7 +148,7 @@
                             <HintWidget DataSource="{ChallengeHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                        <Widget IsVisible="@IsTitleNode" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
                           <Children>
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteClaim" UpdateChildrenStates="true" IsEnabled="@IsClaimEnabled">
                               <Children>
@@ -168,7 +168,7 @@
                             <HintWidget DataSource="{RenounceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                        <Widget IsVisible="@IsTitleNode" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
                           <Children>
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteUsurp" UpdateChildrenStates="true" IsEnabled="@IsUsurpEnabled">
                               <Children>
@@ -198,7 +198,7 @@
                             <HintWidget DataSource="{FormationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                        <Widget IsVisible="@IsTitleNode" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
                           <Children>
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteService" UpdateChildrenStates="true" IsEnabled="@IsServiceEnabled">
                               <Children>
@@ -218,7 +218,7 @@
                             <HintWidget DataSource="{GrantHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                        <Widget IsVisible="@IsTitleNode" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
                           <Children>
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRename" UpdateChildrenStates="true" IsEnabled="@IsRenameEnabled">
                               <Children>
@@ -228,7 +228,7 @@
                             <HintWidget DataSource="{RenameHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
+                        <Widget IsVisible="@IsTitleNode" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0">
                           <Children>
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteDissolve" UpdateChildrenStates="true" IsEnabled="@IsDissolutionEnabled">
                               <Children>

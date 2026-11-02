@@ -802,3 +802,17 @@ Fixed repeated private feuds after accepted judgments and blocked claimed-title 
 Fixed internal fief redistribution rewriting de jure hierarchy when player voluntarily relinquish fief.
 Shortened grand coalition names by omitting the realm rank.
 Reorganized noble encyclopedia inheritance and family sections.
+
+1.4.8.1 CHANGELOG
+
+Small compatibility fix with mods that modify the family section of the encyclopedia.
+
+1.4.9 CHANGELOG
+
+Added personal, nonhereditary village lordships, the player may receive a spare one when joining a kingdom as his first fief like in warband.
+Split clan encyclopedia members into Family and Retainers (non-blood related clan members) sections.
+Lordships now are required so retainers can lead parties or govern settlements.
+Added Sir/Dame honorifics for retainers while holding lordships.
+Added side notifications when the player acquires titles or lordships.
+Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
+Added read-only API queries for the player’s personal village lordship.

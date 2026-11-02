@@ -13,6 +13,12 @@ namespace BellumCivile.UI
 
         private static bool Prefix(Widget __instance)
         {
+            if (__instance.Id == "MembersDivider" && EncyclopediaClanHouseholdPrefabPatch.Enabled
+                && __instance.ParentWidget?.FindChild("BellumClanHousehold", false) != null)
+            {
+                __instance.IsHidden = true;
+                return false;
+            }
             if (__instance.Id != "FamilyDivider" || !EncyclopediaFamilyLayoutCompatibility.Enabled) return true;
             // Native late update would undo the prefab's hidden flag whenever its grid has children.
             __instance.IsHidden = true;

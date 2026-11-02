@@ -492,14 +492,17 @@ namespace BellumCivile
             // Companions are retainers of the clan, not members of its peerage.
             // A configured wanderer rank may style them through the dedicated path,
             // but they must never inherit the generic Lord/Lady fallback.
-            if (IsWandererRetainer(hero))
+            if (LordshipBehavior.Instance?.Ready == true
+                ? !HouseholdMembership.IsFamily(hero) && hero != hero.Clan.Leader
+                : IsWandererRetainer(hero))
                 return false;
 
             bool isPlayerClan = hero.Clan == Clan.PlayerClan;
             if ((!hero.Clan.IsNoble && !isPlayerClan) || hero.IsChild)
                 return false;
 
-            if (!hero.IsLord && hero.Clan.Leader != hero && hero.Spouse?.Clan?.Leader != hero.Spouse)
+            if (!hero.IsLord && hero.Clan.Leader != hero && hero.Spouse?.Clan?.Leader != hero.Spouse
+                && !(LordshipBehavior.Instance?.Ready == true && HouseholdMembership.IsFamily(hero)))
                 return false;
 
             FeudalTitleRecord sovereignTitle = GetSovereignTitleForKingdom(hero.Clan.Kingdom);
@@ -547,22 +550,28 @@ namespace BellumCivile
         {
             displayTitle = null;
             rankStyle = null;
-            if (!IsWandererRetainer(hero) || hero?.Clan?.Kingdom == null || hero.Clan.IsEliminated)
+            bool personal = LordshipBehavior.Instance?.Ready == true;
+            if (personal ? !HouseholdMembership.IsRetainer(hero) || hero.IsChild || LordshipBehavior.Instance.GetGrant(hero) == null
+                : !IsWandererRetainer(hero))
+                return false;
+            if (hero?.Clan == null || hero.Clan.IsEliminated)
                 return false;
 
             FeudalTitleRecord sovereignTitle = GetSovereignTitleForKingdom(hero.Clan.Kingdom);
-            if (sovereignTitle == null)
+            if (sovereignTitle == null && !personal)
                 return false;
 
             FeudalTitleConfig.RankStyle style = ResolveRankStyle(
-                sovereignTitle.TitleType,
+                sovereignTitle?.TitleType ?? FeudalTitleType.Kingdom,
                 hero.Clan,
-                ResolveKingdom(sovereignTitle.AssociatedKingdomId),
-                sovereignTitle.FallbackCultureRef);
+                ResolveKingdom(sovereignTitle?.AssociatedKingdomId),
+                sovereignTitle?.FallbackCultureRef);
             string configuredText = hero.IsFemale
                 ? FirstNonEmpty(style?.FemaleWandererRank, style?.WandererRank)
                 : FirstNonEmpty(style?.WandererRank, style?.FemaleWandererRank);
 
+            if (personal && string.IsNullOrWhiteSpace(configuredText))
+                configuredText = hero.IsFemale ? "{=BC_Lordship_Dame}Dame" : "{=BC_Lordship_Sir}Sir";
             if (string.IsNullOrWhiteSpace(configuredText))
                 return false;
 
@@ -618,7 +627,8 @@ namespace BellumCivile
                 return false;
 
             bool isPlayerClan = hero.Clan == Clan.PlayerClan;
-            if (!isPlayerClan && (hero.IsWanderer || hero.IsNotable))
+            if (!isPlayerClan && (hero.IsNotable || (hero.IsWanderer && LordshipBehavior.Instance?.GetGrant(hero) == null
+                && !(LordshipBehavior.Instance?.Ready == true && HouseholdMembership.IsFamily(hero)))))
                 return false;
 
             return !hero.Clan.IsMinorFaction || isPlayerClan;

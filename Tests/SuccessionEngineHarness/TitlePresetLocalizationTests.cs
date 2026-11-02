@@ -65,6 +65,12 @@ internal static class TitlePresetLocalizationTests
                 string path = Path.Combine(data, "bellum_title_styles_" + preset + ".xml");
                 var document = new XmlDocument(); document.Load(path);
                 object config = NewConfig(); Load(config, path);
+                var retainerRanks = ((IEnumerable)AccessTools.Property(Config, "Styles").GetValue(config)).Cast<object>()
+                    .SelectMany(style => ((IEnumerable)AccessTools.Field(style.GetType(), "Ranks").GetValue(style)).Cast<object>())
+                    .Where(rank => (FeudalTitleType)AccessTools.Field(rank.GetType(), "Tier").GetValue(rank) >= FeudalTitleType.Kingdom).ToList();
+                check(retainerRanks.Count > 0 && retainerRanks.All(rank => Field(rank, "WandererRank").EndsWith("_retainerRank}Sir")
+                    && Field(rank, "FemaleWandererRank").EndsWith("_femaleRetainerRank}Dame")),
+                    preset + ": dedicated retainer aliases load Sir/Dame without replacing family noble ranks");
                 Language("English");
                 string root = (string)Names(config)["bc_title_kingdom_vlandia"];
                 var rootText = new TextObject(root);

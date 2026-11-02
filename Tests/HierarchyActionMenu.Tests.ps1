@@ -15,6 +15,14 @@ foreach ($command in $commands) {
     if ($matches.Count -ne 1) { throw "Missing or duplicate action: $command" }
     if (!$matches[0].ParentNode.SelectSingleNode('HintWidget')) { throw "Missing tooltip: $command" }
 }
+foreach ($command in @('Grant','Revoke')) {
+    $row = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='Execute$command']").ParentNode.ParentNode
+    if ($row.HasAttribute('IsVisible')) { throw "Lordship action must not be hidden on personal grants: $command" }
+}
+foreach ($command in @('Claim','Usurp','Service','Rename','Dissolve')) {
+    $row = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='Execute$command']").ParentNode.ParentNode
+    if ($row.IsVisible -ne '@IsTitleNode') { throw "Title-only action must stay hidden on lordships: $command" }
+}
 $revoke = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='ExecuteRevoke']")
 if ($revoke.IsEnabled -ne '@IsRevocationEnabled' -or
     $revoke.ParentNode.SelectSingleNode('HintWidget').DataSource -ne '{RevocationHint}') {
@@ -29,4 +37,5 @@ $slot = $node.SelectSingleNode('//*[@Id="ButtonContainer"]')
 if ($slot.HeightSizePolicy -ne 'Fixed') { throw 'Selection must not change node height.' }
 if (!$slot.SelectSingleNode('.//HierarchyOptionsButtonWidget[@IsVisible="@IsSelected"]')) { throw 'Options must be selection-only.' }
 if ($strings.SelectNodes('//string[@id="BC_Hierarchy_TitleOptions"]').Count -ne 1) { throw 'Options localization invalid.' }
-'Hierarchy action menu structure checks passed (8 commands, tooltip bindings, overlay layering, fixed node slot).'
+if ($node.Prefab.Window.FirstChild.Name -ne 'HierarchyTitleTreeNodeWidget') { throw 'Hierarchy must use scoped dynamic connector cleanup.' }
+'Hierarchy action menu structure checks passed (8 commands, lordship visibility, tooltip bindings, overlay layering, fixed node slot, dynamic tree widget).'
