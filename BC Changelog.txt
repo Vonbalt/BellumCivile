@@ -816,3 +816,4 @@ Added Sir/Dame honorifics for retainers while holding lordships.
 Added side notifications when the player acquires titles or lordships.
 Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
 Added read-only API queries for the player’s personal village lordship.
+Fixed separate peace offers and treaties bypassing active alliance call-to-arms obligations.
