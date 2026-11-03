@@ -65,7 +65,7 @@ namespace BellumCivile
                 && NpcInfluenceBudgetService.CanAfford(o.Sponsor, CourtClientGrantRules.Cost, NpcInfluenceExpenseKind.Discretionary);
             return new CourtObjectiveEvaluation(eligible, viable, new CourtObjectiveWeight(eligible
                 ? CourtClientGrantRules.Weight(c.Realm.Leader.GetTraitLevel(DefaultTraits.Generosity), c.Realm.Leader.GetRelation(client.Leader)) : 0),
-                "rare_client_grant; surplus_border_land; no_ballot");
+                "rare_client_grant; surplus_border_land; client_distribution_ballot");
         }
         public void ApplySelection(CourtAgendaRecord a, CourtObjectiveChoice choice)
         {

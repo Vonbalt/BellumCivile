@@ -812,8 +812,8 @@ Small compatibility fix with mods that modify the family section of the encyclop
 Added personal, nonhereditary village lordships, the player may receive a spare one when joining a kingdom as his first fief like in warband.
 Split clan encyclopedia members into Family and Retainers (non-blood related clan members) sections.
 Lordships now are required so retainers can lead parties or govern settlements.
-Added Sir/Dame honorifics for retainers while holding lordships.
-Added side notifications when the player acquires titles or lordships.
-Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
+Added honorifics for retainers while holding lordships.
+Added side notifications when the player acquires titles.
+Improved marriage logic to prioritize family, support companion marriage offers, and restrict house birthright claims to blood relatives as intended.
 Added read-only API queries for the player’s personal village lordship.
 Fixed separate peace offers and treaties bypassing active alliance call-to-arms obligations.

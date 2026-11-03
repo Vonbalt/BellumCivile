@@ -5208,12 +5208,12 @@
     <string id="BC_Council_CandidateCompetenceHint" text="{DESCRIPTION}&#10;&#10;{COMPETENCE}&#10;{REQUIREMENTS}&#10;Personal competence before council-wide bonuses. Skills count up to 300 and attributes up to 10." />
     <string id="BC_ClientGrantLabel" text="Grant {FIEF} to {CLIENT}" />
     <string id="BC_CrownActionClientGrant" text="Grant land to a client state" />
-    <string id="BC_CrownActionClientGrantHint" text="Bestow a personally held town or castle on a client realm. Costs 100 influence. Your last fief, besieged or disputed land, wartime occupations and holdings awaiting distribution cannot be granted." />
+    <string id="BC_CrownActionClientGrantHint" text="Bestow a personally held town or castle on a client realm for distribution by its council. Costs 100 influence. Your last fief, besieged or disputed land, wartime occupations and holdings awaiting distribution cannot be granted." />
     <string id="BC_ClientGrantChooseFief" text="Which holding will you bestow upon a client realm?" />
-    <string id="BC_CrownDirectClientGrant" text="This permanently transfers the holding to the client's ruling house, without a distribution vote. Only legal rights you possess accompany the land; higher titles and historical boundaries remain unchanged. The client ruler gains +25 relations for ten years (modified by your memory-duration setting), capped at +50 from active grants." />
+    <string id="BC_CrownDirectClientGrant" text="This permanently transfers the holding to the client realm. Its ruler will hold it pending a normal fief distribution vote, which decides the receiving house. Only legal rights you possess accompany the land; higher titles and historical boundaries remain unchanged. The client ruler gains +25 relations for ten years (modified by your memory-duration setting), capped at +50 from active grants." />
     <string id="BC_ClientGrantMemory" text="Enlarged our realm" />
-    <string id="BC_ClientGrantStatus" text="A voluntary grant to a client realm, costing 100 influence. No distribution vote is held. Only the Crown's own rights accompany the holding; higher titles are not granted." />
-    <string id="BC_ClientGrantDelivered" text="{RULER} has granted {FIEF} to {CLIENT}, entrusting its lands to {RECIPIENT}. The gift strengthens their realm and gives its ruler cause to remember this generosity." />
+    <string id="BC_ClientGrantStatus" text="A voluntary grant to a client realm, costing 100 influence. The client's council will distribute the holding through a normal fief vote. Only the Crown's own rights accompany the holding; higher titles are not granted." />
+    <string id="BC_ClientGrantDelivered" text="{RULER} has granted {FIEF} to {CLIENT}. Its council will decide which house receives the holding through a normal fief distribution vote. The gift strengthens their realm and gives its ruler cause to remember this generosity." />
     <string id="BC_ClientGrantCancelled" text="The Crown's intended grant of {FIEF} to {CLIENT} could not be completed. No further transfer will be attempted under this authorization." />
     <string id="BC_Treaty_ClientOccupation" text="Recognize {CLIENT}'s possession of {FIEF}" />
     <string id="BC_Treaty_SummaryClientOccupation" text="{FROM_REALM} recognizes {CLIENT}'s possession of {FIEF}" />

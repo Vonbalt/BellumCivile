@@ -125,6 +125,12 @@ internal static class Program
                 CampaignRunRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} campaign run recovery checks passed.");
             }
+            else if (args.Contains("--client-land-grants"))
+            {
+                CourtClientGrantTests.Run(Check);
+                AllocationCustodyTests.Run(Check);
+                Console.WriteLine($"{_checks} client land grant checks passed.");
+            }
             else if (args.Contains("--court-title-grants"))
             {
                 CourtTitleGrantEngineTests.Run(Check);

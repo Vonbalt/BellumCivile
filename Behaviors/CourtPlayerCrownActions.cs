@@ -88,7 +88,7 @@ namespace BellumCivile.Behaviors
                 "{=BC_CrownActionAppeaseHint}Reconcile with a discontented court faction for 100 influence plus 25 per member house. Once used, no faction may be appeased again for one full court term. Accommodations cannot stack or refresh.",
                 "{=BC_CrownActionLiberateHint}Prepare a client realm for liberation for 100 influence, at most once per full court term. The normal readiness requirements and declaration vote still apply.",
                 "{=BC_CrownActionProtectHint}Offer clientage in exchange for intervention against an overwhelming enemy. Sending an appeal costs 100 influence, even if refused, and prevents another appeal for one full court term.",
-                "{=BC_CrownActionClientGrantHint}Bestow a personally held town or castle on a client realm. Costs 100 influence. Your last fief, besieged or disputed land, wartime occupations and holdings awaiting distribution cannot be granted." };
+                "{=BC_CrownActionClientGrantHint}Bestow a personally held town or castle on a client realm for distribution by its council. Costs 100 influence. Your last fief, besieged or disputed land, wartime occupations and holdings awaiting distribution cannot be granted." };
             var choices = kinds.Select((kind, i) => new InquiryElement(kind, new TextObject(labels[i]).ToString(), null,
                 AvailablePlayerMotions(draft, kind).Count > 0, CrownActionOptionHint(realm, kind, hints[i]).ToString())).ToList();
             choices.Add(RoyalPeaceAction(realm));
@@ -142,7 +142,7 @@ namespace BellumCivile.Behaviors
             if (!CanUseCrownActions(realm)) return;
             var ruler = realm.Leader;
             string detail = motion.Kind == CourtClientGrantRules.Kind
-                ? "{=BC_CrownDirectClientGrant}This permanently transfers the holding to the client's ruling house, without a distribution vote. Only legal rights you possess accompany the land; higher titles and historical boundaries remain unchanged. The client ruler gains +25 relations for ten years (modified by your memory-duration setting), capped at +50 from active grants."
+                ? "{=BC_CrownDirectClientGrant}This permanently transfers the holding to the client realm. Its ruler will hold it pending a normal fief distribution vote, which decides the receiving house. Only legal rights you possess accompany the land; higher titles and historical boundaries remain unchanged. The client ruler gains +25 relations for ten years (modified by your memory-duration setting), capped at +50 from active grants."
                 : motion.Kind == CourtAppeasementRules.Kind
                 ? "{=BC_CrownDirectAppease}Grant this faction +20 mood for {DAYS} days. The accommodation cannot stack or be renewed while active, and ends upon ruler replacement. It cannot undo an issued ultimatum or open rebellion."
                 : motion.Kind == CourtLiberationRules.Kind
