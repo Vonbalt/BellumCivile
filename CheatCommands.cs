@@ -22,6 +22,7 @@
 * civilwars.set_ruler_relation_player [Value]
 * civilwars.set_ruler_relation [Clan Name] [Value]
 * civilwars.force_treason [vote/decree] [Kingdom Name] | [Clan or Leader Name]
+* civilwars.test_asylum [optional Clan ID]
 * civilwars.pending_votes [optional Kingdom Name]
 * civilwars.repair_pending_votes [optional Kingdom Name]
 * civilwars.fief_vote_eval [Settlement Name/Id]
@@ -88,6 +89,17 @@ namespace BellumCivile
     /// </summary>
     public static class CheatCommands
     {
+        [CommandLineFunctionality.CommandLineArgumentFunction("test_asylum", "civilwars")]
+        public static string TestAsylum(List<string> args)
+        {
+            if (args?.Count > 1 || string.Equals(args?.FirstOrDefault(), "help", StringComparison.OrdinalIgnoreCase))
+                return "Usage: civilwars.test_asylum [optional Clan ID]. No ID selects a random eligible foreign landless clan. Use a separate test save: this causes a real exile.";
+            if (Campaign.Current == null) return "Error: Load a campaign first.";
+            var behavior = Campaign.Current.GetCampaignBehavior<ExiledClanRecoveryBehavior>();
+            return behavior == null ? "Error: Exile recovery behavior is unavailable."
+                : behavior.CreateAsylumTest(args?.FirstOrDefault());
+        }
+
         [CommandLineFunctionality.CommandLineArgumentFunction("repair_regency_caretaker", "civilwars")]
         public static string RepairRegencyCaretaker(List<string> args)
         {

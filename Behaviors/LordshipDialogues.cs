@@ -27,10 +27,15 @@ namespace BellumCivile.Behaviors
                 () => Ready && Hero.OneToOneConversationHero?.Clan == Clan.PlayerClan
                     && Villages(Clan.PlayerClan).Any(v => CanGrant(Clan.PlayerClan, v, Hero.OneToOneConversationHero, out _)),
                 () => { _conversationRecipient = Hero.OneToOneConversationHero; _conversationVillage = null; _conversationCompleted = false; }, 120);
+            starter.AddPlayerLine("bc_vassal_estate_start", "hero_main_options", "bc_lordship_response",
+                "{=BC_Lordship_VassalOffer}I would endow your house with an estate to help maintain your household and men.",
+                () => Ready && Hero.OneToOneConversationHero?.Clan != Clan.PlayerClan
+                    && Villages(Clan.PlayerClan).Any(v => CanGrantVassal(Clan.PlayerClan, v, Hero.OneToOneConversationHero)),
+                () => { _conversationRecipient = Hero.OneToOneConversationHero; _conversationVillage = null; _conversationCompleted = false; }, 120);
             starter.AddDialogLine("bc_lordship_response", "bc_lordship_response", "bc_lordship_villages",
                 "{=BC_Lordship_DialogueResponse}You honor me. Which lands would you have me hold?", null,
                 () => ConversationSentence.SetObjectsToRepeatOver(Villages(Clan.PlayerClan)
-                    .Where(v => CanGrant(Clan.PlayerClan, v, _conversationRecipient, out _)).Cast<object>().ToList()), 120);
+                    .Where(v => CanGrantFromPlayerHouse(v, _conversationRecipient, out _)).Cast<object>().ToList()), 120);
             starter.AddRepeatablePlayerLine("bc_lordship_village", "bc_lordship_villages", "bc_lordship_selected",
                 "{=BC_Lordship_DialogueVillage}{LORDSHIP}.",
                 "{=BC_Lordship_DialogueAnother}I am considering another estate.", "bc_lordship_response",
@@ -54,7 +59,7 @@ namespace BellumCivile.Behaviors
                 null, () =>
                 {
                     _conversationCompleted = _conversationRecipient == Hero.OneToOneConversationHero
-                        && TryGrant(Clan.PlayerClan, _conversationVillage, _conversationRecipient, out _);
+                        && TryGrantFromPlayerHouse(_conversationVillage, _conversationRecipient, out _);
                 }, 120);
             starter.AddPlayerLine("bc_lordship_cancel_confirm", "bc_lordship_confirm", "hero_main_options",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);

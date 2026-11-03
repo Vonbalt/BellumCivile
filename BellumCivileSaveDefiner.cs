@@ -16,6 +16,7 @@ namespace BellumCivile
 
         protected override void DefineClassTypes()
         {
+            AddClassDefinition(typeof(AsylumVisitRecord), 142);
             AddClassDefinition(typeof(PersonalLordshipRecord), 138);
             AddClassDefinition(typeof(LordshipAppointmentRecord), 139);
             AddClassDefinition(typeof(LordshipIncomeCredit), 140);
@@ -167,6 +168,7 @@ namespace BellumCivile
 
         protected override void DefineContainerDefinitions()
         {
+            ConstructContainerDefinition(typeof(Dictionary<string, AsylumVisitRecord>));
             ConstructContainerDefinition(typeof(List<TitleAcquiredMapNotification>));
             ConstructContainerDefinition(typeof(List<PersonalLordshipRecord>));
             ConstructContainerDefinition(typeof(List<LordshipAppointmentRecord>));

@@ -21,17 +21,19 @@ namespace BellumCivile
             if (behavior == null) return;
             var choices = HouseholdMembership.Members(Clan.PlayerClan)
                 .Where(h => h.IsAlive && !h.IsDisabled && !h.IsChild && h != Clan.PlayerClan.Leader && !h.IsNotable)
+                .Concat(behavior.LandlessVassalRecipients(Clan.PlayerClan)).Distinct()
                 .OrderBy(h => HouseholdMembership.IsFamily(h) ? 1 : 0).ThenByDescending(h => h.Age)
-                .Select(hero => new InquiryElement(hero, hero.Name.ToString(), null,
-                    behavior.CanGrant(Clan.PlayerClan, village, hero, out var reason), reason?.ToString() ?? string.Empty)).ToList();
-            var description = LordshipBehavior.EstateText("BC_Lordship_RecipientDescription", "Choose a member of your household to receive {LORDSHIP}. Its revenues will belong exclusively to the holder for as long as they hold the grant.", village);
+                .Select(hero => new InquiryElement(hero, hero.Clan == Clan.PlayerClan ? hero.Name.ToString()
+                    : hero.Name + " (" + hero.Clan.Name + ")", null,
+                    behavior.CanGrantFromPlayerHouse(village, hero, out var reason), reason?.ToString() ?? string.Empty)).ToList();
+            var description = LordshipBehavior.EstateText("BC_Lordship_RecipientDescriptionExtended", "Choose a member of your household or the head of a landless vassal house to receive {LORDSHIP}. Its revenues will support the holder or their house for as long as the personal grant remains in force.", village);
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                 T("BC_Lordship_GrantTitle", "Grant {LORDSHIP_TYPE}", village), description.ToString(), choices, true, 1, 1,
                 T("BC_Hierarchy_ActionGrant", "Grant"), T("BC_UI_Cancel", "Cancel"), selected =>
                 {
                     Hero hero = selected?.FirstOrDefault()?.Identifier as Hero;
                     if (hero == null) return;
-                    if (!behavior.TryGrant(Clan.PlayerClan, village, hero, out var reason)) Failure(reason);
+                    if (!behavior.TryGrantFromPlayerHouse(village, hero, out var reason)) Failure(reason);
                     else changed?.Invoke();
                 }, null), true);
         }

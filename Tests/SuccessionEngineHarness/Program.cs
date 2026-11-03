@@ -439,6 +439,11 @@ internal static class Program
                 RecruitmentRankTests.Run(Check);
                 Console.WriteLine($"{_checks} recruitment rank checks passed.");
             }
+            else if (args.Contains("--asylum-visits"))
+            {
+                AsylumVisitTests.Run(Check);
+                Console.WriteLine($"{_checks} asylum audience lifecycle checks passed.");
+            }
             else if (args.Contains("--exile-recovery"))
             {
                 ExileRecoveryTests.Run(Check);

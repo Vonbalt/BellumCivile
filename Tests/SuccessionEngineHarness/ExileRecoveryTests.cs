@@ -78,6 +78,17 @@ internal static class ExileRecoveryTests
     private static bool Child(Hero __instance, ref bool __result) { __result = Children.Contains(__instance); return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool ConversationHero(ref Hero __result) { __result = Leaders[_exile]; return false; }
+    private static readonly Settlement AsylumHome = Blank<Settlement>();
+    private static bool PlayerHero(ref Hero __result) { __result = Leaders[_player]; return false; }
+    private static bool RealmLeader(Kingdom __instance, ref Hero __result) { __result = Leaders[Rulers[__instance]]; return false; }
+    private static bool Home(ref Settlement __result) { __result = AsylumHome; return false; }
+    private static bool Visit(Clan clan, Kingdom realm, ref bool __result)
+    {
+        Data<BellumCivile.AsylumVisitRecord>("_asylumVisits")[clan.StringId] = new BellumCivile.AsylumVisitRecord
+        { Clan = clan, Guest = Leaders[clan], Ruler = Leaders[_player], Realm = realm, Settlement = AsylumHome,
+            Deadline = CampaignTime.Now + CampaignTime.Days(7) };
+        __result = true; return false;
+    }
     private static bool Leader(Clan __instance, ref Hero __result) { Leaders.TryGetValue(__instance, out __result); return false; }
     private static bool Realm(Clan __instance, ref Kingdom __result) { Realms.TryGetValue(__instance, out __result); return false; }
     private static bool Crown(Kingdom __instance, ref Clan __result) { Rulers.TryGetValue(__instance, out __result); return false; }
@@ -160,6 +171,8 @@ internal static class ExileRecoveryTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "All"), nameof(AllClans));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "WarPartyComponents"), nameof(Parties));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), nameof(HeroClan));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "MainHero"), nameof(PlayerHero));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "CurrentSettlement"), nameof(Home));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsAlive"), nameof(Yes));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsDisabled"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsChild"), nameof(Child));
@@ -169,14 +182,21 @@ internal static class ExileRecoveryTests
             Patch(AccessTools.PropertyGetter(typeof(DefaultTraits), "Generosity"), nameof(Trait));
             Patch(AccessTools.Method(typeof(Hero), "GetRelation"), nameof(Relation));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Crown));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Leader"), nameof(RealmLeader));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "All"), nameof(AllRealms));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Clans"), nameof(Court));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Fiefs"), nameof(Holdings));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Settlements"), nameof(Settlements));
             Patch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"), nameof(No));
+            Patch(AccessTools.Method(typeof(Clan), "IsAtWarWith"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Settlement), "IsTown"), nameof(Yes));
             Patch(AccessTools.Method(Behavior, "IsLandlessForExile"), nameof(Yes));
             Patch(AccessTools.Method(Behavior, "ShowPlayerAsylumInquiry"), nameof(Inquiry));
+            Patch(AccessTools.Method(Behavior, "CanPresentAsylumNotice"), nameof(Yes));
+            Patch(AccessTools.Method(Behavior, "CanMutateAsylumWorld"), nameof(Yes));
+            Patch(AccessTools.Method(Behavior, "FindAsylumSettlement"), nameof(Home));
+            Patch(AccessTools.Method(Behavior, "IsAsylumHost"), nameof(Yes));
+            Patch(AccessTools.Method(Behavior, "TryCreateAsylumVisit"), nameof(Visit));
             Patch(AccessTools.Method(typeof(ChangeKingdomAction), "ApplyByJoinToKingdom"), nameof(Join));
 
             Departure(ExileCause.Treason);

@@ -81,13 +81,46 @@ namespace BellumCivile.Behaviors
         }
 
         internal bool CanGrantVassal(Clan source, Settlement village, Hero recipient)
-            => recipient?.Clan != null && HouseholdMembership.Supports(source) && source != recipient.Clan
-                && recipient.Clan == Clan.PlayerClan && recipient == recipient.Clan.Leader
+            => CanGrantVassalEstate(source, village, recipient) && ShareLordshipRealm(source, recipient.Clan);
+
+        private bool CanGrantVassalEstate(Clan source, Settlement village, Hero recipient)
+            => Ready && recipient?.Clan != null && HouseholdMembership.Supports(source) && source != recipient.Clan
+                && (recipient.Clan == Clan.PlayerClan || source == Clan.PlayerClan
+                    && recipient.Clan.IsNoble && !recipient.Clan.IsMinorFaction && !recipient.Clan.IsEliminated
+                    && ExiledClanRecoveryBehavior.IsLandlessForExile(recipient.Clan))
+                && recipient == recipient.Clan.Leader
                 && recipient.IsAlive && !recipient.IsChild && !recipient.IsDisabled && !recipient.IsPrisoner
                 && !recipient.Clan.IsUnderMercenaryService && source.Kingdom?.RulingClan == source
-                && ShareLordshipRealm(source, recipient.Clan) && village?.Village?.Bound?.OwnerClan == source
+                && village?.Village?.Bound?.OwnerClan == source
                 && FeudalTitleBehavior.Instance?.IsHeldForAllocation(village.Village.Bound, source) != true
                 && GetGrant(village) == null && GetGrant(recipient) == null;
+
+        internal bool CanOfferAsylumGrant(Clan source, Settlement village, Hero recipient)
+            => source == Clan.PlayerClan && recipient?.Clan?.Kingdom == null
+                && CanGrantVassalEstate(source, village, recipient);
+
+        internal IEnumerable<Hero> LandlessVassalRecipients(Clan source)
+            => source != null && source.Kingdom?.RulingClan == source && source == Clan.PlayerClan
+                ? source.Kingdom.Clans.Where(c => c != null && c != source && !c.IsEliminated
+                    && c.IsNoble && !c.IsMinorFaction && !c.IsUnderMercenaryService
+                    && ExiledClanRecoveryBehavior.IsLandlessForExile(c)).Select(c => c.Leader)
+                    .Where(h => h?.IsAlive == true && !h.IsDisabled && !h.IsChild)
+                : Enumerable.Empty<Hero>();
+
+        internal bool CanGrantFromPlayerHouse(Settlement village, Hero recipient, out TextObject reason)
+        {
+            if (recipient?.Clan == Clan.PlayerClan) return CanGrant(Clan.PlayerClan, village, recipient, out reason);
+            reason = CanGrantVassal(Clan.PlayerClan, village, recipient) ? null
+                : Text("BC_Lordship_InvalidVassal", "Choose the adult head of a landless vassal house, without an existing personal estate. This village must be vacant and controlled by your house, not awaiting allocation.");
+            return reason == null;
+        }
+
+        internal bool TryGrantFromPlayerHouse(Settlement village, Hero recipient, out TextObject reason)
+        {
+            if (recipient?.Clan == Clan.PlayerClan) return TryGrant(Clan.PlayerClan, village, recipient, out reason);
+            if (!CanGrantFromPlayerHouse(village, recipient, out reason)) return false;
+            return TryGrantVassal(Clan.PlayerClan, village, recipient, Clan.PlayerClan.Leader, out _);
+        }
 
         internal bool TryGrantVassal(Clan source, Settlement village, Hero recipient, Hero ruler, out PersonalLordshipRecord grant)
         {
