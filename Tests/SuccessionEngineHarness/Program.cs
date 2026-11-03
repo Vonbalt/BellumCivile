@@ -50,7 +50,14 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--lordship-naming"))
+            if (args.Contains("--hierarchy-performance"))
+            {
+                HierarchyPerformanceTests.Run(Check);
+                TitleTenurePresentationTests.Run(Check);
+                TitleReorganizationTests.Run(Check);
+                Console.WriteLine($"{_checks} hierarchy performance checks passed.");
+            }
+            else if (args.Contains("--lordship-naming"))
             {
                 LordshipNamingTests.Run(Check);
                 Console.WriteLine($"{_checks} lordship naming checks passed.");

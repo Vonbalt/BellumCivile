@@ -817,3 +817,8 @@ Added side notifications when the player acquires titles.
 Improved marriage logic to prioritize family, support companion marriage offers, and restrict house birthright claims to blood relatives as intended.
 Added read-only API queries for the player’s personal village lordship.
 Fixed separate peace offers and treaties bypassing active alliance call-to-arms obligations.
+
+1.4.10 CHANGELOG
+
+Crown grants to client states now distribute fiefs through the client realm’s normal vote.
+Improved hierarchy tree loading performance.

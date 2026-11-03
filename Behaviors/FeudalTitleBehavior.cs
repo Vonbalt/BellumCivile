@@ -259,6 +259,17 @@ namespace BellumCivile.Behaviors
                 .ToList();
         }
 
+        internal bool HasActiveChildTitle(FeudalTitleRecord parentTitle, FeudalHierarchyMode mode)
+        {
+            EnsureCollectionsInitialized();
+            if (parentTitle == null || !parentTitle.IsActive || string.IsNullOrWhiteSpace(parentTitle.TitleId))
+                return false;
+
+            var index = mode == FeudalHierarchyMode.DeFacto ? _childrenByDeFactoParentTitleId : _childrenByParentTitleId;
+            return index.TryGetValue(parentTitle.TitleId, out List<string> children)
+                && children.Any(id => id != parentTitle.TitleId && GetTitle(id)?.IsActive == true);
+        }
+
         public IReadOnlyCollection<FeudalTitleRecord> GetTitleAndDescendants(FeudalTitleRecord rootTitle)
         {
             return GetTitleAndDescendants(rootTitle, FeudalHierarchyMode.DeJure);
