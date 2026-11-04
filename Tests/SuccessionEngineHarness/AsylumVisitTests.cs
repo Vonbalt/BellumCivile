@@ -16,7 +16,7 @@ using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
-internal static class AsylumVisitTests
+internal static partial class AsylumVisitTests
 {
     private sealed class Manager : ICampaignBehaviorManager
     {
@@ -60,6 +60,7 @@ internal static class AsylumVisitTests
     private static readonly Dictionary<Settlement, Clan> Owners = new Dictionary<Settlement, Clan>();
     private static readonly Dictionary<Hero, Settlement> Locations = new Dictionary<Hero, Settlement>();
     private static readonly HashSet<Settlement> UnsafeHosts = new HashSet<Settlement>();
+    private static readonly HashSet<Hero> Women = new HashSet<Hero>();
     private static readonly List<Settlement> Holdings = new List<Settlement>();
     private static Clan _player, _exile, _vassal;
     private static Hero _ruler, _guest, _speaker;
@@ -109,6 +110,8 @@ internal static class AsylumVisitTests
     private static bool Owner(Settlement __instance, ref Clan __result) { Owners.TryGetValue(__instance, out __result); return false; }
     private static bool Name(Hero __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
     private static bool ClanName(Clan __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
+    private static bool RealmName(Kingdom __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
+    private static bool Female(Hero __instance, ref bool __result) { __result = Women.Contains(__instance); return false; }
     private static bool HomeName(Settlement __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
     private static bool Alive(Hero __instance, ref bool __result) { __result = !(__instance == _guest && _block == "dead"); return false; }
     private static bool Prisoner(Hero __instance, ref bool __result) { __result = __instance == _guest && _block == "prisoner"; return false; }
@@ -174,7 +177,7 @@ internal static class AsylumVisitTests
     { _denials++; Call(_behavior, "RemovePendingAsylum", clanId); return false; }
     private static bool Inquiry(InquiryData __0) { _inquiry = __0; _notices++; return false; }
 
-    internal static void Run(Action<bool, string> check)
+    internal static void Run(Action<bool, string> check, bool bannersOnly = false)
     {
         var h = new Harmony("bellum.tests.asylum_visits");
         var oldCampaign = Campaign.Current; var oldRegistry = LordshipBehavior.Instance;
@@ -205,7 +208,7 @@ internal static class AsylumVisitTests
             _behavior = new ExiledClanRecoveryBehavior(); _day = 100; _block = null; _hostile = false;
             _manager.Items.Clear(); _manager.Items.Add(_behavior);
             _worldSafe = _noticeSafe = true; Realms[_exile] = null; Leaders[_player] = _ruler;
-            _speaker = _guest; Locations.Clear(); UnsafeHosts.Clear(); _partyHome = null;
+            _speaker = _guest; Locations.Clear(); UnsafeHosts.Clear(); Women.Clear(); _partyHome = null;
             _teleports = _enters = _leaves = _joins = _relations = _relationCalls = _denials = _notices = 0;
             _party = null; _inquiry = null;
             if (party)
@@ -222,7 +225,7 @@ internal static class AsylumVisitTests
         void Oath()
         {
             Locations[_ruler] = Visits()[_exile.StringId].Settlement;
-            Call(_behavior, "BeginAsylumConversation"); Call(_behavior, "CompleteAsylumOath");
+            Call(_behavior, "BeginAsylumConversation"); Call(_behavior, "AcknowledgeAsylumOath"); Call(_behavior, "CompleteAsylumOath");
         }
         try
         {
@@ -254,6 +257,7 @@ internal static class AsylumVisitTests
             Patch(typeof(Hero), "IsTraveling", nameof(Traveling)); Patch(typeof(Hero), "HasMet", nameof(Yes));
             Patch(typeof(Hero), "CurrentSettlement", nameof(Location)); Patch(typeof(Hero), "PartyBelongedTo", nameof(PartyOf));
             Patch(typeof(Hero), "Name", nameof(Name)); Patch(typeof(Clan), "Name", nameof(ClanName)); Patch(typeof(Settlement), "Name", nameof(HomeName));
+            Patch(typeof(Kingdom), "Name", nameof(RealmName)); Patch(typeof(Hero), "IsFemale", nameof(Female));
             Patch(typeof(Clan), "IsAtWarWith", nameof(War), false);
             Patch(typeof(Kingdom), "IsAtWarWith", nameof(War), false);
             Patch(Behavior, "IsLandlessForExile", nameof(Landless), false);
@@ -284,6 +288,13 @@ internal static class AsylumVisitTests
             var richer = Estate("richer_keep", _player, 200);
             var vassal = Estate("vassal_keep", _vassal, 1000);
             Reset();
+            if (bannersOnly)
+            {
+                CheckEstate(check, registry, richer);
+                _block = null;
+                CheckBeneficiaryBanners(check, registry, registry.GetGrant(_guest));
+                return;
+            }
             check(Call(Behavior, "FindAsylumSettlement", _realm) == richer, "Best personal keep wins even over a richer vassal holding");
             UnsafeHosts.Add(richer); check(Call(Behavior, "FindAsylumSettlement", _realm) == own, "Unsafe personal keeps are skipped");
             UnsafeHosts.Add(own); check(Call(Behavior, "FindAsylumSettlement", _realm) == null, "Vassal keeps are not used while the player still owns fortifications");
@@ -370,27 +381,39 @@ internal static class AsylumVisitTests
             Call(registry, "Remove", gift); _relations = _relationCalls = 0;
             Locations[_ruler] = richer;
             Call(_behavior, "BeginAsylumConversation");
-            AccessTools.Field(Behavior, "_asylumOfferedVillage").SetValue(_behavior, selectedVillage);
+            Call(_behavior, "CompleteAsylumOath");
+            check(_joins == 0 && _relations == 0, "Admission cannot occur before the final oath has been recited");
+            Call(_behavior, "AcknowledgeAsylumOath");
             Call(_behavior, "CompleteAsylumOath"); visit = Visits()[_exile.StringId];
+            check(_joins == 1 && _relations == 10 && registry.GetGrant(_guest) == null,
+                "Accepting the oath establishes vassalage before any estate is offered");
+            AccessTools.Field(Behavior, "_asylumOfferedVillage").SetValue(_behavior, selectedVillage);
+            Call(_behavior, "CompleteAsylumEstate");
             check(_joins == 1 && _relations == 20 && visit.GrantSettled && visit.GrantAwarded
-                && registry.GetGrant(_guest)?.Village == selectedVillage, "Completing homage with the chosen village grants it and awards twenty relations total");
+                && registry.GetGrant(_guest)?.Village == selectedVillage, "The later estate grant awards only its own ten-point reward");
+            Call(_behavior, "CompleteAsylumOath"); Call(_behavior, "CompleteAsylumEstate");
+            check(_joins == 1 && _relations == 20 && _relationCalls == 2 && (bool)Call(_behavior, "CanConcludeAsylum"),
+                "Repeated oath and grant callbacks preserve the completed conversation without duplicating rewards");
             var decision = new Store(); Call(_behavior, "SyncAsylumVisits", decision); decision.IsLoading = true;
             var recovered = new ExiledClanRecoveryBehavior(); Call(recovered, "SyncAsylumVisits", decision);
             _behavior = recovered; Process(); Process();
             check(_joins == 1 && _relationCalls == 2 && Visits().Count == 0, "A saved completed decision cannot repeat its gift or acceptance reward");
             check(registry.GetGrant(_guest).IsValid, "Accepting asylum leaves the personal endowment valid");
             Reset(); Create(); Pending(); Locations[_ruler] = richer; Call(_behavior, "BeginAsylumConversation");
+            Call(_behavior, "AcknowledgeAsylumOath"); Call(_behavior, "CompleteAsylumOath");
             AccessTools.Field(Behavior, "_asylumOfferedVillage").SetValue(_behavior, selectedVillage);
-            Call(_behavior, "CompleteAsylumOath");
-            check(_joins == 0 && _relations == 0 && Visits()[_exile.StringId].State == AsylumVisitRecord.Waiting,
-                "An estate that became occupied cannot silently complete a stale promise");
+            Call(_behavior, "CompleteAsylumEstate");
+            check(_joins == 1 && _relations == 10 && Visits()[_exile.StringId].State == AsylumVisitRecord.Accepted
+                && !(bool)AccessTools.Field(Behavior, "_asylumGrantSucceeded").GetValue(_behavior),
+                "An unavailable later estate cannot undo the oath or award a second gift");
             CheckCommand(check, h, party => Reset(party), richer);
+            CheckAsylumNarrative(check, h, () => Reset(), richer, registry);
         }
         finally
         {
             h.UnpatchAll(h.Id); SetCampaign(oldCampaign); ticks.SetValue(null, oldTicks); hourTicks.SetValue(null, oldHourTicks);
             AccessTools.Property(typeof(LordshipBehavior), "Instance").SetValue(null, oldRegistry);
-            Leaders.Clear(); Realms.Clear(); Owners.Clear(); Locations.Clear(); UnsafeHosts.Clear(); Holdings.Clear();
+            Leaders.Clear(); Realms.Clear(); Owners.Clear(); Locations.Clear(); UnsafeHosts.Clear(); Women.Clear(); Holdings.Clear();
             _foreign = null; _foreignCrown = null; _landed = _blockDeparture = false;
         }
     }

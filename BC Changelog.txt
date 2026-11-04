@@ -822,3 +822,5 @@ Fixed separate peace offers and treaties bypassing active alliance call-to-arms 
 
 Crown grants to client states now distribute fiefs through the client realm’s normal vote.
 Improved hierarchy tree loading performance.
+Reworked asylum requests into seven-day keep visits with exile-specific dialogue and in-person homage.
+Added optional lordship grants when accepting exiles and enabled grants to landless vassal clan leaders.

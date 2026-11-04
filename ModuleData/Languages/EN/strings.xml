@@ -1214,50 +1214,60 @@
     <string id="BC_Resolution_AsylumPending" text="Stripped of their lands, the {CLAN_NAME} have fled into exile and sent envoys seeking asylum." />
     <string id="BC_Resolution_PlayerExpelled" text="Stripped of your lands, you have been cast out of the realm. Seek your fortune elsewhere." />
     <string id="BC_ExileRecovered" text="After a long exile, the {CLAN_NAME} have found refuge in {KINGDOM_NAME}." />
-    <string id="BC_Asylum_Title" text="Request for Asylum" />
+    <string id="BC_Asylum_Title" text="Asylum Request" />
     <string id="BC_Asylum_AddressLady" text="lady" />
     <string id="BC_Asylum_AddressLord" text="lord" />
-    <string id="BC_Asylum_NoEstates" text="None of your villages are available for a personal grant to this house." />
-    <string id="BC_Asylum_AudienceOpening" text="My {BC_ASYLUM_LIEGE_TITLE}, {BC_ASYLUM_EXPLANATION} I seek protection for my household and offer my house's service in return." />
-    <string id="BC_Asylum_ResumePetition" text="Let us return to your petition for asylum." />
-    <string id="BC_Asylum_ResumeAnswer" text="My house still awaits your answer." />
-    <string id="BC_Asylum_AudienceAccept" text="I will receive your house into my service. Swear homage to me." />
-    <string id="BC_Asylum_AudienceAcceptEstate" text="I will receive your homage and grant you land to maintain your household." />
-    <string id="BC_Asylum_AudienceRefuse" text="I cannot receive your house into my service. You must seek protection elsewhere." />
-    <string id="BC_Asylum_AudienceRefused" text="Then I shall trouble you no further. I must seek another liege." />
-    <string id="BC_Asylum_AudiencePostpone" text="I must consider your petition." />
-    <string id="BC_Asylum_AudiencePostponed" text="I shall wait here for your answer for another {BC_ASYLUM_DAYS} days. After that, I must seek protection elsewhere." />
-    <string id="BC_Asylum_EstatesPrompt" text="You honor my house. Which estate would you entrust to me?" />
+    <string id="BC_Asylum_NoEstates" text="You have no vacant estate that can be granted to this house." />
+    <string id="BC_Asylum_AudienceOpening" text="My {BC_ASYLUM_LIEGE_TITLE}, {BC_ASYLUM_EXPLANATION} I would pledge allegiance to you and be counted among your loyal followers." />
+    <string id="BC_Asylum_ResumePetition" text="Let us speak of your request to enter my service." />
+    <string id="BC_Asylum_ResumeAnswer" text="My sword is yours, if you will receive me." />
+    <string id="BC_Asylum_AudienceAccept" text="I shall be pleased to accept your sword into my service, if you are ready to swear homage to me." />
+    <string id="BC_Asylum_AudienceAcceptEstate" text="As a token of my esteem, I would grant you a fief to help maintain your men." />
+    <string id="BC_Asylum_AudienceRefuse" text="I cannot accept your service. You must seek another liege." />
+    <string id="BC_Asylum_AudienceRefused" text="Then I shall trouble you no further, my {?PLAYER.GENDER}lady{?}lord{\?}." />
+    <string id="BC_Asylum_AudiencePostpone" text="I must give this more thought." />
+    <string id="BC_Asylum_AudiencePostponed" text="As you wish. I can wait here another {BC_ASYLUM_DAYS} days, but then I must seek another liege." />
+    <string id="BC_Asylum_EstatesPrompt" text="You honor me, my {?PLAYER.GENDER}lady{?}lord{\?}. Which lands would you have me hold?" />
     <string id="BC_Asylum_EstateChoice" text="{BC_ASYLUM_ESTATE}." />
     <string id="BC_Asylum_MoreEstates" text="I am considering another estate." />
     <string id="BC_Asylum_ReconsiderEstate" text="Let me reconsider the grant." />
     <string id="BC_Asylum_EstateSelected" text="I would be honored to hold it in your service." />
-    <string id="BC_Asylum_EstatePromise" text="To help you maintain your household and your men, I shall grant you {BC_ASYLUM_ESTATE}. Protect its people and collect your dues." />
-    <string id="BC_Asylum_EstateUnavailable" text="It seems that estate can no longer be granted. May we reconsider the terms?" />
-    <string id="BC_Asylum_OathReady" text="I am ready to swear my oath." />
-    <string id="BC_Asylum_OathPrompt" text="Then swear homage to me, and pledge your house to the service of {BC_ASYLUM_REALM}." />
+    <string id="BC_Asylum_EstatePromise" text="As a token of my esteem and to help you maintain your men, I grant you {BC_ASYLUM_ESTATE} as your fief. Go to them, protect them, and collect your dues." />
+    <string id="BC_Asylum_EstateUnavailable" text="It seems those lands can no longer be granted. Perhaps another estate?" />
+    <string id="BC_Asylum_OathReady" text="I am ready, my {?PLAYER.GENDER}lady{?}lord{\?}." />
+    <string id="BC_Asylum_OathPrompt" text="Good. Then repeat the words of the oath with me: {BC_ASYLUM_OATH_1}" />
     <string id="BC_Asylum_OathFirst" text="I swear homage to you as lawful {BC_ASYLUM_LIEGE_TITLE}." />
     <string id="BC_Asylum_OathBond" text="Will you stand beside me against my enemies and uphold the laws of this realm?" />
-    <string id="BC_Asylum_OathSecond" text="My sword and the strength of my house are yours. I shall stand by your banner and uphold your lawful judgements." />
-    <string id="BC_Asylum_OathAccepted" text="I accept your homage. Your house shall have my protection, as mine shall have your service." />
-    <string id="BC_Asylum_OathThanks" text="I thank you, my {?PLAYER.GENDER}lady{?}lord{\?}. May my service repay the trust you have placed in me." />
-    <string id="BC_Asylum_OathChanged" text="It seems the circumstances have changed. We must settle the remaining formalities another time." />
-    <string id="BC_Asylum_VisitStale" text="It seems this audience can no longer proceed. We must speak another time." />
-    <string id="BC_Asylum_EndChangedAudience" text="Circumstances have changed. We must leave this for another time." />
-    <string id="BC_Asylum_ExplainIndependence" text="Our rising for independence from {REALM} failed, and my house was banished." />
-    <string id="BC_Asylum_ExplainAbdication" text="We sought to depose the ruler of {REALM}. Our cause failed, and my house was banished." />
-    <string id="BC_Asylum_ExplainClaimant" text="We pressed a claim to the crown of {REALM}. Our cause failed, and my house was banished." />
-    <string id="BC_Asylum_ExplainTreason" text="I was condemned for treason in {REALM}. I maintain that the accusation was unjust." />
-    <string id="BC_Asylum_ExplainSecessionLoyalist" text="We resisted the secession from {REALM}. When our cause fell, we were driven into exile." />
-    <string id="BC_Asylum_ExplainLoyalist" text="We stood by our former ruler in {REALM}. When our cause fell, we were driven into exile." />
+    <string id="BC_Asylum_OathSecond" text="I will be your loyal {?CONVERSATION_NPC.GENDER}follower{?}man{\?} as long as my breath remains..." />
+    <string id="BC_Asylum_OathThird" text="And I will be at your side to fight your enemies, should you need my sword." />
+    <string id="BC_Asylum_OathFourth" text="And I shall defend your rights and the rights of your legitimate heirs." />
+    <string id="BC_Asylum_OathAccepted" text="Very well. You have given me your solemn oath. From this day forward you are my sworn vassal. I give you my protection, and pledge to uphold your rights according to the laws and customs of the realm." />
+    <string id="BC_Asylum_OathThanks" text="I thank you, my {?PLAYER.GENDER}lady{?}lord{\?}." />
+    <string id="BC_Asylum_Conclude" text="I have great hopes for you. Serve me well and I promise you will rise high." />
+    <string id="BC_Asylum_AwaitCommands" text="I await your commands, my {?PLAYER.GENDER}lady{?}lord{\?}." />
+    <string id="BC_Asylum_ServicePledge" text="I shall serve you faithfully, my {?PLAYER.GENDER}lady{?}lord{\?}." />
+    <string id="BC_Asylum_GrantUnavailable" text="It seems that grant can no longer be made. We may speak of it another time." />
+    <string id="BC_Asylum_OathChanged" text="It seems matters have changed. We must speak of this another time." />
+    <string id="BC_Asylum_VisitStale" text="This matter will have to wait until another time." />
+    <string id="BC_Asylum_EndChangedAudience" text="Let us leave this for another time." />
+    <string id="BC_Asylum_ExplainIndependence" text="We rose against {REALM} to win our independence. We were defeated, and my house was banished." />
+    <string id="BC_Asylum_ExplainAbdication" text="We sought to depose the ruler of {REALM}, but were defeated. My house was banished." />
+    <string id="BC_Asylum_ExplainClaimant" text="We pressed a claim to the crown of {REALM}, but our cause was lost and my house was banished." />
+    <string id="BC_Asylum_ExplainTreason" text="I was condemned for treason in {REALM}. I say I was unjustly accused." />
+    <string id="BC_Asylum_ExplainSecessionLoyalist" text="We fought to keep {REALM} together. When we were defeated, my house was driven into exile." />
+    <string id="BC_Asylum_ExplainLoyalist" text="We stood by our former ruler in {REALM}. With that cause lost, my house was banished." />
     <string id="BC_Asylum_ExplainDestroyed" text="With the fall of {REALM}, my house has been left without a liege." />
-    <string id="BC_Asylum_ExplainExpelled" text="My house was cast out of {REALM}, and we have nowhere left to call our own." />
-    <string id="BC_Asylum_ExplainDeparture" text="My house has left the service of {REALM} and seeks a new allegiance." />
-    <string id="BC_Asylum_ExplainUnknown" text="My house has fallen on hard times and has no lands to call its own." />
+    <string id="BC_Asylum_ExplainExpelled" text="My house was driven out of {REALM}. We have no lands left to call our own." />
+    <string id="BC_Asylum_ExplainDeparture" text="My house has left the service of {REALM}. We seek a new liege." />
+    <string id="BC_Asylum_ExplainUnknown" text="My house has fallen on hard times. We have no lands left to call our own." />
     <string id="BC_Asylum_FormerRealm" text="our former realm" />
     <string id="BC_Asylum_VisitExpired" text="Having received no answer to their petition, the {CLAN} have departed to seek protection elsewhere." />
     <string id="BC_Asylum_GrantChanged" text="The {CLAN} have sworn homage, but the promised estate is no longer available. You may endow their house with another vacant village." />
-    <string id="BC_Asylum_VisitNotice" text="{CLAN_LEADER}, head of the {CLAN_NAME}, seeks your protection.{EXILE_CONTEXT}{COURT_CONTEXT}&#xA;&#xA;{CLAN_LEADER} awaits an audience in the keep of {SETTLEMENT} and will remain for {DAYS} days. Without an answer, the house will seek refuge elsewhere." />
+    <string id="BC_Asylum_VisitNotice" text="A messenger brings you a letter from {CLAN_LEADER} of the {CLAN_NAME}.&#xA;&#xA;{LETTER_CONTEXT} {?LEADER_FEMALE}She{?}He{\?} asks for an audience in {SETTLEMENT}, offering {?LEADER_FEMALE}her{?}his{\?} sword in vassalage if you will receive {?LEADER_FEMALE}her{?}him{\?}.&#xA;&#xA;{CLAN_LEADER} will await your answer in the keep for {DAYS} days before seeking another liege." />
+    <string id="BC_Asylum_LetterUnknown" text="The house has fallen on hard times and seeks a new home." />
+    <string id="BC_Asylum_LetterDestroyed" text="With the fall of {OLD_KINGDOM}, the house has been left without a home." />
+    <string id="BC_Asylum_LetterDeparture" text="The house has left the service of {OLD_KINGDOM} and seeks a new liege." />
+    <string id="BC_Asylum_LetterExile" text="The letter tells how the house was forced to flee {OLD_KINGDOM}." />
     <string id="BC_Asylum_Understood" text="Understood." />
     <string id="BC_Lordship_InvalidVassal" text="Choose the adult head of a landless vassal house, without an existing personal estate. This village must be vacant and controlled by your house, not awaiting allocation." />
     <string id="BC_Lordship_RecipientDescriptionExtended" text="Choose a member of your household or the head of a landless vassal house to receive {LORDSHIP}. Its revenues will support the holder or their house for as long as the personal grant remains in force." />

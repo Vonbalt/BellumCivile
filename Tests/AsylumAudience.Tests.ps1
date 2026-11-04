@@ -32,8 +32,15 @@ Check ($dialogue.Contains('bc_asylum_postpone') -and $dialogue.Contains('bc_asyl
     $dialogue.Contains('bc_asylum_estate_stale') -and $dialogue.Contains('token + "_stale"')) 'Dialogue includes postponement and stale-state exits.'
 Check ($dialogue.Contains('starter.AddPlayerLine(token + "_stale"') -and
     $dialogue.Contains('starter.AddDialogLine(token + "_stale"')) 'Stale petitions have exit lines on both player and NPC turns.'
-Check ($dialogue.Contains('I maintain that the accusation was unjust.') -and
+Check ($dialogue.Contains('I say I was unjustly accused.') -and
     $dialogue.Contains('With the fall of {REALM}')) 'Explanations distinguish alleged unjust treason from realm destruction.'
+Check ($recovery.Contains('A messenger brings you a letter') -and $recovery.Contains('BuildAsylumLetterContext(clanId)') -and
+    !$recovery.Contains('BuildExileCauseContext') -and !$recovery.Contains('BuildCourtFactionContext')) 'The letter leaves detailed exile explanations to the audience.'
+Check ($dialogue.Contains('"bc_asylum_accept_estate", "bc_asylum_conclusion"') -and
+    $dialogue.Contains('CanConcludeAsylum, CompleteAsylumEstate') -and $dialogue.Contains('AcknowledgeAsylumOath')) 'The oath establishes membership before the concluding estate offer and award.'
+foreach ($number in 1..4) {
+    Check ($dialogue.Contains("{BC_ASYLUM_OATH_$number}")) "The shared words of oath line $number are bound for both speakers."
+}
 $testing = Read 'Behaviors/ExileAsylumTesting.cs'
 Check ((Read 'CheatCommands.cs').Contains('CommandLineArgumentFunction("test_asylum", "civilwars")') -and
     $testing.Contains('QueuePlayerAsylumRequest(clan, origin, new[] { origin }, realm)')) 'The test console command forces the destination through the production asylum queue.'

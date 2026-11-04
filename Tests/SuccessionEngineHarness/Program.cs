@@ -439,6 +439,11 @@ internal static class Program
                 RecruitmentRankTests.Run(Check);
                 Console.WriteLine($"{_checks} recruitment rank checks passed.");
             }
+            else if (args.Contains("--lordship-banners"))
+            {
+                AsylumVisitTests.Run(Check, bannersOnly: true);
+                Console.WriteLine($"{_checks} lordship beneficiary banner checks passed.");
+            }
             else if (args.Contains("--asylum-visits"))
             {
                 AsylumVisitTests.Run(Check);

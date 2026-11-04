@@ -24,7 +24,13 @@ namespace BellumCivile.Behaviors
         {
             store.SyncData("BellumCivile_AsylumVisits", ref _asylumVisits);
             if (_asylumVisits == null) _asylumVisits = new Dictionary<string, AsylumVisitRecord>();
-            if (store.IsLoading) { _asylumInquiryOpen = false; _asylumConversation = null; }
+            if (store.IsLoading)
+            {
+                _asylumInquiryOpen = false;
+                _asylumConversation = null;
+                _asylumOfferedVillage = null;
+                _asylumAdmissionSucceeded = _asylumOathSworn = _asylumGrantSucceeded = false;
+            }
         }
 
         private static bool IsAsylumHost(Settlement settlement, Kingdom realm)
