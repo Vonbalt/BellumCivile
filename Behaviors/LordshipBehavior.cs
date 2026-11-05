@@ -73,6 +73,7 @@ namespace BellumCivile.Behaviors
             try { Patches.HouseholdOccupationDisplayPatch.Initialize(); }
             catch (Exception ex) { BellumCivileLogger.Log("Retainer occupation display is unavailable: " + ex); }
             Patches.LordshipMapBannerPatch.Initialize();
+            LordshipHapIncome.Initialize();
             Reindex();
             Validate();
             if (_schema == 0)

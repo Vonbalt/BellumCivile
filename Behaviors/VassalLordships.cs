@@ -71,9 +71,10 @@ namespace BellumCivile.Behaviors
                 || oath.Realm?.Leader != oath.Ruler || oath.Realm.RulingClan != clan) return;
             model = model ?? Campaign.Current?.Models?.ClanFinanceModel;
             if (model == null) return;
+            var hapIncome = LordshipHapIncome.Preview(clan);
             // Draw once from a small low-income pool after the oath succeeds.
             var candidates = Villages(clan).Where(v => CanGrantVassal(clan, v, oath.Recipient))
-                .Select(v => new { Village = v, Income = EffectiveVillageIncome(clan, v, model) })
+                .Select(v => new { Village = v, Income = EffectiveVillageIncome(clan, v, model, hapIncome) })
                 .Where(v => v.Income > 0).OrderBy(v => v.Income).ThenBy(v => v.Village.StringId, StringComparer.Ordinal)
                 .Take(3).Select(v => v.Village).ToList();
             var village = candidates.Count == 0 ? null : candidates[candidates.Count == 1 ? 0 : MBRandom.RandomInt(candidates.Count)];
@@ -148,9 +149,10 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
-        private static int EffectiveVillageIncome(Clan clan, Settlement village, ClanFinanceModel model)
-            => LordshipIncome.Net(model.CalculateVillageIncome(clan, village.Village, false),
-                FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(village.Village, out _));
+        private static int EffectiveVillageIncome(Clan clan, Settlement village, ClanFinanceModel model, LordshipHapIncome.Collection hapIncome = null)
+            => hapIncome != null ? hapIncome.Net(village.Village, FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(village.Village, out _))
+                : LordshipIncome.Net(model.CalculateVillageIncome(clan, village.Village, false),
+                    FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(village.Village, out _));
 
         internal void FundVassalIncome(PersonalLordshipRecord grant, int amount)
         {
@@ -168,8 +170,16 @@ namespace BellumCivile.Behaviors
             if (clan?.Leader == null || clan.IsEliminated) return;
             var credits = _incomeCredits.Where(c => c?.Recipient == clan).ToList();
             if (!apply && credits.Count == 0)
+            {
+                var sources = new Dictionary<Clan, LordshipHapIncome.Collection>();
                 credits = _grants.Where(g => g?.IsVassalGrant == true && g.IsValid && g.BeneficiaryClan == clan)
-                    .Select(g => new LordshipIncomeCredit { Village = g.Village, Amount = EffectiveVillageIncome(g.GrantingClan, g.Village, model) }).ToList();
+                    .Select(g =>
+                    {
+                        if (!sources.TryGetValue(g.GrantingClan, out var hap))
+                            sources[g.GrantingClan] = hap = LordshipHapIncome.Preview(g.GrantingClan);
+                        return new LordshipIncomeCredit { Village = g.Village, Amount = EffectiveVillageIncome(g.GrantingClan, g.Village, model, hap) };
+                    }).ToList();
+            }
             foreach (var credit in credits)
                 if (credit.Amount > 0 && credit.Village != null) result.Add(credit.Amount, Name(credit.Village));
             // Only funded receipts reach the native clan-bank payout. Previewing never funds a grant.

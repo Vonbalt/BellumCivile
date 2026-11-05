@@ -18,6 +18,7 @@ namespace BellumCivile
         private readonly bool _nested;
         private readonly ClanFinanceModel _model;
         private bool _redirected;
+        private LordshipHapIncome.Collection _hap;
         private readonly Dictionary<Village, int> _income = new Dictionary<Village, int>();
 
         internal LordshipIncome(Clan clan, ClanFinanceModel model, bool apply)
@@ -38,8 +39,11 @@ namespace BellumCivile
             if (_current != null && _current._clan == clan && village != null) _current._income[village] = income;
         }
 
-        internal int Gross(Village village, ClanFinanceModel fallback) => village != null && _income.TryGetValue(village, out int value)
-            ? value : fallback.CalculateVillageIncome(_clan, village, false);
+        internal static LordshipIncome Current(Clan clan) => _current?._clan == clan ? _current : null;
+        internal void BeginHapCollection(LordshipHapIncome.Collection collection) => _hap = collection;
+
+        internal int Gross(Village village, ClanFinanceModel fallback) => _hap != null ? _hap.Gross(village)
+            : village != null && _income.TryGetValue(village, out int value) ? value : fallback.CalculateVillageIncome(_clan, village, false);
 
         internal static int Net(int gross, bool contested) => Math.Max(0, gross + (contested
             ? (int)Math.Round(gross * BellumCivileConstants.FeudalTitleContestedTaxFactor) : 0));
@@ -52,7 +56,8 @@ namespace BellumCivile
             {
                 var grant = LordshipBehavior.Instance.GetGrant(pair.Key.Settlement);
                 if (grant == null || !grant.IsValid || grant.GrantingClan != _clan) continue;
-                int amount = Net(pair.Value, FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(pair.Key, out _));
+                bool contested = FeudalTitlePenaltyHelper.IsBoundToContestedLegalTitle(pair.Key, out _);
+                int amount = _hap != null ? (_apply && !_hap.Apply ? 0 : _hap.Net(pair.Key, contested)) : Net(pair.Value, contested);
                 if (amount <= 0) continue;
                 var label = new TextObject("{=BC_Lordship_IncomeAssigned}{VILLAGE}: revenues assigned to {HERO}")
                     .SetTextVariable("VILLAGE", pair.Key.Name).SetTextVariable("HERO", grant.Holder.Name);
@@ -70,7 +75,10 @@ namespace BellumCivile
         {
             _current = _previous;
             if (_nested)
+            {
                 foreach (var pair in _income) _previous._income[pair.Key] = pair.Value;
+                if (_hap != null) _previous._hap = _hap;
+            }
         }
     }
 }
