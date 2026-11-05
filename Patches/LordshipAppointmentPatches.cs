@@ -16,6 +16,7 @@ using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 using TaleWorlds.Core.ViewModelCollection.Information;
 
 namespace BellumCivile.Patches
@@ -51,7 +52,7 @@ namespace BellumCivile.Patches
                 var fiefs = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories.ClanFiefsVM");
                 Patch(parties, "GetNewPartyLeaderCandidates", postfix: nameof(PartyCandidates));
                 Patch(parties, "GetChangeLeaderCandidates", postfix: nameof(ChangeLeaderCandidates));
-                Patch(parties, "GetCanCreateNewParty", nameof(EnterCommandCheck), finalizer: nameof(ExitCommandCheck));
+                Patch(parties, "GetCanCreateNewParty", nameof(EnterCommandCheck), nameof(CreatePartyReason), finalizer: nameof(ExitCommandCheck));
                 Patch(fiefs, "GetGovernorCandidates", postfix: nameof(GovernorCandidates));
                 Patch(parties, "CreateNewClanParty", nameof(PlayerCommand));
                 Patch(parties, "OnPartyLeaderChanged", nameof(PlayerLeaderChange));
@@ -82,6 +83,13 @@ namespace BellumCivile.Patches
 
         private static Exception ExitCommandCheck(Exception __exception, bool __state)
         { LordshipEligibility.CheckingClanCommand = __state; return __exception; }
+
+        private static void CreatePartyReason(bool __result, ref TextObject disabledReason)
+        {
+            if (__result || LordshipBehavior.Instance?.Ready != true || disabledReason?.GetID() != "6OZycZbc") return;
+            disabledReason = LordshipBehavior.Text("BC_Lordship_NoPartyLeader",
+                "Your clan has no available family members or retainers holding a lordship grant to lead a new party.");
+        }
 
         private static void FamilyChanged()
         {

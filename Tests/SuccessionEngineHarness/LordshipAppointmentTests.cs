@@ -86,7 +86,10 @@ internal static class LordshipAppointmentTests
     private static bool CommandProbe(ref bool __result, ref TextObject disabledReason)
     {
         if (_throwCommand) throw new InvalidOperationException("native command probe failed");
-        __result = CanLead(_candidate); disabledReason = TextObject.GetEmpty(); return false;
+        __result = CanLead(_candidate);
+        disabledReason = __result ? TextObject.GetEmpty()
+            : new TextObject("{=6OZycZbc}Clan doesn't have any available heroes to lead the new party.");
+        return false;
     }
 
     internal static void Run(Action<bool, string> check)
@@ -183,10 +186,38 @@ internal static class LordshipAppointmentTests
 
             var vm = Blank<ClanPartiesVM>(); _candidate = _retainer;
             var command = AccessTools.Method(typeof(ClanPartiesVM), "GetCanCreateNewParty");
-            h.Patch(command, prefix: new HarmonyMethod(PatchType, "EnterCommandCheck"), finalizer: new HarmonyMethod(PatchType, "ExitCommandCheck"));
+            h.Patch(command, prefix: new HarmonyMethod(PatchType, "EnterCommandCheck"), postfix: new HarmonyMethod(PatchType, "CreatePartyReason"),
+                finalizer: new HarmonyMethod(PatchType, "ExitCommandCheck"));
             h.Patch(command, prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), nameof(CommandProbe)));
-            check(!(bool)command.Invoke(vm, new object[] { null }) && CanLead(_retainer),
+            var commandArgs = new object[] { null };
+            check(!(bool)command.Invoke(vm, commandArgs) && CanLead(_retainer),
                 "The real clan create-button hook applies military eligibility only inside its own check");
+            var leaderReason = (TextObject)commandArgs[0];
+            check(leaderReason.GetID() == "BC_Lordship_NoPartyLeader" && leaderReason.ToString()
+                == "Your clan has no available family members or retainers holding a lordship grant to lead a new party.",
+                "The disabled create-party button explicitly explains family and endowed-retainer eligibility");
+            _candidate = family;
+            check((bool)command.Invoke(vm, commandArgs) && ((TextObject)commandArgs[0]).IsEmpty(),
+                "An eligible family member keeps the create-party button enabled without a disabled hint");
+            _candidate = _retainer;
+            foreach (var id in new[] { "VSUqbvbE", "party_slots", "sailing", "campaign_action", "foreign_mod_reason" })
+            {
+                var reason = new TextObject("{=" + id + "}Original disabled reason");
+                var hintArgs = new object[] { false, reason };
+                Call(PatchType, "CreatePartyReason", null, hintArgs);
+                check(ReferenceEquals(hintArgs[1], reason), "The hint preserves other native/mod restrictions: " + id);
+            }
+            var originalReason = new TextObject("{=6OZycZbc}Translated no-leader message");
+            var reasonArgs = new object[] { false, originalReason };
+            Call(PatchType, "CreatePartyReason", null, reasonArgs);
+            check(((TextObject)reasonArgs[1]).GetID() == "BC_Lordship_NoPartyLeader",
+                "No-leader recognition uses the native localization key, not English text");
+            Set(registry, "_ready", false); reasonArgs[1] = originalReason;
+            Call(PatchType, "CreatePartyReason", null, reasonArgs);
+            check(ReferenceEquals(reasonArgs[1], originalReason), "Uninitialized lordship rules leave the native hint untouched");
+            Set(registry, "_ready", true); reasonArgs[0] = true;
+            Call(PatchType, "CreatePartyReason", null, reasonArgs);
+            check(ReferenceEquals(reasonArgs[1], originalReason), "Successful checks never rewrite a disabled reason");
             _throwCommand = true;
             try { command.Invoke(vm, new object[] { null }); } catch (TargetInvocationException ex) { check(ex.InnerException is InvalidOperationException, "Native UI exceptions propagate normally"); }
             _throwCommand = false;

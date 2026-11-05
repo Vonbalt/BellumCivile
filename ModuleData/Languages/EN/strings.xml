@@ -7214,6 +7214,7 @@
     <string id="BC_Lordship_Changed" text="This grant is no longer available." />
     <string id="BC_Lordship_ChooseVillage" text="Choose a village grant for {HERO}. Its revenues will belong exclusively to the holder." />
     <string id="BC_Lordship_CommandRequired" text="This retainer must receive a village endowment before leading a clan party." />
+    <string id="BC_Lordship_NoPartyLeader" text="Your clan has no available family members or retainers holding a lordship grant to lead a new party." />
     <string id="BC_Lordship_Count" text="Village Grants ({COUNT})" />
     <string id="BC_Lordship_Dame" text="Dame" />
     <string id="BC_Lordship_DialogueAccept" text="You honor me, my {?PLAYER.GENDER}lady{?}lord{\?}. I will hold {VILLAGE} faithfully in your service." />
