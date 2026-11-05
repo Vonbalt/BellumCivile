@@ -50,7 +50,17 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--lordship-appointments"))
+            if (args.Contains("--finance-startup"))
+            {
+                LordshipFinanceStartupTests.Run(Check);
+                Console.WriteLine($"{_checks} finance startup checks passed.");
+            }
+            else if (args.Contains("--prefab-finalization"))
+            {
+                PrefabFinalizationCompatibilityTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} prefab finalization compatibility checks passed.");
+            }
+            else if (args.Contains("--lordship-appointments"))
             {
                 LordshipAppointmentTests.Run(Check);
                 Console.WriteLine($"{_checks} lordship appointment checks passed.");

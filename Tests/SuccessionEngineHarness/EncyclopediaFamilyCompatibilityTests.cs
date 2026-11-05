@@ -39,7 +39,7 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
     private XmlDocument Page() => (XmlDocument)_native.CloneNode(true);
 
     private static void FinalizePrefab(XmlDocument document) => AccessTools.Method(
-        Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true), "Postfix")
+        Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true), "FinalizePrefab")
         .Invoke(null, new object[] { "EncyclopediaHeroPage", document });
 
     internal void SetSharedLayout(bool shared)

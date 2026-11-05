@@ -70,6 +70,7 @@ namespace BellumCivile.Behaviors
 
         private void OnLoaded(CampaignGameStarter starter)
         {
+            Patches.LordshipFinancePatches.Initialize();
             Patches.LordshipAppointmentPatches.Initialize();
             Patches.VassalLordshipPatches.Initialize();
             try { Patches.HouseholdOccupationDisplayPatch.Initialize(); }

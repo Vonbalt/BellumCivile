@@ -45,7 +45,7 @@ namespace BellumCivile
             }
             catch (Exception ex)
             {
-                BellumCivileLogger.Log($"Failed to apply realm-name settings migration: {ex.Message}");
+                BellumCivileLogger.Log($"Failed to apply realm-name settings migration: {ex}");
             }
 
             _uiExtender = UIExtender.Create("BellumCivile");
@@ -67,7 +67,7 @@ namespace BellumCivile
                 }
                 catch (Exception ex)
                 {
-                    BellumCivileLogger.Log($"Failed to apply Harmony patch '{type.Name}': {ex.Message}");
+                    BellumCivileLogger.Log($"Failed to apply Harmony patch '{type.Name}': {ex}");
                 }
             }
 
@@ -212,6 +212,9 @@ namespace BellumCivile
 
         private static bool ShouldSkipOptionalPatch(Type type)
         {
+            if (type == typeof(Patches.LordshipVillageIncomePatch) || type == typeof(Patches.LordshipSurplusPatch))
+                return true;
+
             if (type == typeof(Patches.DiplomacyKingdomFactionsButtonHijackPatch))
                 return true;
 
@@ -272,6 +275,7 @@ namespace BellumCivile
                 campaignStarter.AddModel(new BellumCouncilSettlementFoodModel(baseSettlementFoodModel));
 
                 ClanFinanceModel baseClanFinanceModel = campaignStarter.GetModel<ClanFinanceModel>() ?? new DefaultClanFinanceModel();
+                Patches.LordshipFinancePatches.Initialize();
                 campaignStarter.AddModel(new BellumFeudalClanFinanceModel(baseClanFinanceModel));
 
                 ClanPoliticsModel baseClanPoliticsModel = campaignStarter.GetModel<ClanPoliticsModel>() ?? new DefaultClanPoliticsModel();

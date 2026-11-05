@@ -35,7 +35,8 @@ namespace BellumCivile.UI
                     _nativeLayoutAvailable = HasNativeAnchors(document);
                     _pageTemplate = document;
                 }
-                reason = FindFamilyEditor();
+                reason = EncyclopediaFamilyPrefabFinalizationPatch.Supported ? FindFamilyEditor()
+                    : "the UIExtenderEx prefab finalization hook is unavailable";
                 if (reason == null && !_nativeLayoutAvailable)
                     reason = "the native family layout has been replaced or is unfamiliar";
                 enabled = reason == null;

@@ -28,6 +28,8 @@ internal static class CampaignUiStartupProbe
             .Where(t => t.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
             .Where(t => !(bool)AccessTools.Method(typeof(BellumCivile.SubModule), "ShouldSkipOptionalPatch")
                 .Invoke(null, new object[] { t })).ToArray();
+        foreach (string name in new[] { "LordshipVillageIncomePatch", "LordshipSurplusPatch" })
+            check(!patchTypes.Any(t => t.Name == name), "Finance targets are not patched at module startup: " + name);
         Console.WriteLine("Applying " + patchTypes.Length + " early patches before game-text initialization");
         foreach (var type in patchTypes)
         {
