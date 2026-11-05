@@ -827,4 +827,5 @@ Added optional lordship grants when accepting exiles and enabled grants to landl
 Improved compatibility of lordship's tax revenue and HAP's tax inneficiency feature.
 Fixed companions without a valid lordship to receive becoming stranded when relieved of command on loading saves from before the lordship feature.
 Fixed lordship requirements incorrectly blocking caravan and convoy leadership.
-adjusted tooltip on form new party button.
+Adjusted tooltip text on form new party button to specify you need a valid family member or companion holding a lordship.
+Fixed Encyclopedia Extender’s Perks section overlapping enemy portraits in the hero encyclopedia.

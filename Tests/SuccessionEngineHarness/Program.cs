@@ -242,6 +242,12 @@ internal static class Program
                 FamilyTreeRefreshCompatibilityTests.Run(Check, original, working);
                 Console.WriteLine($"{_checks} Family Tree refresh compatibility checks passed.");
             }
+            else if (args.Contains("--encyclopedia-extender-addon"))
+            {
+                string dll = args.Single(a => a.StartsWith("--encyclopedia-extender-dll=")).Substring("--encyclopedia-extender-dll=".Length);
+                EncyclopediaFamilyCompatibilityTests.ExtenderProbe(Check, _game, dll);
+                Console.WriteLine($"{_checks} actual Encyclopedia Extender checks passed.");
+            }
             else if (args.Contains("--encyclopedia-family-addon"))
             {
                 string module = args.Single(a => a.StartsWith("--family-addon-module=")).Substring("--family-addon-module=".Length);
