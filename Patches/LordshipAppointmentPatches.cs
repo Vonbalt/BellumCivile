@@ -8,9 +8,11 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement;
+using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -35,6 +37,7 @@ namespace BellumCivile.Patches
             try
             {
                 Patch(typeof(Hero), nameof(Hero.CanLeadParty), postfix: nameof(CanLead));
+                Patch(typeof(DefaultArmyManagementCalculationModel), "CanLordCreateArmy", nameof(EnterCommandCheck), finalizer: nameof(ExitCommandCheck));
                 Patch(typeof(HeroSpawnCampaignBehavior), "GetBestAvailableCommander", nameof(EnterSelection), transpiler: nameof(CommanderCode), finalizer: nameof(ExitSelection));
                 Patch(typeof(HeroSpawnCampaignBehavior), "SpawnLordParty", nameof(BeforeSpawn));
                 Patch(typeof(ClanVariablesCampaignBehavior), "UpdateGovernorsOfClan", nameof(EnterSelection), transpiler: nameof(GovernorCode), finalizer: nameof(ExitSelection));
@@ -47,10 +50,11 @@ namespace BellumCivile.Patches
                 var parties = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories.ClanPartiesVM");
                 var fiefs = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories.ClanFiefsVM");
                 Patch(parties, "GetNewPartyLeaderCandidates", postfix: nameof(PartyCandidates));
-                Patch(parties, "GetChangeLeaderCandidates", postfix: nameof(PartyCandidates));
+                Patch(parties, "GetChangeLeaderCandidates", postfix: nameof(ChangeLeaderCandidates));
+                Patch(parties, "GetCanCreateNewParty", nameof(EnterCommandCheck), finalizer: nameof(ExitCommandCheck));
                 Patch(fiefs, "GetGovernorCandidates", postfix: nameof(GovernorCandidates));
                 Patch(parties, "CreateNewClanParty", nameof(PlayerCommand));
-                Patch(parties, "OnPartyLeaderChanged", nameof(PlayerCommand));
+                Patch(parties, "OnPartyLeaderChanged", nameof(PlayerLeaderChange));
                 _installed = true;
             }
             catch
@@ -68,8 +72,16 @@ namespace BellumCivile.Patches
 
         private static void CanLead(Hero __instance, ref bool __result)
         {
-            if (__result && !LordshipEligibility.ListingCandidates && !LordshipEligibility.Permitted(__instance)) __result = false;
+            if (__result && !LordshipEligibility.ListingCandidates
+                && (LordshipEligibility.SelectingClan != null || LordshipEligibility.CheckingClanCommand)
+                && !LordshipEligibility.Permitted(__instance)) __result = false;
         }
+
+        private static void EnterCommandCheck(out bool __state)
+        { __state = LordshipEligibility.CheckingClanCommand; LordshipEligibility.CheckingClanCommand = true; }
+
+        private static Exception ExitCommandCheck(Exception __exception, bool __state)
+        { LordshipEligibility.CheckingClanCommand = __state; return __exception; }
 
         private static void FamilyChanged()
         {
@@ -173,6 +185,9 @@ namespace BellumCivile.Patches
             return false;
         }
 
+        private static bool PlayerLeaderChange(ClanPartiesVM __instance, Hero __0)
+            => __instance.CurrentSelectedParty?.Party?.MobileParty?.IsLordParty != true || PlayerCommand(__0);
+
         private static void HeroTooltip(PropertyBasedTooltipVM __0, object[] __1)
         {
             if (__1?.FirstOrDefault() is Hero hero && LordshipEligibility.Required(hero)
@@ -186,6 +201,10 @@ namespace BellumCivile.Patches
         }
 
         private static void PartyCandidates(ref IEnumerable<ClanCardSelectionItemInfo> __result) => __result = Filter(__result, false);
+        private static void ChangeLeaderCandidates(ClanPartiesVM __instance, ref IEnumerable<ClanCardSelectionItemInfo> __result)
+        {
+            if (__instance.CurrentSelectedParty?.Party?.MobileParty?.IsLordParty == true) __result = Filter(__result, false);
+        }
         private static void GovernorCandidates(ref IEnumerable<ClanCardSelectionItemInfo> __result) => __result = Filter(__result, true);
 
         private static IEnumerable<ClanCardSelectionItemInfo> Filter(IEnumerable<ClanCardSelectionItemInfo> source, bool governor)

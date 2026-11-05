@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--hap-lordship-income"))
+            if (args.Contains("--lordship-appointments"))
+            {
+                LordshipAppointmentTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship appointment checks passed.");
+            }
+            else if (args.Contains("--hap-lordship-income"))
             {
                 HapLordshipIncomeTests.Run(Check, args.FirstOrDefault(a => a.StartsWith("--hap-dll="))?.Substring("--hap-dll=".Length));
                 Console.WriteLine($"{_checks} HAP lordship income checks passed.");

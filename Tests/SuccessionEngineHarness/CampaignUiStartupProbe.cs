@@ -83,6 +83,10 @@ internal static class CampaignUiStartupProbe
         var governor = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.ChangeGovernorAction), "Apply");
         check(Harmony.GetPatchInfo(governor).Prefixes.Count(p => p.PatchMethod.DeclaringType == lordships) == 1,
             "Deferred lordship appointment/UI hooks install successfully and only once");
+        var armySelection = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.GameComponents.DefaultArmyManagementCalculationModel), "CanLordCreateArmy");
+        check(Harmony.GetPatchInfo(armySelection).Prefixes.Count(p => p.PatchMethod.DeclaringType == lordships) == 1
+            && Harmony.GetPatchInfo(armySelection).Finalizers.Count(p => p.PatchMethod.DeclaringType == lordships) == 1,
+            "Military army selection retains its scoped lordship check without restricting commercial work");
         var vassal = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.VassalLordshipPatches", true);
         AccessTools.Method(vassal, "Initialize").Invoke(null, null);
         AccessTools.Method(vassal, "Initialize").Invoke(null, null);
