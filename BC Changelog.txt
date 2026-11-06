@@ -830,3 +830,4 @@ Fixed lordship requirements incorrectly blocking caravan and convoy leadership.
 Adjusted tooltip text on form new party button to specify you need a valid family member or companion holding a lordship.
 Fixed Encyclopedia Extender’s Perks section overlapping enemy portraits in the hero encyclopedia.
 Fixed premature lordship finance patching that could cause startup crashes and improved compatibility with older UIExtenderEx versions.
+Fixed a wrong dialogue loop when canceling lordship grants, revocations, or returns.

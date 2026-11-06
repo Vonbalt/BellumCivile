@@ -41,7 +41,7 @@ namespace BellumCivile.Behaviors
             starter.AddPlayerLine("bc_vassal_lordship_return_confirm", "bc_vassal_lordship_return_choice", "bc_vassal_lordship_return_result",
                 "{=BC_Lordship_VassalReturnConfirm}I am resolved. I return {LORDSHIP}.", null,
                 () => _conversationCompleted = ReturnVassalLordship(Hero.MainHero, Hero.OneToOneConversationHero), 120);
-            starter.AddPlayerLine("bc_vassal_lordship_return_cancel", "bc_vassal_lordship_return_choice", "lord_talk_speak_diplomacy_2",
+            starter.AddPlayerLine("bc_vassal_lordship_return_cancel", "bc_vassal_lordship_return_choice", "lord_pretalk",
                 "{=BC_Lordship_VassalReturnCancel}Then I shall continue to hold it.", null, null, 100);
             starter.AddDialogLine("bc_vassal_lordship_return_done", "bc_vassal_lordship_return_result", "lord_talk_speak_diplomacy_2",
                 "{=BC_Lordship_VassalReturnDone}So be it. {LORDSHIP} returns to my house.", () => _conversationCompleted, null, 120);

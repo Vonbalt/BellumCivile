@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--finance-startup"))
+            if (args.Contains("--lordship-dialogues"))
+            {
+                LordshipDialogueFlowTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship dialogue flow checks passed.");
+            }
+            else if (args.Contains("--finance-startup"))
             {
                 LordshipFinanceStartupTests.Run(Check);
                 Console.WriteLine($"{_checks} finance startup checks passed.");
