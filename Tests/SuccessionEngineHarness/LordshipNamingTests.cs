@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using BellumCivile;
 using BellumCivile.Behaviors;
+using BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -21,6 +22,7 @@ internal static class LordshipNamingTests
     private static bool Culture(Clan __instance, ref CultureObject __result) { Cultures.TryGetValue(__instance, out __result); return false; }
     private static bool VillageName(ref TextObject __result) { __result = new TextObject("{=BC_Test_LordshipVillage}Calioc"); return false; }
     private static bool DialogueText(string __0, TextObject __1) { DialogueVariables[__0] = __1; return false; }
+    private static bool NoPlayerClan(ref Clan __result) { __result = null; return false; }
 
     private static (string Noun, string Name, string Male, string Female) Expected(string preset, string culture)
     {
@@ -77,11 +79,14 @@ internal static class LordshipNamingTests
         var parent = Blank<Settlement>(); parent.StringId = "castle_A1";
         var town = Blank<Town>(); Set(town, "_ownerClan", owner); Set(parent, "Town", town);
         var component = Blank<Village>(); Set(component, "_bound", parent); Set(village, "Village", component);
-        string Tier() => ((TextObject)AccessTools.Method(display, "GetLordshipNoun").Invoke(null, new object[] { village })).ToString();
-        void Expect(string name, string tier, string context) => check(LordshipBehavior.Name(village).ToString() == name && Tier() == tier, context);
+        string Noun() => ((TextObject)AccessTools.Method(display, "GetLordshipNoun").Invoke(null, new object[] { village })).ToString();
+        void Expect(string name, string noun, string context) => check(LordshipBehavior.Name(village).ToString() == name && Noun() == noun, context);
+        var parentNode = Blank<HierarchyTitleNodeVM>();
+        Set(parentNode, "<Name>k__BackingField", "Test barony");
         try
         {
             h.Patch(AccessTools.PropertyGetter(typeof(Clan), "Culture"), prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(Culture)));
+            h.Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(NoPlayerClan)));
             h.Patch(AccessTools.PropertyGetter(typeof(Settlement), "Name"), prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(VillageName)));
             h.Patch(AccessTools.Method(typeof(MBTextManager), "SetTextVariable", new[] { typeof(string), typeof(TextObject), typeof(bool) }),
                 prefix: new HarmonyMethod(typeof(LordshipNamingTests), nameof(DialogueText)));
@@ -106,7 +111,15 @@ internal static class LordshipNamingTests
                 {
                     var expected = Expected(preset, culture);
                     Cultures[owner] = Nation(culture.ToLowerInvariant());
-                    Expect(expected.Name, expected.Noun, preset + "/" + culture + ": name, connectors, word order and Tier follow the barony owner");
+                    Expect(expected.Name, expected.Noun, preset + "/" + culture + ": name, connectors, word order and cultural noun follow the barony owner");
+                    var node = new HierarchyLordshipNodeVM(village, parentNode, null, null);
+                    check(node.Name == expected.Name && node.Tier == "Lordship",
+                        preset + "/" + culture + ": cultural estate names retain a plain Lordship rank");
+                    var tooltip = AccessTools.Field(typeof(HierarchyTitleNodeVM), "_tooltip").GetValue(node);
+                    var rows = ((IEnumerable)((Delegate)AccessTools.Field(tooltip.GetType(), "_tooltipProperties").GetValue(tooltip)).DynamicInvoke()).Cast<object>();
+                    string Label(object row, string property) => (string)AccessTools.Property(row.GetType(), property).GetValue(row);
+                    check(rows.Any(row => Label(row, "DefinitionLabel") == "Tier" && Label(row, "ValueLabel") == "Lordship"),
+                        preset + "/" + culture + ": tooltip explains the underlying rank instead of repeating the cultural noun");
                     foreach (string key in new[] { "BC_Lordship_VassalAward", "BC_Lordship_VassalReturn", "BC_Lordship_VassalReturnConfirm",
                         "BC_Lordship_VassalReturnDone", "BC_Lordship_DialogueGrant", "BC_Lordship_DialogueRevokeOffer", "BC_Lordship_DialogueSurrender",
                         "BC_Lordship_RecipientDescription", "BC_Lordship_RevokeConfirm", "BC_Lordship_RevenueHint", "BC_Lordship_RevokeHint",
@@ -204,7 +217,7 @@ internal static class LordshipNamingTests
             var localizedAward = Estate("BC_Lordship_VassalAward", village);
             Translate("BC_Test_LordshipNoun", "Domaine"); Translate("BC_Test_LordshipFormat", "{VILLAGE} - {TITLE_NOUN}"); Translate("BC_Test_LordshipVillage", "Calioc traduit");
             Language("BellumLordshipTest");
-            check(localized.ToString() == "Calioc traduit - Domaine" && Tier() == "Domaine",
+            check(localized.ToString() == "Calioc traduit - Domaine" && Noun() == "Domaine",
                 "Existing TextObjects preserve nested translation keys and support language-specific word order");
             check(localizedAward.ToString().Contains("Calioc traduit - Domaine"),
                 "Grant prose preserves nested noun, format and village translations across language changes");
