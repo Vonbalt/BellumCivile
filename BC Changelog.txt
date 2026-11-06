@@ -824,10 +824,10 @@ Crown grants to client states now distribute fiefs through the client realm’s 
 Improved hierarchy tree loading performance.
 Reworked asylum requests into seven-day keep visits with exile-specific dialogue and in-person homage.
 Added optional lordship grants when accepting exiles and enabled grants to landless vassal clan leaders.
-Improved compatibility of lordship's tax revenue and HAP's tax inneficiency feature.
+Improved compatibility of lordship's tax revenue and HAP's tax inefficiency feature.
 Fixed companions without a valid lordship to receive becoming stranded when relieved of command on loading saves from before the lordship feature.
 Fixed lordship requirements incorrectly blocking caravan and convoy leadership.
 Adjusted tooltip text on form new party button to specify you need a valid family member or companion holding a lordship.
 Fixed Encyclopedia Extender’s Perks section overlapping enemy portraits in the hero encyclopedia.
-Fixed premature lordship finance patching that could cause startup crashes and improved compatibility with older UIExtenderEx versions.
+Fixed premature lordship finance patching that could cause startup crashes on linux and improved compatibility with older UIExtenderEx versions.
 Fixed a wrong dialogue loop when canceling lordship grants, revocations, or returns.
