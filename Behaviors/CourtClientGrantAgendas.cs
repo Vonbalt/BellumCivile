@@ -85,7 +85,7 @@ namespace BellumCivile.Behaviors
         {
             var p = a.ClientGrant;
             BellumCivileNotifications.Show(new TextObject(success
-                    ? "{=BC_ClientGrantDelivered}{RULER} has granted {FIEF} to {CLIENT}, entrusting its lands to {RECIPIENT}. The gift strengthens their realm and gives its ruler cause to remember this generosity."
+                    ? "{=BC_ClientGrantDelivered}{RULER} has granted {FIEF} to {CLIENT}. Its council will decide which house receives the holding through a normal fief distribution vote. The gift strengthens their realm and gives its ruler cause to remember this generosity."
                     : "{=BC_ClientGrantCancelled}The Crown's intended grant of {FIEF} to {CLIENT} could not be completed. No further transfer will be attempted under this authorization.")
                     .SetTextVariable("RULER", p.Ruler?.Name ?? TextObject.GetEmpty()).SetTextVariable("FIEF", p.Fief?.Name ?? TextObject.GetEmpty())
                     .SetTextVariable("CLIENT", p.Client?.Name ?? TextObject.GetEmpty()).SetTextVariable("RECIPIENT", p.Beneficiary?.Name ?? TextObject.GetEmpty()),

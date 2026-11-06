@@ -11,6 +11,7 @@ namespace BellumCivile
     {
         [ThreadStatic] internal static Clan SelectingClan;
         [ThreadStatic] internal static bool ListingCandidates;
+        [ThreadStatic] internal static bool CheckingClanCommand;
 
         internal static bool Required(Hero hero) => LordshipBehavior.Instance?.Ready == true && HouseholdMembership.IsRetainer(hero);
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
@@ -20,9 +21,12 @@ namespace BellumCivile.Patches
         private static bool _unavailable;
         private static Func<object, Settlement> _settlement;
         private static Action<SettlementMenuOverlayVM> _refreshMenuBanner;
-        private static Banner _latestBanner;
-        private static int _latestVersion;
-        private static BannerImageIdentifierVM _image;
+        private sealed class CachedBanner
+        {
+            internal int Version;
+            internal BannerImageIdentifierVM Image;
+        }
+        private static readonly ConditionalWeakTable<Banner, CachedBanner> Images = new ConditionalWeakTable<Banner, CachedBanner>();
 
         internal static void Initialize()
         {
@@ -76,33 +80,34 @@ namespace BellumCivile.Patches
         }
 
         private static BannerImageIdentifierVM SelectBanner(BannerImageIdentifierVM native, object nameplate)
-            => GetPlayerBannerImage(_settlement(nameplate)) ?? native;
+            => GetBeneficiaryBannerImage(_settlement(nameplate)) ?? native;
 
         private static void MenuBanner(SettlementMenuOverlayVM __instance, Settlement ____settlement)
         {
-            var image = GetPlayerBannerImage(____settlement);
+            var image = GetBeneficiaryBannerImage(____settlement);
             if (image != null) __instance.SettlementOwnerBanner = image;
         }
 
         private static void RefreshMenuBanner(SettlementMenuOverlayVM __instance) => _refreshMenuBanner(__instance);
 
-        internal static BannerImageIdentifierVM GetPlayerBannerImage(Settlement village)
+        internal static BannerImageIdentifierVM GetBeneficiaryBannerImage(Settlement village)
         {
             var registry = LordshipBehavior.Instance;
             if (registry?.Ready != true || village?.IsVillage != true) return null;
             var grant = registry.GetGrant(village);
-            if (grant?.IsVassalGrant != true || grant.Holder != Hero.MainHero || !grant.IsValid) return null;
-            var banner = Clan.PlayerClan?.Banner;
+            if (grant?.IsVassalGrant != true || !grant.IsValid) return null;
+            var banner = grant.BeneficiaryClan?.Banner;
             if (banner == null) return null;
+            // Several beneficiary houses may be visible at once; do not retain banners from old campaigns.
+            var cached = Images.GetValue(banner, _ => new CachedBanner());
             int version = banner.GetVersionNo();
-            if (_image == null || _latestBanner != banner || _latestVersion != version)
+            if (cached.Image == null || cached.Version != version)
             {
-                _image = new BannerImageIdentifierVM(banner, true);
-                _latestBanner = banner;
-                _latestVersion = version;
+                cached.Image = new BannerImageIdentifierVM(banner, true);
+                cached.Version = version;
             }
             // Substitute only the UI binding on the main thread; keep the native cached owner banner intact.
-            return _image;
+            return cached.Image;
         }
     }
 }

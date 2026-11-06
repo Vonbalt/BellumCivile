@@ -74,7 +74,7 @@ namespace BellumCivile.ViewModelMixin
             if (BellumFactionsSelected)
                 EnsureBellumFactions()?.RefreshValues();
             if (BellumHierarchySelected)
-                EnsureBellumHierarchy()?.RefreshValues();
+                EnsureBellumHierarchy(refresh: true);
             if (ViewModel.Clan.Show || ViewModel.Settlement.Show || ViewModel.Policy.Show || ViewModel.Army.Show || ViewModel.Diplomacy.Show)
             {
                 ClearBellumSelections();
@@ -116,13 +116,12 @@ namespace BellumCivile.ViewModelMixin
         [UsedImplicitly]
         public void SelectBellumHierarchy()
         {
-            KingdomHierarchyTabVM hierarchyVm = EnsureBellumHierarchy();
+            KingdomHierarchyTabVM hierarchyVm = EnsureBellumHierarchy(refresh: true);
             if (hierarchyVm == null)
                 return;
 
             HideVanillaTabs();
             ClearBellumFactionsSelection();
-            hierarchyVm.RefreshValues();
             BellumHierarchySelected = true;
             hierarchyVm.IsSelected = true;
         }
@@ -182,10 +181,14 @@ namespace BellumCivile.ViewModelMixin
             }
         }
 
-        private KingdomHierarchyTabVM EnsureBellumHierarchy()
+        private KingdomHierarchyTabVM EnsureBellumHierarchy(bool refresh = false)
         {
             if (BellumHierarchy != null)
+            {
+                if (refresh)
+                    BellumHierarchy.RefreshValues();
                 return BellumHierarchy;
+            }
 
             try
             {

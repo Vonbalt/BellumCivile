@@ -28,6 +28,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
         private FeudalHierarchyMode _hierarchyMode = FeudalHierarchyMode.DeJure;
         private HintViewModel _deJureHint;
         private HintViewModel _deFactoHint;
+        private bool _isDeJureAvailable;
+        private bool _isDeFactoAvailable;
+        private bool _isDeJureMode;
+        private bool _isDeFactoMode;
 
         public KingdomHierarchyTabVM(Kingdom initialKingdom)
         {
@@ -47,7 +51,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             string selectedKingdomId = _selectedKingdomItem?.Kingdom?.StringId ?? _initialKingdom?.StringId;
 
             Kingdoms.Clear();
-            IEnumerable<Kingdom> validKingdoms = Kingdom.All
+            List<Kingdom> allKingdoms = Kingdom.All.ToList();
+            IEnumerable<Kingdom> validKingdoms = allKingdoms
                 .Where(kingdom => kingdom != null
                     && !kingdom.IsEliminated
                     && kingdom.RulingClan?.Leader != null
@@ -65,8 +70,15 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 Kingdoms.Add(item);
             }
 
-            IEnumerable<Kingdom> historicalKingdoms = Kingdom.All
-                .Where(kingdom => IsHistoricalHierarchyKingdom(kingdom, titleBehavior, factionManager))
+            // Resolve successor crowns once, rather than scanning every living realm per historical entry.
+            HashSet<string> activeSovereignIds = new HashSet<string>(allKingdoms
+                .Where(kingdom => kingdom != null && !kingdom.IsEliminated
+                    && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(kingdom))
+                .Select(kingdom => (titleBehavior?.GetRealmSovereignTitle(kingdom, FeudalHierarchyMode.DeFacto)
+                    ?? titleBehavior?.GetIndependentRealmSovereignTitle(kingdom))?.TitleId)
+                .Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.Ordinal);
+            IEnumerable<Kingdom> historicalKingdoms = allKingdoms
+                .Where(kingdom => IsHistoricalHierarchyKingdom(kingdom, titleBehavior, factionManager, activeSovereignIds))
                 .OrderBy(kingdom => kingdom.Name?.ToString());
             foreach (Kingdom kingdom in historicalKingdoms)
             {
@@ -93,7 +105,6 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             foreach (HierarchyKingdomItemVM candidate in Kingdoms)
                 candidate.IsSelected = candidate == item;
             _selectedKingdomItem = item;
-            RefreshViewModeState();
             BuildHierarchy(item);
         }
 
@@ -106,12 +117,13 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             HasSelectedTitle = false;
             FeudalTitleBehavior titleBehavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
             RefreshViewModeState();
-            FeudalHierarchyMode displayMode = GetDisplayModeForItem(item);
+            FeudalHierarchyMode displayMode = IsDeJureMode ? FeudalHierarchyMode.DeJure : FeudalHierarchyMode.DeFacto;
             FeudalTitleRecord root = item?.IsHistorical == true
                 ? item.SovereignTitle
                 : ResolveDisplayRoot(titleBehavior, kingdom, displayMode);
             SelectedKingdomName = kingdom?.Name?.ToString() ?? string.Empty;
-            Clan lawfulHolder = ResolveClan(root?.DeJureHolderClanId);
+            HierarchyBuildContext context = new HierarchyBuildContext(Clan.All);
+            Clan lawfulHolder = context.ResolveClan(root?.DeJureHolderClanId);
             SelectedRulerName = item?.IsHistorical == true
                 ? lawfulHolder?.Leader?.Name?.ToString() ?? string.Empty
                 : kingdom?.Leader?.Name?.ToString() ?? string.Empty;
@@ -163,7 +175,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                     kingdom,
                     playerFabrication,
                     childrenByParent,
-                    new HashSet<string>());
+                    new HashSet<string>(),
+                    context);
                 if (rootNode != null)
                     HierarchyRoots.Add(rootNode);
             }
@@ -177,7 +190,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             Kingdom hierarchyKingdom,
             FeudalClaimFabricationRecord playerFabrication,
             IReadOnlyDictionary<string, List<FeudalTitleRecord>> childrenByParent,
-            HashSet<string> visited)
+            HashSet<string> visited,
+            HierarchyBuildContext context)
         {
             if (title == null || string.IsNullOrWhiteSpace(title.TitleId) || !visited.Add(title.TitleId))
                 return null;
@@ -188,7 +202,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 hierarchyKingdom,
                 playerFabrication,
                 SelectTitle,
-                RefreshHierarchyAfterAction);
+                RefreshHierarchyAfterAction,
+                context);
             _titleNodes.Add(node);
             if (childrenByParent.TryGetValue(title.TitleId, out List<FeudalTitleRecord> children))
             {
@@ -200,7 +215,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                         hierarchyKingdom,
                         playerFabrication,
                         childrenByParent,
-                        visited);
+                        visited,
+                        context);
                     if (childNode != null)
                         node.Branch.Add(childNode);
                 }
@@ -326,22 +342,6 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             return string.Join("/", path);
         }
 
-        private static Clan ResolveClan(string clanId)
-        {
-            return string.IsNullOrWhiteSpace(clanId)
-                ? null
-                : Clan.All.FirstOrDefault(clan => clan != null
-                    && string.Equals(clan.StringId, clanId, StringComparison.Ordinal));
-        }
-
-        private FeudalHierarchyMode GetDisplayModeForItem(HierarchyKingdomItemVM item)
-        {
-            if (item?.IsHistorical == true)
-                return FeudalHierarchyMode.DeJure;
-
-            return GetDisplayModeForKingdom(item?.Kingdom);
-        }
-
         private FeudalHierarchyMode GetDisplayModeForKingdom(Kingdom kingdom)
         {
             if (_hierarchyMode == FeudalHierarchyMode.DeJure && !HasDeJureHierarchy(kingdom))
@@ -374,9 +374,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             if (root == null || !root.IsActive)
                 return false;
 
-            bool hasLegalChildren = titleBehavior
-                .GetTitleAndDescendants(root, FeudalHierarchyMode.DeJure)
-                .Any(title => title != null && !string.Equals(title.TitleId, root.TitleId, StringComparison.Ordinal));
+            bool hasLegalChildren = titleBehavior.HasActiveChildTitle(root, FeudalHierarchyMode.DeJure);
             bool hasLegalParent = titleBehavior.GetTitle(root.ParentTitleId) != null;
             if (!hasLegalChildren && !hasLegalParent)
                 return false;
@@ -398,16 +396,14 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             return titleBehavior != null
                 && item.SovereignTitle != null
                 && item.SovereignTitle.IsActive
-                && titleBehavior.GetTitleAndDescendants(item.SovereignTitle, FeudalHierarchyMode.DeJure)
-                    .Any(title => title != null
-                        && title.IsActive
-                        && !string.Equals(title.TitleId, item.SovereignTitle.TitleId, StringComparison.Ordinal));
+                && titleBehavior.HasActiveChildTitle(item.SovereignTitle, FeudalHierarchyMode.DeJure);
         }
 
         private static bool IsHistoricalHierarchyKingdom(
             Kingdom kingdom,
             FeudalTitleBehavior titleBehavior,
-            FactionManagerBehavior factionManager)
+            FactionManagerBehavior factionManager,
+            ISet<string> activeSovereignIds = null)
         {
             if (kingdom == null
                 || !kingdom.IsEliminated
@@ -421,17 +417,19 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             FeudalTitleRecord root = titleBehavior.GetHistoricalRealmSovereignTitle(kingdom);
             return root != null
                 && root.IsActive
-                && !titleBehavior.IsHistoricalRealmRepresentedByActiveSuccessor(kingdom, root)
-                && titleBehavior.GetTitleAndDescendants(root, FeudalHierarchyMode.DeJure)
-                    .Any(title => title != null
-                        && title.IsActive
-                        && !string.Equals(title.TitleId, root.TitleId, StringComparison.Ordinal));
+                && !(activeSovereignIds?.Contains(root.TitleId)
+                    ?? titleBehavior.IsHistoricalRealmRepresentedByActiveSuccessor(kingdom, root))
+                && titleBehavior.HasActiveChildTitle(root, FeudalHierarchyMode.DeJure);
         }
 
         private void RefreshViewModeState()
         {
-            bool deJureAvailable = IsDeJureAvailable;
-            DeJureHint = BuildDeJureHint(deJureAvailable);
+            _isDeJureAvailable = HasDeJureHierarchy(_selectedKingdomItem);
+            _isDeFactoAvailable = _selectedKingdomItem != null && !_selectedKingdomItem.IsHistorical;
+            _isDeJureMode = _selectedKingdomItem?.IsHistorical == true
+                || (_hierarchyMode == FeudalHierarchyMode.DeJure && _isDeJureAvailable);
+            _isDeFactoMode = !_isDeJureMode;
+            DeJureHint = BuildDeJureHint(_isDeJureAvailable);
             DeFactoHint = _selectedKingdomItem?.IsHistorical == true
                 ? new HintViewModel(new TextObject("{=BC_Hierarchy_HistoricalDeFactoHint}This realm has been destroyed. Only its surviving de jure hierarchy can be shown."))
                 : new HintViewModel(new TextObject("{=BC_Hierarchy_DeFactoHint}Show the current political hierarchy: who actually controls each title right now, including breakaway realms and occupied lands."));
@@ -622,10 +620,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
         [DataSourceProperty] public string ViewModeText => new TextObject("{=BC_Hierarchy_ViewMode}View").ToString();
         [DataSourceProperty] public string DeJureText => new TextObject("{=BC_Hierarchy_ViewDeJure}De Jure").ToString();
         [DataSourceProperty] public string DeFactoText => new TextObject("{=BC_Hierarchy_ViewDeFacto}De Facto").ToString();
-        [DataSourceProperty] public bool IsDeJureAvailable => HasDeJureHierarchy(_selectedKingdomItem);
-        [DataSourceProperty] public bool IsDeFactoAvailable => _selectedKingdomItem != null && !_selectedKingdomItem.IsHistorical;
-        [DataSourceProperty] public bool IsDeJureMode => GetDisplayModeForItem(_selectedKingdomItem) == FeudalHierarchyMode.DeJure;
-        [DataSourceProperty] public bool IsDeFactoMode => GetDisplayModeForItem(_selectedKingdomItem) == FeudalHierarchyMode.DeFacto;
+        [DataSourceProperty] public bool IsDeJureAvailable => _isDeJureAvailable;
+        [DataSourceProperty] public bool IsDeFactoAvailable => _isDeFactoAvailable;
+        [DataSourceProperty] public bool IsDeJureMode => _isDeJureMode;
+        [DataSourceProperty] public bool IsDeFactoMode => _isDeFactoMode;
         [DataSourceProperty]
         public HintViewModel DeJureHint
         {

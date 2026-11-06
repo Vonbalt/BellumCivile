@@ -57,6 +57,9 @@ namespace BellumCivile.Behaviors
 
         public override void RegisterEvents()
         {
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RegisterAsylumDialogues);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ProcessAsylumVisits);
+            CampaignEvents.TickEvent.AddNonSerializedListener(this, OnAsylumTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, OnClanChangedKingdom);
@@ -78,6 +81,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_PendingAsylumRequestDates", ref _pendingAsylumRequestDates);
             dataStore.SyncData("BellumCivile_LegacyExileBackfillDone", ref _legacyExileBackfillDone);
             SyncAdmissionData(dataStore);
+            SyncAsylumVisits(dataStore);
             EnsureCollectionsInitialized();
         }
 
@@ -301,15 +305,22 @@ namespace BellumCivile.Behaviors
                 return ExileResolutionResult.Failed;
             if (!IsLandlessForExile(clan))
                 return ExileResolutionResult.Failed;
-            if (clan.Leader == null || !clan.Leader.IsAlive || clan.Leader.IsDisabled || clan.Leader.IsChild
-                || clan.WarPartyComponents.Any(p => p.MobileParty?.MapEvent != null || p.MobileParty?.SiegeEvent != null))
+            if (clan.Leader == null || !clan.Leader.IsAlive || clan.Leader.IsDisabled || clan.Leader.IsChild || clan.Leader.IsPrisoner
+                || clan.WarPartyComponents.Any(p => p.MobileParty?.MapEvent != null || p.MobileParty?.SiegeEvent != null
+                    || p.MobileParty?.CurrentSettlement?.IsUnderSiege == true))
                 return ExileResolutionResult.Failed;
 
             Kingdom refuge = RefugeSelectionHelper.FindBestRefuge(clan, originKingdom, excludedKingdoms);
             if (refuge == null) return ExileResolutionResult.Failed;
 
             if (refuge.RulingClan == Clan.PlayerClan)
-                return QueuePlayerAsylumRequest(clan, originKingdom, excludedKingdoms, refuge);
+            {
+                var result = QueuePlayerAsylumRequest(clan, originKingdom, excludedKingdoms, refuge);
+                if (result != ExileResolutionResult.Failed) return result;
+                refuge = RefugeSelectionHelper.FindBestRefuge(clan, originKingdom,
+                    (excludedKingdoms ?? new Kingdom[0]).Concat(new[] { refuge }).Distinct().ToArray());
+                if (refuge == null) return ExileResolutionResult.Failed;
+            }
 
             ChangeKingdomAction.ApplyByJoinToKingdom(clan, refuge);
             if (clan.Kingdom != refuge) return ExileResolutionResult.Failed;
@@ -375,11 +386,16 @@ namespace BellumCivile.Behaviors
 
         private ExileResolutionResult QueuePlayerAsylumRequest(Clan clan, Kingdom originKingdom, IEnumerable<Kingdom> excludedKingdoms, Kingdom targetKingdom)
         {
-            if (clan == null || targetKingdom == null || targetKingdom.RulingClan != Clan.PlayerClan)
+            if (clan == null || targetKingdom == null || targetKingdom.RulingClan != Clan.PlayerClan
+                || targetKingdom.Leader != Hero.MainHero)
                 return ExileResolutionResult.Failed;
 
             string clanId = clan.StringId;
             if (string.IsNullOrEmpty(clanId))
+                return ExileResolutionResult.Failed;
+
+            if (_pendingAsylumClanIds.Contains(clanId)) return ExileResolutionResult.PendingPlayerAsylum;
+            if (!CanPrepareAsylumGuest(clan.Leader) || FindAsylumSettlement(targetKingdom) == null)
                 return ExileResolutionResult.Failed;
 
             if (clan.Kingdom != null)
@@ -394,13 +410,14 @@ namespace BellumCivile.Behaviors
             _pendingAsylumRequestDates[clanId] = CampaignTime.Now;
 
             TrackExiledClan(clan, originKingdom, excludedKingdoms, CampaignTime.Now + CampaignTime.Days(RefugeRetryDays));
+            ProcessAsylumVisits();
             TryShowNextPendingAsylumRequest();
             return ExileResolutionResult.PendingPlayerAsylum;
         }
 
         private void TryShowNextPendingAsylumRequest()
         {
-            if (_asylumInquiryOpen)
+            if (_asylumInquiryOpen || !CanPresentAsylumNotice())
                 return;
 
             foreach (string clanId in _pendingAsylumClanIds.ToList())
@@ -426,6 +443,8 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
 
+                if (!_asylumVisits.TryGetValue(clanId, out var visit) || visit.State != AsylumVisitRecord.Waiting
+                    || visit.Notified || !visit.Deadline.IsFuture) continue;
                 ShowPlayerAsylumInquiry(clan, targetKingdom);
                 return;
             }
@@ -436,65 +455,38 @@ namespace BellumCivile.Behaviors
             if (clan == null || targetKingdom == null || string.IsNullOrEmpty(clan.StringId))
                 return;
 
-            _asylumInquiryOpen = true;
             string clanId = clan.StringId;
+            if (!_asylumVisits.TryGetValue(clanId, out var visit) || visit.Notified) return;
+            _asylumInquiryOpen = true;
+            visit.Notified = true;
 
-            TextObject title = new TextObject("{=BC_Asylum_Title}Request for Asylum");
-            TextObject desc = new TextObject("{=BC_Asylum_RequestDesc}An envoy from {CLAN_LEADER} of the {CLAN_NAME} has arrived, seeking a new home and protection for their landless family.{EXILE_CONTEXT}{COURT_CONTEXT}\n\nWill you accept their allegiance?");
+            TextObject title = new TextObject("{=BC_Asylum_Title}Asylum Request");
+            TextObject desc = new TextObject("{=BC_Asylum_VisitNotice}A messenger brings you a letter from {CLAN_LEADER} of the {CLAN_NAME}.\n\n{LETTER_CONTEXT} {?LEADER_FEMALE}She{?}He{\\?} asks for an audience in {SETTLEMENT}, offering {?LEADER_FEMALE}her{?}his{\\?} sword in vassalage if you will receive {?LEADER_FEMALE}her{?}him{\\?}.\n\n{CLAN_LEADER} will await your answer in the keep for {DAYS} days before seeking another liege.");
             desc.SetTextVariable("CLAN_LEADER", clan.Leader?.Name ?? clan.Name);
             desc.SetTextVariable("CLAN_NAME", clan.Name);
-            desc.SetTextVariable("EXILE_CONTEXT", BuildExileCauseContext(clanId, clan));
-            desc.SetTextVariable("COURT_CONTEXT", BuildCourtFactionContext(clanId));
+            desc.SetTextVariable("LETTER_CONTEXT", BuildAsylumLetterContext(clanId));
+            desc.SetTextVariable("LEADER_FEMALE", clan.Leader?.IsFemale == true ? 1 : 0);
+            // Older translation packs may still contain the retired context placeholders.
+            desc.SetTextVariable("EXILE_CONTEXT", string.Empty);
+            desc.SetTextVariable("COURT_CONTEXT", string.Empty);
+            desc.SetTextVariable("SETTLEMENT", visit.Settlement.Name);
+            desc.SetTextVariable("DAYS", Math.Max(1, (int)Math.Ceiling(visit.Deadline.RemainingDaysFromNow)));
 
             InquiryData inquiry = new InquiryData(
                 title.ToString(),
                 desc.ToString(),
                 true,
-                true,
-                new TextObject("{=BC_Asylum_Accept}Accept Exiles").ToString(),
-                new TextObject("{=BC_Asylum_Deny}Deny Their Request").ToString(),
+                false,
+                new TextObject("{=BC_Asylum_Understood}Understood.").ToString(),
+                string.Empty,
                 () =>
                 {
                     _asylumInquiryOpen = false;
-                    AcceptPlayerAsylum(clanId);
                     TryShowNextPendingAsylumRequest();
                 },
-                () =>
-                {
-                    _asylumInquiryOpen = false;
-                    DenyPlayerAsylum(clanId, silent: false);
-                    TryShowNextPendingAsylumRequest();
-                });
+                null);
 
             InformationManager.ShowInquiry(inquiry, true);
-        }
-
-        private void AcceptPlayerAsylum(string clanId)
-        {
-            Clan clan = ResolveClanById(clanId);
-            Kingdom targetKingdom = ResolveKingdomById(GetDictionaryValue(_pendingAsylumTargetKingdomIds, clanId));
-
-            if (!IsRecoverableExileCandidate(clan) || !CanClanBeRelocated(clan)
-                || clan.Leader?.IsAlive != true || clan.Leader.IsDisabled || clan.Leader.IsChild
-                || !IsPlayerRuledValidRefuge(targetKingdom))
-            {
-                DenyPlayerAsylum(clanId, silent: true);
-                return;
-            }
-
-            ChangeKingdomAction.ApplyByJoinToKingdom(clan, targetKingdom);
-            if (clan.Kingdom != targetKingdom)
-            {
-                DenyPlayerAsylum(clanId, silent: true);
-                return;
-            }
-            RecordPlayerInvitation(clan, targetKingdom);
-            RemoveTrackedExile(clanId);
-
-            TextObject text = new TextObject("{=BC_Asylum_AcceptedMsg}You have granted asylum to the {CLAN_NAME}. They have joined {KINGDOM_NAME} under your protection.");
-            text.SetTextVariable("CLAN_NAME", clan.Name);
-            text.SetTextVariable("KINGDOM_NAME", targetKingdom.Name);
-            BellumCivileNotifications.ShowPersonal(text, BellumNotificationColors.Success);
         }
 
         private void DenyPlayerAsylum(string clanId, bool silent)
@@ -540,6 +532,9 @@ namespace BellumCivile.Behaviors
         private void RemovePendingAsylum(string clanId)
         {
             if (string.IsNullOrEmpty(clanId)) return;
+
+            if (_asylumVisits.TryGetValue(clanId, out var visit) && visit.State == AsylumVisitRecord.Waiting)
+                visit.State = AsylumVisitRecord.Cancelled;
 
             _pendingAsylumClanIds.Remove(clanId);
             _pendingAsylumOriginKingdomIds.Remove(clanId);
@@ -613,91 +608,27 @@ namespace BellumCivile.Behaviors
                 _trackedExileCourtFactionIds[clanId] = -1;
         }
 
-        private string BuildExileCauseContext(string clanId, Clan clan)
+        private TextObject BuildAsylumLetterContext(string clanId)
         {
-            if (string.IsNullOrEmpty(clanId))
-                return string.Empty;
-
             Kingdom originKingdom = ResolveKingdomById(GetDictionaryValue(_trackedOriginKingdomIds, clanId));
             if (originKingdom == null)
-                return string.Empty;
-
-            ExileCause cause = ExileCause.Unknown;
-            if (_trackedExileCauseIds.TryGetValue(clanId, out int causeValue))
-                cause = (ExileCause)causeValue;
-
+                return new TextObject("{=BC_Asylum_LetterUnknown}The house has fallen on hard times and seeks a new home.");
+            _trackedExileCauseIds.TryGetValue(clanId, out int cause);
             TextObject text;
-            switch (cause)
+            switch ((ExileCause)cause)
             {
-                case ExileCause.RebelIndependence:
-                    text = new TextObject("{=BC_Asylum_Cause_RebelIndependence}\n\nReports say the {CLAN_NAME} were exiled after trying to secede from {OLD_KINGDOM}.");
-                    break;
-                case ExileCause.RebelAbdication:
-                    text = new TextObject("{=BC_Asylum_Cause_RebelAbdication}\n\nReports say the {CLAN_NAME} were exiled after trying to overthrow the ruler of {OLD_KINGDOM}.");
-                    break;
-                case ExileCause.RebelInstallRuler:
-                    text = new TextObject("{=BC_Asylum_Cause_RebelInstallRuler}\n\nReports say the {CLAN_NAME} were exiled after trying to claim the crown of {OLD_KINGDOM}.");
-                    break;
-                case ExileCause.Treason:
-                    text = new TextObject("{=BC_Asylum_Cause_Treason}\n\nReports say the {CLAN_NAME} were exiled from {OLD_KINGDOM} after being condemned for treason.");
-                    break;
-                case ExileCause.LoyalistIndependence:
-                    text = new TextObject("{=BC_Asylum_Cause_LoyalistIndependence}\n\nReports say the {CLAN_NAME} were exiled after resisting the secession of rebels from {OLD_KINGDOM}.");
-                    break;
-                case ExileCause.LoyalistAbdication:
-                    text = new TextObject("{=BC_Asylum_Cause_LoyalistAbdication}\n\nReports say the {CLAN_NAME} were exiled after defending the deposed ruler of {OLD_KINGDOM}.");
-                    break;
-                case ExileCause.LoyalistInstallRuler:
-                    text = new TextObject("{=BC_Asylum_Cause_LoyalistInstallRuler}\n\nReports say the {CLAN_NAME} were exiled after opposing the new claimant in {OLD_KINGDOM}.");
-                    break;
                 case ExileCause.KingdomDestroyed:
-                    text = new TextObject("{=BC_Asylum_Cause_RealmDestroyed}\n\nTheir former realm, {OLD_KINGDOM}, has fallen, leaving their house without a liege.");
+                    text = new TextObject("{=BC_Asylum_LetterDestroyed}With the fall of {OLD_KINGDOM}, the house has been left without a home.");
                     break;
                 case ExileCause.VoluntaryDeparture:
-                    text = new TextObject("{=BC_Asylum_Cause_Departure}\n\nTheir house has left the service of {OLD_KINGDOM} and is seeking a new allegiance.");
+                    text = new TextObject("{=BC_Asylum_LetterDeparture}The house has left the service of {OLD_KINGDOM} and seeks a new liege.");
                     break;
                 default:
-                    text = new TextObject("{=BC_Asylum_Cause_Unknown}\n\nReports say the {CLAN_NAME} were exiled from {OLD_KINGDOM}.");
+                    text = new TextObject("{=BC_Asylum_LetterExile}The letter tells how the house was forced to flee {OLD_KINGDOM}.");
                     break;
             }
-
-            text.SetTextVariable("CLAN_NAME", clan?.Name ?? new TextObject("?"));
             text.SetTextVariable("OLD_KINGDOM", originKingdom.Name);
-            return text.ToString();
-        }
-
-        private string BuildCourtFactionContext(string clanId)
-        {
-            if (string.IsNullOrEmpty(clanId)
-                || !_trackedExileCourtFactionIds.TryGetValue(clanId, out int factionValue)
-                || factionValue < 0)
-                return string.Empty;
-
-            FactionType factionType = (FactionType)factionValue;
-            Kingdom originKingdom = null;
-            if (_trackedOriginKingdomIds.TryGetValue(clanId, out string originKingdomId))
-            {
-                originKingdom = Kingdom.All.FirstOrDefault(kingdom =>
-                    kingdom != null && kingdom.StringId == originKingdomId);
-            }
-
-            TextObject factionName = GetCourtFactionName(factionType, originKingdom);
-            if (factionName == null)
-                return string.Empty;
-
-            TextObject text = new TextObject("{=BC_Asylum_CourtFaction}\n\nThe same reports state they last sat in court as members of the {COURT_FACTION}.");
-            text.SetTextVariable("COURT_FACTION", factionName);
-            return text.ToString();
-        }
-
-        private static TextObject GetCourtFactionName(FactionType factionType, Kingdom kingdom)
-        {
-            return factionType == FactionType.Royalists
-                || factionType == FactionType.Glory
-                || factionType == FactionType.Nobility
-                || factionType == FactionType.Liberty
-                    ? CourtInstitutionDisplayHelper.GetCourtFactionName(factionType, kingdom)
-                    : null;
+            return text;
         }
     }
 }

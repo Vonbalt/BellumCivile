@@ -39,7 +39,7 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
     private XmlDocument Page() => (XmlDocument)_native.CloneNode(true);
 
     private static void FinalizePrefab(XmlDocument document) => AccessTools.Method(
-        Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true), "Postfix")
+        Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true), "FinalizePrefab")
         .Invoke(null, new object[] { "EncyclopediaHeroPage", document });
 
     internal void SetSharedLayout(bool shared)
@@ -141,6 +141,70 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
         }
     }
 
+    internal static void ExtenderProbe(Action<bool, string> check, string game, string dll)
+    {
+        var addon = Assembly.LoadFrom(dll);
+        var addonTypes = new[] { "HeroAttributesPrefabExtension", "HeroEquipmentPrefabExtension", "HeroMarriageDowryPrefabExtension", "HeroPerksPrefabExtension" }
+            .Select(name => addon.GetType("Bannerlord.EncyclopediaExtender.EncyclopediaHeroPage.PrefabExtensions." + name, true)).ToArray();
+        var bellumTypes = new[] {
+            Core.GetType("BellumCivile.ViewModelMixin.EncyclopediaHeroFeudalTitlesPrefabExtension", true),
+            Core.GetType("BellumCivile.ViewModelMixin.EncyclopediaHeroFamilyPrefabPatch", true) };
+        var process = AccessTools.Method(typeof(UIExtender).Assembly.GetType("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch", true), "ApplyPatches");
+        var harmony = new Harmony("bellum.tests.encyclopedia_extender");
+        try
+        {
+            harmony.CreateClassProcessor(Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true)).Patch();
+            foreach (bool foreignFirst in new[] { false, true })
+            {
+                var runtimes = new List<UIExtender>();
+                try
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        var runtime = UIExtender.Create("bellum.tests.extender." + foreignFirst + "." + i);
+                        runtimes.Add(runtime);
+                        runtime.Register((i == 0) == foreignFirst ? addonTypes : bellumTypes);
+                        runtime.Enable();
+                    }
+                    var document = new XmlDocument();
+                    document.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaHeroPage.xml"));
+                    string enemies = document.SelectSingleNode("//*[@Id='EnemiesGridParent']").OuterXml;
+                    process.Invoke(null, new object[] { "EncyclopediaHeroPage", document });
+                    var divider = (XmlElement)document.SelectSingleNode("//EncyclopediaDivider[@Parameter.Title='@PerksText']");
+                    check(Enabled && divider.GetAttribute("MarginTop") == "30",
+                        "Actual Extender Perks use normal spacing after UIExtender finalization: foreign first=" + foreignFirst);
+                    check(document.SelectNodes("//*[@Id='BellumFamilySection']").Count == 1
+                        && document.SelectNodes("//*[@Id='FamilyGrid' and @IsHidden='true']").Count == 1,
+                        "Both actual mods keep Bellum's grouped family without duplicating the native grid: " + foreignFirst);
+                    check(document.SelectNodes("//*[@Id='BellumTitlesDivider' or @Id='BellumClaimsDivider' or @Id='BellumInheritanceDivider']").Count == 3,
+                        "Actual Extender composition preserves Bellum titles, claims and inheritance: " + foreignFirst);
+                    check(document.SelectSingleNode("//*[@Id='EnemiesGridParent']").OuterXml == enemies,
+                        "Actual Extender spacing leaves enemy portraits unchanged: " + foreignFirst);
+                    check(document.SelectNodes("//*[@DataSource='{Attributes}']").Count == 1
+                        && document.SelectNodes("//*[@Id='EquipmentContainer']").Count == 1
+                        && document.SelectNodes("//*[@DataSource='{DowrySection}']").Count == 1,
+                        "All four actual Extender hero-page additions remain present: " + foreignFirst);
+                    check(divider.GetAttribute("Parameter.ItemList") == "..\\PerksColumns"
+                        && document.SelectSingleNode("//*[@Id='PerksColumns']").ParentNode == divider.ParentNode,
+                        "Actual Perks retain the page data context and original collapse target: " + foreignFirst);
+                    string composed = document.OuterXml;
+                    FinalizePrefab(document);
+                    check(document.OuterXml == composed, "Actual Extender finalization is idempotent: " + foreignFirst);
+                    var shared = UIExtender.Create("bellum.tests.extender.shared." + foreignFirst);
+                    runtimes.Add(shared);
+                    shared.Register(new[] { typeof(RegistryFamilyEditor) });
+                    shared.Enable();
+                    FinalizePrefab(document);
+                    check(!Enabled && divider.GetAttribute("MarginTop") == "-50"
+                        && document.SelectSingleNode("//*[@Id='FamilyGrid' and not(@IsHidden)]") != null,
+                        "Actual registry fallback restores both native family and original Perks padding: " + foreignFirst);
+                }
+                finally { foreach (var runtime in runtimes.AsEnumerable().Reverse()) runtime.Deregister(); }
+            }
+        }
+        finally { harmony.UnpatchAll(harmony.Id); }
+    }
+
     internal void Run(Action<bool, string> check, string game)
     {
         _native = new XmlDocument();
@@ -153,6 +217,7 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
         check(Enabled && document.SelectNodes("//*[@IsHidden='true' and (@Id='FamilyGrid' or @Id='FamilyDivider' or @ScopeParent='..\\FamilyGrid')]").Count == 3,
             "Standalone Bellum hides native family presentation without removing its anchors");
         CheckDividerGuard(check);
+        CheckPerksSpacing(check);
         foreach (Type type in new[] { typeof(TreeEditor), typeof(LineageEditor), typeof(ScopeEditor), typeof(OpaqueEditor), typeof(ProgrammaticEditor) })
         {
             foreach (bool foreignFirst in new[] { false, true })
@@ -217,6 +282,80 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
             "A later registration can restore native visibility without reconstructing deleted anchors");
         _runtimes = Array.Empty<object>();
         Apply(Page());
+    }
+
+    private void CheckPerksSpacing(Action<bool, string> check)
+    {
+        object PerksRuntime() => Runtime(typeof(PerksEditor), true, document => {
+            var payload = new XmlDocument();
+            payload.LoadXml(@"<DummyRoot>
+                <EncyclopediaDivider MarginTop='-50' Parameter.Title='@PerksText' Parameter.ItemList='..\PerksColumns'/>
+                <ListPanel Id='PerksColumns' DataSource='{PerkColumns}' HeightSizePolicy='CoverChildren'>
+                    <ItemTemplate><Widget DataSource='{Groups}'/></ItemTemplate>
+                </ListPanel>
+                <EncyclopediaDivider MarginTop='-50' Parameter.Title='@UnrelatedText'/>
+                </DummyRoot>");
+            var cursor = document.SelectSingleNode("//*[@Id='FamilyGrid']");
+            foreach (XmlNode node in payload.DocumentElement.ChildNodes)
+                cursor = cursor.ParentNode.InsertAfter(document.ImportNode(node, true), cursor);
+        });
+        foreach (bool foreignFirst in new[] { false, true })
+        {
+            var document = Page();
+            string enemies = document.SelectSingleNode("//*[@Id='EnemiesGridParent']").OuterXml;
+            var runtime = PerksRuntime();
+            _runtimes = new[] { runtime };
+            if (foreignFirst) Process(runtime, document);
+            Apply(document);
+            if (!foreignFirst) Process(runtime, document);
+            var divider = (XmlElement)document.SelectSingleNode("//EncyclopediaDivider[@Parameter.Title='@PerksText']");
+            string content = document.SelectSingleNode("//*[@Id='PerksColumns']").OuterXml;
+            FinalizePrefab(document);
+            check(Enabled && divider.GetAttribute("MarginTop") == "30",
+                "Perks no longer use the hidden native family's padding: foreign first=" + foreignFirst);
+            check(document.SelectSingleNode("//*[@Id='EnemiesGridParent']").OuterXml == enemies
+                && document.SelectSingleNode("//*[@Id='PerksColumns']").OuterXml == content
+                && divider.GetAttribute("Parameter.ItemList") == "..\\PerksColumns",
+                "Perks spacing preserves portraits, content, bindings and collapse target: " + foreignFirst);
+            check(((XmlElement)document.SelectSingleNode("//EncyclopediaDivider[@Parameter.Title='@UnrelatedText']")).GetAttribute("MarginTop") == "-50",
+                "Other negative section margins are not rewritten: " + foreignFirst);
+            string composed = document.OuterXml;
+            FinalizePrefab(document);
+            check(document.OuterXml == composed, "Repeated Perks spacing finalization is idempotent: " + foreignFirst);
+            _runtimes = new[] { runtime, Runtime(typeof(LineageEditor), true) };
+            FinalizePrefab(document);
+            check(!Enabled && divider.GetAttribute("MarginTop") == "-50"
+                && document.SelectSingleNode("//*[@Id='FamilyGrid' and not(@IsHidden)]") != null,
+                "Yielding to a family replacement restores the original Perks offset: " + foreignFirst);
+            _runtimes = new[] { runtime };
+            FinalizePrefab(document);
+            check(Enabled && divider.GetAttribute("MarginTop") == "30", "Returning to Bellum re-applies Perks spacing: " + foreignFirst);
+            divider.SetAttribute("MarginTop", "42");
+            FinalizePrefab(document);
+            check(divider.GetAttribute("MarginTop") == "42", "Another editor's newer spacing is not overwritten: " + foreignFirst);
+            _runtimes = new[] { runtime, Runtime(typeof(LineageEditor), true) };
+            FinalizePrefab(document);
+            check(divider.GetAttribute("MarginTop") == "42", "Fallback does not restore over another editor's spacing: " + foreignFirst);
+        }
+        foreach (string[] mismatch in new[] {
+            new[] { "EncyclopediaDivider", "Parameter.Title", "@OtherPerks" },
+            new[] { "EncyclopediaDivider", "Parameter.ItemList", "..\\OtherColumns" },
+            new[] { "EncyclopediaDivider", "MarginTop", "-25" },
+            new[] { "ListPanel", "DataSource", "{OtherPerks}" },
+            new[] { "ListPanel", "Id", "OtherColumns" } })
+        {
+            var document = Page();
+            var runtime = PerksRuntime();
+            _runtimes = new[] { runtime };
+            Process(runtime, document);
+            var divider = (XmlElement)document.SelectSingleNode("//EncyclopediaDivider[@Parameter.Title='@PerksText']");
+            var node = mismatch[0] == "EncyclopediaDivider" ? divider : (XmlElement)document.SelectSingleNode("//*[@Id='PerksColumns']");
+            node.SetAttribute(mismatch[1], mismatch[2]);
+            string margin = divider.GetAttribute("MarginTop");
+            FinalizePrefab(document);
+            check(divider.GetAttribute("MarginTop") == margin, "Unfamiliar Perks layouts are untouched: " + string.Join("/", mismatch));
+        }
+        _runtimes = Array.Empty<object>();
     }
 
     private static object Runtime(Type patchType, bool enabled, Action<XmlDocument> compose = null)
@@ -305,6 +444,8 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
 
     [PrefabExtension("EncyclopediaHeroPage", "descendant::NavigatableGridWidget[@Id='FamilyGrid']")]
     private sealed class TreeEditor : InsertPatch { public override InsertType Type => InsertType.Append; }
+    [PrefabExtension("EncyclopediaHeroPage", "descendant::NavigatableGridWidget[@Id='FamilyGrid']")]
+    private sealed class PerksEditor : InsertPatch { public override InsertType Type => InsertType.Append; }
     [PrefabExtension("EncyclopediaHeroPage", "descendant::NavigatableGridWidget[@Id='FamilyGrid']")]
     [PrefabExtension("EncyclopediaHeroPage", "descendant::EncyclopediaDivider[@Id='FamilyDivider']")]
     private sealed class LineageEditor : InsertPatch { public override InsertType Type => InsertType.Replace; }

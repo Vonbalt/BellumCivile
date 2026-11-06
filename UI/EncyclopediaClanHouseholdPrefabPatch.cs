@@ -22,7 +22,8 @@ namespace BellumCivile.UI
             foreach (XmlNode old in document.SelectNodes("//*[@Id='BellumClanHousehold']")) old.ParentNode.RemoveChild(old);
             var grid = document.SelectSingleNode("//NavigatableGridWidget[@Id='MembersGrid' and @DataSource='{Members}']") as XmlElement;
             var divider = grid?.ParentNode?.SelectSingleNode("EncyclopediaDivider[@Id='MembersDivider' and @Parameter.ItemList='..\\MembersGrid']") as XmlElement;
-            Enabled = grid != null && divider != null && !grid.HasAttribute("IsHidden") && !divider.HasAttribute("IsHidden")
+            Enabled = EncyclopediaFamilyPrefabFinalizationPatch.Supported
+                && grid != null && divider != null && !grid.HasAttribute("IsHidden") && !divider.HasAttribute("IsHidden")
                 && !grid.HasAttribute("IsVisible") && !divider.HasAttribute("IsVisible");
             if (!Enabled) return;
             var section = document.CreateElement("ListPanel");

@@ -50,7 +50,39 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--lordship-naming"))
+            if (args.Contains("--lordship-dialogues"))
+            {
+                LordshipDialogueFlowTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship dialogue flow checks passed.");
+            }
+            else if (args.Contains("--finance-startup"))
+            {
+                LordshipFinanceStartupTests.Run(Check);
+                Console.WriteLine($"{_checks} finance startup checks passed.");
+            }
+            else if (args.Contains("--prefab-finalization"))
+            {
+                PrefabFinalizationCompatibilityTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} prefab finalization compatibility checks passed.");
+            }
+            else if (args.Contains("--lordship-appointments"))
+            {
+                LordshipAppointmentTests.Run(Check);
+                Console.WriteLine($"{_checks} lordship appointment checks passed.");
+            }
+            else if (args.Contains("--hap-lordship-income"))
+            {
+                HapLordshipIncomeTests.Run(Check, args.FirstOrDefault(a => a.StartsWith("--hap-dll="))?.Substring("--hap-dll=".Length));
+                Console.WriteLine($"{_checks} HAP lordship income checks passed.");
+            }
+            else if (args.Contains("--hierarchy-performance"))
+            {
+                HierarchyPerformanceTests.Run(Check);
+                TitleTenurePresentationTests.Run(Check);
+                TitleReorganizationTests.Run(Check);
+                Console.WriteLine($"{_checks} hierarchy performance checks passed.");
+            }
+            else if (args.Contains("--lordship-naming"))
             {
                 LordshipNamingTests.Run(Check);
                 Console.WriteLine($"{_checks} lordship naming checks passed.");
@@ -124,6 +156,12 @@ internal static class Program
             {
                 CampaignRunRecoveryTests.Run(Check);
                 Console.WriteLine($"{_checks} campaign run recovery checks passed.");
+            }
+            else if (args.Contains("--client-land-grants"))
+            {
+                CourtClientGrantTests.Run(Check);
+                AllocationCustodyTests.Run(Check);
+                Console.WriteLine($"{_checks} client land grant checks passed.");
             }
             else if (args.Contains("--court-title-grants"))
             {
@@ -218,6 +256,12 @@ internal static class Program
                 string working = args.Single(a => a.StartsWith("--working-family-tree-dll=")).Substring("--working-family-tree-dll=".Length);
                 FamilyTreeRefreshCompatibilityTests.Run(Check, original, working);
                 Console.WriteLine($"{_checks} Family Tree refresh compatibility checks passed.");
+            }
+            else if (args.Contains("--encyclopedia-extender-addon"))
+            {
+                string dll = args.Single(a => a.StartsWith("--encyclopedia-extender-dll=")).Substring("--encyclopedia-extender-dll=".Length);
+                EncyclopediaFamilyCompatibilityTests.ExtenderProbe(Check, _game, dll);
+                Console.WriteLine($"{_checks} actual Encyclopedia Extender checks passed.");
             }
             else if (args.Contains("--encyclopedia-family-addon"))
             {
@@ -440,6 +484,16 @@ internal static class Program
             {
                 RecruitmentRankTests.Run(Check);
                 Console.WriteLine($"{_checks} recruitment rank checks passed.");
+            }
+            else if (args.Contains("--lordship-banners"))
+            {
+                AsylumVisitTests.Run(Check, bannersOnly: true);
+                Console.WriteLine($"{_checks} lordship beneficiary banner checks passed.");
+            }
+            else if (args.Contains("--asylum-visits"))
+            {
+                AsylumVisitTests.Run(Check);
+                Console.WriteLine($"{_checks} asylum audience lifecycle checks passed.");
             }
             else if (args.Contains("--exile-recovery"))
             {

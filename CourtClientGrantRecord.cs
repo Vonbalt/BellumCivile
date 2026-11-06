@@ -19,6 +19,7 @@ namespace BellumCivile
         [SaveableField(10)] public bool RelationApplied;
         [SaveableField(11)] public bool Paid;
         [SaveableField(12)] public int Attempts;
+        [SaveableField(13)] public bool DistributionStarted;
     }
 
     internal static class CourtClientGrantRules

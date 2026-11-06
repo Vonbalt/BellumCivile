@@ -264,7 +264,7 @@ namespace BellumCivile.Behaviors
             else if (IsDynastic(agenda)) status = DynasticStatus(agenda);
             else if (IsTrade(agenda)) status = TradeStatus(agenda);
             else if (IsTitleGrant(agenda)) status = TitleGrantStatus(agenda);
-            else if (IsClientGrant(agenda)) status = new TextObject("{=BC_ClientGrantStatus}A voluntary grant to a client realm, costing 100 influence. No distribution vote is held. Only the Crown's own rights accompany the holding; higher titles are not granted.");
+            else if (IsClientGrant(agenda)) status = new TextObject("{=BC_ClientGrantStatus}A voluntary grant to a client realm, costing 100 influence. The client's council will distribute the holding through a normal fief vote. Only the Crown's own rights accompany the holding; higher titles are not granted.");
             else if (IsRally(agenda)) status = RallyStatus(agenda);
             else if (IsLiberation(agenda)) status = new TextObject("{=BC_CourtLiberationStatus}Preparations strengthen the realm's desire for self-rule by +20 during this term. A declaration still requires sufficient readiness, war enthusiasm and the usual vote. Beginning the war completes this objective; it does not guarantee independence.");
             else if (IsProtection(agenda)) status = new TextObject("{=BC_ProtectionStatus}A single appeal for protection this term. Submission requires the protector to join the named war; no faction mood reward or penalty applies.");

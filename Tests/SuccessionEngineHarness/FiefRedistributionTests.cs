@@ -94,6 +94,12 @@ internal static class FiefRedistributionTests
         return false;
     }
 
+    private static bool NativeClientGift(Hero hero)
+    {
+        Award(Heads.Single(p => p.Value == hero).Key, ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.Default);
+        return false;
+    }
+
     private static Clan House(string id, Kingdom realm)
     {
         var clan = Blank<Clan>(); clan.StringId = id; Realms[clan] = realm;
@@ -193,6 +199,7 @@ internal static class FiefRedistributionTests
             check(h.CreateClassProcessor(typeof(FiefVoteResolutionPatch)).Patch().Count == 1, "Native fief-award scope patch binds to the selected game");
             h.Patch(AccessTools.Method(typeof(SettlementClaimantDecision), "ApplyChosenOutcome"),
                 prefix: new HarmonyMethod(typeof(FiefRedistributionTests), nameof(NativeAward)) { priority = Priority.Last });
+            Patch(AccessTools.Method(typeof(ChangeOwnerOfSettlementAction), "ApplyByDefault"), nameof(NativeClientGift));
             RunCases(check);
             CourtPoliticalReactionTests.Run(check);
         }
@@ -292,6 +299,43 @@ internal static class FiefRedistributionTests
             Call(_titles, "RebuildRuntimeIndexes", true, true); InVote(Decision(), () => Award(_ira));
             CheckHierarchy(check, "Rank-aware award to " + rank);
             check(_barony.DeFactoParentTitleId == estate.TitleId, "Recipient is not subordinated to an equal/lower-rank county: " + rank);
+        }
+
+        foreach (bool lawful in new[] { false, true })
+        foreach (bool crownWins in new[] { false, true })
+        {
+            Reset(); Realms[_giver] = _north; Crowns[_north] = _giver;
+            if (!lawful) _barony.SetDeJureHolder(_foreign.StringId);
+            Call(_titles, "RebuildRuntimeIndexes", true, true);
+            var grant = new CourtClientGrantRecord { Client = _south, Grantor = _giver, Recipient = _crown,
+                Ruler = Heads[_giver], Beneficiary = Heads[_crown], Fief = _settlement, TitleId = _barony.TitleId,
+                OldLegal = _barony.DeJureHolderClanId, Paid = true, TransferAttempted = true };
+            check((bool)Call(_titles, "CompleteClientLandGrant", grant) && _owner == _crown
+                && _settlement.Town.IsOwnerUnassigned && grant.DistributionStarted,
+                "Actual client grant puts the transferred fief into allocation custody: lawful=" + lawful);
+            string clientKey = _south.StringId + "|" + _settlement.StringId;
+            check(_votes.HasPendingFiefVoteForSettlement(_south, _settlement)
+                && Field<Dictionary<string, string>>(_votes, "_pendingFiefProposer")[clientKey] == _crown.StringId
+                && Field<Dictionary<string, string>>(_votes, "_pendingFiefExclude")[clientKey] == ""
+                && Field<Dictionary<string, string>>(_votes, "_pendingFiefCapturer")[clientKey] == "",
+                "Real queue belongs to the client realm with no excluded house or fabricated capturer");
+            var ballot = Decision(_crown);
+            Set(ballot, "ClanToExclude", null);
+            Clan winner = crownWins ? _crown : _ira;
+            ballot.ApplyChosenOutcome(new SettlementClaimantDecision.ClanAsDecisionOutcome(winner));
+            _settlement.Town.IsOwnerUnassigned = false;
+            check(_barony.DeFactoHolderClanId == winner.StringId
+                && _barony.DeJureHolderClanId == (lawful ? winner.StringId : _foreign.StringId),
+                "Actual ballot awards only the rights conveyed by the gift: lawful=" + lawful + "; crownWins=" + crownWins);
+            check(_barony.ParentTitleId == _county.TitleId && _county.DeJureHolderClanId == _giver.StringId,
+                "Client distribution leaves the legal county hierarchy and higher titles unchanged");
+            check(!Field<Dictionary<string, string>>(_titles, "_allocationCustodianByTitle").ContainsKey(_barony.TitleId)
+                && !Claims.Any(c => c.IsActive && c.TargetTitleId == _barony.TitleId
+                    && (c.ClaimantClanId == _crown.StringId || c.ClaimantClanId == _giver.StringId)),
+                "Final award consumes custody without manufacturing a claim for either Crown");
+            check((bool)Call(_titles, "CompleteClientLandGrant", grant) && _owner == winner
+                && !_settlement.Town.IsOwnerUnassigned && !_votes.HasPendingFiefVoteForSettlement(_south, _settlement),
+                "Post-award recovery cannot restore the client ruler or reopen distribution");
         }
     }
 }

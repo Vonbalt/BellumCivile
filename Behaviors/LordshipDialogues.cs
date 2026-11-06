@@ -27,10 +27,15 @@ namespace BellumCivile.Behaviors
                 () => Ready && Hero.OneToOneConversationHero?.Clan == Clan.PlayerClan
                     && Villages(Clan.PlayerClan).Any(v => CanGrant(Clan.PlayerClan, v, Hero.OneToOneConversationHero, out _)),
                 () => { _conversationRecipient = Hero.OneToOneConversationHero; _conversationVillage = null; _conversationCompleted = false; }, 120);
+            starter.AddPlayerLine("bc_vassal_estate_start", "hero_main_options", "bc_lordship_response",
+                "{=BC_Lordship_VassalOffer}I would endow your house with an estate to help maintain your household and men.",
+                () => Ready && Hero.OneToOneConversationHero?.Clan != Clan.PlayerClan
+                    && Villages(Clan.PlayerClan).Any(v => CanGrantVassal(Clan.PlayerClan, v, Hero.OneToOneConversationHero)),
+                () => { _conversationRecipient = Hero.OneToOneConversationHero; _conversationVillage = null; _conversationCompleted = false; }, 120);
             starter.AddDialogLine("bc_lordship_response", "bc_lordship_response", "bc_lordship_villages",
                 "{=BC_Lordship_DialogueResponse}You honor me. Which lands would you have me hold?", null,
                 () => ConversationSentence.SetObjectsToRepeatOver(Villages(Clan.PlayerClan)
-                    .Where(v => CanGrant(Clan.PlayerClan, v, _conversationRecipient, out _)).Cast<object>().ToList()), 120);
+                    .Where(v => CanGrantFromPlayerHouse(v, _conversationRecipient, out _)).Cast<object>().ToList()), 120);
             starter.AddRepeatablePlayerLine("bc_lordship_village", "bc_lordship_villages", "bc_lordship_selected",
                 "{=BC_Lordship_DialogueVillage}{LORDSHIP}.",
                 "{=BC_Lordship_DialogueAnother}I am considering another estate.", "bc_lordship_response",
@@ -45,7 +50,7 @@ namespace BellumCivile.Behaviors
                     _conversationVillage = ConversationSentence.SelectedRepeatObject as Settlement;
                     SetConversationEstate(_conversationVillage);
                 }, 120);
-            starter.AddPlayerLine("bc_lordship_cancel", "bc_lordship_villages", "hero_main_options",
+            starter.AddPlayerLine("bc_lordship_cancel", "bc_lordship_villages", "lord_pretalk",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);
             starter.AddDialogLine("bc_lordship_selected", "bc_lordship_selected", "bc_lordship_confirm",
                 "{=BC_Lordship_DialogueSelected}{VILLAGE}? I would be honored to hold it in your service.", null, null, 120);
@@ -54,9 +59,9 @@ namespace BellumCivile.Behaviors
                 null, () =>
                 {
                     _conversationCompleted = _conversationRecipient == Hero.OneToOneConversationHero
-                        && TryGrant(Clan.PlayerClan, _conversationVillage, _conversationRecipient, out _);
+                        && TryGrantFromPlayerHouse(_conversationVillage, _conversationRecipient, out _);
                 }, 120);
-            starter.AddPlayerLine("bc_lordship_cancel_confirm", "bc_lordship_confirm", "hero_main_options",
+            starter.AddPlayerLine("bc_lordship_cancel_confirm", "bc_lordship_confirm", "lord_pretalk",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);
             starter.AddDialogLine("bc_lordship_success", "bc_lordship_result", "hero_main_options",
                 "{=BC_Lordship_DialogueAccept}You honor me, my {?PLAYER.GENDER}lady{?}lord{\\?}. I will hold {VILLAGE} faithfully in your service.",
@@ -85,7 +90,7 @@ namespace BellumCivile.Behaviors
                 "{=BC_Lordship_DialogueRevoke}Your tenure of {VILLAGE} is at an end. Its revenues will return to the household.",
                 null, () => _conversationCompleted = _conversationRecipient == Hero.OneToOneConversationHero
                     && TryRevoke(Clan.PlayerClan, _conversationVillage, out _), 120);
-            starter.AddPlayerLine("bc_lordship_revoke_cancel", "bc_lordship_revoke_choice", "hero_main_options",
+            starter.AddPlayerLine("bc_lordship_revoke_cancel", "bc_lordship_revoke_choice", "lord_pretalk",
                 "{=BC_Lordship_DialogueCancel}Let us leave this for another time.", null, null, 100);
             starter.AddDialogLine("bc_lordship_revoke_done", "bc_lordship_revoke_done", "hero_main_options",
                 "{=BC_Lordship_DialogueSurrender}As you command. I surrender {LORDSHIP}.", () => _conversationCompleted, null, 120);

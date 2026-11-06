@@ -49,25 +49,40 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             FeudalClaimFabricationRecord playerFabrication,
             Action<HierarchyTitleNodeVM> onSelect,
             Action<string> onHierarchyChanged)
+            : this(title, titleBehavior, hierarchyKingdom, playerFabrication, onSelect, onHierarchyChanged, null)
+        {
+        }
+
+        internal HierarchyTitleNodeVM(
+            FeudalTitleRecord title,
+            FeudalTitleBehavior titleBehavior,
+            Kingdom hierarchyKingdom,
+            FeudalClaimFabricationRecord playerFabrication,
+            Action<HierarchyTitleNodeVM> onSelect,
+            Action<string> onHierarchyChanged,
+            HierarchyBuildContext context)
         {
             Title = title;
             _onSelect = onSelect;
             _onHierarchyChanged = onHierarchyChanged;
             Branch = new MBBindingList<HierarchyTitleNodeVM>();
-            _deFactoHolder = ResolveClan(title?.DeFactoHolderClanId);
-            Clan deJureHolder = ResolveClan(title?.DeJureHolderClanId);
-            Name = FormatTitleName(title);
+            _deFactoHolder = context != null ? context.ResolveClan(title?.DeFactoHolderClanId) : ResolveClan(title?.DeFactoHolderClanId);
+            Clan deJureHolder = context != null ? context.ResolveClan(title?.DeJureHolderClanId) : ResolveClan(title?.DeJureHolderClanId);
+            Name = context != null ? context.FormatTitleName(title) : FormatTitleName(title);
             TitleColor = CalculateTitleColor(hierarchyKingdom, deJureHolder, _deFactoHolder);
             Tier = GetTierName(title?.TitleType ?? FeudalTitleType.Barony);
             HolderName = _deFactoHolder?.Name?.ToString() ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant").ToString();
-            ParentName = FormatTitleName(titleBehavior?.GetTitle(title?.ParentTitleId));
+            FeudalTitleRecord parent = titleBehavior?.GetTitle(title?.ParentTitleId);
+            ParentName = context != null ? context.FormatTitleName(parent) : FormatTitleName(parent);
             IsContested = title != null && title.DeJureHolderClanId != title.DeFactoHolderClanId;
             Status = FeudalTitleDisplayHelper.GetHierarchyTenure(title);
 
             if (_deFactoHolder?.Banner != null)
                 BannerVisual = new BannerImageIdentifierVM(_deFactoHolder.Banner, true);
-            if (_deFactoHolder?.Leader?.CharacterObject != null)
-                PortraitVisual = new CharacterImageIdentifierVM(BellumCivile.UI.PortraitAppearance.Create(_deFactoHolder.Leader.CharacterObject));
+            CharacterObject character = _deFactoHolder?.Leader?.CharacterObject;
+            if (character != null)
+                PortraitVisual = new CharacterImageIdentifierVM(context != null
+                    ? context.GetPortrait(character) : PortraitAppearance.Create(character));
 
             if (playerFabrication != null && playerFabrication.TargetTitleId == title?.TitleId)
             {
@@ -92,7 +107,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 ResolveClan(title?.DeJureHolderClanId),
                 ResolveClan(title?.DeFactoHolderClanId),
                 playerFabrication));
-            RefreshPlayerActions();
+            // The shared action menu is bound only after selection. Its previews can be expensive.
         }
 
         protected HierarchyTitleNodeVM(Settlement village, HierarchyTitleNodeVM parent,
@@ -111,7 +126,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             HolderName = LordshipBehavior.Instance?.GetGrant(village)?.Holder?.Name?.ToString()
                 ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant").ToString();
             var hero = LordshipBehavior.Instance?.GetGrant(village)?.Holder;
-            BannerVisual = Patches.LordshipMapBannerPatch.GetPlayerBannerImage(village)
+            BannerVisual = Patches.LordshipMapBannerPatch.GetBeneficiaryBannerImage(village)
                 ?? (_deFactoHolder?.Banner != null ? new BannerImageIdentifierVM(_deFactoHolder.Banner, true) : null);
             if (hero?.CharacterObject != null) PortraitVisual = new CharacterImageIdentifierVM(UI.PortraitAppearance.Create(hero.CharacterObject));
             _tooltip = new BasicTooltipViewModel(() => new List<TooltipProperty>

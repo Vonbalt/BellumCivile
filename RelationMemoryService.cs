@@ -148,6 +148,8 @@ namespace BellumCivile
                 case "lordship_granted": text = new TextObject("{=BC_RelationMemory_LordshipGranted}Granted me a lordship"); break;
                 case "lordship_revoked": text = new TextObject("{=BC_RelationMemory_LordshipRevoked}Revoked my lordship"); break;
                 case "lordship_returned": text = new TextObject("{=BC_RelationMemory_LordshipReturned}Returned a granted lordship"); break;
+                case "asylum_granted": text = new TextObject("{=BC_RelationMemory_AsylumGranted}Granted our house asylum"); break;
+                case "asylum_refused": text = new TextObject("{=BC_RelationMemory_AsylumRefused}Refused our house asylum"); break;
                 case RevokedMyTitle: text = new TextObject("{=BC_RelationMemory_RevokedMyTitle}Revoked my title"); break;
                 case SupportedCouncilAdvice: text = new TextObject("{=BC_RelationMemory_SupportedCouncilAdvice}Supported my council advice"); break;
                 case RejectedCouncilAdvice: text = new TextObject("{=BC_RelationMemory_RejectedCouncilAdvice}Rejected my council advice"); break;

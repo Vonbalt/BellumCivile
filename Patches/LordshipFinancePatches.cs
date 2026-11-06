@@ -1,12 +1,43 @@
+using System;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 
 namespace BellumCivile.Patches
 {
+    internal static class LordshipFinancePatches
+    {
+        private static bool _villagePatched, _surplusPatched;
+
+        internal static void Initialize()
+        {
+            // Some runtimes run the native finance type initializer while Harmony installs a patch.
+            if (Game.Current?.GameTextManager == null) return;
+            Install(typeof(LordshipVillageIncomePatch), ref _villagePatched);
+            Install(typeof(LordshipSurplusPatch), ref _surplusPatched);
+        }
+
+        private static void Install(Type type, ref bool installed)
+        {
+            if (installed) return;
+            var harmony = new Harmony("com.bellumcivile.lordship.finance." + type.Name);
+            try
+            {
+                harmony.CreateClassProcessor(type).Patch();
+                installed = true;
+            }
+            catch (Exception ex)
+            {
+                harmony.UnpatchAll(harmony.Id);
+                BellumCivileLogger.Log($"Failed to apply deferred lordship finance patch '{type.Name}': {ex}");
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(DefaultClanFinanceModel), nameof(DefaultClanFinanceModel.CalculateVillageIncome))]
     internal static class LordshipVillageIncomePatch
     {

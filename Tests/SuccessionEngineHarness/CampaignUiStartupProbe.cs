@@ -29,6 +29,8 @@ internal static class CampaignUiStartupProbe
             .Where(t => t.GetCustomAttributes(typeof(HarmonyPatch), true).Length > 0)
             .Where(t => !(bool)AccessTools.Method(typeof(BellumCivile.SubModule), "ShouldSkipOptionalPatch")
                 .Invoke(null, new object[] { t })).ToArray();
+        foreach (string name in new[] { "LordshipVillageIncomePatch", "LordshipSurplusPatch" })
+            check(!patchTypes.Any(t => t.Name == name), "Finance targets are not patched at module startup: " + name);
         Console.WriteLine("Applying " + patchTypes.Length + " early patches before game-text initialization");
         var failures = new List<string>();
         foreach (var type in patchTypes)
@@ -100,6 +102,10 @@ internal static class CampaignUiStartupProbe
         var governor = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.ChangeGovernorAction), "Apply");
         check(Harmony.GetPatchInfo(governor).Prefixes.Count(p => p.PatchMethod.DeclaringType == lordships) == 1,
             "Deferred lordship appointment/UI hooks install successfully and only once");
+        var armySelection = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.GameComponents.DefaultArmyManagementCalculationModel), "CanLordCreateArmy");
+        check(Harmony.GetPatchInfo(armySelection).Prefixes.Count(p => p.PatchMethod.DeclaringType == lordships) == 1
+            && Harmony.GetPatchInfo(armySelection).Finalizers.Count(p => p.PatchMethod.DeclaringType == lordships) == 1,
+            "Military army selection retains its scoped lordship check without restricting commercial work");
         var vassal = typeof(KingdomPolicyButtonPatch).Assembly.GetType("BellumCivile.Patches.VassalLordshipPatches", true);
         AccessTools.Method(vassal, "Initialize").Invoke(null, null);
         AccessTools.Method(vassal, "Initialize").Invoke(null, null);

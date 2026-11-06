@@ -48,7 +48,7 @@ namespace BellumCivile
         [SaveableField(7)] public Clan OwningClan;
 
         public bool IsCurrent => Hero?.IsAlive == true && OwningClan != null && Hero.Clan == OwningClan && (Party != null
-            ? Party.LeaderHero == Hero && Hero.PartyBelongedTo == Party && Party.ActualClan == OwningClan
+            ? Party.IsLordParty && Party.LeaderHero == Hero && Hero.PartyBelongedTo == Party && Party.ActualClan == OwningClan
             : Town != null && Town.Governor == Hero && Town.OwnerClan == OwningClan);
     }
 }

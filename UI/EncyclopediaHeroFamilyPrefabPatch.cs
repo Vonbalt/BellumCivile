@@ -12,11 +12,17 @@ namespace BellumCivile.ViewModelMixin
     {
         private static readonly ConditionalWeakTable<XmlDocument, List<XmlElement>> HiddenNativeNodes
             = new ConditionalWeakTable<XmlDocument, List<XmlElement>>();
+        private static readonly ConditionalWeakTable<XmlDocument, List<XmlElement>> AdjustedPerksDividers
+            = new ConditionalWeakTable<XmlDocument, List<XmlElement>>();
 
         public override string Id => "BellumHeroFamily";
 
         public override void Apply(XmlDocument document)
         {
+            var perksDividers = AdjustedPerksDividers.GetValue(document, _ => new List<XmlElement>());
+            foreach (var node in perksDividers)
+                if (node.GetAttribute("MarginTop") == "30") node.SetAttribute("MarginTop", "-50");
+            perksDividers.Clear();
             var hidden = HiddenNativeNodes.GetValue(document, _ => new List<XmlElement>());
             foreach (var node in hidden)
                 if (node.GetAttribute("IsHidden") == "true") node.RemoveAttribute("IsHidden");
@@ -32,6 +38,15 @@ namespace BellumCivile.ViewModelMixin
             hidden.Add((XmlElement)grid);
             // The grid is list-bound, so it cannot resolve a visibility property on the page VM.
             foreach (var node in hidden) node.SetAttribute("IsHidden", "true");
+            // Extender's negative offset cancels native FamilyGrid padding, which is absent while hidden.
+            foreach (XmlElement node in grid.ParentNode.SelectNodes(
+                "EncyclopediaDivider[@Parameter.Title='@PerksText' and @Parameter.ItemList='..\\PerksColumns' and @MarginTop='-50']"))
+            {
+                if (node.SelectSingleNode("following-sibling::*[1][self::ListPanel and @Id='PerksColumns' and @DataSource='{PerkColumns}']") == null)
+                    continue;
+                node.SetAttribute("MarginTop", "30");
+                perksDividers.Add(node);
+            }
         }
 
         internal static void InsertSection(XmlDocument document)

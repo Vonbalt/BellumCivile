@@ -812,7 +812,22 @@ Small compatibility fix with mods that modify the family section of the encyclop
 Added personal, nonhereditary village lordships, the player may receive a spare one when joining a kingdom as his first fief like in warband.
 Split clan encyclopedia members into Family and Retainers (non-blood related clan members) sections.
 Lordships now are required so retainers can lead parties or govern settlements.
-Added Sir/Dame honorifics for retainers while holding lordships.
-Added side notifications when the player acquires titles or lordships.
-Improved marriage logic to prioritize family, support companion marriages, and restrict house birthright claims to blood relatives as intended.
+Added honorifics for retainers while holding lordships.
+Added side notifications when the player acquires titles.
+Improved marriage logic to prioritize family, support companion marriage offers, and restrict house birthright claims to blood relatives as intended.
 Added read-only API queries for the player’s personal village lordship.
+Fixed separate peace offers and treaties bypassing active alliance call-to-arms obligations.
+
+1.4.10 CHANGELOG
+
+Crown grants to client states now distribute fiefs through the client realm’s normal vote.
+Improved hierarchy tree loading performance.
+Reworked asylum requests into seven-day keep visits with exile-specific dialogue and in-person homage.
+Added optional lordship grants when accepting exiles and enabled grants to landless vassal clan leaders.
+Improved compatibility of lordship's tax revenue and HAP's tax inneficiency feature.
+Fixed companions without a valid lordship to receive becoming stranded when relieved of command on loading saves from before the lordship feature.
+Fixed lordship requirements incorrectly blocking caravan and convoy leadership.
+Adjusted tooltip text on form new party button to specify you need a valid family member or companion holding a lordship.
+Fixed Encyclopedia Extender’s Perks section overlapping enemy portraits in the hero encyclopedia.
+Fixed premature lordship finance patching that could cause startup crashes and improved compatibility with older UIExtenderEx versions.
+Fixed a wrong dialogue loop when canceling lordship grants, revocations, or returns.
