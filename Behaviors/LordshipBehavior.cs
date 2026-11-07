@@ -22,6 +22,7 @@ namespace BellumCivile.Behaviors
         private bool _ready;
         private bool _retirementQueued;
         private bool _retirementRepairPending;
+        private List<Hero> _retirementRepairCandidates;
         private bool _realmCheckPending;
         private Campaign _campaign;
         private readonly Dictionary<Settlement, PersonalLordshipRecord> _byVillage = new Dictionary<Settlement, PersonalLordshipRecord>();
@@ -95,13 +96,17 @@ namespace BellumCivile.Behaviors
             }
             _ready = true;
             _retirementRepairPending = true;
+            _retirementRepairCandidates = null;
             _realmCheckPending = true;
             Patches.FeudalTitleHeroNamePatch.InvalidateCache();
+            var disbanding = Campaign.Current.GetCampaignBehavior<IDisbandPartyCampaignBehavior>();
             foreach (Clan clan in Clan.All.Where(c => c != Clan.PlayerClan && HouseholdMembership.Supports(c)))
                 foreach (Hero hero in HouseholdMembership.Members(clan).Where(h => h.IsAlive
-                    && (h.GovernorOf != null || h.PartyBelongedTo?.IsLordParty == true && h.PartyBelongedTo.LeaderHero == h)))
+                    && (h.GovernorOf != null || h.PartyBelongedTo?.IsLordParty == true && h.PartyBelongedTo.LeaderHero == h
+                        && !IsRetiringParty(h.PartyBelongedTo, disbanding))))
                     EnsureAppointmentGrant(hero);
-            foreach (var record in _appointments.Where(a => a?.IsCurrent == true && !a.PlayerTransition && !a.Retirement).ToList())
+            foreach (var record in _appointments.Where(a => a?.IsCurrent == true && !a.PlayerTransition && !a.Retirement
+                && (a.Party == null || !IsRetiringParty(a.Party, disbanding))).ToList())
                 EnsureAppointmentGrant(record.Hero);
             Maintain();
         }
@@ -224,7 +229,8 @@ namespace BellumCivile.Behaviors
         internal void CheckAppointment(Hero member)
         {
             if (!_ready || !HouseholdMembership.IsRetainer(member) || GetGrant(member) != null) return;
-            bool commandsParty = member.PartyBelongedTo?.IsLordParty == true && member.PartyBelongedTo.LeaderHero == member;
+            bool commandsParty = member.PartyBelongedTo?.IsLordParty == true && member.PartyBelongedTo.LeaderHero == member
+                && !IsRetiringParty(member.PartyBelongedTo, Campaign.Current?.GetCampaignBehavior<IDisbandPartyCampaignBehavior>());
             if (member.Clan != Clan.PlayerClan && (member.GovernorOf != null || commandsParty)
                 && EnsureAppointmentGrant(member)) return;
             if (member.GovernorOf != null && !HasLegacyAppointment(member, town: member.GovernorOf))
@@ -300,14 +306,10 @@ namespace BellumCivile.Behaviors
                 if (party != null)
                 {
                     if (!CanRetireParty(party)) continue;
-                    if (party.ActualClan == Clan.PlayerClan)
-                    {
-                        // Match the native clan screen: release the hero before disbanding the remaining troops.
-                        party.RemovePartyLeader();
-                        if (party.LeaderHero != null) continue;
-                        MakeHeroFugitiveAction.Apply(record.Hero);
-                    }
+                    // Release NPC commanders too: native destinationless cleanup otherwise destroys their party twice.
+                    if (!ReleaseRetiredCommander(record.Hero, party)) continue;
                     DisbandPartyAction.StartDisband(party);
+                    BellumCivileLogger.Log($"Retired unendowed lordship commander; hero={record.Hero.StringId}; party={party.StringId}; clan={record.OwningClan.StringId}.");
                 }
                 else if (record.Town != null && !record.Town.Settlement.IsUnderSiege)
                     ChangeGovernorAction.RemoveGovernorOf(record.Hero);
@@ -316,27 +318,53 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private static bool CanRetireParty(MobileParty party) => party.IsLordParty && !party.IsMainParty
+        private static bool CanRetireParty(MobileParty party) => party.IsActive && party.IsLordParty && !party.IsMainParty
             && party.MapEvent == null && party.SiegeEvent == null && !party.IsCurrentlyAtSea && party.Army == null
             && party.CurrentSettlement?.IsUnderSiege != true;
 
+        private static bool IsRetiringParty(MobileParty party, IDisbandPartyCampaignBehavior disbanding) =>
+            party.IsDisbanding || disbanding?.IsPartyWaitingForDisband(party) == true;
+
+        private static bool ReleaseRetiredCommander(Hero hero, MobileParty party)
+        {
+            if (party.LeaderHero == hero) party.RemovePartyLeader();
+            if (!party.IsActive || party.LeaderHero != null) return false;
+            if (hero.PartyBelongedTo == party) MakeHeroFugitiveAction.Apply(hero);
+            return party.IsActive && party.ActualClan != null && party.LeaderHero == null && hero.PartyBelongedTo != party;
+        }
+
+        private bool IsRetirementRepairCandidate(Hero hero, IDisbandPartyCampaignBehavior disbanding)
+        {
+            var party = hero?.PartyBelongedTo;
+            if (hero?.IsActive != true || !HouseholdMembership.IsRetainer(hero) || GetGrant(hero) != null
+                || party?.IsActive != true || !party.IsLordParty || party.IsMainParty || party.ActualClan != hero.Clan
+                || party.Party.Owner != hero || hero.CharacterObject == null || !party.MemberRoster.Contains(hero.CharacterObject)
+                || !IsRetiringParty(party, disbanding)) return false;
+            return hero.Clan == Clan.PlayerClan ? party.LeaderHero == null
+                : party.LeaderHero == hero && !HasLegacyAppointment(hero, party: party);
+        }
+
         private bool RepairRetiredCommanders()
         {
-            bool deferred = false;
             var disbanding = Campaign.Current?.GetCampaignBehavior<IDisbandPartyCampaignBehavior>();
-            foreach (Hero hero in HouseholdMembership.Members(Clan.PlayerClan).ToList())
+            if (_retirementRepairCandidates == null)
             {
-                var party = hero.PartyBelongedTo;
-                if (!hero.IsActive || !HouseholdMembership.IsRetainer(hero) || GetGrant(hero) != null
-                    || party?.IsLordParty != true || party.IsMainParty || party.ActualClan != Clan.PlayerClan
-                    || party.LeaderHero != null || party.Party.Owner != hero
-                    || hero.CharacterObject == null || !party.MemberRoster.Contains(hero.CharacterObject)
-                    || (!party.IsDisbanding && disbanding?.IsPartyWaitingForDisband(party) != true)) continue;
-                if (!CanRetireParty(party)) { deferred = true; continue; }
-                MakeHeroFugitiveAction.Apply(hero);
-                BellumCivileLogger.Log($"Repaired retired lordship commander attached to a leaderless disbanding party; hero={hero.StringId}; party={party.StringId}.");
+                // Scan campaign parties once after load; only unsafe candidates remain for later retries.
+                var candidates = new HashSet<Hero>(HouseholdMembership.Members(Clan.PlayerClan));
+                foreach (var party in MobileParty.All)
+                    if (party.IsLordParty && party.ActualClan != Clan.PlayerClan && party.LeaderHero != null)
+                        candidates.Add(party.LeaderHero);
+                _retirementRepairCandidates = candidates.Where(h => IsRetirementRepairCandidate(h, disbanding)).ToList();
             }
-            return deferred;
+            foreach (Hero hero in _retirementRepairCandidates.ToList())
+            {
+                if (!IsRetirementRepairCandidate(hero, disbanding)) { _retirementRepairCandidates.Remove(hero); continue; }
+                var party = hero.PartyBelongedTo;
+                if (!CanRetireParty(party) || !ReleaseRetiredCommander(hero, party)) continue;
+                _retirementRepairCandidates.Remove(hero);
+                BellumCivileLogger.Log($"Repaired retired lordship commander attached to a disbanding party; hero={hero.StringId}; party={party.StringId}; clan={hero.Clan?.StringId ?? "none"}.");
+            }
+            return _retirementRepairCandidates.Count > 0;
         }
 
         private void OnTick(float dt)
