@@ -50,7 +50,13 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--lordship-dialogues"))
+            if (args.Contains("--spouse-visit-guard"))
+            {
+                PregnancyVisitGuardTests.Run(Check);
+                TestHouseholdFoundation();
+                Console.WriteLine($"{_checks} spouse visit guard checks passed.");
+            }
+            else if (args.Contains("--lordship-dialogues"))
             {
                 LordshipDialogueFlowTests.Run(Check);
                 Console.WriteLine($"{_checks} lordship dialogue flow checks passed.");

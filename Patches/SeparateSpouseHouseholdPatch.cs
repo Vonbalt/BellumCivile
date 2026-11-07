@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
@@ -43,11 +44,20 @@ namespace BellumCivile.Patches
     [HarmonyPatch(typeof(PregnancyCampaignBehavior), "CheckAreNearby")]
     public static class ConsistentSpouseVisitPatch
     {
+        private static readonly ConditionalWeakTable<Campaign, HashSet<Hero>> ReportedClanlessVisits
+            = new ConditionalWeakTable<Campaign, HashSet<Hero>>();
+
         [HarmonyPrefix]
         public static bool Prefix(Hero hero, Hero spouse, ref bool __result)
         {
             __result = false;
             if (hero?.IsAlive != true || spouse?.IsAlive != true) return false;
+            // The native pregnancy model dereferences this woman's clan before calculating her chance.
+            if (hero.Clan == null)
+            {
+                ReportClanlessVisit(hero, spouse);
+                return false;
+            }
             bool captive = hero.IsPrisoner || spouse.IsPrisoner;
             bool hostile = hero.MapFaction != null && spouse.MapFaction != null
                 && hero.MapFaction.IsAtWarWith(spouse.MapFaction);
@@ -61,6 +71,19 @@ namespace BellumCivile.Patches
 
         internal static bool IsVisitEligible(bool captive, bool hostile, bool together, float roll) =>
             !captive && !hostile && (together || roll < 0.2f);
+
+        private static void ReportClanlessVisit(Hero hero, Hero spouse)
+        {
+            var campaign = Campaign.Current;
+            if (campaign != null && !ReportedClanlessVisits.GetValue(campaign, _ => new HashSet<Hero>()).Add(hero)) return;
+            BellumCivileLogger.Log("[SPOUSE-VISIT] skipped=missing_pregnancy_clan; "
+                + Describe("hero", hero) + "; " + Describe("spouse", spouse) + "; pregnancy_and_household_unchanged=true");
+            BellumCivileLogger.Flush();
+        }
+
+        private static string Describe(string role, Hero hero) =>
+            $"{role}={hero?.StringId ?? "null"}; {role}_clan={hero?.Clan?.StringId ?? "null"}; "
+            + $"{role}_companion_of={hero?.CompanionOf?.StringId ?? "null"}; {role}_occupation={hero?.CharacterObject?.Occupation.ToString() ?? "null"}";
 
         private static void GetLocation(Hero hero, out Settlement settlement, out MobileParty party)
         {
