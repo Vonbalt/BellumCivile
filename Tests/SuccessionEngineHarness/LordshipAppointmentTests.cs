@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
+using Helpers;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
@@ -51,6 +52,22 @@ internal static class LordshipAppointmentTests
     private static string _unsafe;
     private static bool _nativeDeny, _throwCommand;
     private static int _starts, _fugitives, _asserts, _grantAttempts;
+    private static MBReadOnlyList<MobileParty> _allParties = new MBReadOnlyList<MobileParty>();
+    private static int _partyScans, _destroyCalls;
+    private static bool _destroyedWithoutClan;
+    private static bool AllParties(ref MBReadOnlyList<MobileParty> __result) { _partyScans++; __result = _allParties; return false; }
+    private static bool Elapsed(ref float __result) { __result = 1; return false; }
+    private static bool NoSettlement(ref Settlement __result) { __result = null; return false; }
+    private static bool Destroy(MobileParty destroyedParty)
+    {
+        _destroyCalls++;
+        _destroyedWithoutClan |= destroyedParty.ActualClan == null;
+        // Exercise native clan-cache finalization, substituting only the engine removal that follows it.
+        Call(typeof(WarPartyComponent), "OnFinalize", destroyedParty.LordPartyComponent);
+        destroyedParty.IsActive = false;
+        Set(destroyedParty, "_actualClan", null);
+        return false;
+    }
     private static readonly Type Eligibility = typeof(LordshipBehavior).Assembly.GetType("BellumCivile.LordshipEligibility", true);
     private static readonly Type PatchType = typeof(LordshipBehavior).Assembly.GetType("BellumCivile.Patches.LordshipAppointmentPatches", true);
     private static readonly Type Household = typeof(LordshipBehavior).Assembly.GetType("BellumCivile.HouseholdMembership", true);
@@ -131,6 +148,7 @@ internal static class LordshipAppointmentTests
             Patch(typeof(CampaignTime), "Now", nameof(Now));
             Patch(typeof(CampaignTime), "DaysFromNow", nameof(DaysFromNow), false);
             Patch(typeof(Clan), "PlayerClan", nameof(Player)); Patch(typeof(MobileParty), "MainParty", nameof(MainParty));
+            Patch(typeof(MobileParty), "All", nameof(AllParties));
             Patch(typeof(Hero), "MainHero", nameof(MainHero));
             Patch(typeof(Hero), "Clan", nameof(ClanOf)); Patch(typeof(Clan), "Heroes", nameof(ClanMembers)); Patch(typeof(Clan), "Companions", nameof(ClanMembers));
             Patch(typeof(Clan), "Fiefs", nameof(EmptyFiefs)); Patch(typeof(Hero), "IsChild", nameof(No)); Patch(typeof(Hero), "IsNotable", nameof(No));
@@ -256,6 +274,8 @@ internal static class LordshipAppointmentTests
                 Set(_retainer, "_partyBelongedTo", null); Set(_retainer, "_heroState", Hero.CharacterStates.Active);
                 _unsafe = null; _starts = _fugitives = _asserts = 0; _disband = new DisbandPartyCampaignBehavior(); appointments.Clear();
                 _party = Party(_retainer);
+                _allParties = new MBReadOnlyList<MobileParty>(new List<MobileParty> { _party });
+                AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairCandidates").SetValue(registry, null);
             }
             Reset();
             // Reproduce the old path with native actions, before invoking Bellum's focused repair.
@@ -320,6 +340,96 @@ internal static class LordshipAppointmentTests
             _unsafe = null; Call(typeof(LordshipBehavior), "Maintain", registry);
             check(_retainer.IsFugitive && !(bool)AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairPending").GetValue(registry),
                 "The deferred load repair completes safely and stops scanning afterward");
+
+            void ResetNpc()
+            {
+                Set(npcRetainer, "_partyBelongedTo", null); Set(npcRetainer, "_heroState", Hero.CharacterStates.Active);
+                npcRetainer.Father = null; Call(Household, "Invalidate", null, new object[] { null });
+                _unsafe = null; _endowed = null; _starts = _fugitives = _asserts = _partyScans = 0;
+                _disband = new DisbandPartyCampaignBehavior(); appointments.Clear();
+                _party = Party(npcRetainer);
+                Set(_npc, "_warPartyComponentsCache", new MBList<WarPartyComponent> { _party.LordPartyComponent });
+                _allParties = new MBReadOnlyList<MobileParty>(new List<MobileParty> { _party });
+                AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairCandidates").SetValue(registry, null);
+            }
+            ResetNpc();
+            appointments.Add(new LordshipAppointmentRecord { Hero = npcRetainer, Party = _party,
+                OwningClan = _npc, Retirement = true, Deadline = 0 });
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == null && npcRetainer.IsFugitive && npcRetainer.PartyBelongedTo == null
+                && _party.MemberRoster.TotalManCount == 12 && Members[_npc].Contains(npcRetainer)
+                && _disband.IsPartyWaitingForDisband(_party) && _starts == 1 && _asserts == 0,
+                "NPC retirement releases its commander before native troop disbandment, retaining the hero and soldiers");
+            h.Patch(AccessTools.Method(typeof(DestroyPartyAction), "ApplyInternal"),
+                prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), nameof(Destroy)));
+            h.Patch(AccessTools.Method(typeof(MobilePartyHelper), "GetCurrentSettlementOfMobilePartyForAICalculation"),
+                prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), nameof(NoSettlement)));
+            Patch(typeof(CampaignTime), "ElapsedDaysUntilNow", nameof(Elapsed));
+            Patch(typeof(CharacterObject), "IsPlayerCharacter", nameof(No));
+            _party.IsDisbanding = true; _destroyCalls = 0; _destroyedWithoutClan = false;
+            Call(typeof(DisbandPartyCampaignBehavior), "CheckDisbandedPartyDaily", _disband, _party, null);
+            check(_destroyCalls == 1 && !_destroyedWithoutClan && _npc.WarPartyComponents.Count == 0,
+                "Native destinationless daily cleanup destroys the retired NPC party once and finalizes its clan cache safely");
+
+            ResetNpc();
+            foreach (var troop in _party.MemberRoster.GetTroopRoster().Where(t => !t.Character.IsHero).ToList())
+                _party.MemberRoster.RemoveTroop(troop.Character, troop.Number);
+            _destroyCalls = 0; _destroyedWithoutClan = false;
+            appointments.Add(new LordshipAppointmentRecord { Hero = npcRetainer, Party = _party, OwningClan = _npc, Retirement = true });
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(npcRetainer.IsFugitive && Members[_npc].Contains(npcRetainer) && _destroyCalls == 1
+                && !_destroyedWithoutClan && !_party.IsActive && appointments.Count == 0,
+                "Retiring a commander-only NPC party safely destroys the empty party once");
+
+            ResetNpc(); DisbandPartyAction.StartDisband(_party); _grantAttempts = 0;
+            Call(typeof(LordshipBehavior), "CheckAppointment", registry, npcRetainer);
+            check(_grantAttempts == 0 && appointments.Count == 0,
+                "An already disbanding NPC command is not mistaken for a fresh appointment needing an automatic grant");
+            Call(typeof(DisbandPartyCampaignBehavior), "OnPartyDisbandCanceled", _disband, _party);
+            _party.IsDisbanding = true;
+            Call(typeof(LordshipBehavior), "RepairRetiredCommanders", registry);
+            check(_party.LeaderHero == null && npcRetainer.IsFugitive && _party.IsDisbanding && _starts == 1,
+                "The load repair also handles the active disband phase after native waiting has expired");
+
+            ResetNpc(); DisbandPartyAction.StartDisband(_party);
+            check(_party.LeaderHero == npcRetainer && npcRetainer.PartyBelongedTo == _party,
+                "Native NPC disbandment reproduces the old attached-commander save state");
+            _unsafe = "battle";
+            Set(registry, "_retirementRepairPending", true); Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == npcRetainer && _partyScans == 1
+                && (bool)AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairPending").GetValue(registry),
+                "The one-off NPC repair records an unsafe candidate without removing its commander");
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_partyScans == 1, "Deferred repair rechecks its candidate list without rescanning every campaign party");
+            _unsafe = null; Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == null && npcRetainer.IsFugitive && npcRetainer.PartyBelongedTo == null
+                && _party.MemberRoster.TotalManCount == 12 && _partyScans == 1 && _starts == 1
+                && !(bool)AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairPending").GetValue(registry),
+                "Affected NPC save repair releases the commander once without restarting disbandment");
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_fugitives == 1 && _partyScans == 1, "Completed NPC repair stops running on later hourly maintenance");
+
+            foreach (string excluded in new[] { "normal", "family", "commercial", "foreign", "endowed", "legacy", "other_owner", "missing_roster", "inactive" })
+            {
+                ResetNpc();
+                if (excluded != "normal") DisbandPartyAction.StartDisband(_party);
+                if (excluded == "family") { npcRetainer.Father = npcLeader; Call(Household, "Invalidate", null, new object[] { null }); }
+                if (excluded == "commercial") { Set(_party, "IsLordParty", false); Set(_party, "IsCaravan", true); }
+                if (excluded == "foreign") Set(_party, "_actualClan", _player);
+                if (excluded == "endowed") _endowed = npcRetainer;
+                if (excluded == "legacy") appointments.Add(new LordshipAppointmentRecord { Hero = npcRetainer, Party = _party, OwningClan = _npc });
+                if (excluded == "other_owner") Set(_party.LordPartyComponent, "Owner", npcLeader);
+                if (excluded == "missing_roster") { _party.MemberRoster.RemoveTroop(npcRetainer.CharacterObject); Set(npcRetainer, "_partyBelongedTo", _party); }
+                if (excluded == "inactive") _party.IsActive = false;
+                Call(typeof(LordshipBehavior), "RepairRetiredCommanders", registry);
+                check(npcRetainer.IsActive && _fugitives == 0, "NPC save repair leaves unrelated or protected commands alone: " + excluded);
+            }
+            ResetNpc(); DisbandPartyAction.StartDisband(_party); _unsafe = "battle";
+            Set(registry, "_retirementRepairPending", true); Call(typeof(LordshipBehavior), "Maintain", registry);
+            _endowed = npcRetainer; _unsafe = null; Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(npcRetainer.IsActive && _fugitives == 0 && _partyScans == 1
+                && !(bool)AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairPending").GetValue(registry),
+                "A deferred NPC repair revalidates an endowment received before it became safe to release the commander");
         }
         finally
         {
