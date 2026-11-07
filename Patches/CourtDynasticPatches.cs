@@ -33,6 +33,14 @@ namespace BellumCivile.Patches
     {
         private static void Postfix(Clan clan1, Clan clan2, ref bool __result)
         {
+            // Native parent-clan checks also see clan-born retainers; do not restore an excluded employer tie.
+            if (__result && MarriageAllianceBehavior.Instance != null
+                && HouseholdMembership.Supports(clan1) && HouseholdMembership.Supports(clan2))
+            {
+                __result = MarriageAllianceHelper.HasMarriageAlliance(clan1, clan2)
+                    || MarriageAllianceBehavior.Instance.HasUnexcludedNativeMarriage(clan1, clan2);
+                return;
+            }
             if (__result || clan1 == null || clan2 == null || clan1 == clan2) return;
             if (clan1.Kingdom?.RulingClan != clan1 || clan2.Kingdom?.RulingClan != clan2) return;
             if (CourtAgendaBehavior.Current?.HasDynasticAllianceContext(clan1.Kingdom, clan2.Kingdom) == true)

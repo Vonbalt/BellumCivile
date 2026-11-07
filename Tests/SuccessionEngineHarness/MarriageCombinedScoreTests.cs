@@ -43,7 +43,7 @@ internal static class MarriageCombinedScoreTests
             prefix: new HarmonyMethod(typeof(MarriageCombinedScoreTests), method));
         void Zero(MethodInfo target) => Patch(target, target.ReturnType == typeof(int) ? nameof(ZeroInt) : nameof(ZeroFloat));
         void Near(float actual, float expected, string label) => check(Math.Abs(actual - expected) < .001f, label);
-        float[] Scores(float riskA, float riskB, bool domestic = true, bool fertile = true)
+        float[] Scores(float riskA, float riskB, bool domestic = true, bool fertile = true, float staffRisk = 0)
         {
             var context = FormatterServices.GetUninitializedObject(contextType);
             foreach (string fieldName in new[] { "Realms", "_health", "CrownHeirs" })
@@ -58,6 +58,7 @@ internal static class MarriageCombinedScoreTests
             {
                 var snapshot = FormatterServices.GetUninitializedObject(healthType);
                 AccessTools.Field(healthType, "Risk").SetValue(snapshot, clan == _a ? riskA : riskB);
+                AccessTools.Field(healthType, "ManpowerRisk").SetValue(snapshot, clan == _a ? staffRisk : 0);
                 health[clan] = snapshot;
             }
             var outcome = FormatterServices.GetUninitializedObject(outcomeType);
@@ -74,6 +75,8 @@ internal static class MarriageCombinedScoreTests
         {
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), nameof(House));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Age"), nameof(Age));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "IsChild"), nameof(No));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "IsDisabled"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Tier"), nameof(Tier));
             Zero(AccessTools.Method(typeof(Clan), "GetRelationWithClan"));
             Zero(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }));
@@ -116,8 +119,22 @@ internal static class MarriageCombinedScoreTests
                 "Endangered donor protects its line despite the same political opportunity");
             _politicsA = _politicsB = 0; _familyB = false;
             var retainer = Scores(0, 0);
-            Near(retainer[0], 70, "An otherwise identical offer for a player retainer loses 25 NPC acceptance points");
-            Near(retainer[1], 50, "Retainer marriages remain scored but do not invent the employer's bloodline continuity");
+            Near(retainer[0], 70, "A healthy family retains mixed-status reluctance without employer political benefits");
+            Near(retainer[1], 95, "A retainer can accept an ordinary mixed marriage without inventing employer bloodline continuity");
+            var mixedSurvival = Scores(1, 0);
+            Near(mixedSurvival[0], 195, "Endangered family can relax mixed-status reluctance for real bloodline continuity");
+            Near(mixedSurvival[1], 95, "The retainer's consent does not borrow the other house's desperation");
+            Near(Scores(0, 0, staffRisk: 1)[0], 100,
+                "A real service shortage can make a healthy family value an incoming retainer without inventing dynasty risk");
+            _familyA = _familyB = false;
+            var household = Scores(0, 0);
+            Near(household[0], 100, "An ordinary retainer pair passes consent through household value, not political fiction");
+            Near(household[1], 100, "Both retainer houses independently accept a neutral, suitable same-status match");
+            _politicsA = _politicsB = 100;
+            _tierA = 6; _tierB = 1;
+            var employer = Scores(0, 0);
+            Near(employer[0], 100, "The retainer's employer tier and royal politics cannot restore a dynastic penalty or bonus");
+            Near(employer[1], 100, "Marrying a retainer of a powerful house does not grant employer-house prestige");
         }
         finally { harmony.UnpatchAll(harmony.Id); }
     }

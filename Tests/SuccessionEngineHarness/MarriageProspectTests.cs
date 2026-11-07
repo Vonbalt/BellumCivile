@@ -15,6 +15,8 @@ internal static class MarriageProspectTests
     private static object _acceptedMatch;
     private static Clan _evaluatedDestination;
     private static bool _ready, _engaged, _eligible;
+    private static readonly HashSet<Hero> Family = new HashSet<Hero>();
+    private static bool IsFamily(Hero hero, ref bool __result) { __result = Family.Contains(hero); return false; }
     private static bool Day(ref int __result) { __result = _day; return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
@@ -131,6 +133,40 @@ internal static class MarriageProspectTests
                 check(Active(), "Nested discovery retains the outer scope");
             }
             check(!Active(), "Discovery scope restores ordinary marriage checks");
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(IsFamily));
+            Family.Clear(); Family.Add(first);
+            var third = Blank<Hero>(); var fourth = Blank<Hero>();
+            Houses[third] = a; Houses[fourth] = b;
+            _ready = false;
+            var dynasty = Add(); dynasty.OpportunityRecorded = true;
+            var household = new PendingMarriageProspect { Sponsor = a, First = third, Second = fourth,
+                FirstHouse = a, SecondHouse = b, Destination = a, ExpiresDay = _day + 30,
+                HouseholdOpportunity = true, OpportunityRecorded = true };
+            records.Add(household);
+            AccessTools.Field(typeof(StrategicMarriageBehavior), "_prospectByHero").SetValue(behavior, null);
+            bool Household() => (bool)AccessTools.Method(typeof(StrategicMarriageBehavior), "ProcessHouseholdMarriageProspect")
+                .Invoke(behavior, new object[] { a });
+            check(Process() && Household() && records.Count == 2 && dynasty.NextAttemptDay == _day + 3
+                && household.NextAttemptDay == _day + 3, "One clan can retain independent delayed dynasty and household prospects");
+            _day += 3; _ready = true;
+            AccessTools.Field(outcomeType, "<Destination>k__BackingField").SetValue(outcome, a);
+            _acceptedMatch = Activator.CreateInstance(matchType, true);
+            AccessTools.PropertySetter(matchType, "Outcome").Invoke(_acceptedMatch, new[] { outcome });
+            AccessTools.PropertySetter(matchType, "Suitor").Invoke(_acceptedMatch, new object[] { third });
+            check(Household() && records.Count == 1 && records[0] == dynasty && _completed == 2,
+                "Resuming household wedding does not remove the separate dynasty prospect");
+            var receipts = (Dictionary<string, int>)AccessTools.Field(typeof(StrategicMarriageBehavior), "_lastHouseholdEvaluationYear").GetValue(behavior);
+            check(receipts[a.StringId] == _day / 24 && (bool)AccessTools.Field(matchType, "HouseholdOpportunity").GetValue(_acceptedMatch),
+                "Resumed household marriage consumes its own saved annual opportunity");
+            records.Clear(); Family.Clear();
+            var legacy = Add();
+            AccessTools.Method(typeof(StrategicMarriageBehavior), "MigrateMarriageProspectPurposes").Invoke(behavior, null);
+            check(legacy.OpportunityRecorded && legacy.HouseholdOpportunity,
+                "Legacy retainer prospect is classified once rather than consuming a new dynasty slot");
+            Family.Add(first);
+            AccessTools.Method(typeof(StrategicMarriageBehavior), "MigrateMarriageProspectPurposes").Invoke(behavior, null);
+            check(legacy.HouseholdOpportunity && Household() && records.Count == 0,
+                "Changed family standing cancels saved prospect terms instead of silently switching opportunity purpose");
         }
         finally { h.UnpatchAll(h.Id); }
     }

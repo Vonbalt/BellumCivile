@@ -317,6 +317,12 @@ internal static class Program
                 MarriageCombinedScoreTests.Run(Check);
                 Console.WriteLine($"{_checks} retainer marriage checks passed.");
             }
+            else if (args.Contains("--marriage-revision"))
+            {
+                MarriageRevisionTests.Run(Check);
+                MarriageMatchmakingTests.Run(Check);
+                Console.WriteLine($"{_checks} marriage revision checks passed.");
+            }
             else if (args.Contains("--marriage-households"))
             {
                 MarriageHouseholdTests.Run(Check);

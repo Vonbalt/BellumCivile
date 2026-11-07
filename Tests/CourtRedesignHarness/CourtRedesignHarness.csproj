@@ -15,6 +15,7 @@
     <Compile Include="CouncilSelectionSimulation.cs" />
     <Compile Include="MarriageStrategySimulation.cs" />
     <Compile Include="../../Behaviors/MarriageHealthRules.cs" Link="MarriageHealthRules.cs" />
+    <Compile Include="../../BellumCivileConstants.cs" Link="BellumCivileConstants.cs" />
     <Compile Include="MarriageHealthTests.cs" />
     <Compile Include="../../Behaviors/MarriagePoliticalRules.cs" Link="MarriagePoliticalRules.cs" />
     <Compile Include="MarriagePoliticalTests.cs" />

@@ -21,6 +21,8 @@ namespace BellumCivile.Behaviors
         public bool HasRoyalPolitics { get; set; }
         public bool HasForeignPolitics { get; set; }
         public List<string> Reasons { get; } = new List<string>();
+        internal bool HouseholdOpportunity;
+        internal string PairClass;
     }
 
     internal enum BellumMarriageRejectionReason
@@ -157,19 +159,19 @@ namespace BellumCivile.Behaviors
             if (clan == null || clan.IsEliminated || clan.IsClanTypeMercenary || clan.IsMinorFaction || clan.IsBanditFaction)
                 return 0f;
 
-            List<Hero> adultNobles = HouseholdMembership.Members(clan)
-                .Where(h => h.IsAlive && MarriageParticipantPolicy.IsParticipant(h) && !h.IsChild && HouseholdMembership.IsFamily(h))
-                .ToList();
+            return DynasticNeedFromHealth(clan, AssessHouseHealth(clan));
+        }
 
-            int childCount = HouseholdMembership.Members(clan).Count(h => h.IsAlive && h.IsChild && HouseholdMembership.IsFamily(h));
+        private static float DynasticNeedFromHealth(Clan clan, HouseHealth health)
+        {
             float score = 0f;
 
-            if (!HasHouseholdFertileCouple(clan))
+            if (!health.HasFertileCouple)
                 score += C.MarriageNeedNoFertileCouple;
 
-            if (adultNobles.Count <= 1)
+            if (health.BloodAdults <= 1)
                 score += C.MarriageNeedOneAdultNoble;
-            else if (adultNobles.Count <= 2)
+            else if (health.BloodAdults <= 2)
                 score += C.MarriageNeedFewAdultNobles;
 
             Hero leader = clan.Leader;
@@ -181,7 +183,7 @@ namespace BellumCivile.Behaviors
                     score += C.MarriageNeedOldLeader;
             }
 
-            if (childCount == 0)
+            if (health.Children == 0)
                 score += C.MarriageNeedNoChildren;
 
             score += clan.Tier * C.MarriageNeedTierScale;
@@ -196,6 +198,21 @@ namespace BellumCivile.Behaviors
             float dynasticNeed = CalculateDynasticNeed(hero.Clan);
             float chance = C.MarriageStrategyBaseAnnualChance + (dynasticNeed * C.MarriageStrategyDynasticNeedChanceScale);
             return MathF.Clamp(chance, 0f, C.MarriageStrategyMaximumAnnualChance);
+        }
+
+        internal static float CalculateMarriageOpportunity(Hero hero, bool household, out float need)
+        {
+            need = 0;
+            if (hero?.Clan == null) return 0;
+            var health = AssessHouseHealth(hero.Clan);
+            if (household)
+            {
+                need = health.HouseholdNeed;
+                return MarriageHealthRules.HouseholdChance(need);
+            }
+            need = DynasticNeedFromHealth(hero.Clan, health);
+            return MathF.Clamp(C.MarriageStrategyBaseAnnualChance + need * C.MarriageStrategyDynasticNeedChanceScale,
+                0, C.MarriageStrategyMaximumAnnualChance);
         }
 
         public static BellumMarriageMatch FindBestMatch(Hero suitor, FactionManagerBehavior factionManager, DynasticHeirBehavior heirBehavior)

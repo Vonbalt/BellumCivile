@@ -21,6 +21,13 @@ internal static class Program
         if (args.Contains("--favoritism")) { CrownFavoritismPrototype.Run(); return; }
         if (args.Contains("--council-selection")) { CouncilSelectionSimulation.Run(); return; }
         if (args.Contains("--marriage-strategy")) { MarriageStrategySimulation.Run(); return; }
+        if (args.Contains("--marriage-health"))
+        {
+            MarriageHealthTests.Run(Check);
+            MarriagePoliticalTests.Run(Check);
+            Console.WriteLine($"{_checks} pure marriage health and political checks passed.");
+            return;
+        }
         CourtObjectiveFrameworkTests.Run(Check);
         MarriageHealthTests.Run(Check);
         MarriagePoliticalTests.Run(Check);

@@ -18,7 +18,7 @@ namespace BellumCivile
 
             return clan.Heroes.Any(h => h?.IsAlive == true
                                      && h.Spouse?.Clan != null
-                                     && h.Spouse.Clan == alliedClan);
+                                     && h.Spouse.Clan == alliedClan && MarriageParticipantPolicy.IsDynasticPair(h, h.Spouse));
         }
     }
 }

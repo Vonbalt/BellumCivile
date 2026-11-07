@@ -5,6 +5,28 @@ namespace BellumCivile.Behaviors
     // Pure scoring rules; callers supply a snapshot taken once per house/search.
     internal static class MarriageHealthRules
     {
+        private static float Unit(float value) => Math.Max(0, Math.Min(1, value));
+
+        internal static float MixedStatusCost(bool family, bool spouseFamily, float dynastyRisk) =>
+            family && !spouseFamily ? BellumCivileConstants.MarriageScoreRetainerPenalty * (1 - Unit(dynastyRisk)) : 0;
+
+        internal static float HouseholdMarriageValue(bool spouseFamily) => BellumCivileConstants.MarriageHouseholdMarriageValue
+            + (spouseFamily ? 0 : BellumCivileConstants.MarriageHouseholdSameStatusValue);
+
+        internal static float StaffShortage(int adults, int demand) => demand <= 0 ? 0 : Unit((demand - adults) / (float)demand);
+
+        internal static int ServiceCapacity(int freeAdults, int endowed, int unendowed, int vacancies) =>
+            Math.Max(0, freeAdults) + Math.Max(0, endowed) + Math.Min(Math.Max(0, unendowed), Math.Max(0, vacancies));
+
+        internal static float HouseholdNeed(float shortage, int children, float coverage, bool canEndow) =>
+            canEndow ? Unit(shortage) * (children > 0 ? .75f : 1) * (1 - .5f * Unit(coverage)) : 0;
+
+        internal static float HouseholdChance(float need) => BellumCivileConstants.MarriageHouseholdAnnualChance
+            + (BellumCivileConstants.MarriageHouseholdMaximumAnnualChance - BellumCivileConstants.MarriageHouseholdAnnualChance) * Unit(need);
+
+        internal static float StaffDepartureCost(int before, int after, int demand) => after < before
+            ? BellumCivileConstants.MarriageHouseholdStaffLoss * StaffShortage(after, demand) : 0;
+
         internal static float Risk(int adults, int children, int prospects, float reproductiveCoverage)
         {
             float risk = .5f + (adults <= 2 ? .25f : 0) + (children == 0 ? .25f : 0);
