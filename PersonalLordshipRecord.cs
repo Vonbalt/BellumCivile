@@ -51,4 +51,12 @@ namespace BellumCivile
             ? Party.IsLordParty && Party.LeaderHero == Hero && Hero.PartyBelongedTo == Party && Party.ActualClan == OwningClan
             : Town != null && Town.Governor == Hero && Town.OwnerClan == OwningClan);
     }
+
+    public sealed class LordshipCommandTransferRecord
+    {
+        [SaveableField(1)] public MobileParty Party;
+        [SaveableField(2)] public Clan Clan;
+        [SaveableField(3)] public Hero FormerLeader;
+        [SaveableField(4)] public Hero Replacement;
+    }
 }

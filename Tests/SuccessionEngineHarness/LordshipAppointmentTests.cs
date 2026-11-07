@@ -10,6 +10,7 @@ using Helpers;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Party.PartyComponents;
@@ -24,10 +25,23 @@ using TaleWorlds.Localization;
 
 internal static class LordshipAppointmentTests
 {
+    private sealed class Store : IDataStore
+    {
+        internal readonly Dictionary<string, object> Values = new Dictionary<string, object>();
+        public bool IsSaving { get; set; }
+        public bool IsLoading => !IsSaving;
+        public bool SyncData<T>(string key, ref T value)
+        {
+            if (IsSaving) Values[key] = value;
+            else if (Values.TryGetValue(key, out var saved)) value = (T)saved;
+            else value = default;
+            return true;
+        }
+    }
     private sealed class Manager : ICampaignBehaviorManager
     {
-        public T GetBehavior<T>() => _disband is T value ? value : default;
-        public IEnumerable<T> GetBehaviors<T>() => _disband is T value ? new[] { value } : Enumerable.Empty<T>();
+        public T GetBehavior<T>() => _disband is T value ? value : _teleport is T travel ? travel : default;
+        public IEnumerable<T> GetBehaviors<T>() => _disband is T value ? new[] { value } : _teleport is T travel ? new[] { travel } : Enumerable.Empty<T>();
         public void AddBehavior(CampaignBehaviorBase b) { }
         public void RemoveBehavior<T>() where T : CampaignBehaviorBase { }
         public void ClearBehaviors() { }
@@ -41,6 +55,11 @@ internal static class LordshipAppointmentTests
         public override void OnPartyDisbandStarted(MobileParty party)
         { _starts++; Call(typeof(DisbandPartyCampaignBehavior), "OnPartyDisbandStarted", _disband, party); }
         public override void OnCharacterBecameFugitive(Hero hero, bool showNotification) { _fugitives++; }
+        public override void OnHeroTeleportationRequested(Hero hero, Settlement settlement, MobileParty party, TeleportHeroAction.TeleportationDetail detail)
+        {
+            Call(typeof(TeleportationCampaignBehavior), "OnHeroTeleportationRequested", _teleport, hero, settlement, party, detail);
+            Call(typeof(DisbandPartyCampaignBehavior), "OnHeroTeleportationRequested", _disband, hero, settlement, party, detail);
+        }
     }
     private static readonly Dictionary<Hero, Clan> Houses = new Dictionary<Hero, Clan>();
     private static readonly Dictionary<Clan, MBReadOnlyList<Hero>> Members = new Dictionary<Clan, MBReadOnlyList<Hero>>();
@@ -48,6 +67,8 @@ internal static class LordshipAppointmentTests
     private static Hero _retainer, _candidate, _endowed, _playerHero;
     private static MobileParty _party, _main;
     private static DisbandPartyCampaignBehavior _disband;
+    private static TeleportationCampaignBehavior _teleport;
+    private static MultiSelectionInquiryData _replacementInquiry;
     private static float _day;
     private static string _unsafe;
     private static bool _nativeDeny, _throwCommand;
@@ -55,8 +76,20 @@ internal static class LordshipAppointmentTests
     private static MBReadOnlyList<MobileParty> _allParties = new MBReadOnlyList<MobileParty>();
     private static int _partyScans, _destroyCalls;
     private static bool _destroyedWithoutClan;
+    private static int _fundingCalls, _fundingAmount;
     private static bool AllParties(ref MBReadOnlyList<MobileParty> __result) { _partyScans++; __result = _allParties; return false; }
     private static bool Elapsed(ref float __result) { __result = 1; return false; }
+    private static bool HoursFromNow(float __0, ref CampaignTime __result) { __result = CampaignTime.Days(_day + __0 / 24); return false; }
+    private static bool Past(CampaignTime __instance, ref bool __result) { __result = __instance.ToDays < _day; return false; }
+    private static bool Delay(ref ExplainedNumber __result) { __result = new ExplainedNumber(1); return false; }
+    private static bool Yes(ref bool __result) { __result = true; return false; }
+    private static bool Skill(ref int __result) { __result = 100; return false; }
+    private static bool SkillReference(ref SkillObject __result) { __result = null; return false; }
+    private static bool PlayerAvailability(Hero hero, ref bool __result, ref TextObject explanation)
+    { __result = true; explanation = TextObject.GetEmpty(); return false; }
+    private static bool CaptureInquiry(MultiSelectionInquiryData __0) { _replacementInquiry = __0; return false; }
+    private static bool Fund(Hero __0, Hero __1, int __2)
+    { _fundingCalls++; _fundingAmount += __2; __0.Gold -= __2; __1.Gold += __2; return false; }
     private static bool NoSettlement(ref Settlement __result) { __result = null; return false; }
     private static bool Destroy(MobileParty destroyedParty)
     {
@@ -90,6 +123,7 @@ internal static class LordshipAppointmentTests
     private static bool Skip() => false;
     private static bool HeroName(Hero __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
     private static bool ClanName(Clan __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
+    private static bool PartyName(MobileParty __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days(_day); return false; }
     private static bool DaysFromNow(float __0, ref CampaignTime __result) { __result = CampaignTime.Days(_day + __0); return false; }
     private static bool Battle(MobileParty __instance, ref MapEvent __result) { __result = __instance == _party && _unsafe == "battle" ? Blank<MapEvent>() : null; return false; }
@@ -132,6 +166,7 @@ internal static class LordshipAppointmentTests
             var partyBase = Blank<PartyBase>(); Set(partyBase, "MobileParty", party); Set(party, "Party", partyBase);
             Set(partyBase, "MemberRoster", new TroopRoster(partyBase)); Set(partyBase, "PrisonRoster", new TroopRoster(partyBase));
             Set(partyBase, "ItemRoster", new ItemRoster());
+            Set(party, "Ai", FormatterServices.GetUninitializedObject(AccessTools.Property(typeof(MobileParty), "Ai").PropertyType));
             party.MemberRoster.AddToCounts(hero.CharacterObject, 1);
             var soldier = Blank<CharacterObject>(); soldier.StringId = "soldier"; party.MemberRoster.AddToCounts(soldier, 12);
             return party;
@@ -268,6 +303,11 @@ internal static class LordshipAppointmentTests
             var npcParty = Party(npcRetainer, false); _grantAttempts = 0;
             Call(typeof(LordshipBehavior), "CheckAppointment", registry, npcRetainer);
             check(_grantAttempts == 0 && appointments.Count == 0, "An NPC merchant leader neither consumes a lordship nor queues retirement");
+
+            // The original disbandment regressions deliberately have no available replacement.
+            Set(family, "_heroState", Hero.CharacterStates.Disabled);
+            Set(npcLeader, "_heroState", Hero.CharacterStates.Disabled);
+            Patch(typeof(Hero), "IsNoncombatant", nameof(No));
 
             void Reset()
             {
@@ -430,6 +470,217 @@ internal static class LordshipAppointmentTests
             check(npcRetainer.IsActive && _fugitives == 0 && _partyScans == 1
                 && !(bool)AccessTools.Field(typeof(LordshipBehavior), "_retirementRepairPending").GetValue(registry),
                 "A deferred NPC repair revalidates an endowment received before it became safe to release the commander");
+
+            // Keep native transfer actions, saved travel records, arrival dispatch, ownership and rosters intact.
+            var models = Blank<GameModels>(); Set(campaign, "_gameModels", models);
+            Set(models, "DelayedTeleportationModel", new DefaultDelayedTeleportationModel());
+            Set(models, "ClanFinanceModel", Blank<DefaultClanFinanceModel>());
+            Patch(typeof(DefaultDelayedTeleportationModel), "GetTeleportationDelayAsHours", nameof(Delay), false);
+            Patch(typeof(DefaultDelayedTeleportationModel), "CanPerformImmediateTeleport", nameof(Yes), false);
+            Patch(typeof(CampaignTime), "HoursFromNow", nameof(HoursFromNow), false);
+            Patch(typeof(CampaignTime), "IsPast", nameof(Past));
+            Patch(typeof(Hero), "GetSkillValue", nameof(Skill), false);
+            foreach (string skill in new[] { "Tactics", "Leadership", "Scouting", "Steward" })
+                Patch(typeof(DefaultSkills), skill, nameof(SkillReference));
+            Patch(typeof(PartyBase), "SetVisualAsDirty", nameof(Skip), false);
+            Patch(typeof(MobileParty), "Name", nameof(PartyName));
+            Patch(typeof(Settlement), "IsUnderRaid", nameof(No));
+            Patch(typeof(Settlement), "IsUnderSiege", nameof(No));
+            Patch(typeof(MBInformationManager), "ShowMultiSelectionInquiry", nameof(CaptureInquiry), false);
+            Patch(typeof(FactionHelper), "IsMainClanMemberAvailableForPartyLeaderChange", nameof(PlayerAvailability), false);
+            Patch(typeof(GiveGoldAction), "ApplyBetweenCharacters", nameof(Fund), false);
+            h.Patch(AccessTools.Method(typeof(TeleportHeroAction), "ApplyImmediateTeleportToPartyAsPartyLeader"),
+                prefix: new HarmonyMethod(PatchType, "ReplacementArrival"));
+            h.Patch(AccessTools.Method(typeof(DisbandPartyCampaignBehavior), "OnPartyDisbandStarted"),
+                transpiler: new HarmonyMethod(PatchType, "RetirementDisbandCode"));
+            var transfers = (List<LordshipCommandTransferRecord>)AccessTools.Field(typeof(LordshipBehavior), "_commandTransfers").GetValue(registry);
+            var replacementHero = Person(_npc, "npc_replacement"); replacementHero.Father = npcLeader;
+            Call(Household, "Invalidate", null, new object[] { null });
+            void ReplacementReset(bool player = false)
+            {
+                if (player) Reset(); else ResetNpc();
+                transfers.Clear(); _teleport = new TeleportationCampaignBehavior(); _replacementInquiry = null;
+                _day = 30; _grantAttempts = 0; _endowed = null;
+                Set(registry, "_retirementRepairPending", false); Set(registry, "_replacementInquiryOpen", false);
+                Set(registry, "_replacementPromptPending", false);
+                Set(replacementHero, "_heroState", Hero.CharacterStates.Active); Set(replacementHero, "_partyBelongedTo", null);
+                Set(family, "_heroState", player ? Hero.CharacterStates.Active : Hero.CharacterStates.Disabled);
+                Set(family, "_partyBelongedTo", null);
+                var commander = player ? _retainer : npcRetainer;
+                appointments.Add(new LordshipAppointmentRecord { Hero = commander, Party = _party, OwningClan = commander.Clan, Retirement = true });
+            }
+            void Arrive()
+            {
+                _day += 1; Call(typeof(TeleportationCampaignBehavior), "HourlyTick", _teleport);
+                Call(typeof(LordshipBehavior), "Maintain", registry);
+            }
+            ReplacementReset();
+            var troops = _party.MemberRoster; var prisoners = _party.PrisonRoster; var items = _party.ItemRoster;
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(npcRetainer.IsFugitive && _party.LeaderHero == null && replacementHero.IsTraveling
+                && transfers.Count == 1 && appointments.Count == 0 && _starts == 0,
+                "NPC retirement sends an eligible family replacement through native travel instead of disbanding");
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(transfers.Count == 1 && _starts == 0, "A travelling replacement is reserved without duplicate transfers or disbandment");
+            Arrive();
+            check(_party.LeaderHero == replacementHero && _party.Owner == replacementHero && replacementHero.PartyBelongedTo == _party
+                && _party.ActualClan == _npc && _party.MemberRoster.TotalManCount == 13 && npcRetainer.PartyBelongedTo == null
+                && ReferenceEquals(troops, _party.MemberRoster) && ReferenceEquals(prisoners, _party.PrisonRoster)
+                && ReferenceEquals(items, _party.ItemRoster) && transfers.Count == 0 && _starts == 0,
+                "Native arrival preserves the party, troops, prisoners and inventory while changing its leader and owner");
+
+            ReplacementReset(); replacementHero.Father = null; Call(Household, "Invalidate", null, new object[] { null });
+            _endowed = replacementHero; Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(replacementHero.IsTraveling && _grantAttempts == 0, "An already endowed NPC retainer can replace the outgoing commander without a new grant");
+            _endowed = null; Arrive();
+            check(_party.LeaderHero == null && replacementHero.IsFugitive && _starts == 1 && transfers.Count == 0,
+                "A retainer who loses their grant in transit is rejected on arrival and falls back to safe disbandment");
+
+            replacementHero.Father = npcLeader; Call(Household, "Invalidate", null, new object[] { null });
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Houses[replacementHero] = _player; Arrive();
+            check(_party.ActualClan == _npc && _party.LeaderHero == null && replacementHero.IsFugitive && _starts == 1,
+                "A replacement who changes clans while travelling cannot take ownership of the former clan's party");
+            Houses[replacementHero] = _npc; Call(Household, "Invalidate", null, new object[] { null });
+
+            ReplacementReset(); Set(replacementHero, "_heroState", Hero.CharacterStates.Disabled);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_starts == 1 && transfers.Count == 0, "No available replacement retains the existing safe disband fallback");
+
+            ReplacementReset(player: true);
+            Set(family, "Gold", 10000);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_retainer.IsActive && _party.LeaderHero == _retainer && _starts == 0 && transfers.Count == 0,
+                "The player's existing commander remains in place until the player chooses a replacement");
+            check((bool)Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry)
+                && _replacementInquiry.InquiryElements.Count == 1 && _replacementInquiry.InquiryElements[0].Identifier == family,
+                "The player is offered only eligible family members or endowed retainers");
+            _replacementInquiry.AffirmativeAction(new List<InquiryElement> { _replacementInquiry.InquiryElements[0] });
+            check(family.IsTraveling && _retainer.IsFugitive && _starts == 0, "Selecting a player-clan replacement starts native travel without disbanding");
+            Arrive();
+            check(_party.LeaderHero == family && transfers.Count == 0 && _starts == 0,
+                "The selected player-clan commander takes over the existing party");
+
+            ReplacementReset(player: true); family.Gold = 0; _playerHero.Gold = 100000;
+            _fundingCalls = _fundingAmount = 0;
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry);
+            _replacementInquiry.AffirmativeAction(new List<InquiryElement> { _replacementInquiry.InquiryElements[0] });
+            Call(typeof(LordshipBehavior), "Maintain", registry); Arrive();
+            int expectedFunding = models.ClanFinanceModel.PartyGoldLowerThreshold;
+            check(_fundingCalls == 1 && _fundingAmount == expectedFunding && family.Gold == expectedFunding
+                && _playerHero.Gold == 100000 - expectedFunding,
+                "Native-style player funding charges the commander shortfall exactly once, not again during travel or arrival");
+
+            ReplacementReset(player: true); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry);
+            _replacementInquiry.NegativeAction(new List<InquiryElement>());
+            check(_retainer.IsFugitive && _starts == 1 && appointments.Count == 0,
+                "The player can explicitly choose safe disbandment instead of appointing a replacement");
+
+            ReplacementReset(player: true); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry);
+            Set(family, "_heroState", Hero.CharacterStates.Disabled);
+            _replacementInquiry.AffirmativeAction(new List<InquiryElement> { _replacementInquiry.InquiryElements[0] });
+            check(_party.LeaderHero == _retainer && _retainer.IsActive && _starts == 0,
+                "An unavailable selection is revalidated before the outgoing commander is removed");
+
+            ReplacementReset(player: true); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry);
+            _endowed = _retainer;
+            _replacementInquiry.AffirmativeAction(new List<InquiryElement> { _replacementInquiry.InquiryElements[0] });
+            check(_party.LeaderHero == _retainer && !family.IsTraveling && _starts == 0,
+                "Restoring the outgoing retainer's grant while the choice is open invalidates the retirement safely");
+
+            ReplacementReset();
+            _party.MemberRoster.AddToCounts(replacementHero.CharacterObject, 1);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == replacementHero && !replacementHero.IsTraveling && _starts == 0,
+                "A qualified replacement already in the party takes command immediately without a travel gap");
+
+            ReplacementReset();
+            var settlement = Blank<Settlement>(); Set(replacementHero, "_stayingInSettlement", settlement);
+            replacementHero.Father = null; Call(Household, "Invalidate", null, new object[] { null });
+            for (int i = 0; i < 10; i++) _party.MemberRoster.AddToCounts(Blank<CharacterObject>(), 1);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_starts == 1 && !replacementHero.IsTraveling && _disband.IsPartyWaitingForDisband(_party),
+                "Bellum's fallback cannot invoke vanilla's ten-roster-entry rescue to appoint an unendowed retainer");
+            check((bool)Call(PatchType, "NativeDisbandCommander", null, replacementHero, _party),
+                "The scoped disband guard is restored after Bellum's action and leaves unrelated native decisions alone");
+            Set(replacementHero, "_stayingInSettlement", null);
+            replacementHero.Father = npcLeader; Call(Household, "Invalidate", null, new object[] { null });
+
+            foreach (string restriction in new[] { "governor", "other_party", "prisoner", "travelling", "native_denial", "unendowed" })
+            {
+                ReplacementReset();
+                if (restriction == "governor") Set(replacementHero, "GovernorOf", Blank<Town>());
+                if (restriction == "other_party") Party(replacementHero);
+                if (restriction == "prisoner") Set(replacementHero, "_heroState", Hero.CharacterStates.Prisoner);
+                if (restriction == "travelling") Set(replacementHero, "_heroState", Hero.CharacterStates.Traveling);
+                if (restriction == "native_denial") _nativeDeny = true;
+                if (restriction == "unendowed") { replacementHero.Father = null; Call(Household, "Invalidate", null, new object[] { null }); }
+                Call(typeof(LordshipBehavior), "Maintain", registry);
+                check(_starts == 1 && transfers.Count == 0, "Replacement selection respects unavailable commanders: " + restriction);
+                _nativeDeny = false; Set(replacementHero, "GovernorOf", null);
+                replacementHero.Father = npcLeader; Call(Household, "Invalidate", null, new object[] { null });
+            }
+
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            var alternate = Person(_npc, "alternate"); alternate.Father = npcLeader;
+            Call(Household, "Invalidate", null, new object[] { null });
+            Set(replacementHero, "_heroState", Hero.CharacterStates.Dead);
+            Call(typeof(TeleportationCampaignBehavior), "OnHeroKilled", _teleport, replacementHero, null,
+                KillCharacterAction.KillCharacterActionDetail.DiedInBattle, false);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(alternate.IsTraveling && _party.LeaderHero == null && !_disband.IsPartyWaitingForDisband(_party)
+                && !_party.IsDisbanding, "A canceled journey selects another available NPC commander and clears native disband waiting");
+            Arrive();
+            check(_party.LeaderHero == alternate && transfers.Count == 0,
+                "The replacement for a deceased incoming commander safely completes the handover");
+            Set(alternate, "_heroState", Hero.CharacterStates.Disabled); Set(alternate, "_partyBelongedTo", null);
+
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Set(alternate, "_heroState", Hero.CharacterStates.Active);
+            TeleportHeroAction.ApplyDelayedTeleportToPartyAsPartyLeader(alternate, _party);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(transfers.Count == 0 && alternate.IsTraveling && replacementHero.IsFugitive,
+                "A later native replacement order takes precedence without being overwritten by Bellum's retry");
+            Arrive();
+            check(_party.LeaderHero == alternate, "A superseding native appointment reaches its intended party");
+            Set(alternate, "_heroState", Hero.CharacterStates.Disabled); Set(alternate, "_partyBelongedTo", null);
+
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            Set(alternate, "_heroState", Hero.CharacterStates.Active);
+            _party.MemberRoster.AddToCounts(alternate.CharacterObject, 1); _party.ChangePartyLeader(alternate);
+            Arrive();
+            check(_party.LeaderHero == alternate && replacementHero.IsFugitive && _starts == 0,
+                "An incoming commander cannot overwrite a different leader appointed before arrival");
+            Set(alternate, "_heroState", Hero.CharacterStates.Disabled); Set(alternate, "_partyBelongedTo", null);
+
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            _party.IsActive = false;
+            Call(typeof(TeleportationCampaignBehavior), "OnMobilePartyDestroyed", _teleport, _party, null);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(replacementHero.IsFugitive && transfers.Count == 0 && _starts == 0,
+                "Destruction of the destination cancels its saved journey without touching another party");
+
+            ReplacementReset(); Call(typeof(LordshipBehavior), "Maintain", registry);
+            var store = new Store { IsSaving = true }; registry.SyncData(store); _teleport.SyncData(store);
+            var loaded = new LordshipBehavior(); store.IsSaving = false; loaded.SyncData(store);
+            _teleport = new TeleportationCampaignBehavior(); _teleport.SyncData(store);
+            Set(loaded, "_ready", true); Set(loaded, "_campaign", campaign);
+            AccessTools.PropertySetter(typeof(LordshipBehavior), "Instance").Invoke(null, new object[] { loaded });
+            Call(typeof(LordshipBehavior), "Maintain", loaded);
+            check(replacementHero.IsTraveling && _starts == 0 && _party.LeaderHero == null,
+                "Saved handovers resume the native journey without creating a second order or disbanding the party");
+            _day += 1; Call(typeof(TeleportationCampaignBehavior), "HourlyTick", _teleport);
+            Call(typeof(LordshipBehavior), "Maintain", loaded);
+            check(_party.LeaderHero == replacementHero && _starts == 0,
+                "A replacement reaches the same party after the Bellum and native transfer records reload");
+            AccessTools.PropertySetter(typeof(LordshipBehavior), "Instance").Invoke(null, new object[] { registry });
+            var oldSave = new LordshipBehavior(); oldSave.SyncData(new Store());
+            check(AccessTools.Field(typeof(LordshipBehavior), "_commandTransfers").GetValue(oldSave) is List<LordshipCommandTransferRecord> oldTransfers
+                && oldTransfers.Count == 0, "Saves from before handovers initialize an empty transfer list");
         }
         finally
         {

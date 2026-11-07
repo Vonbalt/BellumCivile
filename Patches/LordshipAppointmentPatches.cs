@@ -46,6 +46,8 @@ namespace BellumCivile.Patches
                 Patch(typeof(ChangeGovernorAction), "RemoveGovernorOf", postfix: nameof(AppointmentsChanged));
                 Patch(typeof(MobileParty), "ChangePartyLeader", postfix: nameof(PartyLeaderChanged));
                 Patch(typeof(MobileParty), "RemovePartyLeader", postfix: nameof(AppointmentsChanged));
+                Patch(typeof(DisbandPartyCampaignBehavior), "OnPartyDisbandStarted", transpiler: nameof(RetirementDisbandCode));
+                Patch(typeof(TeleportHeroAction), "ApplyImmediateTeleportToPartyAsPartyLeader", nameof(ReplacementArrival));
                 Patch(typeof(MarriageAction), "Apply", postfix: nameof(FamilyChanged));
                 Patch(typeof(TooltipRefresherCollection), "RefreshHeroTooltip", postfix: nameof(HeroTooltip));
                 var parties = AccessTools.TypeByName("TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories.ClanPartiesVM");
@@ -109,6 +111,31 @@ namespace BellumCivile.Patches
         }
 
         private static bool ActiveCommander(Hero hero) => hero.IsActive && LordshipEligibility.Permitted(hero);
+
+        private static bool ReplacementArrival(Hero heroToBeMoved, MobileParty party)
+            => LordshipBehavior.Instance?.Ready != true || LordshipBehavior.Instance.BeforeReplacementArrival(heroToBeMoved, party);
+
+        private static bool NativeDisbandCommander(Hero hero, MobileParty party) => hero.IsActive
+            && LordshipBehavior.Instance?.BlocksNativeRetirementReplacement(party) != true;
+
+        private static IEnumerable<CodeInstruction> RetirementDisbandCode(IEnumerable<CodeInstruction> instructions)
+        {
+            int checks = 0;
+            foreach (var instruction in instructions)
+            {
+                if (instruction.Calls(AccessTools.PropertyGetter(typeof(Hero), "IsActive")))
+                {
+                    // Only Bellum's own retirement fallback skips vanilla's unfiltered NPC rescue search.
+                    yield return new CodeInstruction(OpCodes.Ldarg_1).WithLabels(instruction.labels);
+                    instruction.labels.Clear();
+                    instruction.opcode = OpCodes.Call;
+                    instruction.operand = AccessTools.Method(typeof(LordshipAppointmentPatches), nameof(NativeDisbandCommander));
+                    checks++;
+                }
+                yield return instruction;
+            }
+            if (checks != 1) throw new InvalidOperationException("Lordship disband replacement contract changed.");
+        }
 
         private static bool FallbackCommander(Hero hero) => ActiveCommander(hero)
             && (LordshipBehavior.Instance?.Ready != true || hero.CanLeadParty());

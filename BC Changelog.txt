@@ -839,3 +839,4 @@ Fixed clan-born children of companions inheriting Wanderer status and becoming e
 Fixed additional spouses being classified as retainers (compatibility with AoC) and stale family status after marriage changes.
 Improved marriage matchmaking to better distinguish dynastic survival from household manpower.
 Fixed a crash when NPC retainer parties disband after losing their lordships, with a targeted repair for affected saves.
+Parties now seek eligible replacement commanders when retainers lose their lordships before outright disbanding them.

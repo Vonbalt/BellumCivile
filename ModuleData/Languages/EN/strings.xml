@@ -7477,5 +7477,10 @@
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipName" text="Pronoia" />
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_Lordship_ReplacementTitle" text="Appoint a New Commander" />
+    <string id="BC_Lordship_ReplacementBody" text="{HERO} must relinquish command of {PARTY}. Choose a new commander to keep the party in the field, or order it disbanded." />
+    <string id="BC_Lordship_ReplacementCost" text="Assigning this commander costs {COST} denars." />
+    <string id="BC_Lordship_ReplacementAppoint" text="Appoint" />
+    <string id="BC_Lordship_ReplacementDisband" text="Disband Party" />
   </strings>
 </base>

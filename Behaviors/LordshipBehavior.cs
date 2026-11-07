@@ -61,11 +61,13 @@ namespace BellumCivile.Behaviors
         {
             store.SyncData("BellumCivile_PersonalLordships", ref _grants);
             store.SyncData("BellumCivile_LordshipAppointments", ref _appointments);
+            store.SyncData("BellumCivile_LordshipCommandTransfers", ref _commandTransfers);
             store.SyncData("BellumCivile_LordshipSchema", ref _schema);
             store.SyncData("BellumCivile_LordshipWarning", ref _warned);
             store.SyncData("BellumCivile_LordshipIncomeCredits", ref _incomeCredits);
             _grants = _grants ?? new List<PersonalLordshipRecord>();
             _appointments = _appointments ?? new List<LordshipAppointmentRecord>();
+            _commandTransfers = _commandTransfers ?? new List<LordshipCommandTransferRecord>();
             _incomeCredits = _incomeCredits ?? new List<LordshipIncomeCredit>();
         }
 
@@ -97,6 +99,8 @@ namespace BellumCivile.Behaviors
             _ready = true;
             _retirementRepairPending = true;
             _retirementRepairCandidates = null;
+            _replacementInquiryOpen = false;
+            _replacementPromptPending = false;
             _realmCheckPending = true;
             Patches.FeudalTitleHeroNamePatch.InvalidateCache();
             var disbanding = Campaign.Current.GetCampaignBehavior<IDisbandPartyCampaignBehavior>();
@@ -297,6 +301,8 @@ namespace BellumCivile.Behaviors
             if (_retirementRepairPending) _retirementRepairPending = RepairRetiredCommanders();
             _realmCheckPending = true;
             Validate();
+            _replacementPromptPending = false;
+            MaintainCommandTransfers();
             foreach (var record in _appointments.ToList())
             {
                 if (record?.IsCurrent != true || !HouseholdMembership.IsRetainer(record.Hero) || GetGrant(record.Hero) != null)
@@ -306,9 +312,17 @@ namespace BellumCivile.Behaviors
                 if (party != null)
                 {
                     if (!CanRetireParty(party)) continue;
+                    var replacement = ReplacementCandidates(party).FirstOrDefault();
+                    if (replacement != null)
+                    {
+                        if (record.OwningClan == Clan.PlayerClan) { _replacementPromptPending = true; continue; }
+                        if (!BeginCommandTransfer(record.Hero, party, replacement)) continue;
+                        _appointments.Remove(record);
+                        continue;
+                    }
                     // Release NPC commanders too: native destinationless cleanup otherwise destroys their party twice.
                     if (!ReleaseRetiredCommander(record.Hero, party)) continue;
-                    DisbandPartyAction.StartDisband(party);
+                    DisbandRetiredParty(party);
                     BellumCivileLogger.Log($"Retired unendowed lordship commander; hero={record.Hero.StringId}; party={party.StringId}; clan={record.OwningClan.StringId}.");
                 }
                 else if (record.Town != null && !record.Town.Settlement.IsUnderSiege)
@@ -379,9 +393,10 @@ namespace BellumCivile.Behaviors
                 _retirementQueued = false;
                 Maintain();
             }
-            if (!_ready || _warned || InformationManager.IsAnyInquiryActive() || Hero.MainHero == null
+            if (!_ready || InformationManager.IsAnyInquiryActive() || Hero.MainHero == null
                 || PlayerEncounter.Current != null || Campaign.Current.CurrentMenuContext != null
                 || Campaign.Current.ConversationManager?.IsConversationInProgress == true) return;
+            if (ShowCommandReplacementInquiry() || _warned) return;
             var pending = _appointments.Where(a => a.PlayerTransition && a.IsCurrent
                 && HouseholdMembership.IsRetainer(a.Hero) && GetGrant(a.Hero) == null).ToList();
             if (pending.Count == 0) { _warned = true; return; }
