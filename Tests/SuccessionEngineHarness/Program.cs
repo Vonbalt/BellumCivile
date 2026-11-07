@@ -63,6 +63,12 @@ internal static class Program
                 TestHouseholdFoundation();
                 Console.WriteLine($"{_checks} companion offspring checks passed.");
             }
+            else if (args.Contains("--household-membership"))
+            {
+                HouseholdMembershipTests.Run(Check, args.FirstOrDefault(a => a.StartsWith("--aoc-dll="))?.Substring("--aoc-dll=".Length));
+                RetainerMarriageTests.Run(Check);
+                Console.WriteLine($"{_checks} household membership checks passed.");
+            }
             else if (args.Contains("--lordship-dialogues"))
             {
                 LordshipDialogueFlowTests.Run(Check);

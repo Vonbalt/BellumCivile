@@ -11,7 +11,7 @@ namespace BellumCivile
         {
             internal Hero Leader, Root;
             internal int Count;
-            internal readonly HashSet<Hero> Family = new HashSet<Hero>();
+            internal readonly HashSet<Hero> BloodFamily = new HashSet<Hero>();
         }
 
         private static readonly Dictionary<Clan, Entry> Cache = new Dictionary<Clan, Entry>();
@@ -46,19 +46,21 @@ namespace BellumCivile
                 {
                     var kin = Ancestors(member);
                     if (member == root || ancestors.Contains(member) || kin.Contains(root) || kin.Overlaps(ancestors))
-                        entry.Family.Add(member);
-                }
-                // Widowed spouses retain their place in the family; divorce alone does not establish kinship.
-                foreach (Hero relative in entry.Family.ToList())
-                {
-                    if (relative.Spouse?.Clan == clan) entry.Family.Add(relative.Spouse);
-                    if (relative.IsDead && relative.ExSpouses != null)
-                        foreach (Hero spouse in relative.ExSpouses)
-                            if (spouse?.Clan == clan) entry.Family.Add(spouse);
+                        entry.BloodFamily.Add(member);
                 }
                 Cache[clan] = entry;
             }
-            return entry.Family.Contains(hero);
+            if (entry.BloodFamily.Contains(hero)) return true;
+            // Marriage mods can change one side's link without changing the clan roster or raising native events.
+            foreach (Hero relative in entry.BloodFamily)
+            {
+                if (relative.Clan != clan) continue;
+                if (relative.Spouse == hero || hero.Spouse == relative) return true;
+                // Preserve widowed family members, but not former spouses of living blood relatives.
+                if (relative.IsDead && (relative.ExSpouses?.Contains(hero) == true
+                    || hero.ExSpouses?.Contains(relative) == true)) return true;
+            }
+            return false;
         }
 
         internal static bool IsBloodRelative(Hero hero, Hero relative)
