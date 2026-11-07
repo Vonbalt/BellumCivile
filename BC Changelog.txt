@@ -837,7 +837,5 @@ Fixed a wrong dialogue loop when canceling lordship grants, revocations, or retu
 Added a targeted safeguard and diagnostic logging for pregnancy checks involving clanless heroes.
 Fixed clan-born children of companions inheriting Wanderer status and becoming eligible for native wanderer cleanup.
 Fixed additional spouses being classified as retainers (compatibility with AoC) and stale family status after marriage changes.
-<<<<<<< HEAD
-=======
 Improved marriage matchmaking to better distinguish dynastic survival from household manpower.
->>>>>>> bug-fixes
+
