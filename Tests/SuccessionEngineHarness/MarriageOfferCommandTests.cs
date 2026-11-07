@@ -22,6 +22,7 @@ internal static partial class MarriageHouseholdTests
         AccessTools.Field(type, "_households").SetValue(__instance,
             Activator.CreateInstance(assembly.GetType("BellumCivile.MarriageHouseholdPolicy"), true));
         AccessTools.Field(type, "CrownHeirs").SetValue(__instance, new HashSet<Hero>(Crowns.Values));
+        AccessTools.Field(type, "_bloodMembers").SetValue(__instance, new Dictionary<Hero, bool>());
         var participants = new Dictionary<Clan, List<Hero>> { [_player] = new List<Hero> { _commandPlayer } };
         foreach (var house in _commandCandidates.GroupBy(h => h.Clan)) participants[house.Key] = house.ToList();
         AccessTools.Field(type, "Participants").SetValue(__instance, participants);

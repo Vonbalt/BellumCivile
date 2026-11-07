@@ -13,7 +13,8 @@ function Check([bool] $condition, [string] $label) {
 Check ($strategy.Contains('DailyTickClanEvent') -and !$strategy.Contains('DailyTickHeroEvent')) 'One scheduled house search replaces per-man scheduling.'
 Check ($strategy.Contains('BellumCivile_LastMarriageHouseEvaluationYear') -and $outcome.Contains('2166136261') -and !$strategy.Contains('GetHashCode()')) 'Year receipts persist and calendar offsets use a stable hash.'
 Check (!$helper.Contains('(!hero.IsFemale || clan.Leader == hero)')) 'Women are eligible household participants without needing leadership.'
-Check ($helper.Contains('HasHouseholdFertileCouple(clan)') -and (Get-Content -Raw (Join-Path $root 'Behaviors/MarriageMatchmakingRules.cs')).Contains('h.Spouse.Clan == clan')) 'Reproductive households require a living couple in the same household.'
+$health = Get-Content -Raw (Join-Path $root 'Behaviors/MarriageHouseHealth.cs')
+Check ($health.Contains('hero.Spouse?.IsAlive != true || hero.Spouse.Clan != clan') -and $health.Contains('HouseholdMembership.IsBloodRelative(hero.Spouse, head)')) 'Dynasty coverage requires a living same-household couple with a blood parent.'
 Check (!$helper.Contains('_titleClaimCache') -and $evaluation.Contains('One context per scheduled house search')) 'No static day-only campaign object cache remains.'
 Check ($evaluation.Contains('BothAccept') -and $evaluation.Contains('EvaluateHouse(first, second') -and $evaluation.Contains('EvaluateHouse(second, first')) 'Both sides independently evaluate the same outcome.'
 Check (!$helper.Contains('MarriageScoreDynasticHeirPenalty') -and !$helper.Contains('MarriageScoreLowerTierRoyalMatchPenalty')) 'Blanket heir penalty and duplicate royal status penalty are absent.'

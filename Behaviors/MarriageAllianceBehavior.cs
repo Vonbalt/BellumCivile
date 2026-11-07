@@ -7,16 +7,20 @@ using TaleWorlds.CampaignSystem.Actions;
 namespace BellumCivile.Behaviors
 {
     /// <summary>
-    /// Tracks inter-clan marriage alliances at the moment of marriage, before vanilla moves one
+    /// Tracks original-house marriage standing before vanilla moves one
     /// spouse into the other's clan. This lets Bellum's political systems keep recognizing a
     /// royal marriage alliance after the spouses end up sharing a clan, but only while both
-    /// spouses who created the alliance are still alive.
+    /// spouses who created the alliance are still alive. Household-only records prevent native
+    /// parent-clan checks from inventing employer alliances without guessing about older weddings.
     /// </summary>
     public class MarriageAllianceBehavior : CampaignBehaviorBase
     {
-        private const string RecordVersion = "v2";
+        private const string RecordVersion = "v3";
+        private const string LegacyRecordVersion = "v2";
+        private const string HouseholdRecordVersion = "v3h";
         private List<string> _marriageAlliancePairs = new List<string>();
         private readonly HashSet<ClanPairKey> _activeAlliancePairs = new HashSet<ClanPairKey>();
+        private readonly HashSet<string> _householdSpousePairs = new HashSet<string>();
         private bool _activeAllianceCacheDirty = true;
 
         public static MarriageAllianceBehavior Instance { get; private set; }
@@ -52,6 +56,19 @@ namespace BellumCivile.Behaviors
             return _activeAlliancePairs.Contains(new ClanPairKey(firstClan, secondClan));
         }
 
+        internal bool HasUnexcludedNativeMarriage(Clan first, Clan second)
+        {
+            EnsureActiveAllianceCache();
+            return HasUnexcludedNativeMarriageFrom(first, second) || HasUnexcludedNativeMarriageFrom(second, first);
+        }
+
+        private bool HasUnexcludedNativeMarriageFrom(Clan first, Clan second) => first.AliveLords.Any(hero =>
+            hero?.Spouse?.Father?.Clan == second
+            && !_householdSpousePairs.Contains(SpouseKey(hero.StringId, hero.Spouse.StringId)));
+
+        private static string SpouseKey(string first, string second) => string.CompareOrdinal(first, second) <= 0
+            ? first + "|" + second : second + "|" + first;
+
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             EnsureCollectionsInitialized();
@@ -69,12 +86,19 @@ namespace BellumCivile.Behaviors
                 TraceMarriage("no inter-clan marriage alliance recorded: missing clan or both spouses already share a clan.");
                 return;
             }
-
+            // Capture standing in the original houses, before the wedding transfers either spouse.
+            bool dynastic = MarriageParticipantPolicy.IsDynasticPair(firstHero, secondHero);
             string key = GetRecordKey(firstClan, secondClan, firstHero, secondHero);
+            if (!dynastic && !string.IsNullOrEmpty(key)) key = HouseholdRecordVersion + key.Substring(RecordVersion.Length);
             if (!string.IsNullOrEmpty(key) && !_marriageAlliancePairs.Contains(key))
             {
                 _marriageAlliancePairs.Add(key);
                 MarkAllianceCacheDirty();
+                if (!dynastic)
+                {
+                    TraceMarriage("household wedding recorded without a political employer alliance.");
+                    return;
+                }
                 BellumCivileLogger.Log($"Marriage alliance recorded: {firstClan.StringId} <-> {secondClan.StringId} through {firstHero.StringId} and {secondHero.StringId}.");
                 TraceMarriage($"alliance recorded: {firstClan.StringId} <-> {secondClan.StringId}; expires if {firstHero.StringId} or {secondHero.StringId} dies.");
             }
@@ -136,11 +160,18 @@ namespace BellumCivile.Behaviors
         private void RebuildActiveAllianceCache()
         {
             _activeAlliancePairs.Clear();
+            _householdSpousePairs.Clear();
 
             foreach (string record in _marriageAlliancePairs)
             {
-                if (!TryParseRecord(record, out string firstClanId, out string secondClanId, out _, out _))
+                if (!TryParseRecord(record, out string firstClanId, out string secondClanId, out string firstHeroId, out string secondHeroId))
                     continue;
+
+                if (record.StartsWith(HouseholdRecordVersion + "|", StringComparison.Ordinal))
+                {
+                    _householdSpousePairs.Add(SpouseKey(firstHeroId, secondHeroId));
+                    continue;
+                }
 
                 Clan firstClan = FindClan(firstClanId);
                 Clan secondClan = FindClan(secondClanId);
@@ -152,7 +183,8 @@ namespace BellumCivile.Behaviors
             {
                 Clan firstClan = hero?.Clan;
                 Clan secondClan = hero?.Spouse?.Clan;
-                if (firstClan != null && secondClan != null && firstClan != secondClan)
+                if (firstClan != null && secondClan != null && MarriageParticipantPolicy.IsDynasticPair(hero, hero.Spouse)
+                    && !_householdSpousePairs.Contains(SpouseKey(hero.StringId, hero.Spouse.StringId)))
                     _activeAlliancePairs.Add(new ClanPairKey(firstClan, secondClan));
             }
 
@@ -236,7 +268,10 @@ namespace BellumCivile.Behaviors
                 return false;
 
             string[] parts = record.Split('|');
-            if (parts.Length != 5 || !string.Equals(parts[0], RecordVersion, StringComparison.Ordinal))
+            // Old records lack pre-wedding household standing; retain those ties until normal expiry.
+            if (parts.Length != 5 || !string.Equals(parts[0], RecordVersion, StringComparison.Ordinal)
+                && !string.Equals(parts[0], LegacyRecordVersion, StringComparison.Ordinal)
+                && !string.Equals(parts[0], HouseholdRecordVersion, StringComparison.Ordinal))
                 return false;
 
             firstClanId = parts[1];

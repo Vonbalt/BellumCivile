@@ -27,6 +27,7 @@ internal static class MarriageMatchmakingTests
     private static int _day;
     private static int _rolls, _searches;
     private static bool _available, _refused;
+    private static bool _family;
     private static Hero _hero;
     private static Kingdom _realm, _parent, _otherParent, _shell, _otherShell;
     private static Clan _first, _second;
@@ -38,6 +39,7 @@ internal static class MarriageMatchmakingTests
     private static bool Year(ref int __result) { __result = 24; return false; }
     private static bool Available(ref bool __result) { __result = _available; return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
+    private static bool Family(ref bool __result) { __result = _family; return false; }
     private static bool NoCourt(ref CourtAgendaBehavior __result) { __result = null; return false; }
     private static bool Roll(ref float __result) { _rolls++; __result = .5f; return false; }
     private static bool Chance(ref float __result) { __result = 1; return false; }
@@ -45,8 +47,8 @@ internal static class MarriageMatchmakingTests
     private static bool Label(ref string __result) { __result = "test marriage hero"; return false; }
     private static bool Skip() => false;
     private static bool House(ref Clan __result) { __result = _first; return false; }
-    private static bool Heroes(ref MBReadOnlyList<Hero> __result)
-    { __result = new MBReadOnlyList<Hero>(new List<Hero> { _hero }); return false; }
+    private static bool Heroes(ref IEnumerable<Hero> __result)
+    { __result = new[] { _hero }; return false; }
     private static bool Search(object stats)
     {
         _searches++;
@@ -171,7 +173,7 @@ internal static class MarriageMatchmakingTests
             _rebels = false;
             check(politicalRealm.Invoke(null, new object[] { _first }) == _realm, "Ended rebellion does not permanently attach an independent house to an old realm");
             _hero = Blank<Hero>();
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "Heroes"), nameof(Heroes));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "Members"), nameof(Heroes));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), nameof(House));
             Patch(AccessTools.PropertyGetter(typeof(CourtAgendaBehavior), "Current"), nameof(NoCourt));
             Patch(AccessTools.PropertyGetter(assembly.GetType("BellumCivile.BellumCivileOptions"), "EnableBellumStrategicMarriageLogic"), nameof(Yes));
@@ -179,9 +181,11 @@ internal static class MarriageMatchmakingTests
             Patch(AccessTools.Method(type, "HeroLabel"), nameof(Label));
             Patch(AccessTools.Method(type, "TraceMarriage"), nameof(Skip));
             Patch(AccessTools.Method(helper, "IsStrategicMarriageInitiator"), nameof(Available));
-            Patch(AccessTools.Method(helper, "CalculateAnnualMarriageChance"), nameof(Chance));
+            Patch(AccessTools.Method(helper, "CalculateMarriageOpportunity"), nameof(Chance));
             Patch(AccessTools.Method(helper, "CalculateDynasticNeed"), nameof(Need));
             Patch(AccessTools.Method(helper, "FindBestHouseMatch"), nameof(Search));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Family));
+            Patch(AccessTools.Method(helper, "FindBestHouseholdMatch"), nameof(Search));
             Patch(AccessTools.PropertyGetter(typeof(MBRandom), "RandomFloat"), nameof(Roll));
             for (int i = 0; offset > 10; i++)
             {
@@ -190,7 +194,7 @@ internal static class MarriageMatchmakingTests
                     .Invoke(null, new object[] { _first.StringId, 24 });
             }
             scheduler = new StrategicMarriageBehavior(); _day = 240 + offset;
-            _available = false; _refused = false; _rolls = _searches = 0;
+            _available = false; _refused = false; _family = true; _rolls = _searches = 0;
             void Tick() => AccessTools.Method(type, "OnDailyTickClan").Invoke(scheduler, new object[] { _first });
             Tick();
             check(_rolls == 0 && _searches == 0, "Temporary absence does not consume or roll the annual opportunity");
@@ -209,11 +213,52 @@ internal static class MarriageMatchmakingTests
             scheduler = new StrategicMarriageBehavior(); _day = 240 + offset; _refused = true; _rolls = _searches = 0;
             Tick(); _day += 3; Tick();
             check(_rolls == 1 && _searches == 1, "A genuine scored refusal closes the ordinary opportunity instead of soliciting daily consent");
+            _family = false;
+            _day = 240 + (offset + 12) % 24;
+            Tick();
+            check(_rolls == 2 && _searches == 2 && Dict("_lastHouseEvaluationYear")[_first.StringId] == 10
+                && Dict("_lastHouseholdEvaluationYear")[_first.StringId] == 10,
+                "A spent dynasty opportunity does not consume the separately staggered household opportunity");
+            Tick();
+            check(_rolls == 2 && _searches == 2, "Household refusal cannot reroll on another daily tick");
+            _day += 24; _refused = false; Tick();
+            check(_rolls == 3 && _searches == 3 && Dict("_pendingHouseholdMarriageYear")[_first.StringId] == 11,
+                "Household opportunity resets in a new year and owns its independent retry state");
+            AccessTools.Method(type, "RecordCourtMarriageOpportunity").Invoke(scheduler, new object[] { _first, null, false });
+            check(Dict("_pendingHouseholdMarriageYear").Count == 1 && Dict("_householdSearchCount")[_first.StringId] == 1,
+                "Court-sponsored dynastic receipt cannot close an ongoing household search");
+            var saved = new Store(); scheduler.SyncData(saved); saved.IsLoading = true;
+            scheduler = new StrategicMarriageBehavior(); scheduler.SyncData(saved); Tick();
+            check(_rolls == 3 && _searches == 3,
+                "Actual behavior save/load retains both annual channels and their retry clocks");
+            _day += 3; Tick();
+            check(_rolls == 3 && _searches == 4, "Restored household search retries without a second chance roll");
+            saved.Data.Keys.Where(k => k.Contains("Household")).ToList().ForEach(k => saved.Data.Remove(k));
+            scheduler = new StrategicMarriageBehavior(); scheduler.SyncData(saved);
+            check(Dict("_lastHouseholdEvaluationYear").Count == 0 && Dict("_lastHouseEvaluationYear").Count == 1,
+                "Old saves initialize household scheduling without erasing their dynastic annual receipts");
         }
         finally
         {
             h.UnpatchAll(h.Id);
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { previousCampaign });
+        }
+    }
+
+    private sealed class Store : IDataStore
+    {
+        internal readonly Dictionary<string, object> Data = new Dictionary<string, object>();
+        public bool IsLoading { get; set; }
+        public bool IsSaving => !IsLoading;
+        public bool SyncData<T>(string key, ref T value)
+        {
+            if (IsSaving)
+            {
+                Data[key] = value is Dictionary<string, int> dictionary ? new Dictionary<string, int>(dictionary) : (object)value;
+                return true;
+            }
+            value = Data.TryGetValue(key, out var saved) ? (T)saved : default(T);
+            return saved != null;
         }
     }
 }

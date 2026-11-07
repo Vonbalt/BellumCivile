@@ -13,6 +13,8 @@ namespace BellumCivile
         [SaveableField(6)] public Clan Destination;
         [SaveableField(7)] public int ExpiresDay;
         [SaveableField(8)] public int NextAttemptDay;
+        [SaveableField(9)] public bool HouseholdOpportunity;
+        [SaveableField(10)] public bool OpportunityRecorded;
 
         internal bool IdentityValid => First?.IsAlive == true && Second?.IsAlive == true
             && Sponsor?.IsEliminated == false && FirstHouse?.IsEliminated == false && SecondHouse?.IsEliminated == false

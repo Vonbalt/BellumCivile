@@ -391,7 +391,7 @@
     <string id="BC_MCM_ArmyPersonalFriendRelation" text="Personal Army Favor Relation" />
     <string id="BC_MCM_ArmyPersonalFriendRelation_Hint" text="Minimum relation at which a lord outside your de facto authority may answer your call for friendship's sake, either through the army menu or in person. Default: 60." />
     <string id="BC_MCM_EnableBellumMarriage" text="Enable Strategic Marriage Logic" />
-    <string id="BC_MCM_EnableBellumMarriage_Hint" text="When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On." />
+    <string id="BC_MCM_EnableBellumMarriage_Hint" text="When enabled, Bellum gives NPC houses separate annual chances to arrange family and retainer marriages, balancing bloodline survival, household manpower and suitable political ties. Only family-to-family marriages create new house-level marriage ties. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On." />
     <string id="BC_MCM_BellumOnlyMarriage" text="Block Vanilla Dice-Roll Marriage Logic" />
     <string id="BC_MCM_BellumOnlyMarriage_Hint" text="When enabled alongside Strategic Marriage Logic, Bellum replaces vanilla NPC marriage rolls and automatic offers to the player clan with its strategic matchmaking. Disable this to allow vanilla rolls alongside Bellum's matches. Default: On." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />

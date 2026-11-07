@@ -46,6 +46,7 @@ internal static partial class MarriageHouseholdTests
     private static bool Ruler(Kingdom __instance, ref Clan __result) { __result = Rulers[__instance]; return false; }
     private static bool Realm(Clan clan, ref Kingdom __result) { __result = Rulers.First(p => p.Value == clan).Key; return false; }
     private static bool Blood(Hero first, ref bool __result) { __result = !Outsiders.Contains(first); return false; }
+    private static bool Family(Hero hero, ref bool __result) { __result = !Outsiders.Contains(hero); return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool PlayerLeader(ref Hero __result) { __result = _player == null ? null : Leaders[_player]; return false; }
     private static bool Enabled(ref bool __result) { __result = _enabled; return false; }
@@ -148,6 +149,8 @@ internal static partial class MarriageHouseholdTests
             Patch(AccessTools.Method(helper, "MarriagePoliticalRealm"), nameof(Realm));
             Patch(AccessTools.Method(laws, "GetLegalSuccessionLine", new[] { typeof(Clan) }), nameof(ClanLine));
             Patch(AccessTools.Method(laws, "IsBloodRelative"), nameof(Blood));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Family));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsBloodRelative"), nameof(Family));
             Patch(AccessTools.Method(laws, "GetAgeOfMajority"), nameof(Majority));
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.HereditaryRealmSuccession"), "GetLine"), nameof(CrownLine));
             Patch(AccessTools.PropertyGetter(assembly.GetType("BellumCivile.BellumCivileOptions"), "EnableBellumStrategicMarriageLogic"), nameof(Enabled));
@@ -201,6 +204,7 @@ internal static partial class MarriageHouseholdTests
             var contextType = helper.GetNestedType("EvaluationContext", BindingFlags.NonPublic);
             var context = FormatterServices.GetUninitializedObject(contextType);
             AccessTools.Field(contextType, "_households").SetValue(context, Policy());
+            AccessTools.Field(contextType, "_bloodMembers").SetValue(context, new Dictionary<Hero, bool>());
             AccessTools.Field(contextType, "CrownHeirs").SetValue(context, new HashSet<Hero> { bride });
             AccessTools.Field(contextType, "Realms").SetValue(context, new Dictionary<Clan, Kingdom> { [a] = home, [b] = foreign });
             Patch(AccessTools.Method(contextType, "ParentalEstateProspects"), nameof(NoEstates));

@@ -283,7 +283,7 @@ namespace BellumCivile
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public int ArmyPersonalFriendRelationThreshold { get; set; } = C.ArmyPersonalFriendRelationThreshold;
 
-        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}When enabled, Bellum adds strategic NPC marriage logic for dynastic survival, royal pacification, and foreign royal alliances. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On.")]
+        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}When enabled, Bellum gives NPC houses separate annual chances to arrange family and retainer marriages, balancing bloodline survival, household manpower and suitable political ties. Only family-to-family marriages create new house-level marriage ties. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public bool EnableBellumStrategicMarriageLogic { get; set; } = true;
 

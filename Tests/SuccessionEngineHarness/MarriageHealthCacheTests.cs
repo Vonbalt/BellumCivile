@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
+using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
@@ -29,8 +30,8 @@ internal static class MarriageHealthCacheTests
     private static bool Spouse(Hero __instance, ref Hero __result)
     { __result = __instance == _mother ? _father : __instance == _father ? _mother : null; return false; }
     private static bool Prospect(Hero hero, ref bool __result) { __result = hero == _spare; return false; }
-    private static bool Heroes(ref MBReadOnlyList<Hero> __result)
-    { _reads++; __result = new MBReadOnlyList<Hero>(new List<Hero> { _mother, _father, _spare }); return false; }
+    private static bool Members(ref IEnumerable<Hero> __result)
+    { _reads++; __result = new[] { _mother, _father, _spare }; return false; }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -53,10 +54,19 @@ internal static class MarriageHealthCacheTests
         void Patch(MethodBase target, string method) => harmony.Patch(target,
             prefix: new HarmonyMethod(typeof(MarriageHealthCacheTests), method));
         _clan = Blank<Clan>(); _mother = Blank<Hero>(); _father = Blank<Hero>(); _spare = Blank<Hero>();
+        foreach (Hero hero in new[] { _mother, _father, _spare })
+        {
+            AccessTools.PropertySetter(typeof(Hero), "Occupation").Invoke(hero, new object[] { Occupation.Lord });
+            AccessTools.Field(typeof(Hero), "_clan").SetValue(hero, _clan);
+            AccessTools.Field(typeof(Hero), "_children").SetValue(hero, new MBList<Hero>());
+            AccessTools.Field(typeof(Hero), "_exSpouses").SetValue(hero, new MBList<Hero>());
+        }
+        _mother.IsFemale = true; _mother.Spouse = _father; _spare.Father = _father;
+        AccessTools.Field(typeof(Clan), "_leader").SetValue(_clan, _father);
         _reads = 0; _claimReads = 0; _politicsReads = 0; _age = 30; _alive = true;
         try
         {
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "Heroes"), nameof(Heroes));
+            Patch(AccessTools.Method(typeof(BellumMarriageModel).Assembly.GetType("BellumCivile.HouseholdMembership"), "Members"), nameof(Members));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsAlive"), nameof(Alive));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsLord"), nameof(Yes));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsChild"), nameof(No));
@@ -74,7 +84,8 @@ internal static class MarriageHealthCacheTests
             var context = Context();
             var health = healthMethod.Invoke(context, new object[] { _clan });
             float Risk(object value) => (float)AccessTools.Field(value.GetType(), "Risk").GetValue(value);
-            check(Risk(health) == 0, "Captive/inactive but living reproductive family is not erased from health");
+            check(Risk(health) == 0, "Captive/inactive but living reproductive family is not erased from health; risk=" + Risk(health)
+                + "; adults=" + AccessTools.Field(health.GetType(), "Adults").GetValue(health));
             for (int i = 0; i < 10000; i++)
                 check(ReferenceEquals(health, healthMethod.Invoke(context, new object[] { _clan })), "Search reuses the same health snapshot");
             check(_reads == 1, "Ten thousand evaluations scan the household just once");
@@ -103,6 +114,8 @@ internal static class MarriageHealthCacheTests
             var later = healthMethod.Invoke(Context(), new object[] { _clan });
             check(Risk(later) > .6f && _reads == 2, "Next search sees aging without a global cache invalidation scheme");
             _alive = false;
+            foreach (Hero hero in new[] { _mother, _father, _spare })
+                AccessTools.Field(typeof(Hero), "_heroState").SetValue(hero, Hero.CharacterStates.Dead);
             var dead = healthMethod.Invoke(Context(), new object[] { _clan });
             check((int)AccessTools.Field(dead.GetType(), "Adults").GetValue(dead) == 0 && _reads == 3,
                 "Next search sees deaths and excludes dead family members");

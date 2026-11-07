@@ -106,7 +106,7 @@ internal static class MarriageHeiressSimulation
         {
             Clan house = hero == _bride ? _brideHouse : _groomHouse;
             House side = Profile(house);
-            var snapshot = FormatterServices.GetUninitializedObject(_healthType);
+            var snapshot = Activator.CreateInstance(_healthType, true);
             Field(snapshot, "Risk", side.Risk);
             Field(snapshot, "HasFertileCouple", side.FertileCouple);
             var prospects = new HashSet<Hero> { hero };

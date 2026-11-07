@@ -120,8 +120,8 @@ internal static class RetainerMarriageTests
             var widow = Person(other, "widow", true); head.Spouse = widow;
             Invalidate();
             check(Cost(son, daughter) == 0 && Cost(son, retainer) == 25
-                && Cost(companion, daughter) == 25 && Cost(companion, retainer) == 50,
-                "Both directions prefer family without absolutely barring either kind of retainer marriage");
+                && Cost(companion, daughter) == 0 && Cost(companion, retainer) == 0,
+                "Only the family side of a mixed match has status reluctance; retainer pairs have no blanket penalty");
             check(Cost(son, widow) == 0, "Married-in family receives the same priority as blood relatives");
             var helper = Type("Behaviors.BellumMarriageStrategyHelper");
             object health = AccessTools.Method(helper, "AssessHouseHealth").Invoke(null, new object[] { other });

@@ -104,13 +104,11 @@ namespace BellumCivile.Behaviors
                 var house = member.Clan;
                 if (outcome.Destination == house) return 0;
                 var health = Health(house);
-                if (!foreignRoyal)
-                    return MarriageMatchmakingRules.DepartureCost(true, health.HasFertileCouple,
-                        health.Prospects.Count - (health.Prospects.Contains(member) ? 1 : 0), false, health.Risk);
                 if (health.BloodProspects == null)
                     health.BloodProspects = new HashSet<Hero>(health.Prospects.Where(IsBloodMember));
-                return MarriageMatchmakingRules.DepartureCost(true, health.HasFertileCouple,
-                    health.BloodProspects.Count - (health.BloodProspects.Contains(member) ? 1 : 0), true, health.Risk);
+                float dynasty = !IsBloodMember(member) ? 0 : MarriageMatchmakingRules.DepartureCost(true, health.HasFertileCouple,
+                    health.BloodProspects.Count - (health.BloodProspects.Contains(member) ? 1 : 0), foreignRoyal, health.Risk);
+                return System.Math.Max(dynasty, health.StaffDepartureCost(member));
             }
 
             public HouseHealth Health(Clan house)
@@ -168,7 +166,13 @@ namespace BellumCivile.Behaviors
         }
 
         internal static BellumMarriageMatch FindBestHouseMatch(Clan house, FactionManagerBehavior factions,
-            bool includePlayer, BellumMarriageEvaluationStats stats)
+            bool includePlayer, BellumMarriageEvaluationStats stats) => FindBestOpportunityMatch(house, factions, includePlayer, stats, false);
+
+        internal static BellumMarriageMatch FindBestHouseholdMatch(Clan house, FactionManagerBehavior factions,
+            bool includePlayer, BellumMarriageEvaluationStats stats) => FindBestOpportunityMatch(house, factions, includePlayer, stats, true);
+
+        private static BellumMarriageMatch FindBestOpportunityMatch(Clan house, FactionManagerBehavior factions,
+            bool includePlayer, BellumMarriageEvaluationStats stats, bool household)
         {
             var context = new EvaluationContext(factions, includePlayer, stats: stats, allowTemporary: true);
             if (!context.Participants.TryGetValue(house, out var members)) return null;
@@ -179,6 +183,7 @@ namespace BellumCivile.Behaviors
                 var candidatesBySex = entry.Value.ToLookup(h => h.IsFemale);
                 foreach (Hero member in members)
                 {
+                    if (HouseholdMembership.IsFamily(member) == household) continue;
                     if (MarriageReserved(member)) continue;
                     var rejected = GetCandidateClanRejectionReason(member, entry.Key, factions, includePlayer);
                     if (rejected != BellumMarriageRejectionReason.None) { stats?.AddRejection(rejected); continue; }
@@ -189,6 +194,7 @@ namespace BellumCivile.Behaviors
                         if (rejected != BellumMarriageRejectionReason.None) { stats?.AddRejection(rejected); continue; }
                         var match = EvaluateOutcome(member, candidate, context, false);
                         if (match == null) continue;
+                        match.HouseholdOpportunity = household;
                         if (stats != null) stats.LegalPairs++;
                         bool firstAccepts = member.Clan == Clan.PlayerClan || match.SuitorAcceptance >= C.MarriageStrategyMinimumScore;
                         bool secondAccepts = candidate.Clan == Clan.PlayerClan || match.CandidateAcceptance >= C.MarriageStrategyMinimumScore;
@@ -317,10 +323,14 @@ namespace BellumCivile.Behaviors
             outcome.FirstParentalEstateProspects = context.ParentalEstateProspects(first);
             outcome.SecondParentalEstateProspects = context.ParentalEstateProspects(second);
             var match = new BellumMarriageMatch { Suitor = first, Candidate = second, Outcome = outcome };
+            bool firstFamily = HouseholdMembership.IsFamily(first), secondFamily = HouseholdMembership.IsFamily(second);
+            match.PairClass = firstFamily && secondFamily ? "family" : !firstFamily && !secondFamily ? "retainers" : "mixed";
             match.HasDynasticContinuity = outcome.HasReproductiveOpportunity
-                && (!context.FertileHousehold(first.Clan) || !context.FertileHousehold(second.Clan));
+                && (destination == first.Clan && context.IsBloodMember(first) && !context.FertileHousehold(first.Clan)
+                    || destination == second.Clan && context.IsBloodMember(second) && !context.FertileHousehold(second.Clan));
             match.IsDomestic = context.Realms[first.Clan] == context.Realms[second.Clan];
-            bool politics = context.PoliticalValue(first.Clan, second.Clan) > 0f || context.PoliticalValue(second.Clan, first.Clan) > 0f;
+            bool politics = MarriageParticipantPolicy.IsDynasticPair(first, second)
+                && (context.PoliticalValue(first.Clan, second.Clan) > 0f || context.PoliticalValue(second.Clan, first.Clan) > 0f);
             match.HasRoyalPolitics = match.IsDomestic && politics
                 && (context.Realms[first.Clan]?.RulingClan == first.Clan || context.Realms[second.Clan]?.RulingClan == second.Clan);
             match.HasForeignPolitics = !match.IsDomestic && politics;
@@ -344,7 +354,10 @@ namespace BellumCivile.Behaviors
         {
             Clan house = member.Clan, other = spouse.Clan;
             Kingdom realm = context.Realms[house], otherRealm = context.Realms[other];
-            float risk = context.Health(house).Risk;
+            var health = context.Health(house);
+            bool family = HouseholdMembership.IsFamily(member), spouseFamily = HouseholdMembership.IsFamily(spouse);
+            bool dynasticPair = family && spouseFamily;
+            float risk = family ? health.Risk : health.ManpowerRisk;
             float preference = MarriageHealthRules.PreferenceScale(risk);
             float strategy = MarriageHealthRules.StrategyScale(risk);
             float score = realm == otherRealm ? C.MarriageScoreSameKingdom
@@ -355,12 +368,21 @@ namespace BellumCivile.Behaviors
             score += member.GetRelation(spouse) * C.MarriageScorePersonalRelationScale;
             score -= MathF.Abs(member.Age - spouse.Age) * C.MarriageScoreAgePenalty * preference;
             // Only the house marrying down pays a status cost, once, with its own desperation.
-            float status = System.Math.Max(0, house.Tier - other.Tier) * C.MarriageScoreRankGapPenalty;
+            float status = dynasticPair ? System.Math.Max(0, house.Tier - other.Tier) * C.MarriageScoreRankGapPenalty : 0;
             status *= preference;
             score -= status;
-            float retainerCost = MarriageParticipantPolicy.RetainerCost(member, spouse);
+            float retainerCost = MarriageHealthRules.MixedStatusCost(family, spouseFamily, health.Risk);
             score -= retainerCost;
-            if (retainerCost > 0) reasons.Add($"{house.StringId}: family marriage priority -{retainerCost:0}");
+            if (retainerCost > 0) reasons.Add($"{house.StringId}: mixed-status reluctance -{retainerCost:0}");
+            if (!family)
+            {
+                float ordinary = MarriageHealthRules.HouseholdMarriageValue(spouseFamily);
+                score += ordinary;
+                reasons.Add($"{house.StringId}: household marriage +{ordinary:0}");
+            }
+            float staff = outcome.Destination == house ? health.StaffIncomingValue(member, spouse) : 0;
+            score += staff;
+            if (staff > 0) reasons.Add($"{house.StringId}: incoming service +{staff:0.##}");
 
             bool bloodMember = context.IsBloodMember(member);
             float kinship = MarriageHealthRules.OutgoingKinshipValue(risk, outcome.HasReproductiveOpportunity,
@@ -369,8 +391,9 @@ namespace BellumCivile.Behaviors
             if (kinship > 0) reasons.Add($"{house.StringId}: outgoing bloodline alliance +{kinship:0}");
             if (outcome.HasReproductiveOpportunity)
             {
-                float continuity = HouseholdMembership.IsFamily(member)
-                    ? MarriageHealthRules.Continuity(risk, true, outcome.NewbornHouse == house, bloodMember) : 0;
+                bool bloodline = bloodMember || HouseholdMembership.IsBloodRelative(spouse, MarriageHouseholdPolicy.LegalHead(house));
+                float continuity = family
+                    ? MarriageHealthRules.Continuity(bloodline ? risk : 0, true, outcome.NewbornHouse == house, bloodMember) : 0;
                 score += continuity;
                 reasons.Add($"{house.StringId}: household/bloodline continuity +{continuity:0}");
                 if (context.CrownHeirs.Contains(member))
@@ -382,23 +405,23 @@ namespace BellumCivile.Behaviors
                 }
             }
             float departure = context.HouseholdDepartureCost(member, outcome,
-                realm != otherRealm && realm?.RulingClan == house && otherRealm?.RulingClan == other);
+                dynasticPair && realm != otherRealm && realm?.RulingClan == house && otherRealm?.RulingClan == other);
             if (departure > 0)
             {
                 score -= departure;
                 reasons.Add($"{house.StringId}: household/reserve departure -{departure:0.##}");
             }
-            float politics = context.PoliticalValue(house, other) * strategy;
+            float politics = dynasticPair ? context.PoliticalValue(house, other) * strategy : 0;
             score += politics;
             if (politics != 0f) reasons.Add($"{house.StringId}: political ties {politics:+0;-0}");
             if (outcome.Destination == house)
                 score += context.IncomingClaimValue(house, spouse, reasons, outcome.HasReproductiveOpportunity);
-            float prestige = MarriageHealthRules.Prestige(house.Tier, other.Tier) * strategy;
+            float prestige = dynasticPair ? MarriageHealthRules.Prestige(house.Tier, other.Tier) * strategy : 0;
             score += prestige;
             if (prestige > 0) reasons.Add($"{house.StringId}: prestigious house connection +{prestige:0}");
-            float court = CourtAgendaBehavior.Current?.DynasticMarriageBonus(member, spouse) ?? 0;
+            float court = dynasticPair ? CourtAgendaBehavior.Current?.DynasticMarriageBonus(member, spouse) ?? 0 : 0;
             if (court != 0) { score += court; reasons.Add($"{house.StringId}: Crown-backed royal marriage +{court:0}"); }
-            reasons.Add($"{house.StringId}: household risk {risk:0.00}; status -{status:0}; future estates remain personal and conditional");
+            reasons.Add($"{house.StringId}: class={(family ? "family" : "retainer")}; dynasty risk={health.Risk:0.00}; manpower risk={health.ManpowerRisk:0.00}; status -{status:0}; future estates remain personal and conditional");
             return score;
         }
     }

@@ -140,6 +140,9 @@ namespace BellumCivile.Behaviors
         public Settlement FindVacancy(Clan clan) => Villages(clan).FirstOrDefault(v => GetGrant(v) == null
             && FeudalTitleBehavior.Instance?.IsHeldForAllocation(v.Village.Bound, clan) != true);
 
+        internal int CountVacancies(Clan clan) => Villages(clan).Count(v => GetGrant(v) == null
+            && FeudalTitleBehavior.Instance?.IsHeldForAllocation(v.Village.Bound, clan) != true);
+
         internal static TextObject Text(string key, string value) => new TextObject("{=" + key + "}" + value);
         public static TextObject Name(Settlement village) => FeudalTitleDisplayHelper.FormatLordshipName(village);
 
