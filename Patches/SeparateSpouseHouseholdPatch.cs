@@ -20,25 +20,40 @@ namespace BellumCivile.Patches
         {
             var codes = instructions.ToList();
             var clanGetter = AccessTools.PropertyGetter(typeof(Hero), nameof(Hero.Clan));
+            var occupationGetter = AccessTools.PropertyGetter(typeof(Hero), nameof(Hero.Occupation));
             if (codes.Count(c => c.Calls(clanGetter)) != 2)
                 throw new InvalidOperationException("Birth household hook: native clan assignment anchors changed.");
+            if (codes.Count(c => c.Calls(occupationGetter)) != 2)
+                throw new InvalidOperationException("Birth household hook: native occupation assignment anchors changed.");
             foreach (var code in codes)
             {
-                if (!code.Calls(clanGetter)) { yield return code; continue; }
+                bool clan = code.Calls(clanGetter);
+                if (!clan && !code.Calls(occupationGetter)) { yield return code; continue; }
                 var mother = new CodeInstruction(OpCodes.Ldarg_0);
                 mother.labels.AddRange(code.labels);
                 mother.blocks.AddRange(code.blocks);
                 yield return mother;
                 yield return new CodeInstruction(OpCodes.Ldarg_1);
-                yield return CodeInstruction.Call(typeof(SeparateSpouseBirthClanPatch), nameof(ResolveBirthClan));
+                yield return CodeInstruction.Call(typeof(SeparateSpouseBirthClanPatch),
+                    clan ? nameof(ResolveBirthClan) : nameof(ResolveBirthOccupation));
             }
         }
 
-        // Replace only clan selection, before native initialization publishes the child.
+        // Resolve the household and clan-born occupation before native initialization publishes the child.
         // Parentage, culture, pregnancy and birth notifications remain native.
         public static Clan ResolveBirthClan(Hero nativeParent, Hero mother, Hero father) =>
             mother?.Clan != null && father?.Clan != null && mother.Clan != father.Clan
                 ? mother.Clan : nativeParent?.Clan;
+
+        public static Occupation ResolveBirthOccupation(Hero nativeParent, Hero mother, Hero father)
+        {
+            Occupation occupation = nativeParent.Occupation;
+            if (occupation != Occupation.Wanderer) return occupation;
+            Hero player = Hero.MainHero;
+            Hero clanParent = player != null && (mother == player || father == player) ? player : father;
+            Clan household = ResolveBirthClan(clanParent, mother, father);
+            return HouseholdMembership.Supports(household) ? Occupation.Lord : occupation;
+        }
     }
 
     [HarmonyPatch(typeof(PregnancyCampaignBehavior), "CheckAreNearby")]

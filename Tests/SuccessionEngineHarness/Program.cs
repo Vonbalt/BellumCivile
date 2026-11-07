@@ -56,6 +56,13 @@ internal static class Program
                 TestHouseholdFoundation();
                 Console.WriteLine($"{_checks} spouse visit guard checks passed.");
             }
+            else if (args.Contains("--companion-offspring"))
+            {
+                CompanionOffspringTests.Run(Check);
+                PregnancyVisitGuardTests.Run(Check);
+                TestHouseholdFoundation();
+                Console.WriteLine($"{_checks} companion offspring checks passed.");
+            }
             else if (args.Contains("--lordship-dialogues"))
             {
                 LordshipDialogueFlowTests.Run(Check);
