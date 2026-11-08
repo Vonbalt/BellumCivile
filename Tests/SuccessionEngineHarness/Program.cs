@@ -94,6 +94,11 @@ internal static class Program
                 CaptainTitleTests.Run(Check);
                 Console.WriteLine($"{_checks} captain title checks passed.");
             }
+            else if (args.Contains("--mercenary-leader-titles"))
+            {
+                MercenaryLeaderStyleTests.Run(Check);
+                Console.WriteLine($"{_checks} mercenary leader title checks passed.");
+            }
             else if (args.Contains("--lordship-appointments"))
             {
                 LordshipAppointmentTests.Run(Check);

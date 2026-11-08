@@ -669,7 +669,7 @@ namespace BellumCivile
             Clan clan = hero?.Clan;
             return clan != null && clan.Leader == hero && hero.IsAlive && !hero.IsDisabled
                 && !hero.IsChild && !hero.IsNotable && !clan.IsEliminated && !clan.IsBanditFaction
-                && (clan.IsMinorFaction || clan.IsUnderMercenaryService);
+                && (clan.IsUnderMercenaryService || clan != Clan.PlayerClan && clan.IsMinorFaction);
         }
 
         private static bool TryGetMercenaryLeaderDisplayStyle(Hero hero, out string displayTitle,

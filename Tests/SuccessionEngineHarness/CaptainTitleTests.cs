@@ -23,7 +23,7 @@ internal static class CaptainTitleTests
     private static bool House(Hero __instance, ref Clan __result) { Houses.TryGetValue(__instance, out __result); return false; }
     private static bool Culture(Clan __instance, ref CultureObject __result) { Cultures.TryGetValue(__instance, out __result); return false; }
     private static bool Retainer(Hero hero, ref bool __result) { __result = hero != null && hero != _family && Houses[hero] == _player; return false; }
-    private static bool MinorClan(Clan __instance, ref bool __result) { __result = __instance == _company; return false; }
+    private static bool MinorClan(Clan __instance, ref bool __result) { __result = __instance == _company || __instance == _player; return false; }
     private static bool Hired(ref bool __result) { __result = _hired; return false; }
     private static bool Female(Hero __instance, ref bool __result) { __result = __instance == _female; return false; }
     private static bool Child(Hero __instance, ref bool __result) { __result = __instance == _minor; return false; }
@@ -137,6 +137,8 @@ internal static class CaptainTitleTests
                     check(Title(leader) == expected.Male,
                         preset + "/" + culture + ": the player clan leader receives the same style while serving as a mercenary");
                     _hired = false;
+                    check(Title(leader) != expected.Male,
+                        preset + "/" + culture + ": a player clan's persistent minor-faction flag does not imply mercenary service");
                     check(Name(retainer) == (preset == "bannerkings" ? "Test, " + expected.Male : expected.Male + " Test"),
                         preset + "/" + culture + ": actual names follow the preset's prefix or suffix format");
                     _day = 94;
@@ -153,6 +155,37 @@ internal static class CaptainTitleTests
                         check(Title(retainer) == expected.Male,
                             preset + ": a foreign sovereign style does not overwrite a captain's own clan culture");
                         Set(_player, "_kingdom", null);
+                        realm.StringId = "vlandia";
+                        var titles = FeudalTitleBehavior.Instance;
+                        var records = (Dictionary<string, FeudalTitleRecord>)AccessTools.Field(typeof(FeudalTitleBehavior), "_titlesById").GetValue(titles);
+                        void Holdings(params FeudalTitleRecord[] holdings)
+                        {
+                            records.Clear(); foreach (var title in holdings) records[title.TitleId] = title;
+                            AccessTools.Method(typeof(FeudalTitleBehavior), "RebuildRuntimeIndexes").Invoke(titles, new object[] { true, true });
+                        }
+                        string baron = preset == "anglicized" ? "Baron" : preset == "immersive" ? "Baro" : "Bers";
+                        string king = preset == "anglicized" ? "King" : preset == "immersive" ? "Rex" : "Reis";
+                        _hired = true;
+                        check(Name(leader).Contains(expected.Male), preset + ": an active player mercenary title is cached normally");
+                        _hired = false; Set(_player, "_kingdom", realm);
+                        check(!string.IsNullOrEmpty(Title(leader)) && Title(leader) != expected.Male
+                            && !Name(leader).Contains(expected.Male),
+                            preset + ": a landless player vassal uses the noble fallback, not the cached mercenary title");
+                        var barony = new FeudalTitleRecord("captain_barony", "Sargot", FeudalTitleType.Barony,
+                            _player.StringId, _player.StringId, "", "", "", 0, 0);
+                        Holdings(barony);
+                        check(Title(leader) == baron && Name(leader).Contains(baron) && !Name(leader).Contains(expected.Male),
+                            preset + ": becoming a landed vassal replaces the cached captain title with the held noble rank");
+                        var crown = new FeudalTitleRecord("captain_crown", "Vlandia", FeudalTitleType.Kingdom,
+                            _company.StringId, _player.StringId, "", "", "", 0, 0);
+                        Set(realm, "_rulingClan", _player); Holdings(barony, crown);
+                        check(Title(leader) == king && Name(leader).Contains(king) && !Name(leader).Contains(expected.Male),
+                            preset + ": a player ruler with de facto Crown ownership uses the royal rank despite the minor-faction flag");
+                        Set(realm, "_rulingClan", _company); Holdings(barony);
+                        check(Title(leader) == baron, preset + ": abdication returns to the remaining noble rank rather than Captain");
+                        Set(_player, "_kingdom", null);
+                        check(Title(leader) == baron, preset + ": independent landed players also retain their noble rank");
+                        Holdings();
                     }
                 }
             }

@@ -62,7 +62,8 @@
   Optional captain honorifics on Rank tier="Kingdom":
     mercenaryLeaderRank="Captain" femaleMercenaryLeaderRank="Captain"
   Own-culture entries work both hired and between contracts; realm styles are
-  fallbacks. Includes the player while serving as a mercenary. Adult leaders
+  fallbacks. The player qualifies only while under an active mercenary contract,
+  never from the player clan's minor-faction flag alone. Adult leaders
   only, excluding bandits/notables; never inherited by members or spouses.
   The same own-culture fields style adult player-clan retainers with an active
   indenture and no lordship. A landed retainer keeps their knight honorific;
