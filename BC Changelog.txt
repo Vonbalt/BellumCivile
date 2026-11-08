@@ -842,3 +842,5 @@ Fixed a crash when NPC retainer parties disband after losing their lordships, wi
 Parties now seek eligible replacement commanders when retainers lose their lordships before outright disbanding them.
 Added paid retainer indentures, allowing companions to command parties or govern without a lordship, with timed contracts and renewal reminders.
 Added cultural mercenary captain terms to the titles presets, it's used by party leaders of minor factions or player companions with an active indenture.
+Adjustment to marriage dialogues to show unavailable characters with a tooltip explanation on why they can't be selected at that moment.
+Adjustment to marriage barter costs when it involves a retainer x noble marriage.
