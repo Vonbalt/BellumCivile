@@ -615,6 +615,8 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
+            ClearReleaseOffer();
+            if (starter != null) AddVoluntaryReleaseDialogues(starter);
             if (_startingClientagePending) return;
             ReconcileClientKingdoms();
             ReconcileDiplomacyNonAggressionPacts();

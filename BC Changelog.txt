@@ -844,3 +844,7 @@ Added paid retainer indentures, allowing companions to command parties or govern
 Added cultural mercenary captain terms to the titles presets, it's used by party leaders of minor factions or player companions with an active indenture.
 Adjustment to marriage dialogues to show unavailable characters with a tooltip explanation on why they can't be selected at that moment.
 Adjustment to marriage barter costs when it involves a retainer x noble marriage.
+
+1.4.12 CHANGELOG
+
+Added dialogue option to release a client state peacefully converting the clientage into a normal alliance and trade agreement bound by vanilla rules.
