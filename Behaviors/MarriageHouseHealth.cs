@@ -83,6 +83,10 @@ namespace BellumCivile.Behaviors
                         health.Endowed++; health.EndowedMembers.Add(hero);
                         if (grant.GrantingClan == clan && !grant.IsVassalGrant) health.ReleasingEndowments.Add(hero);
                     }
+                    else if (registry.GetIndenture(hero) != null)
+                    {
+                        health.Endowed++; health.EndowedMembers.Add(hero);
+                    }
                     else { health.Unendowed++; health.UnendowedMembers.Add(hero); }
                 }
                 if (!hero.IsFemale || hero.Age < SuccessionLawHelper.GetAgeOfMajority() || hero.Age > 45

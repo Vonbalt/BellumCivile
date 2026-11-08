@@ -15,7 +15,7 @@ internal static class TitleNameCacheTests
     private static Hero _spouse, _leader;
     private static Kingdom _home;
     private static MBReadOnlyList<Kingdom> _realms;
-    private static bool _child, _styled, _bloodRelative;
+    private static bool _child, _styled, _bloodRelative, _indentured;
     private static int _formats, _realmReads, _validations;
     private static readonly List<Kingdom> RefreshedRealms = new List<Kingdom>();
     private static bool Yes(ref bool __result) { __result = true; return false; }
@@ -35,6 +35,7 @@ internal static class TitleNameCacheTests
     { _validations++; heir = null; __result = false; return false; }
     private static bool Recalculate(Kingdom kingdom) { RefreshedRealms.Add(kingdom); return false; }
     private static bool BloodRelative(ref bool __result) { __result = _bloodRelative; return false; }
+    private static bool Indentured(ref bool __result) { __result = _indentured; return false; }
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
 
     internal static void Run(Action<bool, string> check)
@@ -72,6 +73,7 @@ internal static class TitleNameCacheTests
             AccessTools.PropertySetter(typeof(DynasticHeirBehavior), "Instance").Invoke(null, new object[] { heirs });
             Patch(AccessTools.Method(patch, "ShouldApplyTitlePrefix"), nameof(Yes));
             Patch(AccessTools.Method(display, "IsMercenaryLeader"), nameof(No));
+            Patch(AccessTools.Method(display, "IsIndenturedCaptain"), nameof(Indentured));
             Patch(AccessTools.Method(display, "TryFormatHeroName"), nameof(Format));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Clan"), nameof(House));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Spouse"), nameof(Spouse));
@@ -155,6 +157,10 @@ internal static class TitleNameCacheTests
             AccessTools.PropertySetter(typeof(FeudalTitleBehavior), "Instance").Invoke(null, new object[] { new FeudalTitleBehavior() });
             before = _formats; Read(child);
             check(_formats == before + 1, "Changing campaign registry discards the prior name cache");
+            before = _formats; _indentured = true; Read(child); Read(child);
+            check(_formats == before + 1, "Signing an indenture invalidates the title context once");
+            _indentured = false; Read(child);
+            check(_formats == before + 2, "An expired indenture invalidates Captain without waiting for the name-cache timeout");
             var fresh = new DynasticHeirBehavior();
             check(!((IEnumerable<Kingdom>)AccessTools.Method(typeof(DynasticHeirBehavior), "GetReigningHeirRealmsForDisplay")
                 .Invoke(fresh, new object[] { child })).Any(), "A new campaign has no inherited Crown display entries");
@@ -166,7 +172,7 @@ internal static class TitleNameCacheTests
             AccessTools.PropertySetter(typeof(FeudalTitleBehavior), "Instance").Invoke(null, new object[] { previousTitles });
             AccessTools.PropertySetter(typeof(DynasticHeirBehavior), "Instance").Invoke(null, new object[] { previousHeirs });
             _clan = _otherClan = null; _leader = _spouse = null; _home = null; _realms = null;
-            _bloodRelative = false; RefreshedRealms.Clear();
+            _bloodRelative = _indentured = false; RefreshedRealms.Clear();
         }
     }
 }

@@ -232,6 +232,28 @@ internal static partial class MarriageHouseholdTests
         check(Spouses[groom] == bride && Houses[groom] == brideHouse,
             "Actual marriage barter item executes the explicitly chosen household");
         Reset();
+        Patch(AccessTools.Method(assembly.GetType("BellumCivile.Behaviors.BellumMarriageStrategyHelper"), "PlayerMarriageStaffRisk"), nameof(HalfRisk));
+        foreach (bool npcLeaves in new[] { false, true })
+        foreach (bool playerFamily in new[] { false, true })
+        foreach (bool otherFamily in new[] { false, true })
+        {
+            if (playerFamily) Outsiders.Remove(groom); else Outsiders.Add(groom);
+            if (otherFamily) Outsiders.Remove(bride); else Outsiders.Add(bride);
+            int baseline = otherFamily ? npcLeaves ? 170000 : 33750 : npcLeaves ? 56250 : 39375;
+            int expected = !playerFamily && otherFamily ? (int)Math.Ceiling(baseline * 1.25)
+                : playerFamily && !otherFamily ? (int)Math.Ceiling(baseline * .75) : baseline;
+            foreach (bool reversed in new[] { false, true })
+            {
+                var priced = new MarriageBarterable(Leaders[groomHouse], null, reversed ? bride : groom, reversed ? groom : bride);
+                Quote(priced, Record(true, npcLeaves ? groomHouse : brideHouse));
+                int amount = priced.GetUnitValueForFaction(brideHouse);
+                check(amount == -expected, "Production quote applies the agreed status price in either household and constructor order: "
+                    + playerFamily + "/" + otherFamily + "/" + npcLeaves + "/" + reversed);
+                for (int i = 0; i < 10; i++)
+                    check(priced.GetUnitValueForFaction(brideHouse) == amount, "Barter redraws never compound the status adjustment");
+            }
+        }
+        Outsiders.Remove(groom); Outsiders.Remove(bride);
         var invalid = new MarriageBarterable(Leaders[groomHouse], null, groom, bride);
         Quote(invalid, Record(true, groomHouse)); Houses[bride] = groomHouse;
         var guard = assembly.GetType("BellumCivile.Patches.PlayerMarriageBarterGuard");

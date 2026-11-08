@@ -8,9 +8,10 @@ internal static class MercenaryLeaderStyleTests
 {
     private static Clan _clan;
     private static Hero _leader;
-    private static bool _minor, _hired, _child, _disabled, _notable, _bandit, _eliminated;
+    private static bool _minor, _hired, _child, _disabled, _notable, _bandit, _eliminated, _isPlayer;
     private static bool _alive = true;
     private static bool Clan(ref Clan __result) { __result = _clan; return false; }
+    private static bool Player(ref Clan __result) { __result = _isPlayer ? _clan : null; return false; }
     private static bool Leader(ref Hero __result) { __result = _leader; return false; }
     private static bool Minor(ref bool __result) { __result = _minor; return false; }
     private static bool Hired(ref bool __result) { __result = _hired; return false; }
@@ -28,6 +29,7 @@ internal static class MercenaryLeaderStyleTests
             void Patch(Type t, string property, string prefix) => harmony.Patch(AccessTools.PropertyGetter(t, property),
                 prefix: new HarmonyMethod(typeof(MercenaryLeaderStyleTests), prefix));
             Patch(typeof(Hero), "Clan", nameof(Clan)); Patch(typeof(Clan), "Leader", nameof(Leader));
+            Patch(typeof(Clan), "PlayerClan", nameof(Player));
             Patch(typeof(Clan), "IsMinorFaction", nameof(Minor)); Patch(typeof(Clan), "IsUnderMercenaryService", nameof(Hired));
             Patch(typeof(Clan), "IsBanditFaction", nameof(Bandit)); Patch(typeof(Clan), "IsEliminated", nameof(Eliminated));
             Patch(typeof(Hero), "IsChild", nameof(Child)); Patch(typeof(Hero), "IsDisabled", nameof(Disabled));
@@ -36,11 +38,13 @@ internal static class MercenaryLeaderStyleTests
             _leader = (Hero)FormatterServices.GetUninitializedObject(typeof(Hero));
             var method = typeof(FeudalTitleRecord).Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper");
             bool Eligible(Hero hero) => (bool)AccessTools.Method(method, "IsMercenaryLeader").Invoke(null, new object[] { hero });
+            foreach (bool player in new[] { false, true })
             foreach (bool minor in new[] { false, true })
             foreach (bool hired in new[] { false, true })
             {
-                _minor = minor; _hired = hired;
-                check(Eligible(_leader) == (minor || hired), "Minor leaders qualify between contracts; regular clan leaders only while hired");
+                _isPlayer = player; _minor = minor; _hired = hired;
+                check(Eligible(_leader) == (hired || minor && !player),
+                    "NPC minor leaders qualify between contracts; player leaders qualify only while hired");
             }
             check(!Eligible(null), "Null hero cannot receive company title");
             check(!Eligible((Hero)FormatterServices.GetUninitializedObject(typeof(Hero))), "Company title never passes to ordinary members or spouse");
@@ -56,7 +60,7 @@ internal static class MercenaryLeaderStyleTests
         {
             harmony.UnpatchAll(harmony.Id);
             _clan = null; _leader = null; _alive = true;
-            _minor = _hired = _child = _disabled = _notable = _bandit = _eliminated = false;
+            _minor = _hired = _child = _disabled = _notable = _bandit = _eliminated = _isPlayer = false;
         }
     }
 }

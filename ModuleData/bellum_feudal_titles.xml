@@ -59,13 +59,18 @@
   any title are unaffected. Royal, heir and consort styles take priority.
   The realm-membership, adulthood and non-mercenary noble requirements remain.
 
-  Optional mercenary/minor-faction clan leader honorifics on Rank tier="Kingdom":
+  Optional captain honorifics on Rank tier="Kingdom":
     mercenaryLeaderRank="Captain" femaleMercenaryLeaderRank="Captain"
   Own-culture entries work both hired and between contracts; realm styles are
-  fallbacks. Includes the player while serving as a mercenary. Adult leaders
+  fallbacks. The player qualifies only while under an active mercenary contract,
+  never from the player clan's minor-faction flag alone. Adult leaders
   only, excluding bandits/notables; never inherited by members or spouses.
-  Omit both to retain existing names. One gender can serve both. These are
-  professional honorifics, not territorial ranks, and take priority while eligible.
+  The same own-culture fields style adult player-clan retainers with an active
+  indenture and no lordship. A landed retainer keeps their knight honorific;
+  personal noble, consort and heir titles also take precedence over an indenture.
+  On expiry the captain style ends. No occupation or territorial rank is changed.
+  Omit both to retain existing mercenary leader names; indentured retainers
+  instead fall back to Captain. One gender can serve both.
 -->
 <BellumFeudalTitles>
   <!--

@@ -84,6 +84,21 @@ internal static class Program
                 PrefabFinalizationCompatibilityTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} prefab finalization compatibility checks passed.");
             }
+            else if (args.Contains("--retainer-indentures"))
+            {
+                RetainerIndentureTests.Run(Check);
+                Console.WriteLine($"{_checks} retainer indenture checks passed.");
+            }
+            else if (args.Contains("--captain-titles"))
+            {
+                CaptainTitleTests.Run(Check);
+                Console.WriteLine($"{_checks} captain title checks passed.");
+            }
+            else if (args.Contains("--mercenary-leader-titles"))
+            {
+                MercenaryLeaderStyleTests.Run(Check);
+                Console.WriteLine($"{_checks} mercenary leader title checks passed.");
+            }
             else if (args.Contains("--lordship-appointments"))
             {
                 LordshipAppointmentTests.Run(Check);

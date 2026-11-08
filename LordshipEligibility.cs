@@ -18,7 +18,7 @@ namespace BellumCivile
         internal static bool Permitted(Hero hero, bool governor = false, Town destination = null)
         {
             var registry = LordshipBehavior.Instance;
-            if (!Required(hero) || registry.GetGrant(hero) != null) return true;
+            if (!Required(hero) || registry.HasServiceSupport(hero)) return true;
             if (governor && registry.HasLegacyAppointment(hero, town: destination ?? hero.GovernorOf)) return true;
             if (!governor && hero.PartyBelongedTo?.LeaderHero == hero && registry.HasLegacyAppointment(hero, party: hero.PartyBelongedTo)) return true;
             if (SelectingClan != hero.Clan || SelectingClan == Clan.PlayerClan) return false;
@@ -27,7 +27,7 @@ namespace BellumCivile
         }
 
         internal static TextObject Reason(bool governor) => governor
-            ? LordshipBehavior.Text("BC_Lordship_GovernorRequired", "This retainer must receive a village endowment before serving as governor.")
-            : LordshipBehavior.Text("BC_Lordship_CommandRequired", "This retainer must receive a village endowment before leading a clan party.");
+            ? LordshipBehavior.Text("BC_Lordship_GovernorRequired", "This retainer needs a lordship grant or an active indenture before serving as governor.")
+            : LordshipBehavior.Text("BC_Lordship_CommandRequired", "This retainer needs a lordship grant or an active indenture before leading a clan party.");
     }
 }

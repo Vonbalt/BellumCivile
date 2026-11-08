@@ -74,7 +74,8 @@ internal static class LordshipDialogueFlowTests
             }
             check(Matches("hero_main_options", false).First().Id == "bc_lordship_revoke_start",
                 "Native partner matching reproduces the old loop when a cancel jumps directly to player options");
-            foreach (string id in new[] { "bc_lordship_cancel", "bc_lordship_cancel_confirm", "bc_lordship_revoke_cancel", "bc_vassal_lordship_return_cancel" })
+            foreach (string id in new[] { "bc_lordship_cancel", "bc_lordship_cancel_confirm", "bc_lordship_revoke_cancel", "bc_vassal_lordship_return_cancel",
+                "bc_indent_explain_cancel", "bc_indent_terms_cancel", "bc_indent_confirm_cancel" })
             {
                 var cancel = Lines[id];
                 check(cancel.Player && cancel.Output == "lord_pretalk", "Cancellation routes through an NPC turn: " + id);

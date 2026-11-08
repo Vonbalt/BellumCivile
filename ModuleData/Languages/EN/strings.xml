@@ -522,15 +522,15 @@
     <string id="BC_RelationMemory_PoliticalMemory" text="Political memory" />
 
     <!-- Marriage dialogue -->
-    <string id="BC_Marriage_SpecificProposal" text="I would like to propose an alliance between our families through marriage." />
+    <string id="BC_Marriage_SpecificProposal" text="I would like to discuss a marriage between our households." />
     <string id="BC_Marriage_ChoosePlayerPrompt" text="And whose hand are you offering?" />
     <string id="BC_Marriage_PlayerSelf" text="My own hand." />
     <string id="BC_Marriage_PlayerRelative" text="The hand of {BC_PLAYER_CANDIDATE.NAME}." />
     <string id="BC_Marriage_PlayerRelativeOther" text="I am thinking of a different person." />
-    <string id="BC_Marriage_ChooseOtherPrompt" text="And whose hand from my family do you seek?" />
+    <string id="BC_Marriage_ChooseOtherPrompt" text="And whose hand from my household do you seek?" />
     <string id="BC_Marriage_OtherRelative" text="I seek the hand of {BC_OTHER_CANDIDATE.NAME}." />
     <string id="BC_Marriage_OtherRelativeOther" text="I was thinking of someone else." />
-    <string id="BC_Marriage_BackToPlayerChoice" text="I should offer a different member of my family." />
+    <string id="BC_Marriage_BackToPlayerChoice" text="I should offer a different member of my household." />
     <string id="BC_Marriage_ConfirmPrompt" text="A specific match, then. Let us speak of the terms." />
     <string id="BC_Marriage_DiscussTerms" text="Very good. Let us discuss the terms." />
     <string id="BC_Marriage_NeverMind" text="Actually, never mind." />
@@ -7213,8 +7213,8 @@
     <string id="BC_Lordship_Attend" text="I Will Attend to It" />
     <string id="BC_Lordship_Changed" text="This grant is no longer available." />
     <string id="BC_Lordship_ChooseVillage" text="Choose a village grant for {HERO}. Its revenues will belong exclusively to the holder." />
-    <string id="BC_Lordship_CommandRequired" text="This retainer must receive a village endowment before leading a clan party." />
-    <string id="BC_Lordship_NoPartyLeader" text="Your clan has no available family members or retainers holding a lordship grant to lead a new party." />
+    <string id="BC_Lordship_CommandRequired" text="This retainer needs a lordship grant or an active indenture before leading a clan party." />
+    <string id="BC_Lordship_NoPartyLeader" text="Your clan has no available family members or retainers with a lordship grant or active indenture to lead a new party." />
     <string id="BC_Lordship_Count" text="Village Grants ({COUNT})" />
     <string id="BC_Lordship_Dame" text="Dame" />
     <string id="BC_Lordship_DialogueAccept" text="You honor me, my {?PLAYER.GENDER}lady{?}lord{\?}. I will hold {VILLAGE} faithfully in your service." />
@@ -7230,12 +7230,12 @@
     <string id="BC_Lordship_DialogueSurrender" text="As you command. I surrender {LORDSHIP}." />
     <string id="BC_Lordship_DialogueUnavailable" text="It seems that grant can no longer be made. We may speak of it another time." />
     <string id="BC_Lordship_DialogueVillage" text="{LORDSHIP}." />
-    <string id="BC_Lordship_GovernorRequired" text="This retainer must receive a village endowment before serving as governor." />
+    <string id="BC_Lordship_GovernorRequired" text="This retainer needs a lordship grant or an active indenture before serving as governor." />
     <string id="BC_Lordship_GrantPlural" text="Endow Retainers" />
     <string id="BC_Lordship_GrantTitle" text="Grant {LORDSHIP_TYPE}" />
     <string id="BC_Lordship_IncomeAssigned" text="{VILLAGE}: revenues assigned to {HERO}" />
     <string id="BC_Lordship_InvalidMember" text="Choose an eligible adult member of your household." />
-    <string id="BC_Lordship_MigrationBody" text="The following retainers command parties or govern settlements in your name without village endowments:&#10;{RETAINERS}&#10;&#10;Grant them land within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties." />
+    <string id="BC_Lordship_MigrationBody" text="The following retainers command parties or govern settlements in your name without lordship grants or active indentures:&#10;{RETAINERS}&#10;&#10;Grant them land or agree an indenture within five days if they are to remain in these posts. Those who remain unsupported will be relieved of their duties." />
     <string id="BC_Lordship_MigrationChoose" text="Choose a retainer to receive a village endowment. The holder alone will receive its revenues." />
     <string id="BC_Lordship_MigrationTitle" text="Retainers Await Endowment" />
     <string id="BC_Lordship_Name" text="Lordship of {VILLAGE}" />
@@ -7247,7 +7247,7 @@
     <string id="BC_Lordship_Retainer" text="Retainer" />
     <string id="BC_Lordship_Retainers" text="Retainers" />
     <string id="BC_Lordship_RevenueHint" text="The holder alone will receive the revenues of {LORDSHIP}." />
-    <string id="BC_Lordship_RevokeConfirm" text="Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without an endowment will also be relieved of party command or governorship when it is safe." />
+    <string id="BC_Lordship_RevokeConfirm" text="Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without another lordship or active indenture will also be relieved of party command or governorship when it is safe." />
     <string id="BC_Lordship_RevokeHint" text="Return the revenues of {LORDSHIP} to the household. Relations decrease by 15." />
     <string id="BC_Lordship_RevokeTitle" text="Revoke {LORDSHIP_TYPE}" />
     <string id="BC_Lordship_Sir" text="Sir" />
@@ -7477,5 +7477,205 @@
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipName" text="Pronoia" />
     <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Barony_lordshipFormat" text="{TITLE_NOUN} {VILLAGE}" />
+    <string id="BC_Lordship_ReplacementTitle" text="Appoint a New Commander" />
+    <string id="BC_Lordship_ReplacementBody" text="{HERO} must relinquish command of {PARTY}. Choose a new commander to keep the party in the field, or order it disbanded." />
+    <string id="BC_Lordship_ReplacementCost" text="Assigning this commander costs {COST} denars." />
+    <string id="BC_Lordship_ReplacementAppoint" text="Appoint" />
+    <string id="BC_Lordship_ReplacementDisband" text="Disband Party" />
+    <string id="BC_Indenture_Label" text="Indenture" />
+    <string id="BC_Indenture_DaysRemaining" text="{DAYS} {?DAYS > 1}days{?}day{\?} remaining" />
+    <string id="BC_Indenture_Unavailable" text="This indenture can no longer be agreed. We must speak of it another time." />
+    <string id="BC_Indenture_TooEarly" text="This indenture may be renewed when seven days or fewer remain." />
+    <string id="BC_Indenture_NotEnoughGold" text="You need {GOLD} denars to agree to these terms." />
+    <string id="BC_Indenture_Expired" text="{HERO}'s indenture has expired." />
+    <string id="BC_Indenture_Renewed" text="Your indenture with {HERO} has been renewed." />
+    <string id="BC_Indenture_RenewalTitle" text="Indenture Nearing Its End" />
+    <string id="BC_Indenture_RenewalBody" text="Your indenture with {HERO} ends in {DAYS} {?DAYS > 1}days{?}day{\?}. Will you retain their services for another term?" />
+    <string id="BC_Indenture_Renew" text="Renew Indenture" />
+    <string id="BC_Indenture_LetExpire" text="Let It Expire" />
+    <string id="BC_Indenture_TermCost" text="{TERM} - {GOLD} denars" />
+    <string id="BC_Indenture_RenewalTerms" text="{HERO} offers to serve for another term, with the fee payable in advance." />
+    <string id="BC_Indenture_Agree" text="Agree" />
+    <string id="BC_Indenture_TermOne" text="One year" />
+    <string id="BC_Indenture_TermTwo" text="Two years" />
+    <string id="BC_Indenture_TermThree" text="Three years" />
+    <string id="BC_Indenture_DialogueOffer" text="I would have you serve as a captain of my household." />
+    <string id="BC_Indenture_DialogueRenew" text="Our indenture is nearing its end. I would retain your service." />
+    <string id="BC_Indenture_DialogueResponse" text="What terms do you offer?" />
+    <string id="BC_Indenture_DialogueLandless" text="I have no lands to grant you for your service. Instead, I would retain you for a fee, with the terms set down in an indenture." />
+    <string id="BC_Indenture_DialogueLanded" text="Rather than grant you an estate, I would retain your services for a fee, with the terms set down in an indenture." />
+    <string id="BC_Indenture_DialogueTerms" text="Name the term and the fee." />
+    <string id="BC_Indenture_DialogueOne" text="For one year, at a fee of 5,000 denars." />
+    <string id="BC_Indenture_DialogueTwo" text="For two years, at a fee of 8,000 denars." />
+    <string id="BC_Indenture_DialogueThree" text="For three years, at a fee of 13,000 denars." />
+    <string id="BC_Indenture_DialogueSelected" text="{BC_INDENTURE_TERM}, then, at a fee of {BC_INDENTURE_FEE} denars. You shall have my service until that term is done." />
+    <string id="BC_Indenture_DialogueConfirm" text="Agreed. Here is your fee." />
+    <string id="BC_Indenture_DialogueAccept" text="Then I pledge you my service. I shall lead your men and serve your household faithfully." />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Empire_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_s_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_w_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_kingdom_empire_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Vlandia_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Battania_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Khuzait_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Aserai_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_mercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Captain" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_s_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_w_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_kingdom_empire_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_mercenaryLeaderRank" text="Capitaneus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Empire_femaleMercenaryLeaderRank" text="Capitanea" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_mercenaryLeaderRank" text="Capitaneus" />
+    <string id="BC_TitleStyle_Immersive_culture_Vlandia_Kingdom_femaleMercenaryLeaderRank" text="Capitanea" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_mercenaryLeaderRank" text="Captaen" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Empire_femaleMercenaryLeaderRank" text="Captaen" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_mercenaryLeaderRank" text="Captaen" />
+    <string id="BC_TitleStyle_Immersive_culture_Battania_Kingdom_femaleMercenaryLeaderRank" text="Captaen" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_mercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Empire_femaleMercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_mercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Immersive_culture_Khuzait_Kingdom_femaleMercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_mercenaryLeaderRank" text="Qaid" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Empire_femaleMercenaryLeaderRank" text="Qaida" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_mercenaryLeaderRank" text="Qaid" />
+    <string id="BC_TitleStyle_Immersive_culture_Aserai_Kingdom_femaleMercenaryLeaderRank" text="Qaida" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_mercenaryLeaderRank" text="Sotnik" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
+    <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />
+    <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Immersive_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_mercenaryLeaderRank" text="Capitaine" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleMercenaryLeaderRank" text="Capitaine" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_mercenaryLeaderRank" text="Capitaine" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleMercenaryLeaderRank" text="Capitaine" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_mercenaryLeaderRank" text="Capten" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleMercenaryLeaderRank" text="Capten" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_mercenaryLeaderRank" text="Capten" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleMercenaryLeaderRank" text="Capten" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_mercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleMercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_mercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleMercenaryLeaderRank" text="Yüzbaşı" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_mercenaryLeaderRank" text="Qaid" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleMercenaryLeaderRank" text="Qaida" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_mercenaryLeaderRank" text="Qaid" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleMercenaryLeaderRank" text="Qaida" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_mercenaryLeaderRank" text="Sotnik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_mercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank" text="Lochagos" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_retainerRank" text="Sir" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleRetainerRank" text="Dame" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_retainerRank" text="Sir" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRetainerRank" text="Dame" />
+    <string id="BC_Indenture_Captain" text="Captain" />
+    <string id="BC_Marriage_PlayerCandidateChoice" text="{?BC_PLAYER_IS_SELF}My own hand.{?}The hand of {BC_PLAYER_CANDIDATE.NAME}.{\?}" />
+    <string id="BC_Marriage_CandidateMarried" text="{HERO} is already married." />
+    <string id="BC_Marriage_CandidateMinor" text="{HERO} has not yet reached marriageable age." />
+    <string id="BC_Marriage_CandidatePrisoner" text="{HERO} is being held prisoner." />
+    <string id="BC_Marriage_CandidateTraveling" text="{HERO} is currently traveling." />
+    <string id="BC_Marriage_CandidateUnavailable" text="{HERO} is unavailable for marriage at present." />
+    <string id="BC_Marriage_CandidateMilitary" text="{HERO} is currently occupied with military duties." />
+    <string id="BC_Marriage_CandidateEngaged" text="{HERO} is already promised in another marriage offer." />
+    <string id="BC_Marriage_CandidateSameSex" text="This marriage requires a bride and a groom." />
+    <string id="BC_Marriage_CandidatePairRestricted" text="{HERO} cannot marry {OTHER} under the current marriage rules." />
+    <string id="BC_Marriage_CandidateNoMatch" text="There is no eligible match for {HERO} in this household at present." />
   </strings>
 </base>

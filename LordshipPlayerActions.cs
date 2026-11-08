@@ -65,7 +65,7 @@ namespace BellumCivile
         {
             var grant = LordshipBehavior.Instance?.GetGrant(village);
             if (grant == null) return;
-            var body = LordshipBehavior.EstateText("BC_Lordship_RevokeConfirm", "Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without an endowment will also be relieved of party command or governorship when it is safe.", village)
+            var body = LordshipBehavior.EstateText("BC_Lordship_RevokeConfirm", "Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without another lordship or active indenture will also be relieved of party command or governorship when it is safe.", village)
                 .SetTextVariable("HERO", grant.Holder.Name);
             InformationManager.ShowInquiry(new InquiryData(T("BC_Lordship_RevokeTitle", "Revoke {LORDSHIP_TYPE}", village), body.ToString(),
                 true, true, T("BC_Hierarchy_ActionRevoke", "Revoke"), T("BC_UI_Cancel", "Cancel"), () =>
@@ -80,7 +80,7 @@ namespace BellumCivile
             var behavior = LordshipBehavior.Instance;
             if (behavior == null) return;
             var heroes = HouseholdMembership.Members(Clan.PlayerClan).Where(h => h.IsAlive && HouseholdMembership.IsRetainer(h)
-                && behavior.GetGrant(h) == null && (h.GovernorOf != null || h.PartyBelongedTo?.LeaderHero == h)).ToList();
+                && !behavior.HasServiceSupport(h) && (h.GovernorOf != null || h.PartyBelongedTo?.LeaderHero == h)).ToList();
             var choices = heroes.Select(h => new InquiryElement(h, h.Name.ToString(), null)).ToList();
             if (choices.Count == 0) return;
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(

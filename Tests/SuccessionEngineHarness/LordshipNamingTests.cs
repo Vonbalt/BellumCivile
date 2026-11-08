@@ -138,11 +138,6 @@ internal static class LordshipNamingTests
                     foreach (var tier in new[] { FeudalTitleType.Kingdom, FeudalTitleType.Empire })
                     {
                         var resolved = AccessTools.Method(display, "ResolveRankStyle").Invoke(null, new object[] { tier, owner, null, "" });
-                        if (preset == "anglicized" && culture == "Rhodok")
-                        {
-                            check(resolved == null, "Anglicized Rhodok retains the existing unconfigured Sir/Dame fallback");
-                            continue;
-                        }
                         check(resolved != null && new TextObject((string)AccessTools.Field(resolved.GetType(), "WandererRank").GetValue(resolved)).ToString() == expected.Male
                             && new TextObject((string)AccessTools.Field(resolved.GetType(), "FemaleWandererRank").GetValue(resolved)).ToString() == expected.Female,
                             preset + "/" + culture + "/" + tier + ": both retainer honorifics resolve through existing rank selection");

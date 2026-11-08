@@ -39,7 +39,7 @@ namespace BellumCivile.Behaviors
                 "bc_specific_marriage_start",
                 "lord_talk_speak_diplomacy_2",
                 "bc_specific_marriage_choose_player_prompt",
-                "{=BC_Marriage_SpecificProposal}I would like to propose an alliance between our families through marriage.",
+                "{=BC_Marriage_SpecificProposal}I would like to discuss a marriage between our households.",
                 CanOpenSpecificMarriageProposal,
                 ClearSelection,
                 121);
@@ -52,24 +52,17 @@ namespace BellumCivile.Behaviors
                 null,
                 SetupPlayerCandidateList);
 
-            starter.AddPlayerLine(
-                "bc_specific_marriage_choose_self",
-                "bc_specific_marriage_choose_player",
-                "bc_specific_marriage_choose_other_prompt",
-                "{=BC_Marriage_PlayerSelf}My own hand.",
-                CanSelectMainHero,
-                SelectMainHero,
-                120);
-
             starter.AddRepeatablePlayerLine(
                 "bc_specific_marriage_choose_player_relative",
                 "bc_specific_marriage_choose_player",
                 "bc_specific_marriage_choose_other_prompt",
-                "{=BC_Marriage_PlayerRelative}The hand of {BC_PLAYER_CANDIDATE.NAME}.",
+                "{=BC_Marriage_PlayerCandidateChoice}{?BC_PLAYER_IS_SELF}My own hand.{?}The hand of {BC_PLAYER_CANDIDATE.NAME}.{\\?}",
                 "{=BC_Marriage_PlayerRelativeOther}I am thinking of a different person.",
                 "bc_specific_marriage_choose_player_prompt",
                 PlayerCandidateRepeatCondition,
-                SelectPlayerCandidate);
+                SelectPlayerCandidate,
+                120,
+                PlayerCandidateClickable);
 
             starter.AddPlayerLine(
                 "bc_specific_marriage_choose_player_cancel",
@@ -84,7 +77,7 @@ namespace BellumCivile.Behaviors
                 "bc_specific_marriage_choose_other_prompt",
                 "bc_specific_marriage_choose_other_prompt",
                 "bc_specific_marriage_choose_other",
-                "{=BC_Marriage_ChooseOtherPrompt}And whose hand from my family do you seek?",
+                "{=BC_Marriage_ChooseOtherPrompt}And whose hand from my household do you seek?",
                 HasSelectedPlayerHero,
                 SetupOtherCandidateList);
 
@@ -97,13 +90,14 @@ namespace BellumCivile.Behaviors
                 "bc_specific_marriage_choose_other_prompt",
                 OtherCandidateRepeatCondition,
                 SelectOtherCandidate,
-                120);
+                120,
+                OtherCandidateClickable);
 
             starter.AddPlayerLine(
                 "bc_specific_marriage_choose_other_back",
                 "bc_specific_marriage_choose_other",
                 "bc_specific_marriage_choose_player",
-                "{=BC_Marriage_BackToPlayerChoice}I should offer a different member of my family.",
+                "{=BC_Marriage_BackToPlayerChoice}I should offer a different member of my household.",
                 null,
                 ResetOtherSelection,
                 110);
@@ -181,22 +175,6 @@ namespace BellumCivile.Behaviors
             return GetPlayerCandidates(npc.Clan).Count > 0;
         }
 
-        private bool CanSelectMainHero()
-        {
-            Hero npc = Hero.OneToOneConversationHero;
-            if (Hero.MainHero == null || npc?.Clan == null)
-                return false;
-
-            return GetOtherCandidates(Hero.MainHero, npc.Clan).Count > 0;
-        }
-
-        private void SelectMainHero()
-        {
-            _selectedPlayerHero = Hero.MainHero;
-            _selectedOtherHero = null;
-            _otherCandidateListInitialized = false;
-        }
-
         private bool HasSelectedPlayerHero()
         {
             return _selectedPlayerHero != null && Hero.OneToOneConversationHero?.Clan != null;
@@ -224,11 +202,20 @@ namespace BellumCivile.Behaviors
             if (ConversationSentence.CurrentProcessedRepeatObject is CharacterObject character)
             {
                 StringHelpers.SetRepeatableCharacterProperties("BC_PLAYER_CANDIDATE", character);
-                return character.HeroObject != Hero.MainHero;
+                MBTextManager.SetTextVariable("BC_PLAYER_IS_SELF", character.HeroObject == Hero.MainHero ? 1 : 0);
+                return true;
             }
 
             return false;
         }
+
+        private bool PlayerCandidateClickable(out TextObject reason) => CanSelectPlayerCandidate(
+            (ConversationSentence.CurrentProcessedRepeatObject as CharacterObject)?.HeroObject,
+            Hero.OneToOneConversationHero?.Clan, out reason);
+
+        private bool OtherCandidateClickable(out TextObject reason) => CanSelectPair(_selectedPlayerHero,
+            (ConversationSentence.CurrentProcessedRepeatObject as CharacterObject)?.HeroObject,
+            Hero.OneToOneConversationHero?.Clan, out reason);
 
         private void SelectPlayerCandidate()
         {
@@ -342,9 +329,10 @@ namespace BellumCivile.Behaviors
             if (Clan.PlayerClan == null || otherClan == null)
                 return new List<Hero>();
 
-            return HouseholdMembership.Members(Clan.PlayerClan)
-                .Where(hero => hero.IsAlive && MarriageParticipantPolicy.IsParticipant(hero) && GetOtherCandidates(hero, otherClan).Count > 0)
-                .OrderByDescending(hero => hero == Hero.MainHero)
+            var others = ProposalMembers(otherClan).ToList();
+            return ProposalMembers(Clan.PlayerClan)
+                .OrderByDescending(hero => CanSelectPlayerCandidate(hero, otherClan, out _, others))
+                .ThenByDescending(hero => hero == Hero.MainHero)
                 .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
                 .ToList();
@@ -355,13 +343,63 @@ namespace BellumCivile.Behaviors
             if (playerClanHero == null || otherClan == null)
                 return new List<Hero>();
 
-            return HouseholdMembership.Members(otherClan)
-                .Where(hero => hero.IsAlive && MarriageParticipantPolicy.IsParticipant(hero)
-                    && Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(playerClanHero, hero))
-                .OrderByDescending(hero => hero == otherClan.Leader)
+            return ProposalMembers(otherClan)
+                .OrderByDescending(hero => CanSelectPair(playerClanHero, hero, otherClan, out _))
+                .ThenByDescending(hero => hero == otherClan.Leader)
                 .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
                 .ToList();
+        }
+
+        private static IEnumerable<Hero> ProposalMembers(Clan clan) => HouseholdMembership.Members(clan)
+            .Where(hero => hero.Clan == clan && hero.IsAlive && MarriageParticipantPolicy.IsParticipant(hero));
+
+        private static TextObject CandidateReason(Hero hero)
+        {
+            TextObject Reason(string key, string text) => new TextObject(key + text).SetTextVariable("HERO", hero.Name);
+            if (hero?.Clan == null) return new TextObject("{=BC_Marriage_AgreementChanged}This marriage can no longer proceed on the agreed terms.");
+            if (hero.Spouse != null) return Reason("{=BC_Marriage_CandidateMarried}", "{HERO} is already married.");
+            var model = Campaign.Current.Models.MarriageModel;
+            if (hero.Age < (hero.IsFemale ? model.MinimumMarriageAgeFemale : model.MinimumMarriageAgeMale))
+                return Reason("{=BC_Marriage_CandidateMinor}", "{HERO} has not yet reached marriageable age.");
+            if (hero.IsPrisoner) return Reason("{=BC_Marriage_CandidatePrisoner}", "{HERO} is being held prisoner.");
+            if (hero.IsTraveling) return Reason("{=BC_Marriage_CandidateTraveling}", "{HERO} is currently traveling.");
+            if (!hero.IsAlive || !hero.IsActive || hero.IsDisabled)
+                return Reason("{=BC_Marriage_CandidateUnavailable}", "{HERO} is unavailable for marriage at present.");
+            if (hero.PartyBelongedTo?.MapEvent != null || hero.PartyBelongedTo?.SiegeEvent != null || hero.PartyBelongedTo?.Army != null)
+                return Reason("{=BC_Marriage_CandidateMilitary}", "{HERO} is currently occupied with military duties.");
+            if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true)
+                return new TextObject("{=BC_Marriage_AccessionPending}A pending succession must be settled before this marriage can proceed.");
+            var offers = PlayerMarriageAgreementBehavior.Native;
+            if (offers != null && (offers.IsHeroEngaged(hero)
+                || PlayerMarriageAgreementBehavior.ActivePlayer == hero || PlayerMarriageAgreementBehavior.ActiveOther == hero))
+                return Reason("{=BC_Marriage_CandidateEngaged}", "{HERO} is already promised in another marriage offer.");
+            return hero.CanMarry() ? null : Reason("{=BC_Marriage_CandidateUnavailable}", "{HERO} is unavailable for marriage at present.");
+        }
+
+        private static bool CanSelectPair(Hero player, Hero other, Clan otherClan, out TextObject reason)
+        {
+            reason = CandidateReason(player) ?? CandidateReason(other);
+            if (reason != null) return false;
+            if (player.Clan != Clan.PlayerClan || other.Clan != otherClan || player.Clan == other.Clan)
+                reason = new TextObject("{=BC_Marriage_HouseChanged}One of the betrothed has changed houses. A new marriage agreement is required.");
+            else if (player.IsFemale == other.IsFemale)
+                reason = new TextObject("{=BC_Marriage_CandidateSameSex}This marriage requires a bride and a groom.");
+            else if (!Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(player, other))
+                reason = new TextObject("{=BC_Marriage_CandidatePairRestricted}{HERO} cannot marry {OTHER} under the current marriage rules.")
+                    .SetTextVariable("HERO", player.Name).SetTextVariable("OTHER", other.Name);
+            return reason == null;
+        }
+
+        private static bool CanSelectPlayerCandidate(Hero hero, Clan otherClan, out TextObject reason, IEnumerable<Hero> others = null)
+        {
+            reason = CandidateReason(hero);
+            if (reason != null) return false;
+            if (hero.Clan == Clan.PlayerClan && otherClan != null
+                && (others ?? ProposalMembers(otherClan)).Any(other => CanSelectPair(hero, other, otherClan, out _))) return true;
+            reason = new TextObject("{=BC_Marriage_CandidateNoMatch}There is no eligible match for {HERO} in this household at present.")
+                .SetTextVariable("HERO", hero.Name);
+            return false;
         }
 
         private void ResetOtherSelection()

@@ -16,6 +16,8 @@ namespace BellumCivile
 
         protected override void DefineClassTypes()
         {
+            AddClassDefinition(typeof(RetainerIndentureRecord), 144);
+            AddClassDefinition(typeof(LordshipCommandTransferRecord), 143);
             AddClassDefinition(typeof(AsylumVisitRecord), 142);
             AddClassDefinition(typeof(PersonalLordshipRecord), 138);
             AddClassDefinition(typeof(LordshipAppointmentRecord), 139);
@@ -172,6 +174,8 @@ namespace BellumCivile
             ConstructContainerDefinition(typeof(List<TitleAcquiredMapNotification>));
             ConstructContainerDefinition(typeof(List<PersonalLordshipRecord>));
             ConstructContainerDefinition(typeof(List<LordshipAppointmentRecord>));
+            ConstructContainerDefinition(typeof(List<LordshipCommandTransferRecord>));
+            ConstructContainerDefinition(typeof(List<RetainerIndentureRecord>));
             ConstructContainerDefinition(typeof(List<LordshipIncomeCredit>));
             ConstructContainerDefinition(typeof(List<CivilWarGraceRecord>));
             ConstructContainerDefinition(typeof(List<RestoredRealmCreationRecord>));

@@ -22,6 +22,7 @@ namespace BellumCivile.Behaviors
         private void AddDialogues(CampaignGameStarter starter)
         {
             AddVassalLordshipDialogues(starter);
+            AddIndentureDialogues(starter);
             starter.AddPlayerLine("bc_lordship_start", "hero_main_options", "bc_lordship_response",
                 "{=BC_Lordship_DialogueOffer}You have served my household faithfully. I would entrust an estate to you.",
                 () => Ready && Hero.OneToOneConversationHero?.Clan == Clan.PlayerClan

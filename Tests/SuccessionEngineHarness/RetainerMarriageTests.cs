@@ -11,6 +11,7 @@ using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 
 internal static class RetainerMarriageTests
 {
@@ -51,6 +52,7 @@ internal static class RetainerMarriageTests
     private static bool Held(ref IReadOnlyCollection<FeudalTitleRecord> __result) { __result = _held; return false; }
     private static bool LegalHead(ref Hero __result) { if (_legalHead == null) return true; __result = _legalHead; return false; }
     private static bool Skip() => false;
+    private static bool Name(Hero __instance, ref TextObject __result) { __result = new TextObject("{=!}" + __instance.StringId); return false; }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -100,6 +102,7 @@ internal static class RetainerMarriageTests
             Patch(AccessTools.PropertyGetter(typeof(Hero), "MainHero"), nameof(Main));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Age"), nameof(Age));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "Name"), nameof(Name));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsChild"), nameof(Child));
             Patch(AccessTools.Method(typeof(Romance), "GetCourtedHeroInOtherClan"), nameof(NoCourt));
             Patch(AccessTools.Method(typeof(Hero), "UpdateHomeSettlement"), nameof(Skip));
@@ -143,6 +146,59 @@ internal static class RetainerMarriageTests
                 .Invoke(proposal, new object[] { companion, other });
             check(otherCandidates.IndexOf(daughter) >= 0 && otherCandidates.IndexOf(daughter) < otherCandidates.IndexOf(retainer),
                 "The other house's proposal list also displays eligible family before retainers");
+            List<Hero> Players() => (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetPlayerCandidates")
+                .Invoke(proposal, new object[] { other });
+            List<Hero> Others(Hero hero) => (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetOtherCandidates")
+                .Invoke(proposal, new object[] { hero, other });
+            string Reason(Hero hero)
+            {
+                object[] args = { hero, other, null, null };
+                bool enabled = (bool)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "CanSelectPlayerCandidate").Invoke(null, args);
+                check(!enabled && args[2] is TextObject, "A disabled candidate has an explanatory tooltip: " + hero.StringId);
+                return ((TextObject)args[2]).GetID();
+            }
+            string PairReason(Hero hero, Hero partner)
+            {
+                object[] args = { hero, partner, other, null };
+                bool enabled = (bool)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "CanSelectPair").Invoke(null, args);
+                return enabled ? null : ((TextObject)args[3]).GetID();
+            }
+            var femaleCompanion = Person(_player, "female_companion", true, true);
+            Invalidate();
+            check(Players().Contains(femaleCompanion) && Reason(femaleCompanion) == "BC_Marriage_CandidateNoMatch"
+                && Players().IndexOf(companion) < Players().IndexOf(femaleCompanion),
+                "A companion without a compatible spouse remains visible after available candidates, with a no-match reason");
+            var otherMale = Person(other, "other_male"); Invalidate();
+            check(PairReason(femaleCompanion, otherMale) == null && Others(femaleCompanion).First() == otherMale,
+                "A female companion becomes selectable when a valid groom exists, ahead of unavailable nobles");
+            Ages[companion] = 12;
+            check(Players().Contains(companion) && Reason(companion) == "BC_Marriage_CandidateMinor"
+                && Players().IndexOf(femaleCompanion) < Players().IndexOf(companion),
+                "A minor stays visible but disabled after an available companion");
+            Ages[companion] = 30;
+            AccessTools.Field(typeof(Hero), "_heroState").SetValue(companion, Hero.CharacterStates.Prisoner);
+            check(Reason(companion) == "BC_Marriage_CandidatePrisoner", "Captivity gets a specific player-candidate explanation");
+            AccessTools.Field(typeof(Hero), "_heroState").SetValue(companion, Hero.CharacterStates.Active);
+            AccessTools.Field(typeof(Hero), "_heroState").SetValue(daughter, Hero.CharacterStates.Prisoner);
+            check(Others(companion).Contains(daughter) && PairReason(companion, daughter) == "BC_Marriage_CandidatePrisoner"
+                && Others(companion).IndexOf(retainer) < Others(companion).IndexOf(daughter),
+                "An imprisoned NPC noble remains visible below an available retainer with the correct tooltip");
+            AccessTools.Field(typeof(Hero), "_heroState").SetValue(daughter, Hero.CharacterStates.Active);
+            companion.Spouse = femaleCompanion;
+            check(Players().Contains(companion) && Reason(companion) == "BC_Marriage_CandidateMarried",
+                "Already married household members remain visible with an explicit reason");
+            companion.Spouse = null;
+            _barred = retainer;
+            check(PairReason(companion, retainer) == "BC_Marriage_CandidateUnavailable",
+                "Another mod's individual marriage veto remains disabled without inventing a reason for it");
+            _barred = null;
+            check(PairReason(companion, otherMale) == "BC_Marriage_CandidateSameSex",
+                "The opposite household explains an incompatible bride/groom selection");
+            var deadMember = Person(_player, "dead_companion", companion: true);
+            AccessTools.Field(typeof(Hero), "_heroState").SetValue(deadMember, Hero.CharacterStates.Dead);
+            Invalidate();
+            check(!Players().Contains(deadMember), "Dead members are not offered as disabled marriage candidates");
+            MarriageProposalDialogueTests.Run(check, proposal, companion, daughter, head);
             AccessTools.Field(typeof(Clan), "_kingdom").SetValue(_player, Blank<Kingdom>());
             object rejection = AccessTools.Method(helper, "GetOfferParticipantRejectionReason")
                 .Invoke(null, new object[] { companion, true, false });
@@ -156,6 +212,7 @@ internal static class RetainerMarriageTests
             Patch(AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "IsHeroEngaged"), nameof(Engaged));
             _engaged = companion;
             check(!model.IsSuitableForMarriage(companion), "An existing engagement still blocks companion proposals");
+            check(Reason(companion) == "BC_Marriage_CandidateEngaged", "An engagement has its own candidate tooltip");
             _engaged = null;
             Ages[companion] = 12;
             check(!model.IsSuitableForMarriage(companion), "Companion eligibility does not bypass adulthood");
