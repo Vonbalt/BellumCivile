@@ -229,8 +229,7 @@ namespace BellumCivile.Patches
                 && !CampaignUIHelper.IsHeroInformationHidden(hero, out _))
             {
                 var village = LordshipBehavior.Instance.GetGrant(hero)?.Village;
-                __0.AddProperty((village != null ? FeudalTitleDisplayHelper.GetLordshipNoun(village)
-                    : FeudalTitleDisplayHelper.GetLordshipNounForClan(hero.Clan)).ToString(),
+                __0.AddProperty(LordshipBehavior.Text("BC_Lordship_TooltipLabel", "Lordship").ToString(),
                     village?.Name?.ToString() ?? LordshipBehavior.Text("BC_Hierarchy_None", "None").ToString());
                 if (LordshipBehavior.Instance.GetIndenture(hero) is RetainerIndentureRecord contract)
                     __0.AddProperty(LordshipBehavior.Text("BC_Indenture_Label", "Indenture").ToString(),

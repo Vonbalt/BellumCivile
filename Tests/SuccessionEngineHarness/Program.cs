@@ -89,6 +89,11 @@ internal static class Program
                 RetainerIndentureTests.Run(Check);
                 Console.WriteLine($"{_checks} retainer indenture checks passed.");
             }
+            else if (args.Contains("--captain-titles"))
+            {
+                CaptainTitleTests.Run(Check);
+                Console.WriteLine($"{_checks} captain title checks passed.");
+            }
             else if (args.Contains("--lordship-appointments"))
             {
                 LordshipAppointmentTests.Run(Check);

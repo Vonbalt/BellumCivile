@@ -2,6 +2,7 @@
 <BellumFeudalTitles presetId="bannerkings" presetName="{=BC_TitleStylePreset_Bannerkings}bannerkings" presetOrder="30">
   <!-- Presentation-only title roots. These never alter holders, ownership, or hierarchy. -->
   <!-- Barony ranks also configure village lordshipName and lordshipFormat; {VILLAGE} and {TITLE_NAME} both name the village. -->
+  <!-- Captain fields serve mercenary leaders and indentured retainers. Unattested feminine compounds are game adaptations. -->
   <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
        Examples: heroNameFormat="{DISPLAY_TITLE} &#xB7; {HERO_NAME}"
        or heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
@@ -96,6 +97,8 @@
   <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
   <TitleStyle culture="Empire">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_femaleRank}Imperatrix"
@@ -109,6 +112,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_Kingdom_femaleRank}Regina"
@@ -130,6 +135,8 @@
   </TitleStyle>
   <TitleStyle kingdom="empire_s">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_titleName}Basileía"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_maleRank}Basileús"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_s_Kingdom_femaleRank}Basíleia"
@@ -145,6 +152,8 @@
   </TitleStyle>
   <TitleStyle kingdom="empire_w">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_titleName}Diktatoría"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_maleRank}Autokrátor"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_w_Kingdom_femaleRank}Autokratórissa"
@@ -160,6 +169,8 @@
   </TitleStyle>
   <TitleStyle kingdom="empire">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_titleName}Politeia"
           maleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_maleRank}Hypatos"
           femaleRank="{=BC_TitleStyle_Bannerkings_kingdom_empire_Kingdom_femaleRank}Hypatissa"
@@ -175,6 +186,8 @@
   </TitleStyle>
   <TitleStyle culture="Vlandia">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_retainerRank}Chevaler" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRetainerRank}Chevaleresse" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_mercenaryLeaderRank}Capitaine"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleMercenaryLeaderRank}Capitaine"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_titleName}Empires"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_maleRank}Emperere"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_femaleRank}Emperesse"
@@ -188,6 +201,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
 	      heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_retainerRank}Chevaler" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRetainerRank}Chevaleresse" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_mercenaryLeaderRank}Capitaine"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleMercenaryLeaderRank}Capitaine"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_titleName}Ríce"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_maleRank}Reis"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Vlandia_Kingdom_femaleRank}Reigne"
@@ -209,6 +224,8 @@
   </TitleStyle>
   <TitleStyle culture="Battania">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_retainerRank}Marchog" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRetainerRank}Marchoges" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_mercenaryLeaderRank}Capten"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleMercenaryLeaderRank}Capten"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_titleName}Pendreiciaeth"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_maleRank}Pendreic"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_femaleRank}Pendreices"
@@ -222,6 +239,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Battania_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_retainerRank}Marchog" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRetainerRank}Marchoges" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_mercenaryLeaderRank}Capten"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleMercenaryLeaderRank}Capten"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_titleName}Uchelbrenhinaeth"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_maleRank}Uchelbrenhin"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Battania_Kingdom_femaleRank}Uchelbrenhines"
@@ -243,6 +262,8 @@
   </TitleStyle>
   <TitleStyle culture="Khuzait">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_retainerRank}Nökör" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRetainerRank}Nökör" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_mercenaryLeaderRank}Yüzbaşı"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleMercenaryLeaderRank}Yüzbaşı"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_titleName}Ulus"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_maleRank}Erxem Khagan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_femaleRank}Erxem Khatun"
@@ -256,6 +277,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heldTitleFormat}{TITLE_NAME} {TITLE_RANK}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_retainerRank}Nökör" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRetainerRank}Nökör" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_mercenaryLeaderRank}Yüzbaşı"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleMercenaryLeaderRank}Yüzbaşı"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_titleName}Khaganlik"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_maleRank}Khagan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Khuzait_Kingdom_femaleRank}Khatun"
@@ -277,6 +300,8 @@
   </TitleStyle>
   <TitleStyle culture="Aserai">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_retainerRank}Faris" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRetainerRank}Farisa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_mercenaryLeaderRank}Qaid"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleMercenaryLeaderRank}Qaida"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_titleName}Khilaafa"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_maleRank}Khalifa"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_femaleRank}Khalifa"
@@ -290,6 +315,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Aserai_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_retainerRank}Faris" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRetainerRank}Farisa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_mercenaryLeaderRank}Qaid"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleMercenaryLeaderRank}Qaida"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_titleName}Saltana"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_maleRank}Sultan"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Aserai_Kingdom_femaleRank}Sultana"
@@ -311,6 +338,8 @@
   </TitleStyle>
   <TitleStyle culture="Sturgia">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_retainerRank}Druzhinnik" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRetainerRank}Druzhinnitsa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_mercenaryLeaderRank}Sotnik"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleMercenaryLeaderRank}Sotnitsa"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_titleName}Korolévstvo"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_maleRank}Koról"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleRank}Koroléva"
@@ -324,6 +353,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_retainerRank}Druzhinnik" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRetainerRank}Druzhinnitsa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_mercenaryLeaderRank}Sotnik"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank}Sotnitsa"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_titleName}Velykyy Knjazývstvo"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_maleRank}Velykyy Knjaz"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleRank}Velykyy Knjahýnja"
@@ -345,6 +376,8 @@
   </TitleStyle>
   <TitleStyle culture="Nord">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRetainerRank}Hirðkona" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank}Hǫfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank}Hǫfuðskona"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleName}Storkungendómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_maleRank}Storkungen"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRank}Riksdrottning"
@@ -358,6 +391,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRetainerRank}Hirðkona" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank}Hǫfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank}Hǫfuðskona"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_titleName}Konungdómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRank}Drottning"
@@ -380,6 +415,8 @@
    <!-- Mod supported cultures. -->
   <TitleStyle culture="Rhodok">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_retainerRank}Riter" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRetainerRank}Riterin" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_mercenaryLeaderRank}Houbetman"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleMercenaryLeaderRank}Houbetvrouwe"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_titleName}Vronenentriich"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_maleRank}Vronenent"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleRank}Vronenentin"
@@ -393,6 +430,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_retainerRank}Riter" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRetainerRank}Riterin" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_mercenaryLeaderRank}Houbetman"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank}Houbetvrouwe"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_titleName}Hougekunicriich"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_maleRank}Hougekunic"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_femaleRank}Hougekunigin"
@@ -414,6 +453,8 @@
   </TitleStyle>
   <TitleStyle culture="Empire_n">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_femaleRank}Imperatrix"
@@ -427,6 +468,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_n_Kingdom_femaleRank}Regina"
@@ -448,6 +491,8 @@
   </TitleStyle>
   <TitleStyle culture="Empire_s">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_femaleRank}Imperatrix"
@@ -461,6 +506,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_s_Kingdom_femaleRank}Regina"
@@ -482,6 +529,8 @@
   </TitleStyle>
   <TitleStyle culture="Empire_w">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRetainerRank}Pronoiarissa" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_titleName}Imperium"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_maleRank}Imperator"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_femaleRank}Imperatrix"
@@ -495,6 +544,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_retainerRank}Pronoiarios" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRetainerRank}Pronoiarissa" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_mercenaryLeaderRank}Lochagos"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank}Lochagos"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_titleName}Regnum"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_maleRank}Rex"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Empire_w_Kingdom_femaleRank}Regina"

@@ -80,8 +80,10 @@ internal static class LordshipAppointmentTests
     private static bool _destroyedWithoutClan;
     private static int _fundingCalls, _fundingAmount;
     private static readonly List<(string Label, string Value)> TooltipRows = new List<(string, string)>();
+    private static Settlement _tooltipVillage;
     private static bool TooltipRow(object[] __args) { TooltipRows.Add(((string)__args[0], (string)__args[1])); return false; }
-    private static bool LordshipNoun(ref TextObject __result) { __result = new TextObject("Lordship"); return false; }
+    private static bool LordshipNoun(ref TextObject __result) { __result = new TextObject("Feodum"); return false; }
+    private static bool VillageName(ref TextObject __result) { __result = new TextObject("{=!}Calioc"); return false; }
     private static bool AllParties(ref MBReadOnlyList<MobileParty> __result) { _partyScans++; __result = _allParties; return false; }
     private static bool Elapsed(ref float __result) { __result = 1; return false; }
     private static bool HoursFromNow(float __0, ref CampaignTime __result) { __result = CampaignTime.Days(_day + __0 / 24); return false; }
@@ -138,7 +140,7 @@ internal static class LordshipAppointmentTests
     private static bool Assert() { _asserts++; return false; }
     private static bool Grant(ref bool __result) { _grantAttempts++; __result = false; return false; }
     private static bool GrantLookup(Hero hero, ref PersonalLordshipRecord __result)
-    { if (hero != _endowed) return true; __result = new PersonalLordshipRecord { Holder = hero }; return false; }
+    { if (hero != _endowed) return true; __result = new PersonalLordshipRecord { Holder = hero, Village = _tooltipVillage }; return false; }
     private static bool CommandProbe(ref bool __result, ref TextObject disabledReason)
     {
         if (_throwCommand) throw new InvalidOperationException("native command probe failed");
@@ -719,13 +721,22 @@ internal static class LordshipAppointmentTests
 
             Patch(typeof(CampaignUIHelper), "IsHeroInformationHidden", nameof(No), false);
             Patch(typeof(LordshipBehavior).Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper"), "GetLordshipNounForClan", nameof(LordshipNoun), false);
+            Patch(typeof(LordshipBehavior).Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper"), "GetLordshipNoun", nameof(LordshipNoun), false);
             foreach (var method in typeof(PropertyBasedTooltipVM).GetMethods().Where(m => m.Name == "AddProperty"))
                 h.Patch(method, prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), nameof(TooltipRow)));
             TooltipRows.Clear();
             Call(PatchType, "HeroTooltip", null, Blank<PropertyBasedTooltipVM>(), new object[] { _retainer });
             check(TooltipRows.Any(r => r.Label == "Lordship" && r.Value == "None")
                 && TooltipRows.Last().Label == "Indenture" && TooltipRows.Last().Value == "84 days remaining",
-                "The existing retainer portrait tooltip shows the remaining indenture below Lordship None");
+                "An unlanded retainer shows the descriptive Lordship label, not Feodum, above the remaining indenture");
+            Patch(typeof(Settlement), "Name", nameof(VillageName));
+            _tooltipVillage = Blank<Settlement>(); _endowed = _retainer;
+            TooltipRows.Clear();
+            Call(PatchType, "HeroTooltip", null, Blank<PropertyBasedTooltipVM>(), new object[] { _retainer });
+            check(TooltipRows.Any(r => r.Label == "Lordship" && r.Value == "Calioc")
+                && !TooltipRows.Any(r => r.Label == "Feodum"),
+                "A landed retainer keeps the descriptive Lordship label and the actual village name");
+            _tooltipVillage = null; _endowed = null;
 
             activeContract.EndDay = _day; _unsafe = "battle";
             Call(typeof(LordshipBehavior), "Maintain", registry);
@@ -777,6 +788,7 @@ internal static class LordshipAppointmentTests
             AccessTools.Field(Eligibility, "CheckingClanCommand").SetValue(null, false);
             ticks.SetValue(null, oldTicks); hours.SetValue(null, oldHours); Call(Household, "Invalidate", null, new object[] { null });
             Houses.Clear(); Members.Clear();
+            _tooltipVillage = null;
         }
     }
 }

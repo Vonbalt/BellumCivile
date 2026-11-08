@@ -841,3 +841,4 @@ Improved marriage matchmaking to better distinguish dynastic survival from house
 Fixed a crash when NPC retainer parties disband after losing their lordships, with a targeted repair for affected saves.
 Parties now seek eligible replacement commanders when retainers lose their lordships before outright disbanding them.
 Added paid retainer indentures, allowing companions to command parties or govern without a lordship, with timed contracts and renewal reminders.
+Added cultural mercenary captain terms to the titles presets, it's used by party leaders of minor factions or player companions with an active indenture.

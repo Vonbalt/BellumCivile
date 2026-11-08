@@ -25,18 +25,20 @@ namespace BellumCivile.Patches
             public int Timestamp { get; }
             public int TitleRevision { get; }
             public bool MercenaryLeader { get; }
+            public bool IndenturedCaptain { get; }
             public string BaseName { get; }
             private readonly Clan _clan, _rulingClan, _spouseClan;
             private readonly Hero _leader, _spouse, _spouseLeader;
             private readonly Kingdom _realm;
             private readonly bool _child;
 
-            public CachedHeroName(Hero hero, string baseName, string name, int timestamp, int titleRevision, bool mercenaryLeader)
+            public CachedHeroName(Hero hero, string baseName, string name, int timestamp, int titleRevision, bool mercenaryLeader, bool indenturedCaptain)
             {
                 Name = name;
                 Timestamp = timestamp;
                 TitleRevision = titleRevision;
                 MercenaryLeader = mercenaryLeader;
+                IndenturedCaptain = indenturedCaptain;
                 BaseName = baseName;
                 _clan = hero.Clan;
                 _leader = _clan?.Leader;
@@ -93,6 +95,7 @@ namespace BellumCivile.Patches
                 int now = Environment.TickCount;
                 int titleRevision = FeudalTitleBehavior.Instance.DisplayRevision;
                 bool mercenaryLeader = FeudalTitleDisplayHelper.IsMercenaryLeader(__instance);
+                bool indenturedCaptain = FeudalTitleDisplayHelper.IsIndenturedCaptain(__instance);
                 string baseName = __result.ToString();
                 if (string.IsNullOrWhiteSpace(baseName))
                     return;
@@ -100,6 +103,7 @@ namespace BellumCivile.Patches
                 {
                     int elapsed = now - cached.Timestamp;
                     if (cached.TitleRevision == titleRevision && cached.MercenaryLeader == mercenaryLeader
+                        && cached.IndenturedCaptain == indenturedCaptain
                         && elapsed >= 0 && elapsed < CacheTtlMs && cached.BaseName == baseName && cached.Matches(__instance))
                     {
                         _hits++;
@@ -114,7 +118,7 @@ namespace BellumCivile.Patches
                 bool styled = FeudalTitleDisplayHelper.TryFormatHeroName(__instance, baseName, out string titledName)
                     && !string.Equals(baseName, titledName, StringComparison.Ordinal);
                 // Null stores a successful decision to retain the native name.
-                NameCache[__instance] = new CachedHeroName(__instance, baseName, styled ? titledName : null, now, titleRevision, mercenaryLeader);
+                NameCache[__instance] = new CachedHeroName(__instance, baseName, styled ? titledName : null, now, titleRevision, mercenaryLeader, indenturedCaptain);
                 if (styled) __result = new TextObject("{=!}" + titledName);
             }
             catch (Exception ex)
