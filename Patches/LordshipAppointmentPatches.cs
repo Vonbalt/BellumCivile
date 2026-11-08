@@ -90,7 +90,7 @@ namespace BellumCivile.Patches
         {
             if (__result || LordshipBehavior.Instance?.Ready != true || disabledReason?.GetID() != "6OZycZbc") return;
             disabledReason = LordshipBehavior.Text("BC_Lordship_NoPartyLeader",
-                "Your clan has no available family members or retainers holding a lordship grant to lead a new party.");
+                "Your clan has no available family members or retainers with a lordship grant or active indenture to lead a new party.");
         }
 
         private static void FamilyChanged()
@@ -188,7 +188,7 @@ namespace BellumCivile.Patches
         private static void ApplyGovernor(Town town, Hero hero)
         {
             var registry = LordshipBehavior.Instance;
-            if (LordshipEligibility.Required(hero) && registry.GetGrant(hero) == null
+            if (LordshipEligibility.Required(hero) && !registry.HasServiceSupport(hero)
                 && !registry.HasLegacyAppointment(hero, town: town) && !registry.EnsureAppointmentGrant(hero)) return;
             if (hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(hero);
             ChangeGovernorAction.Apply(town, hero);
@@ -197,7 +197,7 @@ namespace BellumCivile.Patches
         private static bool BeforeSpawn(Hero hero, ref MobileParty __result)
         {
             var registry = LordshipBehavior.Instance;
-            if (!LordshipEligibility.Required(hero) || registry.GetGrant(hero) != null
+            if (!LordshipEligibility.Required(hero) || registry.HasServiceSupport(hero)
                 || (hero.Clan != Clan.PlayerClan && registry.EnsureAppointmentGrant(hero))) return true;
             __result = null;
             return false;
@@ -206,7 +206,7 @@ namespace BellumCivile.Patches
         private static bool BeforeGovernor(Town __0, Hero __1)
         {
             var registry = LordshipBehavior.Instance;
-            if (__1 == null || !LordshipEligibility.Required(__1) || registry.GetGrant(__1) != null
+            if (__1 == null || !LordshipEligibility.Required(__1) || registry.HasServiceSupport(__1)
                 || registry.HasLegacyAppointment(__1, town: __0)) return true;
             if (__1.Clan != Clan.PlayerClan) return registry.EnsureAppointmentGrant(__1);
             InformationManager.DisplayMessage(new InformationMessage(LordshipEligibility.Reason(true).ToString(), Colors.Red));
@@ -215,7 +215,7 @@ namespace BellumCivile.Patches
 
         private static bool PlayerCommand(Hero __0)
         {
-            if (__0 == null || !LordshipEligibility.Required(__0) || LordshipBehavior.Instance.GetGrant(__0) != null) return true;
+            if (__0 == null || !LordshipEligibility.Required(__0) || LordshipBehavior.Instance.HasServiceSupport(__0)) return true;
             InformationManager.DisplayMessage(new InformationMessage(LordshipEligibility.Reason(false).ToString(), Colors.Red));
             return false;
         }
@@ -232,6 +232,10 @@ namespace BellumCivile.Patches
                 __0.AddProperty((village != null ? FeudalTitleDisplayHelper.GetLordshipNoun(village)
                     : FeudalTitleDisplayHelper.GetLordshipNounForClan(hero.Clan)).ToString(),
                     village?.Name?.ToString() ?? LordshipBehavior.Text("BC_Hierarchy_None", "None").ToString());
+                if (LordshipBehavior.Instance.GetIndenture(hero) is RetainerIndentureRecord contract)
+                    __0.AddProperty(LordshipBehavior.Text("BC_Indenture_Label", "Indenture").ToString(),
+                        LordshipBehavior.Text("BC_Indenture_DaysRemaining", "{DAYS} {?DAYS > 1}days{?}day{\\?} remaining")
+                            .SetTextVariable("DAYS", LordshipBehavior.IndentureDaysLeft(contract)).ToString());
             }
         }
 
@@ -257,7 +261,7 @@ namespace BellumCivile.Patches
                     }
                     finally { LordshipEligibility.ListingCandidates = old; }
                     if (!item.IsDisabled && item.Identifier is Hero hero && LordshipEligibility.Required(hero)
-                        && LordshipBehavior.Instance.GetGrant(hero) == null)
+                        && !LordshipBehavior.Instance.HasServiceSupport(hero))
                         item = new ClanCardSelectionItemInfo(item.Identifier, item.Title, item.Image, item.SpriteType,
                             item.SpriteName, item.SpriteLabel, item.Properties, true, LordshipEligibility.Reason(governor), item.ActionResult);
                     yield return item;

@@ -18,8 +18,10 @@ using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.Siege;
 using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement;
+using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.CampaignSystem.ViewModelCollection.ClanManagement.Categories;
 using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -77,6 +79,9 @@ internal static class LordshipAppointmentTests
     private static int _partyScans, _destroyCalls;
     private static bool _destroyedWithoutClan;
     private static int _fundingCalls, _fundingAmount;
+    private static readonly List<(string Label, string Value)> TooltipRows = new List<(string, string)>();
+    private static bool TooltipRow(object[] __args) { TooltipRows.Add(((string)__args[0], (string)__args[1])); return false; }
+    private static bool LordshipNoun(ref TextObject __result) { __result = new TextObject("Lordship"); return false; }
     private static bool AllParties(ref MBReadOnlyList<MobileParty> __result) { _partyScans++; __result = _allParties; return false; }
     private static bool Elapsed(ref float __result) { __result = 1; return false; }
     private static bool HoursFromNow(float __0, ref CampaignTime __result) { __result = CampaignTime.Days(_day + __0 / 24); return false; }
@@ -247,7 +252,7 @@ internal static class LordshipAppointmentTests
                 "The real clan create-button hook applies military eligibility only inside its own check");
             var leaderReason = (TextObject)commandArgs[0];
             check(leaderReason.GetID() == "BC_Lordship_NoPartyLeader" && leaderReason.ToString()
-                == "Your clan has no available family members or retainers holding a lordship grant to lead a new party.",
+                == "Your clan has no available family members or retainers with a lordship grant or active indenture to lead a new party.",
                 "The disabled create-party button explicitly explains family and endowed-retainer eligibility");
             _candidate = family;
             check((bool)command.Invoke(vm, commandArgs) && ((TextObject)commandArgs[0]).IsEmpty(),
@@ -681,6 +686,87 @@ internal static class LordshipAppointmentTests
             var oldSave = new LordshipBehavior(); oldSave.SyncData(new Store());
             check(AccessTools.Field(typeof(LordshipBehavior), "_commandTransfers").GetValue(oldSave) is List<LordshipCommandTransferRecord> oldTransfers
                 && oldTransfers.Count == 0, "Saves from before handovers initialize an empty transfer list");
+
+            var indentures = (List<RetainerIndentureRecord>)AccessTools.Field(typeof(LordshipBehavior), "_indentures").GetValue(registry);
+            RetainerIndentureRecord Contract(Hero holder, double end)
+            {
+                var contract = new RetainerIndentureRecord { Holder = holder, Employer = _player, EndDay = end };
+                indentures.Add(contract); Call(typeof(LordshipBehavior), "ReindexIndentures", registry); return contract;
+            }
+            void IndentureReset()
+            {
+                Reset(); _day = 50; _endowed = null; transfers.Clear(); indentures.Clear();
+                Call(typeof(LordshipBehavior), "ReindexIndentures", registry);
+                _teleport = new TeleportationCampaignBehavior();
+                Set(registry, "_retirementRepairPending", false);
+                Set(registry, "_replacementInquiryOpen", false);
+                Set(family, "_heroState", Hero.CharacterStates.Disabled);
+            }
+            var finance = typeof(LordshipBehavior).Assembly.GetType("BellumCivile.Patches.LordshipSurplusPatch");
+            bool NativeSurplus() => (bool)Call(finance, "Prefix", null, _party, _player, 123);
+            IndentureReset(); var activeContract = Contract(_retainer, 134);
+            AccessTools.Field(Eligibility, "CheckingClanCommand").SetValue(null, true);
+            check(CanLead(_retainer), "An indentured, landless companion passes the actual military eligibility hook");
+            AccessTools.Field(Eligibility, "CheckingClanCommand").SetValue(null, false);
+            check((bool)Call(PatchType, "BeforeGovernor", null, null, _retainer)
+                && (bool)Call(PatchType, "PlayerCommand", null, _retainer),
+                "An active indenture satisfies both command and governor guards without a land grant");
+            check(!NativeSurplus(), "An indentured captain keeps party surplus under the existing native-finance hook");
+            appointments.Add(new LordshipAppointmentRecord { Hero = _retainer, Party = _party, OwningClan = _player, Retirement = true });
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == _retainer && appointments.Count == 0 && _starts == 0,
+                "A valid indenture cancels a previously queued lordship retirement without disbanding the party");
+
+            Patch(typeof(CampaignUIHelper), "IsHeroInformationHidden", nameof(No), false);
+            Patch(typeof(LordshipBehavior).Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper"), "GetLordshipNounForClan", nameof(LordshipNoun), false);
+            foreach (var method in typeof(PropertyBasedTooltipVM).GetMethods().Where(m => m.Name == "AddProperty"))
+                h.Patch(method, prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), nameof(TooltipRow)));
+            TooltipRows.Clear();
+            Call(PatchType, "HeroTooltip", null, Blank<PropertyBasedTooltipVM>(), new object[] { _retainer });
+            check(TooltipRows.Any(r => r.Label == "Lordship" && r.Value == "None")
+                && TooltipRows.Last().Label == "Indenture" && TooltipRows.Last().Value == "84 days remaining",
+                "The existing retainer portrait tooltip shows the remaining indenture below Lordship None");
+
+            activeContract.EndDay = _day; _unsafe = "battle";
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == _retainer && appointments.Any(a => a.Retirement) && NativeSurplus(),
+                "Contract expiry ends the surplus exemption immediately but defers retirement during battle");
+            _unsafe = null; Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_retainer.IsFugitive && _starts == 1 && _party.MemberRoster.TotalManCount == 12,
+                "An expired, unsupported captain follows native safe disbandment when no replacement exists");
+
+            IndentureReset(); Contract(_retainer, _day); _endowed = _retainer;
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == _retainer && _starts == 0 && !NativeSurplus(),
+                "A real lordship preserves command and surplus protection after an indenture expires");
+            IndentureReset(); Contract(_retainer, 134);
+            Call(typeof(LordshipBehavior), "Remove", registry, new PersonalLordshipRecord { Holder = _retainer, GrantingClan = _player });
+            check(appointments.Count == 0 && _party.LeaderHero == _retainer,
+                "Revoking a land grant does not retire a captain whose paid indenture is still valid");
+
+            var paidCaptain = Person(_player, "paid_replacement"); paidCaptain.Gold = 10000;
+            IndentureReset(); Contract(paidCaptain, 134);
+            appointments.Add(new LordshipAppointmentRecord { Hero = _retainer, Party = _party, OwningClan = _player, Retirement = true });
+            Call(typeof(LordshipBehavior), "Maintain", registry); Call(typeof(LordshipBehavior), "ShowCommandReplacementInquiry", registry);
+            check(_replacementInquiry.InquiryElements.Any(i => i.Identifier == paidCaptain),
+                "Paid captains appear in the replacement picker even though they own no village");
+            _replacementInquiry.AffirmativeAction(new List<InquiryElement> { _replacementInquiry.InquiryElements.First(i => i.Identifier == paidCaptain) });
+            Arrive();
+            check(_party.LeaderHero == paidCaptain && _starts == 0,
+                "The native arrival guard accepts an indentured replacement without inventing a lordship");
+            Set(paidCaptain, "_partyBelongedTo", null); Set(paidCaptain, "_heroState", Hero.CharacterStates.Disabled);
+
+            IndentureReset(); Set(_retainer, "_partyBelongedTo", null);
+            var town = Blank<Town>(); var townSettlement = Blank<Settlement>();
+            var settlementParty = Blank<PartyBase>(); Set(settlementParty, "Settlement", townSettlement);
+            Set(town, "_owner", settlementParty); town.Governor = _retainer;
+            Set(town, "_ownerClan", _player);
+            var governorContract = Contract(_retainer, 134);
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(town.Governor == _retainer && _retainer.GovernorOf == town, "A paid retainer keeps an existing governorship for the agreed term");
+            governorContract.EndDay = _day; Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(town.Governor == null && _retainer.GovernorOf == null,
+                "An unsupported governor is removed through the native governor action when the indenture expires");
         }
         finally
         {

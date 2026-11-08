@@ -38,7 +38,7 @@ namespace BellumCivile.Behaviors
                 || hero.PartyBelongedToAsPrisoner != null || hero.GovernorOf != null
                 || hero.CurrentSettlement?.IsUnderSiege == true || hero.CurrentSettlement?.IsUnderRaid == true
                 || !hero.CanLeadParty() || !hero.CanBeGovernorOrHavePartyRole()
-                || (!HouseholdMembership.IsFamily(hero) && GetGrant(hero) == null)
+                || (!HouseholdMembership.IsFamily(hero) && !HasServiceSupport(hero))
                 || Campaign.Current.GetCampaignBehavior<HostagePactBehavior>()?.IsReserved(hero) == true
                 || Campaign.Current.GetCampaignBehavior<ExiledClanRecoveryBehavior>()?.IsAwaitingAsylum(hero) == true)
                 return false;
@@ -151,7 +151,7 @@ namespace BellumCivile.Behaviors
             if (_replacementInquiryOpen) return true;
             if (!_replacementPromptPending) return false;
             var appointment = _appointments.FirstOrDefault(a => a?.IsCurrent == true && a.Party != null
-                && a.OwningClan == Clan.PlayerClan && HouseholdMembership.IsRetainer(a.Hero) && GetGrant(a.Hero) == null
+                && a.OwningClan == Clan.PlayerClan && HouseholdMembership.IsRetainer(a.Hero) && !HasServiceSupport(a.Hero)
                 && (a.Retirement || a.PlayerTransition && a.Deadline >= 0 && Now >= a.Deadline)
                 && CanRetireParty(a.Party) && ReplacementCandidates(a.Party).Any());
             var transfer = appointment == null ? _commandTransfers.FirstOrDefault(t => ValidTransferParty(t)
@@ -169,7 +169,7 @@ namespace BellumCivile.Behaviors
             {
                 _replacementInquiryOpen = false;
                 bool current = appointment != null ? _appointments.Contains(appointment) && appointment.IsCurrent
-                    && HouseholdMembership.IsRetainer(former) && GetGrant(former) == null
+                    && HouseholdMembership.IsRetainer(former) && !HasServiceSupport(former)
                     : _commandTransfers.Contains(transfer) && ValidTransferParty(transfer)
                         && transfer.Replacement == null && transfer.Party.LeaderHero == null;
                 if (!Ready || !current || !CanRetireParty(party)) { _retirementQueued = true; return; }

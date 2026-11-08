@@ -62,13 +62,16 @@ namespace BellumCivile.Behaviors
             store.SyncData("BellumCivile_PersonalLordships", ref _grants);
             store.SyncData("BellumCivile_LordshipAppointments", ref _appointments);
             store.SyncData("BellumCivile_LordshipCommandTransfers", ref _commandTransfers);
+            store.SyncData("BellumCivile_RetainerIndentures", ref _indentures);
             store.SyncData("BellumCivile_LordshipSchema", ref _schema);
             store.SyncData("BellumCivile_LordshipWarning", ref _warned);
             store.SyncData("BellumCivile_LordshipIncomeCredits", ref _incomeCredits);
             _grants = _grants ?? new List<PersonalLordshipRecord>();
             _appointments = _appointments ?? new List<LordshipAppointmentRecord>();
             _commandTransfers = _commandTransfers ?? new List<LordshipCommandTransferRecord>();
+            _indentures = _indentures ?? new List<RetainerIndentureRecord>();
             _incomeCredits = _incomeCredits ?? new List<LordshipIncomeCredit>();
+            if (store.IsLoading) ReindexIndentures();
         }
 
         private void OnLoaded(CampaignGameStarter starter)
@@ -81,13 +84,14 @@ namespace BellumCivile.Behaviors
             Patches.LordshipMapBannerPatch.Initialize();
             LordshipHapIncome.Initialize();
             Reindex();
+            ReindexIndentures();
             Validate();
             if (_schema == 0)
             {
                 foreach (Clan clan in Clan.All.Where(HouseholdMembership.Supports))
                     foreach (Hero hero in HouseholdMembership.Members(clan).Where(h => h.IsAlive && HouseholdMembership.IsRetainer(h)))
                     {
-                        if (GetGrant(hero) != null) continue;
+                        if (HasServiceSupport(hero)) continue;
                         MobileParty party = hero.PartyBelongedTo;
                         if (party?.LeaderHero == hero && party.IsLordParty)
                             _appointments.Add(new LordshipAppointmentRecord { Hero = hero, Party = party, OwningClan = clan, PlayerTransition = clan == Clan.PlayerClan });
@@ -101,6 +105,8 @@ namespace BellumCivile.Behaviors
             _retirementRepairCandidates = null;
             _replacementInquiryOpen = false;
             _replacementPromptPending = false;
+            _indentureInquiryOpen = false;
+            _indentureRenewalPending = false;
             _realmCheckPending = true;
             Patches.FeudalTitleHeroNamePatch.InvalidateCache();
             var disbanding = Campaign.Current.GetCampaignBehavior<IDisbandPartyCampaignBehavior>();
@@ -213,7 +219,7 @@ namespace BellumCivile.Behaviors
             _grants.Remove(grant);
             if (grant.Village != null && _byVillage.TryGetValue(grant.Village, out var currentVillage) && currentVillage == grant) _byVillage.Remove(grant.Village);
             if (grant.Holder != null && _byHero.TryGetValue(grant.Holder, out var currentHero) && currentHero == grant) _byHero.Remove(grant.Holder);
-            if (!grant.IsVassalGrant && HouseholdMembership.IsRetainer(grant.Holder) && GetGrant(grant.Holder) == null)
+            if (!grant.IsVassalGrant && HouseholdMembership.IsRetainer(grant.Holder) && !HasServiceSupport(grant.Holder))
             {
                 Hero hero = grant.Holder;
                 if (hero.GovernorOf != null) QueueRetirement(hero, null, hero.GovernorOf);
@@ -232,7 +238,7 @@ namespace BellumCivile.Behaviors
 
         internal void CheckAppointment(Hero member)
         {
-            if (!_ready || !HouseholdMembership.IsRetainer(member) || GetGrant(member) != null) return;
+            if (!_ready || !HouseholdMembership.IsRetainer(member) || HasServiceSupport(member)) return;
             bool commandsParty = member.PartyBelongedTo?.IsLordParty == true && member.PartyBelongedTo.LeaderHero == member
                 && !IsRetiringParty(member.PartyBelongedTo, Campaign.Current?.GetCampaignBehavior<IDisbandPartyCampaignBehavior>());
             if (member.Clan != Clan.PlayerClan && (member.GovernorOf != null || commandsParty)
@@ -253,6 +259,7 @@ namespace BellumCivile.Behaviors
             foreach (var grant in _grants.ToList())
                 if (grant == null) _grants.Remove(grant);
                 else if (!IsRetainedGrant(grant) || !villages.Add(grant.Village) || !heroes.Add(grant.Holder)) Remove(grant);
+            if (Ready) MaintainIndentures();
         }
 
         private void Changed()
@@ -266,7 +273,7 @@ namespace BellumCivile.Behaviors
             if (!_ready || !HouseholdMembership.Supports(clan)) return;
             _villages.Remove(clan);
             HouseholdMembership.Invalidate(clan);
-            foreach (Hero member in HouseholdMembership.Members(clan).Where(h => h.IsAlive && HouseholdMembership.IsRetainer(h) && GetGrant(h) == null))
+            foreach (Hero member in HouseholdMembership.Members(clan).Where(h => h.IsAlive && HouseholdMembership.IsRetainer(h) && !HasServiceSupport(h)))
                 CheckAppointment(member);
             if (clan == Clan.PlayerClan) return;
             foreach (var record in _appointments.Where(a => a.Hero?.Clan == clan && a.IsCurrent && !a.Retirement).ToList())
@@ -286,7 +293,7 @@ namespace BellumCivile.Behaviors
 
         internal bool EnsureAppointmentGrant(Hero hero)
         {
-            if (!HouseholdMembership.IsRetainer(hero) || GetGrant(hero) != null) return true;
+            if (!HouseholdMembership.IsRetainer(hero) || HasServiceSupport(hero)) return true;
             Settlement village = FindVacancy(hero.Clan);
             return village != null && TryGrant(hero.Clan, village, hero, out _);
         }
@@ -305,7 +312,7 @@ namespace BellumCivile.Behaviors
             MaintainCommandTransfers();
             foreach (var record in _appointments.ToList())
             {
-                if (record?.IsCurrent != true || !HouseholdMembership.IsRetainer(record.Hero) || GetGrant(record.Hero) != null)
+                if (record?.IsCurrent != true || !HouseholdMembership.IsRetainer(record.Hero) || HasServiceSupport(record.Hero))
                 { _appointments.Remove(record); continue; }
                 if (!record.Retirement && (!record.PlayerTransition || record.Deadline < 0 || Now < record.Deadline)) continue;
                 MobileParty party = record.Party;
@@ -350,7 +357,7 @@ namespace BellumCivile.Behaviors
         private bool IsRetirementRepairCandidate(Hero hero, IDisbandPartyCampaignBehavior disbanding)
         {
             var party = hero?.PartyBelongedTo;
-            if (hero?.IsActive != true || !HouseholdMembership.IsRetainer(hero) || GetGrant(hero) != null
+            if (hero?.IsActive != true || !HouseholdMembership.IsRetainer(hero) || HasServiceSupport(hero)
                 || party?.IsActive != true || !party.IsLordParty || party.IsMainParty || party.ActualClan != hero.Clan
                 || party.Party.Owner != hero || hero.CharacterObject == null || !party.MemberRoster.Contains(hero.CharacterObject)
                 || !IsRetiringParty(party, disbanding)) return false;
@@ -393,16 +400,17 @@ namespace BellumCivile.Behaviors
                 _retirementQueued = false;
                 Maintain();
             }
-            if (!_ready || InformationManager.IsAnyInquiryActive() || Hero.MainHero == null
+            if (CanShowIndentureRenewal() && ShowIndentureRenewalInquiry()) return;
+            if (!_ready || _indentureInquiryOpen || InformationManager.IsAnyInquiryActive() || Hero.MainHero == null
                 || PlayerEncounter.Current != null || Campaign.Current.CurrentMenuContext != null
                 || Campaign.Current.ConversationManager?.IsConversationInProgress == true) return;
             if (ShowCommandReplacementInquiry() || _warned) return;
             var pending = _appointments.Where(a => a.PlayerTransition && a.IsCurrent
-                && HouseholdMembership.IsRetainer(a.Hero) && GetGrant(a.Hero) == null).ToList();
+                && HouseholdMembership.IsRetainer(a.Hero) && !HasServiceSupport(a.Hero)).ToList();
             if (pending.Count == 0) { _warned = true; return; }
             _warned = true;
             foreach (var record in pending) record.Deadline = Now + 5f;
-            var body = Text("BC_Lordship_MigrationBody", "The following retainers command parties or govern settlements in your name without village endowments:\n{RETAINERS}\n\nGrant them land within five days if they are to remain in these posts. Those who remain unendowed will be relieved of their duties.")
+            var body = Text("BC_Lordship_MigrationBody", "The following retainers command parties or govern settlements in your name without lordship grants or active indentures:\n{RETAINERS}\n\nGrant them land or agree an indenture within five days if they are to remain in these posts. Those who remain unsupported will be relieved of their duties.")
                 .SetTextVariable("RETAINERS", string.Join("\n", pending.Select(a => a.Hero.Name + " - " + (a.Town?.Name?.ToString() ?? a.Party.Name.ToString()))));
             InformationManager.ShowInquiry(new InquiryData(Text("BC_Lordship_MigrationTitle", "Retainers Await Endowment").ToString(),
                 body.ToString(), true, true, Text("BC_Lordship_GrantPlural", "Endow Retainers").ToString(),

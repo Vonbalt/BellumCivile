@@ -50,7 +50,7 @@ namespace BellumCivile.Patches
         private static bool Prefix(MobileParty party, Clan clan, ref int __result)
         {
             if (LordshipBehavior.Instance?.Ready != true || party?.IsLordParty != true || party.LeaderHero == null || party.LeaderHero == clan?.Leader
-                || LordshipBehavior.Instance?.GetGrant(party.LeaderHero) == null) return true;
+                || !LordshipBehavior.Instance.HasServiceSupport(party.LeaderHero)) return true;
             __result = 0;
             return false;
         }

@@ -84,6 +84,11 @@ internal static class Program
                 PrefabFinalizationCompatibilityTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} prefab finalization compatibility checks passed.");
             }
+            else if (args.Contains("--retainer-indentures"))
+            {
+                RetainerIndentureTests.Run(Check);
+                Console.WriteLine($"{_checks} retainer indenture checks passed.");
+            }
             else if (args.Contains("--lordship-appointments"))
             {
                 LordshipAppointmentTests.Run(Check);
