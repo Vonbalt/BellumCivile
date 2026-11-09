@@ -849,3 +849,4 @@ Adjustment to marriage barter costs when it involves a retainer x noble marriage
 
 Added dialogue option to release a client state peacefully converting the clientage into a normal alliance and trade agreement bound by vanilla rules.
 Capped Marshal controversy from nobles captured or killed in a single battle at 15 points.
+Added missing localization strings.

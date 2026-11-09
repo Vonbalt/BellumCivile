@@ -32,7 +32,11 @@ function Check-Fallback([string]$id, [string]$fallback, [string]$source, [bool]$
 }
 function Check-KeyedText([string]$text, [string]$source, [bool]$exact = $false) {
     if ($text -match '^\{=(BC_[A-Za-z0-9_]+)\}([\s\S]*)$') {
-        Check-Fallback $Matches[1] $Matches[2] $source $exact
+        if ($Matches[2].Length -eq 0) {
+            Check-Reference $Matches[1] $source
+        } else {
+            Check-Fallback $Matches[1] $Matches[2] $source $exact
+        }
     }
 }
 
@@ -64,6 +68,12 @@ foreach ($file in $files) {
                 Check-KeyedText ([regex]::Unescape($match.Groups[1].Value)) $file.FullName
             }
         }
+        # These helpers receive the localization key and its fallback as separate arguments.
+        foreach ($match in [regex]::Matches($source,
+            '\b(?:Text|EstateText|T|Reason)\(\s*"(?:\{=(BC_[A-Za-z0-9_]+)\}|(BC_[A-Za-z0-9_]+))"\s*,\s*"((?:\\.|[^"\\])*)"')) {
+            $id = if ($match.Groups[1].Success) { $match.Groups[1].Value } else { $match.Groups[2].Value }
+            Check-Fallback $id ([regex]::Unescape($match.Groups[3].Value)) $file.FullName $true
+        }
         foreach ($match in [regex]::Matches($source, 'new TextObject\s*\(\s*"((?:\\.|[^"\\])*)"')) {
             $text = $match.Groups[1].Value
             if ($text -match '[A-Za-z]' -and !$text.StartsWith('{=')) {
@@ -72,6 +82,29 @@ foreach ($file in $files) {
         }
     }
 }
+
+# Incident reasons are persisted as plain English, with localization applied by the council tooltip.
+$incidents = [System.IO.File]::ReadAllText((Join-Path $root 'CouncilIncidentRegistry.cs'))
+$incidentReasons = @([regex]::Matches($incidents,
+    '(?:(?:Limited)?(?:Success|Failure)Reason\s*=\s*|ChangeOfficeControversy\([^,]+,\s*)"([^"]+)"') |
+    ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+if ($incidentReasons.Count -eq 0) { throw 'No council incident controversy reasons discovered.' }
+$council = [System.IO.File]::ReadAllText((Join-Path $root 'UI/VanillaTabs/Kingdoms/Factions/PrivyCouncilVM.cs'))
+if (!$council.Contains('LocalizeReason(record.LastReason)')) { throw 'Council tooltip bypasses reason localization.' }
+$reasonMethod = [regex]::Match($council, '(?s)private static string LocalizeReason\(string reason\).*?\r?\n        \}')
+if (!$reasonMethod.Success) { throw 'Council controversy reason localization was not found.' }
+$reasonMappings = @{}
+foreach ($match in [regex]::Matches($reasonMethod.Value,
+    'case "((?:\\.|[^"\\])*)": return new TextObject\("\{=(BC_[A-Za-z0-9_]+)\}((?:\\.|[^"\\])*)"\)\.ToString\(\);')) {
+    $reason = [regex]::Unescape($match.Groups[1].Value)
+    if ($reasonMappings.ContainsKey($reason)) { throw "Duplicate council reason mapping: $reason" }
+    $reasonMappings[$reason] = $match.Groups[2].Value
+    Check-Fallback $match.Groups[2].Value ([regex]::Unescape($match.Groups[3].Value)) 'Council controversy reason' $true
+}
+foreach ($reason in $incidentReasons) {
+    if (!$reasonMappings.ContainsKey($reason)) { throw "Unlocalized council incident reason: $reason" }
+}
+Write-Output "PASS: $($incidentReasons.Count) council incident reasons have localized tooltip mappings."
 
 # These families construct IDs at runtime, so literal-ID scanning cannot cover them.
 $activities = [System.IO.File]::ReadAllText((Join-Path $root 'CourtActivityCatalog.cs'))
