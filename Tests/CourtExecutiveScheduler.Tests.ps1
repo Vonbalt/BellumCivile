@@ -39,7 +39,7 @@ $gate = $scan.IndexOf('if (!BellumCivileOptions.EnableAutomaticTreasonIndictment
 Assert-Source ($gate -gt $scan.IndexOf('entry.Closed = true;') -and
     $gate -gt $scan.IndexOf('if (!ideology.CanScheduleTreasonDecree(realm, entry.Accused))') -and
     $gate -lt $scan.IndexOf('foreach (var target in realm.Clans') -and $gate -ge 0) 'The toggle gates new NPC decree detection after existing-case maintenance.'
-Assert-Source ($scan.Contains('if (realm.RulingClan == Clan.PlayerClan) return;') -and
+Assert-Source ($scan.Contains('!TryGetCourtRuler(realm, out Clan house, out Hero ruler) || house == Clan.PlayerClan') -and
     $queue.Contains('TryIssuePlayerTreasonDecree(Clan.PlayerClan.Kingdom, _treasonInductTarget)') -and
     !$hub.Contains('SchedulePlayerDecree')) 'Player decrees target the addressed lord instead of scanning all vassals.'
 $source = Read-Source 'CourtExecutiveObjectiveSource.cs'

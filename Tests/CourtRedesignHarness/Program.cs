@@ -18,6 +18,12 @@ internal static class Program
     }
     private static void Main(string[] args)
     {
+        if (args.Contains("--court-term-scheduler"))
+        {
+            CourtTermSchedulerTests.Run(Check);
+            Console.WriteLine($"{_checks} court term scheduler checks passed.");
+            return;
+        }
         if (args.Contains("--favoritism")) { CrownFavoritismPrototype.Run(); return; }
         if (args.Contains("--council-selection")) { CouncilSelectionSimulation.Run(); return; }
         if (args.Contains("--marriage-strategy")) { MarriageStrategySimulation.Run(); return; }
@@ -29,6 +35,7 @@ internal static class Program
             return;
         }
         CourtObjectiveFrameworkTests.Run(Check);
+        CourtTermSchedulerTests.Run(Check);
         MarriageHealthTests.Run(Check);
         MarriagePoliticalTests.Run(Check);
         var hereditary = new[] { HouseSuccessionLaw.Primogeniture, HouseSuccessionLaw.Ultimogeniture,
@@ -104,7 +111,7 @@ internal static class Program
         var savedIds = typeof(CourtAgendaRecord).GetFields().Select(f => f.GetCustomAttribute<TaleWorlds.SaveSystem.SaveableFieldAttribute>()?.Id).ToList();
         Check(savedIds.Count == 50 && savedIds.All(id => id.HasValue) && savedIds.Distinct().Count() == 50, "Agenda saved fields have unique IDs");
         var liberationIds = typeof(CourtLiberationRecord).GetFields().Select(f => f.GetCustomAttribute<TaleWorlds.SaveSystem.SaveableFieldAttribute>()?.Id).ToList();
-        Check(liberationIds.Count == 8 && liberationIds.All(id => id.HasValue) && liberationIds.Distinct().Count() == 8, "Liberation identity, activation and war receipts have unique saved fields");
+        Check(liberationIds.Count == 10 && liberationIds.All(id => id.HasValue) && liberationIds.Distinct().Count() == 10, "Liberation identity, activation, war receipts and willingness snapshots have unique saved fields");
         CourtAppeasementTests.Run(Check);
         CourtPeaceTests.Run(Check);
         CourtCampaignTests.Run(Check);

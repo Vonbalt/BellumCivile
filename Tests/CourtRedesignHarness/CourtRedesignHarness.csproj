@@ -6,6 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="CourtTermSchedulerTests.cs" />
+    <Compile Include="../../CourtTermPreparationRecord.cs" Link="CourtTermPreparationRecord.cs" />
+    <Compile Include="../../CourtTermScheduler.cs" Link="CourtTermScheduler.cs" />
     <Compile Include="../../CourtLiberationRules.cs" Link="CourtLiberationRules.cs" />
     <Compile Include="../../CourtLiberationRecord.cs" Link="CourtLiberationRecord.cs" />
     <Compile Include="../../ClientKingdomRecord.cs" Link="ClientKingdomRecord.cs" />

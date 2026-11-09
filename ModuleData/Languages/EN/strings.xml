@@ -7869,5 +7869,6 @@
     <string id="BC_CouncilIncident_ReasonRidiculedCeremonialDignity" text="A ridiculed ceremonial dignity" />
     <string id="BC_CouncilIncident_ReasonTactfulPrivateCommendation" text="A tactful private commendation" />
     <string id="BC_CouncilIncident_ReasonDivisivePrivateCommendation" text="A divisive private commendation" />
+    <string id="BC_CourtAgendaAnnouncementPending" text="Current agenda: To be announced in the following days." />
   </strings>
 </base>
