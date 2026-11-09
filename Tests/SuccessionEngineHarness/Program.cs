@@ -207,6 +207,11 @@ internal static class Program
                 CrownRebellionSafetyTests.Run(Check);
                 Console.WriteLine($"{_checks} crown rebellion safety checks passed.");
             }
+            else if (args.Contains("--initial-child-ages"))
+            {
+                InitialChildGenerationAgeTests.Run(Check);
+                Console.WriteLine($"{_checks} initial child age checks passed.");
+            }
             else if (args.Contains("--regency-adulthood"))
             {
                 RegencyAdulthoodTests.Run(Check);

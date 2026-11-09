@@ -851,3 +851,4 @@ Added dialogue option to release a client state peacefully converting the client
 Capped Marshal controversy from nobles captured or killed in a single battle at 15 points.
 Added missing localization strings.
 Staggered court agenda preparation across daily batches to reduce stutters in campaigns with many kingdoms.
+Fixed starting-child generation to respect custom adulthood ages and compatibility with Start As Anyone mod.
