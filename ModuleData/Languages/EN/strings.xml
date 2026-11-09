@@ -7591,10 +7591,10 @@
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Höfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Höfuðskona" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />
@@ -7641,10 +7641,10 @@
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Höfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Höfuðskona" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />

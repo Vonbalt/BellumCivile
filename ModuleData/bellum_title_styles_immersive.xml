@@ -445,8 +445,8 @@
   </TitleStyle>
   <TitleStyle culture="Nord">
     <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRetainerRank}Hirðkona" tier="Empire"
-          mercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank}Hǫfuðsmaðr"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank}Hǫfuðskona"
+          mercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank}Höfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank}Höfuðskona"
           titleName="{=BC_TitleStyle_Immersive_culture_Nord_Empire_titleName}Fylkirate"
           maleRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_maleRank}Fylkir"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Nord_Empire_femaleRank}Fylkja"
@@ -459,8 +459,8 @@
           titleFormat="{=BC_TitleStyle_Immersive_culture_Nord_Empire_titleFormat}{TITLE_NOUN} {TITLE_NAME}"
           heldTitleFormat="{=BC_TitleStyle_Immersive_culture_Nord_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}" />
     <Rank retainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRetainerRank}Hirðkona" tier="Kingdom"
-          mercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank}Hǫfuðsmaðr"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank}Hǫfuðskona"
+          mercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank}Höfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank}Höfuðskona"
           titleName="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_titleName}Konungsríki"
           maleRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleRank}Dróttning"

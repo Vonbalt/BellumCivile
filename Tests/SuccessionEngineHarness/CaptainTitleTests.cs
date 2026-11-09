@@ -44,7 +44,7 @@ internal static class CaptainTitleTests
             case "Khuzait": return ("Y\u00FCzba\u015F\u0131", "Y\u00FCzba\u015F\u0131");
             case "Aserai": return ("Qaid", "Qaida");
             case "Sturgia": return ("Sotnik", "Sotnitsa");
-            case "Nord": return ("H\u01EBfu\u00F0sma\u00F0r", "H\u01EBfu\u00F0skona");
+            case "Nord": return ("H\u00F6fu\u00F0sma\u00F0r", "H\u00F6fu\u00F0skona");
             case "Rhodok": return ("Houbetman", "Houbetvrouwe");
             default: throw new InvalidOperationException("Unexpected captain culture: " + culture);
         }
