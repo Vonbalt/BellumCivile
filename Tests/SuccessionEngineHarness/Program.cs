@@ -415,6 +415,11 @@ internal static class Program
                 CourtMandateEngineTests.Run(Check);
                 Console.WriteLine($"{_checks} vote lobbying checks passed.");
             }
+            else if (args.Contains("--marshal-battle-cap"))
+            {
+                MarshalBattleControversyTests.Run(Check);
+                Console.WriteLine($"{_checks} marshal battle controversy checks passed.");
+            }
             else if (args.Contains("--council-captivity"))
             {
                 CouncilCaptivityTests.Run(Check);

@@ -2622,13 +2622,18 @@ namespace BellumCivile.Behaviors
 
         public void AddControversy(Kingdom kingdom, PrivyCouncilOffice office, float amount, string reason)
         {
+            AddControversyWithLimit(kingdom, office, amount, reason, float.MaxValue);
+        }
+
+        internal float AddControversyWithLimit(Kingdom kingdom, PrivyCouncilOffice office, float amount, string reason, float maximumIncrease)
+        {
             if (kingdom == null || amount == 0f)
-                return;
+                return 0f;
 
             EnsureCouncilForKingdom(kingdom);
             PrivyCouncilOfficeRecord record = GetOfficeRecord(kingdom, office);
             if (record == null || !IsOfficeUnlocked(kingdom, office))
-                return;
+                return 0f;
 
             float scaledAmount = amount;
             if (scaledAmount > 0f && !string.IsNullOrEmpty(record.HolderClanId))
@@ -2667,7 +2672,11 @@ namespace BellumCivile.Behaviors
                 }
             }
 
+            if (scaledAmount > 0f) scaledAmount = Math.Min(scaledAmount, Math.Max(0f, maximumIncrease));
+            if (scaledAmount == 0f) return 0f;
+            float before = record.Controversy;
             record.ChangeControversy(scaledAmount, reason, (float)CampaignTime.Now.ToDays);
+            return record.Controversy - before;
         }
 
         public static float CalculateCompetence(Hero hero, PrivyCouncilOffice office)
