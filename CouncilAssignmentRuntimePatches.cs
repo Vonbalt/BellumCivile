@@ -80,7 +80,7 @@ namespace BellumCivile
             PatchActiveModelMethod(
                 partySizeLimitModel,
                 "GetPartyMemberSizeLimit",
-                new[] { typeof(PartyBase), typeof(bool) },
+                new[] { typeof(PartyBase), typeof(bool), typeof(bool) },
                 nameof(ApplyPatrolSizeAssignment));
             PatchActiveModelMethod(
                 partySizeLimitModel,
@@ -250,14 +250,14 @@ namespace BellumCivile
             try
             {
                 _suppressPatrolSizeAssignment = true;
-                baseLimit = Math.Max(0, (int)model.GetPartyMemberSizeLimit(party.Party).ResultNumber);
+                baseLimit = Math.Max(0, (int)model.GetPartyMemberSizeLimit(party.Party, party.IsCurrentlyAtSea).ResultNumber);
             }
             finally
             {
                 _suppressPatrolSizeAssignment = false;
             }
 
-            targetLimit = Math.Max(0, (int)model.GetPartyMemberSizeLimit(party.Party).ResultNumber);
+            targetLimit = Math.Max(0, (int)model.GetPartyMemberSizeLimit(party.Party, party.IsCurrentlyAtSea).ResultNumber);
             return baseLimit > 0 && targetLimit > baseLimit;
         }
 

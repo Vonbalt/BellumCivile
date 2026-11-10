@@ -10,7 +10,7 @@ For download of released versions go to the mod nexus page in: https://www.nexus
 | --- | --- |
 | Documentation revision | October 27, 2026 |
 | Release version | Bellum Civile 1.4.7b |
-| Target game version | Bannerlord 1.5.6 beta |
+| Target game version | Bannerlord 1.5.7 beta |
 | Core runtime | .NET Framework 4.7.2 (`net472`) |
 | Required mod dependencies | Harmony, UIExtenderEx, Mod Configuration Menu v5 |
 | Optional integrations | Diplomacy, True Noble Opinion, Harvest and Production Overhaul (HAP), custom-banner integrations, Naval DLC / War Sails |
@@ -1041,7 +1041,7 @@ Build on Windows with a .NET SDK capable of SDK-style projects, .NET Framework 4
 
 `Directory.Build.props` supplies a shared `GameFolder` default based on Windows' Program Files (x86) location and the standard Steam library layout. It is independent of where the repository is cloned. An explicit `-p:GameFolder` takes priority over the `GameFolder` environment variable, which in turn overrides the default.
 
-Build `1.5-beta` against the 1.5.6 installation and `main` against the separate 1.4.8 installation with its matching dependencies. These are separate binaries, not one cross-version DLL. Prefer separate worktrees and output folders; after changing installations in the same checkout, rebuild with `--no-incremental`. Nested test `bin/` and `obj/` directories are excluded from reference discovery so stale test DLLs cannot silently override the chosen game's references.
+Build `1.5-beta` against the 1.5.7 installation and `main` against the separate 1.4.8 installation with its matching dependencies. These are separate binaries, not one cross-version DLL. Prefer separate worktrees and output folders; after changing installations in the same checkout, rebuild with `--no-incremental`. Nested test `bin/` and `obj/` directories are excluded from reference discovery so stale test DLLs cannot silently override the chosen game's references.
 
 From the repository root, select the installation below. For a custom Steam library or another storefront, replace `$game` with that installation's absolute path. Setting the environment variable also configures the PowerShell tests and engine harness for this session:
 
@@ -1077,13 +1077,15 @@ BellumCivile/
 
 Ship manifest, XML, localization, and prefabs from the DLL's revision. A rebuilt DLL alone does not install Concepts articles. Do not redistribute game/dependency assemblies merely because they appear in test output.
 
-`main` maintains 1.4.8 support; `1.5-beta` is the 1.5.6 migration branch. Generated `bin/` and `obj/` outputs, local IDE/tool settings, and private research under `docs/` are excluded from source control. Keep credentials, saves, and logs out of commits as well. Build runtime packages from the tracked source and assets; a source checkout or Git push does not install or publish a packaged release.
+`main` maintains 1.4.8 support; `1.5-beta` is the 1.5.7 migration branch. Generated `bin/` and `obj/` outputs, local IDE/tool settings, and private research under `docs/` are excluded from source control. Keep credentials, saves, and logs out of commits as well. Build runtime packages from the tracked source and assets; a source checkout or Git push does not install or publish a packaged release.
 
 ### Beta Migration Boundaries
 
 The beta integration uses `Kingdom.FormalName` and the three-argument rename API while keeping native names at the save boundary. Council incidents use the new string type IDs and hint objects. Relation calculations, execution/rescue hooks, fief-confirmation callbacks, prisoner perks and UIExtenderEx prefab attributes follow the beta APIs. Active treaty hostages are excluded from the new native blood-feud execution queues; ordinary prisoners and Bellum's explicit treaty judgments retain their execution paths.
 
 The 1.5.6 update moves `BattleEnvironment` to the optional final argument of `PerkHelper.AddPerkBonusForCharacter`. Retained-prisoner escape uses this signature with the same secondary perk bonus and `Any` environment as native prisoner release. The engine harness's `--game-version-compatibility` suite verifies the installed helper, its native and Bellum callers, and the by-reference escape bonus.
+
+The 1.5.7 update adds an explicit sea-state parameter to `PartySizeLimitModel.GetPartyMemberSizeLimit`. Council patrol sizing and its runtime hook use the new signature, with the party's current navigation state, as native party sizing does. The game-version compatibility suite checks both calls and hook registration.
 
 Bellum's saveable type IDs, field IDs and stored records are unchanged. This does not guarantee that the game itself can roundtrip a 1.4.8 save through 1.5.6. Test with copies, keep the stable installation and saves separate, and do not overwrite a stable campaign with beta results. A new campaign, an existing-save load/save/reload, and live UI/event testing are still required before declaring release compatibility.
 

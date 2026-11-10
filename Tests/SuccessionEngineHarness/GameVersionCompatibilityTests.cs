@@ -12,6 +12,8 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Incidents;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
+using TaleWorlds.CampaignSystem.Party;
 
 internal static class GameVersionCompatibilityTests
 {
@@ -49,6 +51,18 @@ internal static class GameVersionCompatibilityTests
             "Diplomacy wrapper delegates beta relation modifiers exactly once");
 
         var runtime = mod.GetType("BellumCivile.CouncilAssignmentRuntimePatches", true);
+        var sizeMethod = AccessTools.Method(typeof(PartySizeLimitModel), "GetPartyMemberSizeLimit",
+            new[] { typeof(PartyBase), typeof(bool), typeof(bool) });
+        var limitsMethod = AccessTools.Method(runtime, "TryGetPatrolAssignmentLimits");
+        var sizeInstructions = PatchProcessor.GetOriginalInstructions(limitsMethod);
+        Verify(sizeMethod != null && sizeInstructions.Count(i => i.Calls(sizeMethod)) == 2,
+            "Patrol base and adjusted limits call the installed party-size signature");
+        var atSea = AccessTools.PropertyGetter(typeof(MobileParty), "IsCurrentlyAtSea");
+        Verify(sizeInstructions.Count(i => i.Calls(atSea)) == 2,
+            "Both patrol size calculations use the party's current land or sea state");
+        var nonPatrolArgs = new object[] { null, 0, 0 };
+        Verify(!(bool)limitsMethod.Invoke(null, nonPatrolArgs),
+            "Patrol limit check safely ignores non-patrol startup calls");
         try
         {
             AccessTools.Method(runtime, "Initialize").Invoke(null, new object[] {
@@ -57,6 +71,23 @@ internal static class GameVersionCompatibilityTests
                 FormatterServices.GetUninitializedObject(typeof(DefaultPartySizeLimitModel)) });
             var patched = ((IEnumerable)AccessTools.Field(runtime, "PatchedMethods").GetValue(null)).Cast<MethodBase>().ToArray();
             Verify(patched.Length == 4, "All four council assignment model hooks install");
+            Verify(patched.Any(m => m.Name == "GetPartyMemberSizeLimit"
+                    && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(
+                        new[] { typeof(PartyBase), typeof(bool), typeof(bool) })),
+                "Patrol size bonus hooks the current three-argument model method");
+            string navalDll = Path.Combine(game, "Modules", "NavalDLC", "bin", "Win64_Shipping_Client", "NavalDLC.dll");
+            if (File.Exists(navalDll))
+            {
+                var navalModel = Assembly.LoadFrom(navalDll).GetType("NavalDLC.GameComponents.NavalDLCPartySizeLimitModel", true);
+                AccessTools.Method(runtime, "Initialize").Invoke(null, new object[] {
+                    null, null, FormatterServices.GetUninitializedObject(navalModel) });
+                patched = ((IEnumerable)AccessTools.Field(runtime, "PatchedMethods").GetValue(null)).Cast<MethodBase>().ToArray();
+                Verify(patched.Any(m => m.DeclaringType == navalModel && m.Name == "GetPartyMemberSizeLimit"
+                        && m.GetParameters().Length == 3),
+                    "War Sails patrol-size override receives the updated hook");
+                Verify(patched.Any(m => m.DeclaringType == navalModel && m.Name == "FindAppropriateInitialRosterForMobileParty"),
+                    "War Sails initial-roster override receives the patrol hook");
+            }
         }
         finally { new Harmony("com.bellumcivile.council.assignments").UnpatchAll("com.bellumcivile.council.assignments"); }
 
