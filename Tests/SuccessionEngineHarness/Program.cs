@@ -480,6 +480,11 @@ internal static class Program
                 CadetRegencyFoundingTests.Run(Check);
                 Console.WriteLine($"{_checks} cadet household preparation checks passed.");
             }
+            else if (args.Contains("--landless-realms"))
+            {
+                LandlessRealmTests.Run(Check, args.Contains("--native-retirement-only"));
+                Console.WriteLine($"{_checks} landless-realm checks passed.");
+            }
             else if (args.Contains("--restored-realm-recovery"))
             {
                 RestoredRealmRecoveryTests.Run(Check);

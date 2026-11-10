@@ -15,15 +15,18 @@ namespace BellumCivile
         public Clan LeaderClan { get; }
         public FeudalTitleRecord RootTitle { get; }
         public IReadOnlyList<Clan> ClusterClans { get; }
+        public IReadOnlyList<Settlement> Fiefs { get; }
         public int FiefCount { get; }
         public int WarScoreCost { get; }
 
-        public TreatyVassalReleaseCandidate(Clan leaderClan, FeudalTitleRecord rootTitle, IEnumerable<Clan> clusterClans, int fiefCount, int warScoreCost)
+        public TreatyVassalReleaseCandidate(Clan leaderClan, FeudalTitleRecord rootTitle, IEnumerable<Clan> clusterClans,
+            IEnumerable<Settlement> fiefs, int warScoreCost)
         {
             LeaderClan = leaderClan;
             RootTitle = rootTitle;
             ClusterClans = (clusterClans ?? Enumerable.Empty<Clan>()).Distinct().ToList();
-            FiefCount = fiefCount;
+            Fiefs = fiefs.Distinct().ToList();
+            FiefCount = Fiefs.Count;
             WarScoreCost = warScoreCost;
         }
     }
@@ -55,7 +58,8 @@ namespace BellumCivile
 
     internal static class TreatyRealmTransitionService
     {
-        public static IReadOnlyList<TreatyVassalReleaseCandidate> GetReleaseCandidates(Kingdom sourceRealm)
+        public static IReadOnlyList<TreatyVassalReleaseCandidate> GetReleaseCandidates(Kingdom sourceRealm,
+            WarScoreRecord war = null, IEnumerable<TreatyTermRecord> projectedTerms = null)
         {
             FeudalTitleBehavior titles = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
             FeudalTitleRecord sourceSovereign = titles?.GetRealmSovereignTitle(sourceRealm, FeudalHierarchyMode.DeFacto)
@@ -63,6 +67,8 @@ namespace BellumCivile
             if (titles == null || sourceRealm == null || sourceRealm.IsEliminated || sourceSovereign == null)
                 return new List<TreatyVassalReleaseCandidate>();
 
+            var terms = (projectedTerms ?? Enumerable.Empty<TreatyTermRecord>()).Where(t => t != null).ToList();
+            var territory = new ClientWarTerritory(war);
             List<TreatyVassalReleaseCandidate> result = new List<TreatyVassalReleaseCandidate>();
             foreach (Clan clan in sourceRealm.Clans.Where(IsEligibleSettledClan))
             {
@@ -101,17 +107,38 @@ namespace BellumCivile
                 List<Settlement> clusterFiefs = clusterTitles
                     .Where(title => title.TitleType == FeudalTitleType.Barony && !string.IsNullOrWhiteSpace(title.CapitalSettlementId))
                     .Select(title => ResolveSettlement(title.CapitalSettlementId))
-                    .Where(settlement => settlement != null && (settlement.IsTown || settlement.IsCastle))
+                    .Where(settlement => settlement != null && (settlement.IsTown || settlement.IsCastle)
+                        && settlement.OwnerClan?.Kingdom == sourceRealm && clusterClans.Contains(settlement.OwnerClan)
+                        && !settlement.OwnerClan.IsEliminated)
                     .Distinct()
                     .ToList();
-                int fiefCount = clusterFiefs.Count;
-                int cost = TreatyTermCostModel.GetStructuralFiefWarScoreCost(clusterFiefs);
-                result.Add(new TreatyVassalReleaseCandidate(clan, root, clusterClans, fiefCount, cost));
+                // A surviving county/duchy is not territory. Its moving houses must actually own
+                // a barony beneath it, and keep that barony after the treaty restores occupations.
+                if (clusterFiefs.Count == 0 || clusterClans.Any(c => c.Fiefs.Any(f => !clusterFiefs.Contains(f.Settlement))))
+                    continue;
+                var retainedFiefs = clusterFiefs.Where(f => IsRetainedReleaseFief(f, sourceRealm, territory, terms)).ToList();
+                if (retainedFiefs.Count == 0)
+                    continue;
+                int cost = TreatyTermCostModel.GetStructuralFiefWarScoreCost(retainedFiefs);
+                result.Add(new TreatyVassalReleaseCandidate(clan, root, clusterClans, retainedFiefs, cost));
             }
 
             return result.OrderBy(candidate => candidate.WarScoreCost)
                 .ThenBy(candidate => candidate.LeaderClan.Name?.ToString() ?? candidate.LeaderClan.StringId)
                 .ToList();
+        }
+
+        private static bool IsRetainedReleaseFief(Settlement fief, Kingdom source,
+            ClientWarTerritory territory, IReadOnlyList<TreatyTermRecord> terms)
+        {
+            if (terms.Any(t => ClientWarTerritory.IsTerritorial(t.Type) && t.SettlementId == fief.StringId))
+                return false;
+            var snapshot = territory.War?.FiefSnapshots.FirstOrDefault(s => s?.SettlementId == fief.StringId);
+            if (snapshot == null || !territory.Opposing(snapshot.OwnerKingdomId, source.StringId)) return true;
+            var originalRealm = ClientWarTerritory.Realm(snapshot.OwnerKingdomId);
+            var originalOwner = ResolveClan(snapshot.OwnerClanId);
+            var recipient = originalOwner?.Kingdom == originalRealm ? originalOwner : originalRealm?.RulingClan;
+            return recipient?.Leader == null || recipient == fief.OwnerClan;
         }
 
         public static bool TryGetForceVassalizationCandidate(Kingdom victorRealm, Kingdom defeatedRealm,
@@ -195,10 +222,8 @@ namespace BellumCivile
             TextObject description = new TextObject("{=BC_Treaty_ReleasedRealmDescription}Released from {FORMER_REALM} by treaty, {NEW_REALM} entered the world as an independent realm.")
                 .SetTextVariable("FORMER_REALM", sourceRealm.Name)
                 .SetTextVariable("NEW_REALM", name);
-            Settlement capital = ResolveSettlement(candidate.RootTitle.CapitalSettlementId)
-                ?? candidate.LeaderClan.Settlements.FirstOrDefault()
-                ?? sourceRealm.Settlements.FirstOrDefault()
-                ?? Settlement.All.FirstOrDefault(settlement => settlement.IsTown || settlement.IsCastle);
+            Settlement capital = candidate.Fiefs
+                .OrderByDescending(s => s.StringId == candidate.RootTitle.CapitalSettlementId).First();
             var visuals = KingdomVisualHelper.ResolveIndependentSuccessorKingdomVisuals(sourceRealm, candidate.LeaderClan, kingdomId);
             independentRealm.InitializeKingdom(name, name, candidate.LeaderClan.Culture ?? sourceRealm.Culture,
                 visuals.Banner, visuals.PrimaryColor, visuals.SecondaryColor, capital, description, name, rulerTitle);

@@ -510,7 +510,7 @@ namespace BellumCivile
             {
                 Kingdom sourceRealm = Kingdom.All.FirstOrDefault(candidate => candidate?.StringId == term.FromKingdomId);
                 Clan releasedLeader = Clan.All.FirstOrDefault(candidate => candidate?.StringId == term.ClanId);
-                TreatyVassalReleaseCandidate release = TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm)
+                TreatyVassalReleaseCandidate release = TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm, war)
                     .FirstOrDefault(candidate => candidate.LeaderClan == releasedLeader && candidate.RootTitle?.TitleId == term.TitleId);
                 if (clan == releasedLeader)
                     Add(reasons, ref utility, 100f, "Independence secured by treaty");

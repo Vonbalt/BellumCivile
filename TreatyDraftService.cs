@@ -823,7 +823,7 @@ namespace BellumCivile
                         }
 
                         Kingdom sourceRealm = ResolveKingdom(term.FromKingdomId);
-                        TreatyVassalReleaseCandidate candidate = TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm)
+                        TreatyVassalReleaseCandidate candidate = TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm, war, requested)
                             .FirstOrDefault(entry => entry.LeaderClan.StringId == term.ClanId
                                 && entry.RootTitle.TitleId == term.TitleId);
                         if (candidate == null)
@@ -834,7 +834,7 @@ namespace BellumCivile
                                 continue;
                             }
 
-                            report = "the named vassal no longer forms a releasable non-de-jure title cluster";
+                            report = "the named vassal no longer forms a releasable non-de-jure title cluster backed by a town or castle retained after peace";
                             return false;
                         }
 
@@ -1194,7 +1194,7 @@ namespace BellumCivile
             HashSet<string> selectedVassalReleases = new HashSet<string>((proposal.Terms ?? Enumerable.Empty<TreatyTermRecord>())
                 .Where(term => term?.Type == TreatyTermType.ReleaseVassal && term.ToKingdomId == winner.StringId)
                 .Select(term => (term.ClanId ?? string.Empty) + "|" + (term.TitleId ?? string.Empty)));
-            if (TreatyRealmTransitionService.GetReleaseCandidates(loser)
+            if (TreatyRealmTransitionService.GetReleaseCandidates(loser, war, proposal.Terms)
                 .Any(candidate => candidate != null
                     && candidate.WarScoreCost <= availableWarScore
                     && !selectedVassalReleases.Contains(candidate.LeaderClan.StringId + "|" + candidate.RootTitle.TitleId)))

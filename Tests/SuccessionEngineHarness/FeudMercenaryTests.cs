@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Library;
 
 internal static class FeudMercenaryTests
 {
@@ -14,6 +16,8 @@ internal static class FeudMercenaryTests
     private static bool _mercenary;
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
+    private static bool Realms(ref MBReadOnlyList<Kingdom> __result)
+    { __result = new MBReadOnlyList<Kingdom>(new List<Kingdom> { _realm }); return false; }
     private static bool Leader(ref Hero __result) { __result = _hero; return false; }
     private static bool Mercenary(ref bool __result) { __result = _mercenary; return false; }
     private static bool Minor(ref bool __result) { __result = true; return false; }
@@ -41,6 +45,7 @@ internal static class FeudMercenaryTests
             Patch(AccessTools.PropertyGetter(typeof(Clan), "IsEliminated"), nameof(False));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsEliminated"), nameof(False));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(NoRuler));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "All"), nameof(Realms));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsDead"), nameof(False));
             _mercenary = true;
             check(!Can(), "Player minor clan under mercenary contract cannot answer feud summons");

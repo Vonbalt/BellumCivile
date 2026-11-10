@@ -527,7 +527,7 @@ namespace BellumCivile
                 || posture == TreatyNegotiationPosture.TotalVictory;
             if (allowStructuralPolitics)
             {
-                foreach (TreatyVassalReleaseCandidate release in TreatyRealmTransitionService.GetReleaseCandidates(loser))
+                foreach (TreatyVassalReleaseCandidate release in TreatyRealmTransitionService.GetReleaseCandidates(loser, war))
                 {
                     float priority = 35f
                         + GetTrait(ruler, DefaultTraits.Calculating) * 8f

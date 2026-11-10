@@ -86,6 +86,8 @@ namespace BellumCivile.Behaviors
             CampaignEvents.OnPlayerCharacterChangedEvent.AddNonSerializedListener(this, OnPlayerCharacterChanged);
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, _ => RecoverCoalitionBallots());
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, _ => RetireOrphanedRestoredRealms());
+            CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, _ => _landlessRecoveryPending = true);
+            CampaignEvents.TickEvent.AddNonSerializedListener(this, _ => ProcessLandlessRealmRecovery());
         }
         public override void SyncData(IDataStore dataStore)
         {
@@ -696,6 +698,7 @@ namespace BellumCivile.Behaviors
             ProcessPendingSuccessionTribunals();
             ProcessPendingTribunals();
             ProcessPendingRebelCleanups();
+            _landlessRecoveryPending = true;
         }
 
         private void OnHourlyTick()

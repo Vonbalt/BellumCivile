@@ -852,3 +852,4 @@ Capped Marshal controversy from nobles captured or killed in a single battle at 
 Added missing localization strings.
 Staggered court agenda preparation across daily batches to reduce stutters in campaigns with many kingdoms.
 Fixed starting-child generation to respect custom adulthood ages and compatibility with Start As Anyone mod.
+Fixed peace parleys creating landless independent realms from titles without supporting territory. Released titles now require actual towns or castles controlled by the released houses, and existing ghost realms are safely retired while surviving clans enter exile.
