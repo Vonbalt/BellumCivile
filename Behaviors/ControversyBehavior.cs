@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using BellumCivile.Patches;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -18,8 +21,10 @@ namespace BellumCivile.Behaviors
     /// </summary>
     public class ControversyBehavior : CampaignBehaviorBase
     {
+        internal const float BattleCasualtyControversyCap = 15f;
         private Dictionary<string, int> _trackedControversyById = new Dictionary<string, int>();
         private Dictionary<string, int> _dailyDynamicCacheById = new Dictionary<string, int>();
+        private Dictionary<string, float> _battleCasualtyIncreases = new Dictionary<string, float>();
 
         private static MethodInfo _getDailyTributeMethod;
         private static PropertyInfo _dailyTributeProp;
@@ -45,8 +50,10 @@ namespace BellumCivile.Behaviors
             Dictionary<Kingdom, int> legacyTrackedControversy = new Dictionary<Kingdom, int>();
             dataStore.SyncData("BellumCivile_Controversy", ref legacyTrackedControversy);
             dataStore.SyncData("BellumCivile_ControversyById", ref _trackedControversyById);
+            dataStore.SyncData("BellumCivile_BattleCasualtyControversy", ref _battleCasualtyIncreases);
 
             if (_trackedControversyById == null) _trackedControversyById = new Dictionary<string, int>();
+            if (_battleCasualtyIncreases == null) _battleCasualtyIncreases = new Dictionary<string, float>();
 
             if (legacyTrackedControversy != null)
             {
@@ -111,6 +118,7 @@ namespace BellumCivile.Behaviors
         private void OnDailyTick()
         {
             _dailyDynamicCacheById.Clear();
+            PruneBattleCasualtyIncreases();
 
             if (Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>() != null)
                 return;
@@ -199,19 +207,67 @@ namespace BellumCivile.Behaviors
 
         private void OnHeroPrisonerTaken(PartyBase captor, Hero prisoner)
         {
-            if (prisoner.Clan != null && !prisoner.Clan.IsMinorFaction)
+            if (prisoner?.Clan != null && !prisoner.Clan.IsMinorFaction)
             {
-                if (prisoner.Clan.Kingdom != null) AddControversy(prisoner.Clan.Kingdom, 3);
+                MapEvent battle = MarshalBattleCasualtyContext.Current ?? prisoner.PartyBelongedTo?.MapEvent ?? captor?.MapEvent;
+                AddBattleCasualtyControversy(prisoner.Clan.Kingdom, 3, battle);
                 if (captor?.MapFaction is Kingdom captorKingdom) AddControversy(captorKingdom, -3);
             }
         }
 
         private void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification)
         {
-            if ((detail == KillCharacterAction.KillCharacterActionDetail.DiedInBattle || detail == KillCharacterAction.KillCharacterActionDetail.Executed) && victim.Clan != null && !victim.Clan.IsMinorFaction)
+            if ((detail == KillCharacterAction.KillCharacterActionDetail.DiedInBattle || detail == KillCharacterAction.KillCharacterActionDetail.Executed) && victim?.Clan != null && !victim.Clan.IsMinorFaction)
             {
-                if (victim.Clan.Kingdom != null) AddControversy(victim.Clan.Kingdom, 5);
+                if (detail == KillCharacterAction.KillCharacterActionDetail.DiedInBattle)
+                    AddBattleCasualtyControversy(victim.Clan.Kingdom, 5,
+                        MarshalBattleCasualtyContext.Current ?? victim.PartyBelongedTo?.MapEvent);
+                else if (victim.Clan.Kingdom != null) AddControversy(victim.Clan.Kingdom, 5);
                 if (killer?.Clan?.Kingdom != null) AddControversy(killer.Clan.Kingdom, -5);
+            }
+        }
+
+        private void AddBattleCasualtyControversy(Kingdom kingdom, int amount, MapEvent battle)
+        {
+            if (kingdom == null || string.IsNullOrEmpty(kingdom.StringId)) return;
+            if (battle == null) { AddControversy(kingdom, amount); return; }
+
+            string key = BattleKeyPrefix(battle) + kingdom.StringId;
+            _battleCasualtyIncreases.TryGetValue(key, out float used);
+            float remaining = Math.Max(0f, BattleCasualtyControversyCap - used);
+            if (remaining <= 0f) return;
+
+            PrivyCouncilBehavior council = Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>();
+            float applied;
+            if (council != null)
+                applied = council.AddControversyWithLimit(kingdom, PrivyCouncilOffice.Marshal, amount, GetCouncilReason(PrivyCouncilOffice.Marshal), remaining);
+            else
+            {
+                _trackedControversyById.TryGetValue(kingdom.StringId, out int before);
+                AddControversy(kingdom, Math.Min(amount, (int)remaining));
+                _trackedControversyById.TryGetValue(kingdom.StringId, out int after);
+                applied = after - before;
+            }
+            float total = Math.Min(BattleCasualtyControversyCap, used + Math.Max(0f, applied));
+            _battleCasualtyIncreases[key] = total;
+            if (total >= BattleCasualtyControversyCap && used < BattleCasualtyControversyCap)
+                BellumCivileLogger.Log($"Marshal battle casualty controversy capped; battle={battle.Id}; kingdom={kingdom.StringId}; limit={BattleCasualtyControversyCap}.");
+        }
+
+        private static string BattleKeyPrefix(MapEvent battle) =>
+            battle.Id.InternalValue.ToString(CultureInfo.InvariantCulture) + "|";
+
+        private void PruneBattleCasualtyIncreases()
+        {
+            if (_battleCasualtyIncreases.Count == 0 || Campaign.Current?.MapEventManager == null) return;
+            var live = new HashSet<string>(Campaign.Current.MapEventManager.MapEvents
+                .Where(battle => battle != null).Select(BattleKeyPrefix));
+            if (PlayerEncounter.Battle != null) live.Add(BattleKeyPrefix(PlayerEncounter.Battle));
+            foreach (string key in _battleCasualtyIncreases.Keys.ToList())
+            {
+                int separator = key.IndexOf('|');
+                if (separator < 0 || !live.Contains(key.Substring(0, separator + 1)))
+                    _battleCasualtyIncreases.Remove(key);
             }
         }
 

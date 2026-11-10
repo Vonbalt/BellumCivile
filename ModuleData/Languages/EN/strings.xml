@@ -66,7 +66,7 @@
     <string id="BC_Concept_hostages_and_pledges_of_peace_Title" text="Hostages and Pledges of Peace" />
     <string id="BC_Concept_hostages_and_pledges_of_peace_Text" text="A hostage pledge secures peace by placing a blood relative of one ruler in the other realm's custody. The family member's safety gives the supplying house a powerful reason to preserve the agreement.{newline}{newline}Peace parleys can demand or offer an eligible relative, starting at the minimum duration configured in Mod Options (fifty days by default). Duration is negotiated in ten-day steps up to one thousand days. Each extra ten days beyond the recorded starting duration costs one additional War Score. Reciprocal hostages share the same term. Existing agreements and pending negotiations retain their recorded rules, prices and durations. Their position in the relevant succession determines the pledge's base value, and children can serve as hostages. The captive remains in their own house while being held in an eligible stronghold of the receiving realm.{newline}{newline}Lords weigh the security of the agreement against its restrictions on future action. Additional time beyond the recorded starting duration faces increasing opposition, while exhausted houses value time to recover.{newline}{newline}Active treaty custody prevents ordinary ransom and escape. The encyclopedia and Clan menu identify the captive as a peace hostage, and ransom brokers explain the diplomatic reason for their detention.{newline}{newline}At expiry, the hostage is returned. Replacement of either recorded ruling house can also end the arrangement. War breaks the pledge and requires a decision about the captive: release, continued ordinary imprisonment or execution. NPC rulers choose according to personality and circumstances, while player captors receive a choice. Ordinary prisoners can again be ransomed, escape or be rescued.{newline}{newline}Dedicated dungeon dialogue lets a player captor honorably return a hostage early or order their execution, with consequences for relations and honor. If the other realm also holds a hostage, its ruler determines that person's fate in response.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_client_kingdoms_and_liberty_desire_Title" text="Client Kingdoms and Liberty Desire" />
-    <string id="BC_Concept_client_kingdoms_and_liberty_desire_Text" text="A client kingdom keeps its ruler and identity while accepting a stronger realm's authority over foreign affairs. Its suzerain provides protection, and the client follows its lead in diplomacy and war.{newline}{newline}Clientage maintains an alliance and trade relationship between the realms. The client joins the suzerain's wars and peaces, with its independent diplomacy restricted by that obligation. A ruler may accept this position through a treaty or seek protection during a desperate defensive war. Accepting such an appeal includes joining the client's defense.{newline}{newline}The suzerain can strengthen the relationship by granting eligible personally held land. Peace terms can also recognize qualifying territory occupied by a client, allowing it to retain gains from a shared campaign.{newline}{newline}Liberty Desire measures the pressure for independence. Relative strength, relations, personality, burdens, claims and political conditions determine how tolerable the arrangement feels. Generous treatment and good relations can support loyalty alongside military dominance.{newline}{newline}A client seeking liberation must also judge its military prospects and readiness. Crown preparations can encourage that effort, while the eventual declaration follows the liberation requirements. If the suzerain collapses, its clients are released.{newline}{newline}The Diplomacy overview identifies client relationships and provides a Liberty Desire tooltip showing the pressures at work.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
+    <string id="BC_Concept_client_kingdoms_and_liberty_desire_Text" text="A client kingdom keeps its ruler and identity while accepting a stronger realm's authority over foreign affairs. Its suzerain provides protection, and the client follows its lead in diplomacy and war.{newline}{newline}Clientage maintains an alliance and trade relationship between the realms. The client joins the suzerain's wars and peaces, with its independent diplomacy restricted by that obligation. A ruler may accept this position through a treaty or seek protection during a desperate defensive war. Accepting such an appeal includes joining the client's defense.{newline}{newline}The suzerain can strengthen the relationship by granting eligible personally held land. Peace terms can also recognize qualifying territory occupied by a client, allowing it to retain gains from a shared campaign.{newline}{newline}The player, when ruling a suzerain realm, may personally grant a client ruler independence. The alliance and trade agreement continue on ordinary terms, while the former client regains control of its foreign affairs. This generosity earns a lasting personal favor between the rulers; existing wars and alliance obligations remain in force.{newline}{newline}Liberty Desire measures the pressure for independence. Relative strength, relations, personality, burdens, claims and political conditions determine how tolerable the arrangement feels. Generous treatment and good relations can support loyalty alongside military dominance.{newline}{newline}A client seeking liberation must also judge its military prospects and readiness. Crown preparations can encourage that effort, while the eventual declaration follows the liberation requirements. If the suzerain collapses, its clients are released.{newline}{newline}The Diplomacy overview identifies client relationships and provides a Liberty Desire tooltip showing the pressures at work.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_relations_kinship_and_political_memory_Title" text="Relations, Kinship and Political Memory" />
     <string id="BC_Concept_relations_kinship_and_political_memory_Text" text="Relations combine personal affinities, current circumstances and memories of past dealings. These explain why friendship can endure hardship and why a political injury can remain important years after the event.{newline}{newline}Among nobles, personality and culture contribute an enduring foundation. Kinship supplies a family bond, using the strongest applicable relationship. Political conditions such as shared allegiance, court affiliation, contested titles and prisoner custody add motives that change as the situation changes.{newline}{newline}Event memories record assistance, betrayal, shared battles, political support and punishment. Ordinary temporary memories retain their effect for their duration, then expire. The length reflects the event's significance and the configured memory-duration setting.{newline}{newline}Personal memories concern particular characters. House memories belong to the families involved and survive changes of clan leader, allowing a successor to inherit gratitude or resentment from an earlier generation.{newline}{newline}Relatives within the same clan have individual relationships, and notables remember relevant dealings in their communities. Their opinions can therefore reflect both familiar ties and the player's actions.{newline}{newline}The encyclopedia relation tooltip lists the active motives and memories. It helps the player identify a temporary grievance, an ongoing political dispute or a lasting family bond, and decide which relationships can be improved by changing the circumstances.{newline}{newline}{BC_CONCEPT_BELLUM_CIVILE_LINK}" />
     <string id="BC_Concept_intrigue_and_proxy_warfare_Title" text="Intrigue and Proxy Warfare" />
@@ -7591,10 +7591,10 @@
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
     <string id="BC_TitleStyle_Immersive_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Höfuðskona" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Immersive_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Höfuðskona" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
     <string id="BC_TitleStyle_Immersive_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />
@@ -7641,10 +7641,10 @@
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Empire_femaleMercenaryLeaderRank" text="Sotnitsa" />
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_mercenaryLeaderRank" text="Sotnik" />
     <string id="BC_TitleStyle_Bannerkings_culture_Sturgia_Kingdom_femaleMercenaryLeaderRank" text="Sotnitsa" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank" text="Hǫfuðsmaðr" />
-    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Hǫfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank" text="Höfuðskona" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank" text="Höfuðsmaðr" />
+    <string id="BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank" text="Höfuðskona" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_mercenaryLeaderRank" text="Houbetman" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Empire_femaleMercenaryLeaderRank" text="Houbetvrouwe" />
     <string id="BC_TitleStyle_Bannerkings_culture_Rhodok_Kingdom_mercenaryLeaderRank" text="Houbetman" />
@@ -7677,5 +7677,198 @@
     <string id="BC_Marriage_CandidateSameSex" text="This marriage requires a bride and a groom." />
     <string id="BC_Marriage_CandidatePairRestricted" text="{HERO} cannot marry {OTHER} under the current marriage rules." />
     <string id="BC_Marriage_CandidateNoMatch" text="There is no eligible match for {HERO} in this household at present." />
+    <string id="BC_ClientRelease_Open" text="I would speak of your realm's obligations to my crown." />
+    <string id="BC_ClientRelease_Question" text="What would you ask of us?" />
+    <string id="BC_ClientRelease_Proposal" text="I would release {BC_RELEASE_CLIENT} from its oath of obedience. Our realms would remain allies, but yours would answer to no overlord." />
+    <string id="BC_ClientRelease_Response" text="You would grant us our independence, and ask nothing in return?" />
+    <string id="BC_ClientRelease_Confirm" text="That is my will. Let there be friendship between our realms." />
+    <string id="BC_ClientRelease_Cancel" text="I must give this more thought." />
+    <string id="BC_ClientRelease_Thanks" text="You do us a great honor. I shall not forget this generosity. May our realms remain friends for many years to come." />
+    <string id="BC_ClientRelease_Changed" text="The circumstances have changed. We must discuss your realm's independence another time." />
+    <string id="BC_ClientRelease_AgreementsUnavailable" text="Our existing agreements must be settled before I can release your realm." />
+    <string id="BC_ClientRelease_Failure" text="{BC_RELEASE_FAILURE}" />
+    <string id="BC_ClientRelease_Hint" text="Grants independence without payment. The alliance and trade agreement continue on ordinary terms. Existing wars and alliance obligations remain unchanged. Grants +{RELATION} personal relations for {YEARS} years; an active gratitude memory cannot stack or be renewed." />
+    <string id="BC_RelationMemory_GrantedRealmIndependence" text="Granted my realm its independence" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPatrolRecruitment" text="Successful patrol recruitment" />
+    <string id="BC_CouncilIncident_ReasonFailedPatrolRecruitment" text="Failed patrol recruitment" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedPatrolRecruitment" text="Successful limited patrol recruitment" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedPatrolRecruitment" text="Failed limited patrol recruitment" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulRemountRequisition" text="Successful remount requisition" />
+    <string id="BC_CouncilIncident_ReasonFailedRemountRequisition" text="Failed remount requisition" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedRemountRequisition" text="Successful limited remount requisition" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedRemountRequisition" text="Failed limited remount requisition" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulSuppressionOfRoadBrigands" text="Successful suppression of road brigands" />
+    <string id="BC_CouncilIncident_ReasonFailedSuppressionOfRoadBrigands" text="Failed suppression of road brigands" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedSweepAgainstRoadBrigands" text="Successful limited sweep against road brigands" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedSweepAgainstRoadBrigands" text="Failed limited sweep against road brigands" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulRevisionOfTheMusterRolls" text="Successful revision of the muster rolls" />
+    <string id="BC_CouncilIncident_ReasonFailedRevisionOfTheMusterRolls" text="Failed revision of the muster rolls" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulTrialOfRevisedMusterRolls" text="Successful trial of revised muster rolls" />
+    <string id="BC_CouncilIncident_ReasonFailedTrialOfRevisedMusterRolls" text="Failed trial of revised muster rolls" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLiveSteelMilitiaExercises" text="Successful live-steel militia exercises" />
+    <string id="BC_CouncilIncident_ReasonFailedLiveSteelMilitiaExercises" text="Failed live-steel militia exercises" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulSupervisedLiveSteelExercises" text="Successful supervised live-steel exercises" />
+    <string id="BC_CouncilIncident_ReasonFailedSupervisedLiveSteelExercises" text="Failed supervised live-steel exercises" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulHarvestExemptions" text="Successful harvest exemptions" />
+    <string id="BC_CouncilIncident_ReasonFailedHarvestExemptions" text="Failed harvest exemptions" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedHarvestExemptions" text="Successful limited harvest exemptions" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedHarvestExemptions" text="Failed limited harvest exemptions" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulRegulationOfCampFollowers" text="Successful regulation of camp followers" />
+    <string id="BC_CouncilIncident_ReasonFailedRegulationOfCampFollowers" text="Failed regulation of camp followers" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedRegulationOfCampFollowers" text="Successful limited regulation of camp followers" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedRegulationOfCampFollowers" text="Failed limited regulation of camp followers" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulRegulationOfArmyForaging" text="Successful regulation of army foraging" />
+    <string id="BC_CouncilIncident_ReasonFailedRegulationOfArmyForaging" text="Failed regulation of army foraging" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedArmyForaging" text="Successful limited army foraging" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedArmyForaging" text="Failed limited army foraging" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulAuditOfArmyQuartermasters" text="Successful audit of army quartermasters" />
+    <string id="BC_CouncilIncident_ReasonFailedAuditOfArmyQuartermasters" text="Failed audit of army quartermasters" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedAuditOfArmyQuartermasters" text="Successful limited audit of army quartermasters" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedAuditOfArmyQuartermasters" text="Failed limited audit of army quartermasters" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulDoubleAgentOperation" text="A successful double-agent operation" />
+    <string id="BC_CouncilIncident_ReasonCompromisedDoubleAgentOperation" text="A compromised double-agent operation" />
+    <string id="BC_CouncilIncident_ReasonUsefulControlledExchangeWithAForeignAgent" text="A useful controlled exchange with a foreign agent" />
+    <string id="BC_CouncilIncident_ReasonFailedControlledExchangeWithAForeignAgent" text="A failed controlled exchange with a foreign agent" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulReformOfCovertWarrants" text="A successful reform of covert warrants" />
+    <string id="BC_CouncilIncident_ReasonDeepeningParanoiaWithinTheCourt" text="Deepening paranoia within the court" />
+    <string id="BC_CouncilIncident_ReasonProtectedChannelsForTrustedOperatives" text="Protected channels for trusted operatives" />
+    <string id="BC_CouncilIncident_ReasonCompromisedChannelsForTrustedOperatives" text="Compromised channels for trusted operatives" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPurgeOfCompromisedGuards" text="A successful purge of compromised guards" />
+    <string id="BC_CouncilIncident_ReasonDisastrousPurgeOfThePalaceGuard" text="A disastrous purge of the palace guard" />
+    <string id="BC_CouncilIncident_ReasonDiscreetRemovalOfCompromisedGuards" text="A discreet removal of compromised guards" />
+    <string id="BC_CouncilIncident_ReasonFailedPartialRotationOfThePalaceGuard" text="A failed partial rotation of the palace guard" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulDeceptionAgainstSuspectedConspirators" text="A successful deception against suspected conspirators" />
+    <string id="BC_CouncilIncident_ReasonExposedFabricationOfTreason" text="An exposed fabrication of treason" />
+    <string id="BC_CouncilIncident_ReasonUsefulFalseMessageAmongConspirators" text="A useful false message among conspirators" />
+    <string id="BC_CouncilIncident_ReasonExposedFalseMessageAmongConspirators" text="An exposed false message among conspirators" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulOperationAgainstHostileClaimants" text="A successful operation against hostile claimants" />
+    <string id="BC_CouncilIncident_ReasonFailedOperationAgainstHostileClaimants" text="A failed operation against hostile claimants" />
+    <string id="BC_CouncilIncident_ReasonUsefulApproachToHostileClaimAgents" text="A useful approach to hostile claim agents" />
+    <string id="BC_CouncilIncident_ReasonExposedApproachToHostileClaimAgents" text="An exposed approach to hostile claim agents" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulInfiltrationOfAnUndergroundNetwork" text="A successful infiltration of an underground network" />
+    <string id="BC_CouncilIncident_ReasonFailedInfiltrationOfAnUndergroundNetwork" text="A failed infiltration of an underground network" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulDisruptionOfConspiratorialCouriers" text="A successful disruption of conspiratorial couriers" />
+    <string id="BC_CouncilIncident_ReasonFailedDisruptionOfConspiratorialCouriers" text="A failed disruption of conspiratorial couriers" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulCampaignOfHostilePamphlets" text="A successful campaign of hostile pamphlets" />
+    <string id="BC_CouncilIncident_ReasonExposedCampaignOfHostilePamphlets" text="An exposed campaign of hostile pamphlets" />
+    <string id="BC_CouncilIncident_ReasonCredibleCampaignOfSelectedRumors" text="A credible campaign of selected rumors" />
+    <string id="BC_CouncilIncident_ReasonExposedCampaignOfSelectedRumors" text="An exposed campaign of selected rumors" />
+    <string id="BC_CouncilIncident_ReasonDiscreetArrangementWithARivalServant" text="A discreet arrangement with a rival servant" />
+    <string id="BC_CouncilIncident_ReasonExposedAttemptToBribeARivalServant" text="An exposed attempt to bribe a rival servant" />
+    <string id="BC_CouncilIncident_ReasonDiscreetExchangeWithARivalServant" text="A discreet exchange with a rival servant" />
+    <string id="BC_CouncilIncident_ReasonCompromisedExchangeWithARivalServant" text="A compromised exchange with a rival servant" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulRebuttalOfHostileRumors" text="A successful rebuttal of hostile rumors" />
+    <string id="BC_CouncilIncident_ReasonDisastrousRebuttalOfHostileRumors" text="A disastrous rebuttal of hostile rumors" />
+    <string id="BC_CouncilIncident_ReasonMeasuredRebuttalOfHostileRumors" text="A measured rebuttal of hostile rumors" />
+    <string id="BC_CouncilIncident_ReasonFailedSelectiveRebuttalOfHostileRumors" text="A failed selective rebuttal of hostile rumors" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulCouncilReportingReforms" text="Successful council reporting reforms" />
+    <string id="BC_CouncilIncident_ReasonFailedCouncilReportingReforms" text="Failed council reporting reforms" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulTrialOfSharedCouncilReports" text="A successful trial of shared council reports" />
+    <string id="BC_CouncilIncident_ReasonFailedTrialOfSharedCouncilReports" text="A failed trial of shared council reports" />
+    <string id="BC_CouncilIncident_ReasonUsefulLessonsDrawnFromAnAncientTreatise" text="Useful lessons drawn from an ancient treatise" />
+    <string id="BC_CouncilIncident_ReasonMisguidedReformsDrawnFromAnAncientTreatise" text="Misguided reforms drawn from an ancient treatise" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulTrialOfAncientCouncilPractices" text="A successful trial of ancient council practices" />
+    <string id="BC_CouncilIncident_ReasonFailedTrialOfAncientCouncilPractices" text="A failed trial of ancient council practices" />
+    <string id="BC_CouncilIncident_ReasonExposureOfACourtSycophant" text="The exposure of a court sycophant" />
+    <string id="BC_CouncilIncident_ReasonDestructiveInquiryIntoCourtSycophancy" text="A destructive inquiry into court sycophancy" />
+    <string id="BC_CouncilIncident_ReasonCarefulReviewOfAlteredCouncilReports" text="A careful review of altered council reports" />
+    <string id="BC_CouncilIncident_ReasonExposedReviewOfCouncilReports" text="An exposed review of council reports" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulArbitrationOfACouncilRivalry" text="The successful arbitration of a council rivalry" />
+    <string id="BC_CouncilIncident_ReasonFailedArbitrationBetweenRivalCouncillors" text="A failed arbitration between rival councillors" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulWorkingAccordBetweenRivalCouncillors" text="A successful working accord between rival councillors" />
+    <string id="BC_CouncilIncident_ReasonCollapsedAccordBetweenRivalCouncillors" text="A collapsed accord between rival councillors" />
+    <string id="BC_CouncilIncident_ReasonExposureOfABribedCouncilMediator" text="The exposure of a bribed council mediator" />
+    <string id="BC_CouncilIncident_ReasonWideningScandalAmongCouncilMediators" text="A widening scandal among council mediators" />
+    <string id="BC_CouncilIncident_ReasonDiscreetInquiryIntoABribedMediator" text="A discreet inquiry into a bribed mediator" />
+    <string id="BC_CouncilIncident_ReasonCompromisedInquiryIntoABribedMediator" text="A compromised inquiry into a bribed mediator" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulSettlementOfCouncilDeadlock" text="A successful settlement of council deadlock" />
+    <string id="BC_CouncilIncident_ReasonFailedSettlementImposedUponTheCouncil" text="A failed settlement imposed upon the council" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedCouncilSettlement" text="A successful limited council settlement" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedCouncilSettlement" text="A failed limited council settlement" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulHearingOfFactionDemands" text="A successful hearing of faction demands" />
+    <string id="BC_CouncilIncident_ReasonDisastrousHearingOfFactionDemands" text="A disastrous hearing of faction demands" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLimitedFactionHearing" text="A successful limited faction hearing" />
+    <string id="BC_CouncilIncident_ReasonFailedLimitedFactionHearing" text="A failed limited faction hearing" />
+    <string id="BC_CouncilIncident_ReasonRestorationOfCompromisedFactionChannels" text="The restoration of compromised faction channels" />
+    <string id="BC_CouncilIncident_ReasonFailedPurgeOfFactionIntermediaries" text="A failed purge of faction intermediaries" />
+    <string id="BC_CouncilIncident_ReasonDiscreetRestorationOfFactionChannels" text="A discreet restoration of faction channels" />
+    <string id="BC_CouncilIncident_ReasonSuspiciousReplacementOfFactionIntermediaries" text="A suspicious replacement of faction intermediaries" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPublicFactionPetition" text="A successful public faction petition" />
+    <string id="BC_CouncilIncident_ReasonDisorderlyPublicFactionPetition" text="A disorderly public faction petition" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPrivateFactionDeputation" text="A successful private faction deputation" />
+    <string id="BC_CouncilIncident_ReasonFailedPrivateFactionDeputation" text="A failed private faction deputation" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulExaminationOfConcealedServiceLedgers" text="A successful examination of concealed service ledgers" />
+    <string id="BC_CouncilIncident_ReasonFailedSeizureOfNobleServiceLedgers" text="A failed seizure of noble service ledgers" />
+    <string id="BC_CouncilIncident_ReasonDiscreetExaminationOfConcealedServiceLedgers" text="A discreet examination of concealed service ledgers" />
+    <string id="BC_CouncilIncident_ReasonExposedExaminationOfNobleServiceLedgers" text="An exposed examination of noble service ledgers" />
+    <string id="BC_CouncilIncident_ReasonWellJudgedNobleExemption" text="A well-judged noble exemption" />
+    <string id="BC_CouncilIncident_ReasonDivisiveNobleExemption" text="A divisive noble exemption" />
+    <string id="BC_CouncilIncident_ReasonNarrowExemptionFromDisputedService" text="A narrow exemption from disputed service" />
+    <string id="BC_CouncilIncident_ReasonFailedCompromiseOverDisputedService" text="A failed compromise over disputed service" />
+    <string id="BC_CouncilIncident_ReasonDisciplinedRoyalAssessmentCommission" text="A disciplined royal assessment commission" />
+    <string id="BC_CouncilIncident_ReasonDiscreditedRoyalAssessmentCommission" text="A discredited royal assessment commission" />
+    <string id="BC_CouncilIncident_ReasonUsefulProvincialAssessment" text="A useful provincial assessment" />
+    <string id="BC_CouncilIncident_ReasonFailedProvincialAssessment" text="A failed provincial assessment" />
+    <string id="BC_CouncilIncident_ReasonExposureOfCorruptInfrastructureContracts" text="The exposure of corrupt infrastructure contracts" />
+    <string id="BC_CouncilIncident_ReasonFailedPurgeOfRoyalContractors" text="A failed purge of royal contractors" />
+    <string id="BC_CouncilIncident_ReasonDiscreetReformOfRoyalContracts" text="A discreet reform of royal contracts" />
+    <string id="BC_CouncilIncident_ReasonExposedInquiryIntoRoyalContracts" text="An exposed inquiry into royal contracts" />
+    <string id="BC_CouncilIncident_ReasonWellOrganizedLaborLevy" text="A well-organized labor levy" />
+    <string id="BC_CouncilIncident_ReasonRuinousLaborLevy" text="A ruinous labor levy" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLocalLaborLevy" text="A successful local labor levy" />
+    <string id="BC_CouncilIncident_ReasonFailedLocalLaborLevy" text="A failed local labor levy" />
+    <string id="BC_CouncilIncident_ReasonEfficientResponseToMaterialShortages" text="An efficient response to material shortages" />
+    <string id="BC_CouncilIncident_ReasonWastefulResponseToMaterialShortages" text="A wasteful response to material shortages" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPrioritySupplyProgram" text="A successful priority supply program" />
+    <string id="BC_CouncilIncident_ReasonFailedPrioritySupplyProgram" text="A failed priority supply program" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulCleansingOfRoyalGranaries" text="A successful cleansing of royal granaries" />
+    <string id="BC_CouncilIncident_ReasonDisastrousCleansingOfRoyalGranaries" text="A disastrous cleansing of royal granaries" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulTreatmentOfMajorGranaries" text="A successful treatment of major granaries" />
+    <string id="BC_CouncilIncident_ReasonFailedTreatmentOfMajorGranaries" text="A failed treatment of major granaries" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulResponseToGrainHoarding" text="A successful response to grain hoarding" />
+    <string id="BC_CouncilIncident_ReasonDisastrousInterventionInTheGrainMarket" text="A disastrous intervention in the grain market" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulContractsWithGrainMerchants" text="Successful contracts with grain merchants" />
+    <string id="BC_CouncilIncident_ReasonFailedContractsWithGrainMerchants" text="Failed contracts with grain merchants" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulReformOfProvisionDistribution" text="A successful reform of provision distribution" />
+    <string id="BC_CouncilIncident_ReasonFailedReformOfProvisionDistribution" text="A failed reform of provision distribution" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulInspectionsOfVulnerableSupplyRoutes" text="Successful inspections of vulnerable supply routes" />
+    <string id="BC_CouncilIncident_ReasonFailedInspectionsOfVulnerableSupplyRoutes" text="Failed inspections of vulnerable supply routes" />
+    <string id="BC_CouncilIncident_ReasonPersuasiveReconstructionOfTheRoyalLineage" text="A persuasive reconstruction of the royal lineage" />
+    <string id="BC_CouncilIncident_ReasonExposedFabricationOfTheRoyalLineage" text="An exposed fabrication of the royal lineage" />
+    <string id="BC_CouncilIncident_ReasonUsefulPrivateGenealogy" text="A useful private genealogy" />
+    <string id="BC_CouncilIncident_ReasonCompromisedPrivateGenealogy" text="A compromised private genealogy" />
+    <string id="BC_CouncilIncident_ReasonContainmentOfACompromisedInformant" text="The containment of a compromised informant" />
+    <string id="BC_CouncilIncident_ReasonEscapeOfACompromisedInformant" text="The escape of a compromised informant" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulDeceptionOfALooseLippedInformant" text="A successful deception of a loose-lipped informant" />
+    <string id="BC_CouncilIncident_ReasonFailedDeceptionOfALooseLippedInformant" text="A failed deception of a loose-lipped informant" />
+    <string id="BC_CouncilIncident_ReasonDiscreetArrangementWithCooperativeRecordKeepers" text="A discreet arrangement with cooperative record-keepers" />
+    <string id="BC_CouncilIncident_ReasonExposedAttemptToBribeArchivalClerks" text="An exposed attempt to bribe archival clerks" />
+    <string id="BC_CouncilIncident_ReasonDiscreetApproachToArchivalClerks" text="A discreet approach to archival clerks" />
+    <string id="BC_CouncilIncident_ReasonCompromisedApproachToArchivalClerks" text="A compromised approach to archival clerks" />
+    <string id="BC_CouncilIncident_ReasonCelebratedDiplomaticEmbassy" text="A celebrated diplomatic embassy" />
+    <string id="BC_CouncilIncident_ReasonHumiliatedDiplomaticEmbassy" text="A humiliated diplomatic embassy" />
+    <string id="BC_CouncilIncident_ReasonWellJudgedDiplomaticGift" text="A well-judged diplomatic gift" />
+    <string id="BC_CouncilIncident_ReasonInsultingDiplomaticGift" text="An insulting diplomatic gift" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulSeasonOfDiplomaticCourtship" text="A successful season of diplomatic courtship" />
+    <string id="BC_CouncilIncident_ReasonScandalousSeasonOfDiplomaticCourtship" text="A scandalous season of diplomatic courtship" />
+    <string id="BC_CouncilIncident_ReasonDiscreetExchangeOfDiplomaticIntroductions" text="A discreet exchange of diplomatic introductions" />
+    <string id="BC_CouncilIncident_ReasonCompromisedExchangeOfDiplomaticIntroductions" text="A compromised exchange of diplomatic introductions" />
+    <string id="BC_CouncilIncident_ReasonDignifiedSettlementOfABorderIncident" text="A dignified settlement of a border incident" />
+    <string id="BC_CouncilIncident_ReasonHumiliatingApologyForABorderIncident" text="A humiliating apology for a border incident" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulLocalBorderSettlement" text="A successful local border settlement" />
+    <string id="BC_CouncilIncident_ReasonFailedLocalBorderSettlement" text="A failed local border settlement" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulBanquetOfReconciliation" text="A successful banquet of reconciliation" />
+    <string id="BC_CouncilIncident_ReasonDisastrousBanquetOfReconciliation" text="A disastrous banquet of reconciliation" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulPrivateSupperWithEstrangedVassals" text="A successful private supper with estranged vassals" />
+    <string id="BC_CouncilIncident_ReasonFailedPrivateSupperWithEstrangedVassals" text="A failed private supper with estranged vassals" />
+    <string id="BC_CouncilIncident_ReasonMasterfulArbitrationOfNobleHuntingRights" text="A masterful arbitration of noble hunting rights" />
+    <string id="BC_CouncilIncident_ReasonFailedArbitrationOfNobleHuntingRights" text="A failed arbitration of noble hunting rights" />
+    <string id="BC_CouncilIncident_ReasonSuccessfulCompromiseOverNobleHuntingRights" text="A successful compromise over noble hunting rights" />
+    <string id="BC_CouncilIncident_ReasonFailedCompromiseOverNobleHuntingRights" text="A failed compromise over noble hunting rights" />
+    <string id="BC_CouncilIncident_ReasonWellReceivedCeremonialDignity" text="A well-received ceremonial dignity" />
+    <string id="BC_CouncilIncident_ReasonRidiculedCeremonialDignity" text="A ridiculed ceremonial dignity" />
+    <string id="BC_CouncilIncident_ReasonTactfulPrivateCommendation" text="A tactful private commendation" />
+    <string id="BC_CouncilIncident_ReasonDivisivePrivateCommendation" text="A divisive private commendation" />
+    <string id="BC_CourtAgendaAnnouncementPending" text="Current agenda: To be announced in the following days." />
   </strings>
 </base>

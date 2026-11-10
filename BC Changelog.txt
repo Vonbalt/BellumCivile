@@ -844,3 +844,15 @@ Added paid retainer indentures, allowing companions to command parties or govern
 Added cultural mercenary captain terms to the titles presets, it's used by party leaders of minor factions or player companions with an active indenture.
 Adjustment to marriage dialogues to show unavailable characters with a tooltip explanation on why they can't be selected at that moment.
 Adjustment to marriage barter costs when it involves a retainer x noble marriage.
+<<<<<<< HEAD
+=======
+
+1.4.12 CHANGELOG
+
+Added dialogue option to release a client state peacefully converting the clientage into a normal alliance and trade agreement bound by vanilla rules.
+Capped Marshal controversy from nobles captured or killed in a single battle at 15 points.
+Added missing localization strings and fixed nord merc captain title with invalid letter.
+Staggered court agenda preparation across daily batches to reduce stutters in campaigns with many kingdoms.
+Fixed starting-child generation to respect custom adulthood ages and compatibility with Start As Anyone mod.
+Fixed peace parleys creating landless independent realms from titles without supporting territory. Released titles now require actual towns or castles controlled by the released houses, and existing ghost realms are safely retired while surviving clans enter exile.
+>>>>>>> bug-fixes

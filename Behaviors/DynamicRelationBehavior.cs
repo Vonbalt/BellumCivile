@@ -906,6 +906,15 @@ namespace BellumCivile.Behaviors
                 .Sum(m => Math.Max(0, m.GetCurrentValue(CurrentDay))));
         }
 
+        internal bool HasVoluntaryReleaseGratitude(Hero firstHero, Hero secondHero)
+        {
+            if (!IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero)) return false;
+            RefreshMemoryDurationMultiplier();
+            return _personalMemoriesByPair.TryGetValue(new DynamicRelationPairKey(firstHero, secondHero), out var memories)
+                && memories.Any(m => m.Scope == RelationMemoryScope.Personal
+                    && m.SourceId == RelationMemorySources.GrantedRealmIndependence && !m.IsExpired(CurrentDay));
+        }
+
         internal int LimitPrisonerDonationGain(Hero firstHero, Hero secondHero, int proposedGain)
         {
             if (!IsCampaignThread || !BellumCivileOptions.EnableDynamicRelationDrift || !ShouldAffectPair(firstHero, secondHero))

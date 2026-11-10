@@ -38,7 +38,7 @@ internal static class CourtTitleGrantTests
             }
         }
         var ids=typeof(CourtTitleGrantRecord).GetFields().Select(f=>f.GetCustomAttribute<SaveableFieldAttribute>()?.Id).ToArray();
-        check(ids.Length==27 && ids.All(x=>x.HasValue) && ids.Distinct().Count()==27,"Title delivery saved fields are unique");
+        check(ids.Length==30 && ids.All(x=>x.HasValue) && ids.Distinct().Count()==30,"Title delivery and recipient response saved fields are unique");
         check(CourtTitleGrantRules.Score(1,25,0,0,0,false,true,true)==60,"Neutral strong-claim county grant meets threshold");
         check(CourtTitleGrantRules.Score(3,25,0,0,0,false,true,true)==40,"Kingdom grant remains more reluctant");
     }

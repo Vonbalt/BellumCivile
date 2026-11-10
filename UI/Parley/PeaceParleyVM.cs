@@ -334,7 +334,7 @@ namespace BellumCivile.UI.Parley
                         && term.FromKingdomId == sourceRealm?.StringId
                         && term.ToKingdomId == receivingRealm?.StringId)
                     .Select(term => term.ClanId + "|" + term.TitleId));
-                foreach (TreatyVassalReleaseCandidate candidate in TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm))
+                foreach (TreatyVassalReleaseCandidate candidate in TreatyRealmTransitionService.GetReleaseCandidates(sourceRealm, war, proposal.Terms))
                 {
                     string key = "release|" + candidate.LeaderClan.StringId + "|" + candidate.RootTitle.TitleId;
                     string selectionKey = candidate.LeaderClan.StringId + "|" + candidate.RootTitle.TitleId;

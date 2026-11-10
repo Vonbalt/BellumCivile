@@ -1476,7 +1476,7 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
-            foreach (TreatyVassalReleaseCandidate release in TreatyRealmTransitionService.GetReleaseCandidates(loser))
+            foreach (TreatyVassalReleaseCandidate release in TreatyRealmTransitionService.GetReleaseCandidates(loser, war, draft))
             {
                 if (spent >= targetSpend || spent + release.WarScoreCost > budget)
                     break;

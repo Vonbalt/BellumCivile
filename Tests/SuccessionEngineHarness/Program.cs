@@ -207,6 +207,11 @@ internal static class Program
                 CrownRebellionSafetyTests.Run(Check);
                 Console.WriteLine($"{_checks} crown rebellion safety checks passed.");
             }
+            else if (args.Contains("--initial-child-ages"))
+            {
+                InitialChildGenerationAgeTests.Run(Check);
+                Console.WriteLine($"{_checks} initial child age checks passed.");
+            }
             else if (args.Contains("--regency-adulthood"))
             {
                 RegencyAdulthoodTests.Run(Check);
@@ -430,6 +435,18 @@ internal static class Program
                 CourtMandateEngineTests.Run(Check);
                 Console.WriteLine($"{_checks} vote lobbying checks passed.");
             }
+            else if (args.Contains("--court-term-preparation"))
+            {
+                CourtTermPreparationTests.Run(Check);
+                PlayerCrownBusinessTests.Run(Check);
+                IntegrationSaveDefinitionTests.Run(Check);
+                Console.WriteLine($"{_checks} court term preparation checks passed.");
+            }
+            else if (args.Contains("--marshal-battle-cap"))
+            {
+                MarshalBattleControversyTests.Run(Check);
+                Console.WriteLine($"{_checks} marshal battle controversy checks passed.");
+            }
             else if (args.Contains("--council-captivity"))
             {
                 CouncilCaptivityTests.Run(Check);
@@ -477,6 +494,11 @@ internal static class Program
                 CadetHouseholdPreparationTests.Run(Check);
                 CadetRegencyFoundingTests.Run(Check);
                 Console.WriteLine($"{_checks} cadet household preparation checks passed.");
+            }
+            else if (args.Contains("--landless-realms"))
+            {
+                LandlessRealmTests.Run(Check, args.Contains("--native-retirement-only"));
+                Console.WriteLine($"{_checks} landless-realm checks passed.");
             }
             else if (args.Contains("--restored-realm-recovery"))
             {
@@ -561,6 +583,11 @@ internal static class Program
                 CourtLiberationEngineTests.Run(Check);
                 DiplomacyOverviewTests.Run(Check, _game);
                 Console.WriteLine($"{_checks} client liberation checks passed.");
+            }
+            else if (args.Contains("--client-voluntary-release"))
+            {
+                ClientVoluntaryReleaseTests.Run(Check);
+                Console.WriteLine($"{_checks} voluntary client release checks passed.");
             }
             else if (args.Contains("--alliance-peace"))
             {

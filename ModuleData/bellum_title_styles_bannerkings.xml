@@ -376,8 +376,8 @@
   </TitleStyle>
   <TitleStyle culture="Nord">
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRetainerRank}Hirðkona" tier="Empire"
-          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank}Hǫfuðsmaðr"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank}Hǫfuðskona"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_mercenaryLeaderRank}Höfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleMercenaryLeaderRank}Höfuðskona"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_titleName}Storkungendómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_maleRank}Storkungen"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_femaleRank}Riksdrottning"
@@ -391,8 +391,8 @@
           heldTitleFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heldTitleFormat}{DISPLAY_TITLE} {TITLE_NAME}"
           heroNameFormat="{=BC_TitleStyle_Bannerkings_culture_Nord_Empire_heroNameFormat}{HERO_NAME}, {HELD_TITLE}" />
     <Rank retainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_retainerRank}Hirðmaðr" femaleRetainerRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRetainerRank}Hirðkona" tier="Kingdom"
-          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank}Hǫfuðsmaðr"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank}Hǫfuðskona"
+          mercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_mercenaryLeaderRank}Höfuðsmaðr"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleMercenaryLeaderRank}Höfuðskona"
           titleName="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_titleName}Konungdómr"
           maleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_maleRank}Konungr"
           femaleRank="{=BC_TitleStyle_Bannerkings_culture_Nord_Kingdom_femaleRank}Drottning"

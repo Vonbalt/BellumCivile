@@ -14,9 +14,10 @@ internal static class IntegrationSaveDefinitionTests
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.IntegrationVoteRecord"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.CouncilAppointmentResultRecord"), typeof(CivilWarGraceRecord),
         typeof(TreatyTermRecord), typeof(TreatyHostageRecord), typeof(RestoredRealmCreationRecord), typeof(CivilWarCollapseRecord), typeof(RegencyRecord), typeof(CourtTitleGrantRecord),
-        typeof(TitleAcquiredMapNotification) };
+        typeof(TitleAcquiredMapNotification), typeof(CourtTermPreparationRecord) };
     private static bool OnlyRecords(Type type) => Records.Contains(type);
-    private static bool OnlyLists(Type type) => Records.Any(r => type == typeof(List<>).MakeGenericType(r));
+    private static bool OnlyLists(Type type) => type == typeof(Dictionary<string, CourtTermPreparationRecord>)
+        || Records.Any(r => r != typeof(CourtTermPreparationRecord) && type == typeof(List<>).MakeGenericType(r));
     internal static void Run(Action<bool, string> check)
     {
         var context = new DefinitionContext();
@@ -38,7 +39,8 @@ internal static class IntegrationSaveDefinitionTests
                 check(AccessTools.Method(typeof(DefinitionContext), "GetClassDefinition", new[] { typeof(Type) })
                     .Invoke(context, new object[] { type }) != null
                     && (type == typeof(TreatyHostageRecord) || AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
-                    .Invoke(context, new object[] { typeof(List<>).MakeGenericType(type) }) != null),
+                    .Invoke(context, new object[] { type == typeof(CourtTermPreparationRecord)
+                        ? typeof(Dictionary<string, CourtTermPreparationRecord>) : typeof(List<>).MakeGenericType(type) }) != null),
                     "Native save registry resolves persisted record and any required list: " + type.Name);
                 var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 check(fields.All(f => f.GetCustomAttributesData().Count(a => a.AttributeType == typeof(SaveableFieldAttribute)) == 1),
