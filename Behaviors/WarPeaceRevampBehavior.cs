@@ -143,6 +143,16 @@ namespace BellumCivile.Behaviors
             return scores;
         }
 
+        internal bool TryGetCachedTargetScore(Clan clan, Kingdom target, out float score)
+        {
+            score = 0f;
+            if (clan == null || target == null || string.IsNullOrWhiteSpace(clan.StringId)
+                || _targetScoresByClanId == null || !_targetScoresByClanId.TryGetValue(clan.StringId, out var scores)
+                || scores == null) return false;
+            score = scores.FirstOrDefault(item => item?.TargetKingdom == target)?.Score ?? 0f;
+            return !float.IsNaN(score) && !float.IsInfinity(score);
+        }
+
         internal WarTargetScore GetPreferredTarget(Clan clan, bool forceRefresh = false)
         {
             return GetRankedTargets(clan, forceRefresh).FirstOrDefault();

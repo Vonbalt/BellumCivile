@@ -50,7 +50,14 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--notification-performance"))
+            if (args.Contains("--peacetime-pact-rules"))
+            {
+                PeacetimePactRulesTests.Run(Check);
+                PeacetimePactPlacementTests.Run(Check);
+                VoluntaryPactTransactionTests.Run(Check);
+                Console.WriteLine($"{_checks} peacetime pact rule checks passed.");
+            }
+            else if (args.Contains("--notification-performance"))
             {
                 NotificationPerformanceTests.Run(Check);
                 Console.WriteLine($"{_checks} notification performance checks passed.");

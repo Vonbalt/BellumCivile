@@ -43,6 +43,9 @@ namespace BellumCivile.Behaviors
         }
         internal bool HasPendingPartitionCustody(Kingdom realm) => realm != null && _pacts.Any(p => p != null
             && p.Phase != HostagePactPhase.Ended && (p.FirstRealm == realm || p.SecondRealm == realm));
+        internal bool HasPactBetween(Kingdom first, Kingdom second) => first != null && second != null && first != second
+            && _pacts.Any(p => p != null && p.Phase != HostagePactPhase.Ended
+                && ((p.FirstRealm == first && p.SecondRealm == second) || (p.FirstRealm == second && p.SecondRealm == first)));
         internal HostagePactRecord GetProtectedPact(Hero hero)
             => hero == null ? null : _pacts.FirstOrDefault(p => p?.Protects(hero) == true);
         internal IEnumerable<HostagePactRecord> GetHistory(Hero hero)
@@ -58,6 +61,23 @@ namespace BellumCivile.Behaviors
                 && p.FirstRealm.RulingClan == p.FirstHouse && p.SecondRealm.RulingClan == p.SecondHouse
                 && !p.FirstRealm.IsAtWarWith(p.SecondRealm)
                 && !Dead(p.FirstHostage) && !Dead(p.SecondHostage)).ToList();
+        }
+
+        internal bool HasActiveVoluntaryPact(Kingdom first, Kingdom second)
+        {
+            if (first == null || second == null || first == second || first.IsEliminated || second.IsEliminated
+                || !BellumCivileOptions.EnableWarPeaceLogicRevamp || first.IsAtWarWith(second)) return false;
+            double day = CampaignTime.Now.ToDays;
+            foreach (HostagePactRecord pact in _pacts)
+            {
+                if (pact?.VoluntaryPeacetime != true || !IsCurrentAgreement(pact, first, day)
+                    || !((pact.FirstRealm == first && pact.SecondRealm == second)
+                        || (pact.FirstRealm == second && pact.SecondRealm == first))
+                    || pact.FirstRealm.RulingClan != pact.FirstHouse || pact.SecondRealm.RulingClan != pact.SecondHouse)
+                    continue;
+                if (InTreatyCustody(pact.FirstHostage) && InTreatyCustody(pact.SecondHostage)) return true;
+            }
+            return false;
         }
 
         internal static bool IsCurrentAgreement(HostagePactRecord pact, Kingdom realm, double day)

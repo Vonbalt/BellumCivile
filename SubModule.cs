@@ -322,6 +322,8 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new ClaimFeudWarBehavior());
                 campaignStarter.AddBehavior(new RetainedTreatyPrisonerBehavior());
                 campaignStarter.AddBehavior(new HostagePactBehavior());
+                campaignStarter.AddBehavior(new VoluntaryPactProposalBehavior());
+                campaignStarter.AddBehavior(new VoluntaryPactAiBehavior());
                 campaignStarter.AddBehavior(new HouseholdRansomBehavior());
                 campaignStarter.AddBehavior(new CompanionSubinfeudationBehavior());
                 campaignStarter.AddBehavior(new ClientKingdomBehavior());

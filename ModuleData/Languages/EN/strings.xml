@@ -7870,5 +7870,49 @@
     <string id="BC_CouncilIncident_ReasonTactfulPrivateCommendation" text="A tactful private commendation" />
     <string id="BC_CouncilIncident_ReasonDivisivePrivateCommendation" text="A divisive private commendation" />
     <string id="BC_CourtAgendaAnnouncementPending" text="Current agenda: To be announced in the following days." />
+    <string id="BC_VoluntaryPact_AllianceSupport" text="Voluntary hostage pact" />
+    <string id="BC_VoluntaryPact_VoteApprove" text="Approve" />
+    <string id="BC_VoluntaryPact_VoteReject" text="Reject" />
+    <string id="BC_VoluntaryPact_ApproveDescription" text="Approve the proposed exchange of hostages and pledge of peace." />
+    <string id="BC_VoluntaryPact_RejectDescription" text="Reject the proposed pledge of peace." />
+    <string id="BC_VoluntaryPact_VoteTitle" text="Hostage pledge of peace" />
+    <string id="BC_VoluntaryPact_VoteApproved" text="The council has approved the proposed pledge." />
+    <string id="BC_VoluntaryPact_VoteRejected" text="The council has rejected the proposed pledge." />
+    <string id="BC_VoluntaryPact_VoteInvalid" text="The proposed pledge could no longer be decided." />
+    <string id="BC_VoluntaryPact_HostageToBeChosen" text="a relative chosen by its ruler" />
+    <string id="BC_VoluntaryPact_BallotDescription" text="{SOURCE} and {TARGET} would pledge peace for {DAYS} days. {SOURCE} would offer {SOURCE_HOSTAGE}; {TARGET} would offer {TARGET_HOSTAGE}. The proposing house would pay {GOLD} denars to the receiving house." />
+    <string id="BC_VoluntaryPact_DeclineOffer" text="Decline the proposal" />
+    <string id="BC_VoluntaryPact_ChooseHostage" text="{SOURCE} proposes a pledge of peace for {DAYS} days, offering {HOSTAGE} as a hostage and {GOLD} denars to your house. Choose a relative to offer in return, or decline the proposal." />
+    <string id="BC_VoluntaryPact_ChooseHostageTitle" text="A Pledge of Peace" />
+    <string id="BC_VoluntaryPact_ConfirmChoice" text="Confirm" />
+    <string id="BC_VoluntaryPact_Unavailable" text="A pledge cannot be proposed under the current circumstances." />
+    <string id="BC_VoluntaryPact_MercenaryBlocked" text="Mercenary clans cannot propose a pledge for the realm." />
+    <string id="BC_VoluntaryPact_WarOrAllianceBlocked" text="The realms must be at peace and not already allied." />
+    <string id="BC_VoluntaryPact_ClientBlocked" text="Both realms must be sovereign to exchange hostages." />
+    <string id="BC_VoluntaryPact_ExistingBlocked" text="These realms already have a pledge or a proposal in progress." />
+    <string id="BC_VoluntaryPact_InfluenceBlocked" text="Your clan needs 100 influence to propose this pledge." />
+    <string id="BC_VoluntaryPact_HoldingBlocked" text="Each ruling house needs a secure settlement to receive a hostage." />
+    <string id="BC_VoluntaryPact_HostageBlocked" text="Each ruling house needs an eligible relative to offer as a hostage." />
+    <string id="BC_VoluntaryPact_NeighborBlocked" text="Only neighboring realms can propose this pledge." />
+    <string id="BC_VoluntaryPact_OfferHostageTitle" text="Offer a Hostage" />
+    <string id="BC_VoluntaryPact_OfferHostageBody" text="Choose a relative of your ruling house to offer as a pledge of peace." />
+    <string id="BC_VoluntaryPact_Next" text="Next" />
+    <string id="BC_VoluntaryPact_Cancel" text="Cancel" />
+    <string id="BC_VoluntaryPact_DurationHelp" text="Enter a duration from {MINIMUM} to 1000 days, in steps of 10." />
+    <string id="BC_VoluntaryPact_DurationTitle" text="Pledge Duration" />
+    <string id="BC_VoluntaryPact_PaymentHelp" text="Enter the denars your house will offer. Enter 0 to offer no payment." />
+    <string id="BC_VoluntaryPact_PaymentTitle" text="Offer Compensation" />
+    <string id="BC_VoluntaryPact_ConfirmBody" text="Offer {HOSTAGE} to {TARGET} for a pledge of peace lasting {DAYS} days, with {GOLD} denars in compensation. Filing this proposal costs 100 influence; the other ruler will choose a hostage in return." />
+    <string id="BC_VoluntaryPact_ConfirmTitle" text="Propose a Pledge" />
+    <string id="BC_VoluntaryPact_Submit" text="Propose" />
+    <string id="BC_VoluntaryPact_UnavailableTitle" text="Pledge Unavailable" />
+    <string id="BC_VoluntaryPact_Ok" text="Done" />
+    <string id="BC_VoluntaryPact_ActionDescription" text="Propose a mutual hostage pledge of peace." />
+    <string id="BC_VoluntaryPact_ResultSigned" text="{SOURCE} and {TARGET} have exchanged hostages and pledged peace for {DAYS} days." />
+    <string id="BC_VoluntaryPact_ResultSourceRejected" text="The council of {SOURCE} rejected the proposed pledge with {TARGET}." />
+    <string id="BC_VoluntaryPact_ResultTargetRejected" text="The council of {TARGET} rejected the proposed pledge with {SOURCE}." />
+    <string id="BC_VoluntaryPact_ResultDeclined" text="The ruler of {TARGET} declined the proposed pledge with {SOURCE}." />
+    <string id="BC_VoluntaryPact_ResultInvalid" text="The proposed pledge between {SOURCE} and {TARGET} could no longer be concluded." />
+    <string id="BC_VoluntaryPact_RefusalCooldown" text="These realms recently rejected a pledge. Another proposal may be made in {DAYS} days." />
   </strings>
 </base>
