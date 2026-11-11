@@ -77,6 +77,9 @@ namespace BellumCivile
         [SaveableField(26)] public bool ExecutionNeedsHonorPenalty;
         [SaveableField(27)] public int AgreedDurationDays;
         [SaveableField(28)] public bool DurationRecorded;
+        // Absent in older saves and on wartime treaties; only explicitly voluntary pacts qualify.
+        [SaveableField(29)] public bool VoluntaryPeacetime;
+        [SaveableField(30)] public string VoluntaryProposalId;
 
         // Older saves lack this snapshot and used the original 100-day agreement.
         internal int DurationDays => DurationRecorded ? AgreedDurationDays : HostagePactRules.LegacyDurationDays;
@@ -87,6 +90,7 @@ namespace BellumCivile
                 || string.IsNullOrWhiteSpace(Id) || FirstRealm == null || SecondRealm == null
                 || FirstRealm == SecondRealm || FirstHouse == null || SecondHouse == null
                 || FirstHouse == SecondHouse || (FirstHostage == null && SecondHostage == null)
+                || (VoluntaryPeacetime && (FirstHostage == null || SecondHostage == null))
                 || !ValidHostage(FirstHostage, FirstHouse, SecondHouse)
                 || !ValidHostage(SecondHostage, SecondHouse, FirstHouse)
                 || (FirstHostage != null && SecondHostage != null && FirstHostage.Hero == SecondHostage.Hero))

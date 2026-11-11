@@ -32,6 +32,19 @@ internal static class HostagePactRecordTests
             return p;
         }
         var pact = Make();
+        var voluntary = Make(); voluntary.VoluntaryPeacetime = true; voluntary.SecondHostage = null;
+        check(!(bool)Call(voluntary, "TryActivate", 10d), "Voluntary peacetime pact requires both hostages");
+        var legacyOneSided = Make(); legacyOneSided.SecondHostage = null;
+        check((bool)Call(legacyOneSided, "TryActivate", 10d), "Wartime and legacy one-sided pacts remain supported");
+        var mutualVoluntary = Make(); mutualVoluntary.VoluntaryPeacetime = true;
+        check((bool)Call(mutualVoluntary, "TryActivate", 10d), "Voluntary pact accepts a valid mutual exchange");
+        var longerVoluntary = Make(); longerVoluntary.VoluntaryPeacetime = true;
+        longerVoluntary.DurationRecorded = true; longerVoluntary.AgreedDurationDays = 100;
+        longerVoluntary.FirstHostage.DurationPriced = longerVoluntary.SecondHostage.DurationPriced = true;
+        longerVoluntary.FirstHostage.DurationBaselineDays = longerVoluntary.SecondHostage.DurationBaselineDays = 50;
+        longerVoluntary.FirstHostage.NegotiatedCost = 35; longerVoluntary.SecondHostage.NegotiatedCost = 17;
+        check((bool)Call(longerVoluntary, "TryActivate", 10d) && longerVoluntary.EndDay == 110,
+            "Extended voluntary pact validates both saved baseline prices and duration");
         check(!(bool)Call(pact, "TryActivate", double.NaN), "Invalid date cannot activate pact");
         check((bool)Call(pact, "TryActivate", 10d) && pact.EndDay == 110, "Pact freezes exact 100-day expiry");
         check(!(bool)Call(pact, "TryActivate", 20d) && pact.EndDay == 110, "Activation cannot extend signed pact");
