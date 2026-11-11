@@ -736,7 +736,7 @@ Player-facing text uses stable `TextObject` IDs with matching English in [Module
 
 When changing text, update both fallback and source entry. For concepts, also update shipped article XML and verify links. Runtime articles are self-contained; the private manuscript under `docs/` is not loaded by the game.
 
-Use `BellumCivileNotifications` for optional political chat messages. Its Disabled, Kingdom Only, and Global settings filter ordinary events; explicitly personal messages still appear, and major events also appear under Kingdom Only. A required inquiry or pending decision is a separate interaction and must not depend on optional chat visibility.
+Use `BellumCivileNotifications` for optional political chat messages. Its Disabled, Local & Major Events, and Global settings filter ordinary events; explicitly personal messages still appear, and major events also appear worldwide under Local & Major Events. A required inquiry or pending decision is a separate interaction and must not depend on optional chat visibility. Filter before expensive notification-only preparation where possible, but preserve gameplay effects and random draws; captured conflict outcomes retain the eligibility recorded at creation.
 
 ## Configuration and Extension Points
 
@@ -758,7 +758,7 @@ MCM hints compare Bellum and unmodded defaults where there is a meaningful count
 | Marriage | Strategic matching and Bellum-only NPC marriages on; ages respect adulthood |
 | Mercenaries | Limit 10, five-year evaluation, three officers, starting tier two |
 | Relations | Memory system on; duration 1x (0.25x-5x) |
-| Intrigue/notices | NPC subterfuge on; notifications Kingdom Only; debug messages off |
+| Intrigue/notices | NPC subterfuge on; notifications Local & Major Events; debug messages off |
 
 Some saved/internal names retain older terminology, such as `EnableDynamicRelationDrift`. Read current code before interpreting them as the retired weekly-drift system.
 
@@ -1183,6 +1183,8 @@ Existing optimizations focus on repeated reads without changing political rules:
 Do not retain search caches through settlement or serialize derived caches as authority. Invalidate on relevant events and keep campaign work staggered/event-driven. Avoid world scans in application/mission ticks.
 
 Measure performance changes with matched saves, modules, speed, and duration. Distinguish inclusive profiler samples from measured savings. Normal and accelerated runs answer different questions.
+
+`civilwars.notification_stats start` clears counters and enables optional aggregated notification diagnostics; `show` reads the current sample and `stop` freezes it and writes one summary to the Bellum log. Start a fresh sample in each notification mode using the same save, location, speed, modules and duration, ideally after restarting the game to equalize native chat history. Reports count shown and filtered optional notices, classify shown personal/major/other notices, and show the five busiest sources separately for shown and filtered messages using localization IDs or early-preparation method names. Preformatted messages and captured outcomes are grouped separately; personal inquiries and messages outside this helper are not counted. The render and synchronous dispatch timings do not include caller-side preparation or later native UI frame work, and the counters are not an FPS profiler. Sampling is disabled by default, records no message contents, and does not alter notification decisions or save data. `--notification-performance` tests the filtering, diagnostics, random draw and captured-outcome contracts.
 
 ## Maintenance
 
