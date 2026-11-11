@@ -458,6 +458,29 @@ namespace BellumCivile
             return Patches.FeudalTitleHeroNamePatch.BuildPerformanceDiagnostics(args?.Count == 1);
         }
 
+        [CommandLineFunctionality.CommandLineArgumentFunction("notification_stats", "civilwars")]
+        public static string NotificationStats(List<string> args)
+        {
+            if (args == null || args.Count != 1)
+                return "Usage: civilwars.notification_stats start|show|stop";
+
+            if (string.Equals(args[0], "start", StringComparison.OrdinalIgnoreCase))
+            {
+                NotificationPerformanceDiagnostics.Start();
+                return "Notification diagnostics started; previous counters cleared.";
+            }
+            if (string.Equals(args[0], "show", StringComparison.OrdinalIgnoreCase))
+                return NotificationPerformanceDiagnostics.Snapshot();
+            if (string.Equals(args[0], "stop", StringComparison.OrdinalIgnoreCase))
+            {
+                string report = NotificationPerformanceDiagnostics.Stop();
+                BellumCivileLogger.Log(report);
+                BellumCivileLogger.Flush();
+                return report;
+            }
+            return "Usage: civilwars.notification_stats start|show|stop";
+        }
+
         [CommandLineFunctionality.CommandLineArgumentFunction("fief_vote_eval", "civilwars")]
         public static string FiefVoteEvaluation(List<string> args)
         {

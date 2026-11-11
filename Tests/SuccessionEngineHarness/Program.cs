@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--spouse-visit-guard"))
+            if (args.Contains("--notification-performance"))
+            {
+                NotificationPerformanceTests.Run(Check);
+                Console.WriteLine($"{_checks} notification performance checks passed.");
+            }
+            else if (args.Contains("--spouse-visit-guard"))
             {
                 PregnancyVisitGuardTests.Run(Check);
                 TestHouseholdFoundation();

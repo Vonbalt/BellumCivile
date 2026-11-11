@@ -330,12 +330,12 @@ namespace BellumCivile
         // Retained without an MCM attribute so old campaigns can migrate their configured drift speed exactly.
         public float DynamicRelationWeeklyDrift { get; set; } = C.DynamicRelationWeeklyDrift;
 
-        [SettingPropertyDropdown("{=BC_MCM_Notifications}Bellum Civile Notifications", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_Notifications_Hint}Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms. Default: Kingdom Only.")]
+        [SettingPropertyDropdown("{=BC_MCM_Notifications}Bellum Civile Notifications", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_Notifications_Hint}Disabled: hides optional Bellum Civile chat messages. Local & Major Events: shows events involving your kingdom, rebel side, or clan, plus major events worldwide. Global: shows political events from all kingdoms. Personal messages remain visible. Default: Local & Major Events.")]
         [SettingPropertyGroup(Notifications, GroupOrder = NotificationsGroupOrder)]
         public Dropdown<string> BellumCivileNotifications { get; set; } = new Dropdown<string>(new string[]
         {
             "{=BC_MCM_NotifDisabled}Disabled",
-            "{=BC_MCM_NotifKingdomOnly}Kingdom Only",
+            "{=BC_MCM_NotifKingdomOnly}Local & Major Events",
             "{=BC_MCM_NotifGlobal}Global"
         }, selectedIndex: 1);
 

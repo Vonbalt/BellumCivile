@@ -85,8 +85,7 @@ namespace BellumCivile.Behaviors
             notice.Ready = true;
             if (notice.PlayerInvolved) _pending.Enqueue(notice);
             else notice.Acknowledged = true;
-            if (notice.ChatAllowed)
-                InformationManager.DisplayMessage(new InformationMessage(notice.Chat, BellumNotificationColors.Warning));
+            BellumCivileNotifications.ShowCapturedOutcome(notice.Chat, BellumNotificationColors.Warning, notice.ChatAllowed);
         }
         internal static string ContinuingWars(Kingdom realm)
         {

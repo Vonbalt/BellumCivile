@@ -2609,9 +2609,9 @@
     <!-- Release localization audit additions -->
     <string id="BC_MCM_Group_Notifications" text="Notifications" />
     <string id="BC_MCM_Notifications" text="Bellum Civile Notifications" />
-    <string id="BC_MCM_Notifications_Hint" text="Disabled: hides optional Bellum Civile chat messages. Kingdom Only: shows political events involving your kingdom, rebel side, or clan. Global: shows Bellum Civile political events from all kingdoms. Default: Kingdom Only." />
+    <string id="BC_MCM_Notifications_Hint" text="Disabled: hides optional Bellum Civile chat messages. Local &amp; Major Events: shows events involving your kingdom, rebel side, or clan, plus major events worldwide. Global: shows political events from all kingdoms. Personal messages remain visible. Default: Local &amp; Major Events." />
     <string id="BC_MCM_NotifDisabled" text="Disabled" />
-    <string id="BC_MCM_NotifKingdomOnly" text="Kingdom Only" />
+    <string id="BC_MCM_NotifKingdomOnly" text="Local &amp; Major Events" />
     <string id="BC_MCM_NotifGlobal" text="Global" />
     <string id="BC_Tribunal_Remaining" text="{COUNT} defeated clans still await judgment in this tribunal, including this one." />
     <string id="BC_CivilWar_CollapseStalemate" text="With both sides stripped of their last strongholds, the civil war sputters out. The rebels return to the fold, though the realm lies broken and landless." />

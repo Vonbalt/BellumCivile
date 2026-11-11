@@ -23,6 +23,7 @@ namespace BellumCivile
         public static void ShowClanJoinedFaction(Clan clan, FactionObject faction)
         {
             if (faction == null) return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: faction.ParentKingdom, primaryClan: clan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_Joined}The {CLAN_NAME} have pledged their support to the {FACTION_NAME} of {KINGDOM_NAME}.");
             text.SetTextVariable("CLAN_NAME", clan.Name);
@@ -35,6 +36,7 @@ namespace BellumCivile
         public static void ShowFactionFormed(FactionObject faction)
         {
             if (faction.Leader == null) return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: faction.ParentKingdom, primaryClan: faction.Leader)) return;
 
             TextObject text = new TextObject("{=BC_Notification_Formed}{CLAN_NAME} has rallied supporters to form the {FACTION_NAME} of {KINGDOM_NAME}.");
             text.SetTextVariable("CLAN_NAME", faction.Leader.Name);
@@ -47,6 +49,7 @@ namespace BellumCivile
         public static void ShowClanLeftFaction(Clan clan, FactionObject faction, string reason)
         {
             if (faction == null) return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: faction.ParentKingdom, primaryClan: clan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_Abandoned}The {CLAN_NAME} clan has abandoned the {FACTION_NAME} of {KINGDOM_NAME} ({REASON}).");
             text.SetTextVariable("CLAN_NAME", clan.Name);
@@ -60,6 +63,7 @@ namespace BellumCivile
         public static void ShowFactionDisbanded(FactionObject faction, string reason)
         {
             if (faction == null) return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: faction.ParentKingdom, primaryClan: faction.Leader)) return;
 
             TextObject text = new TextObject("{=BC_Notification_Dissolved}The {FACTION_NAME} of {KINGDOM_NAME} has formally dissolved since {REASON}.");
             text.SetTextVariable("FACTION_NAME", GetFactionDisplayName(faction));
@@ -77,6 +81,7 @@ namespace BellumCivile
         public static void ShowClanDefectedToRebellion(Clan clan, Kingdom rebelKingdom, Kingdom parentKingdom)
         {
             if (clan.Leader == null) return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: parentKingdom, secondaryKingdom: rebelKingdom, primaryClan: clan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_Defected}With the ongoing momentum of {REBEL_KINGDOM}, {LEADER_NAME} of clan {CLAN_NAME} has switched sides and declared support for the rebellion!");
             text.SetTextVariable("REBEL_KINGDOM", rebelKingdom.Name);
@@ -188,6 +193,7 @@ namespace BellumCivile
         {
             if (usurperClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: usurperClan.Kingdom, secondaryKingdom: oldHolderClan?.Kingdom, primaryClan: usurperClan, secondaryClan: oldHolderClan)) return;
 
             TextObject text = oldHolderClan == usurperClan
                 ? new TextObject("{=BC_Notification_TitleAssumed}After consolidating control of its lands, {USURPER_NAME} of the {USURPER_CLAN} has assumed the vacant {TITLE_NAME}, exercising the house's lawful rights.")
@@ -214,6 +220,7 @@ namespace BellumCivile
         {
             if (founderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: founderClan.Kingdom, primaryClan: founderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_TitleFormed}After consolidating their lands, {FOUNDER_NAME} of the {CLAN_NAME} has founded the {TITLE_NAME}, binding {CHILD_COUNT} lesser titles under their authority.");
             text.SetTextVariable("FOUNDER_NAME", founderClan.Leader?.Name ?? founderClan.Name ?? new TextObject("?"));
@@ -232,6 +239,7 @@ namespace BellumCivile
         {
             if (grantorClan == null || recipientClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: grantorClan.Kingdom, secondaryKingdom: recipientClan.Kingdom, primaryClan: grantorClan, secondaryClan: recipientClan)) return;
 
             TextObject text = createsIndependentRealm
                 ? new TextObject("{=BC_Notification_TitleGranted_Independent}By sovereign grant, {GRANTOR_NAME} of the {GRANTOR_CLAN} has bestowed the {TITLE_NAME} upon {RECIPIENT_NAME} of the {RECIPIENT_CLAN}, raising them as an independent peer.")
@@ -262,6 +270,7 @@ namespace BellumCivile
         {
             if (sovereignClan == null || formerKingdom == null || independentKingdom == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: independentKingdom, secondaryKingdom: formerKingdom, primaryClan: sovereignClan, secondaryClan: formerKingdom.RulingClan)) return;
 
             TextObject text = retainedHoldings
                 ? new TextObject("{=BC_Notification_SovereignElevationDefiant}Having secured the {TITLE_NAME}, {RULER_NAME} has proclaimed {NEW_REALM} independent of {FORMER_REALM}. Refusing to relinquish their former holdings, the new sovereign now faces their old liege in war.")
@@ -284,6 +293,7 @@ namespace BellumCivile
         {
             if (revokerClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: revokerClan.Kingdom ?? holderClan.Kingdom, primaryClan: revokerClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_TitleRevoked}By right of claim and liege authority, {REVOKER_NAME} of the {REVOKER_CLAN} has revoked the {TITLE_NAME} from {HOLDER_NAME} of the {HOLDER_CLAN}. The dispossessed house accepts the judgment, though resentment lingers.");
             text.SetTextVariable("REVOKER_NAME", revokerClan.Leader?.Name ?? revokerClan.Name ?? new TextObject("?"));
@@ -304,6 +314,7 @@ namespace BellumCivile
         {
             if (revokerClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: revokerClan.Kingdom ?? holderClan.Kingdom, primaryClan: revokerClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_TitleRevocationDefied}{REVOKER_NAME} of the {REVOKER_CLAN} has demanded the {TITLE_NAME} by right of claim, but {HOLDER_NAME} of the {HOLDER_CLAN} has refused the writ. The dispute now threatens to erupt into private war.");
             text.SetTextVariable("REVOKER_NAME", revokerClan.Leader?.Name ?? revokerClan.Name ?? new TextObject("?"));
@@ -329,6 +340,7 @@ namespace BellumCivile
         {
             if (title == null || oldParent == null || newParent == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: receivingKingdom, secondaryKingdom: formerKingdom)) return;
 
             TextObject text = new TextObject("{=BC_Notification_DeJureDriftCompleted}After generations under {TARGET_KINGDOM}, the {TITLE_NAME} is now recognized as a de jure part of the {NEW_PARENT_TITLE}, severing its former legal allegiance to the {OLD_PARENT_TITLE}.");
             text.SetTextVariable("TARGET_KINGDOM", receivingKingdom?.Name ?? new TextObject("{=BC_Hierarchy_Independent}Independent"));
@@ -347,6 +359,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || fabricator == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom, secondaryKingdom: legalHolderClan?.Kingdom, primaryClan: claimantClan, secondaryClan: legalHolderClan)) return;
 
             TextObject text;
             switch (tier)
@@ -392,8 +405,10 @@ namespace BellumCivile
             if (claimantClan == null || fabricator == null || title == null)
                 return;
 
+            int wording = MBRandom.RandomInt(3);
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom, secondaryKingdom: legalHolderClan?.Kingdom, primaryClan: claimantClan, secondaryClan: legalHolderClan)) return;
             TextObject text;
-            switch (MBRandom.RandomInt(3))
+            switch (wording)
             {
                 case 0:
                     text = new TextObject("{=BC_Notification_ClaimFabricationCompleted_1}Citing forgotten grants from generations past, {HERO_NAME} of the {CLAN_NAME} has formally proclaimed {POSSESSIVE} disputed but legally binding claim to the {TITLE_NAME}.");
@@ -420,6 +435,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudStarted}{CLAIMANT_NAME} of the {CLAIMANT_CLAN} has begun to press {HOLDER_NAME} of the {HOLDER_CLAN} over {POSSESSIVE} claim to the {TITLE_NAME}, starting a bitter feud between their houses.");
             SetClaimFeudBasicVariables(text, claimantClan, holderClan, title);
@@ -435,6 +451,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudTensions}Tensions mount over the {TITLE_NAME} as retainers of the {CLAIMANT_CLAN} have been found harassing the vassals of the {HOLDER_CLAN}.");
             SetClaimFeudBasicVariables(text, claimantClan, holderClan, title);
@@ -450,6 +467,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudCallToArms}The feud over the {TITLE_NAME} threatens to escalate into violence as friends and allies start to declare their support for either the {CLAIMANT_CLAN} or the {HOLDER_CLAN}.");
             SetClaimFeudBasicVariables(text, claimantClan, holderClan, title);
@@ -465,6 +483,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudDropped}The feud over the {TITLE_NAME} seems to have finally ceased as {CLAIMANT_NAME} of the {CLAIMANT_CLAN} decided to drop {POSSESSIVE} case, fearing to be outmatched by {HOLDER_NAME} of the {HOLDER_CLAN}.");
             SetClaimFeudBasicVariables(text, claimantClan, holderClan, title);
@@ -488,6 +507,7 @@ namespace BellumCivile
         {
             if (kingdom == null || ruler == null || claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: kingdom, primaryClan: claimantClan, secondaryClan: holderClan)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudRuling}{CLAIMANT_NAME} of the {CLAIMANT_CLAN} has petitioned before {RULER_NAME} to pass judgment on {POSSESSIVE} claim over the {TITLE_NAME}, held {LEGAL_STATUS} by {HOLDER_NAME} of the {HOLDER_CLAN}. After a long session at court, the {RULER_TITLE} has {RULING_TEXT}. {RESPONSE_TEXT}");
             text.SetTextVariable("CLAIMANT_TITLE", GetHeroCourtTitle(claimantClan.Leader));
@@ -516,6 +536,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: kingdom ?? claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan, isMajorEvent: true)) return;
 
             TextObject text = new TextObject("{=BC_Notification_ClaimFeudWarStarted}The feud over the {TITLE_NAME} has broken into open violence. The {CLAIMANT_CLAN} and the {HOLDER_CLAN} have raised their banners against one another, and the realm watches uneasily as blood answers law.");
             SetClaimFeudBasicVariables(text, claimantClan, holderClan, title);
@@ -532,6 +553,7 @@ namespace BellumCivile
         {
             if (claimantClan == null || holderClan == null || title == null)
                 return;
+            if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: kingdom ?? claimantClan.Kingdom ?? holderClan.Kingdom, primaryClan: claimantClan, secondaryClan: holderClan, isMajorEvent: true)) return;
 
             TextObject text;
             switch (outcome)
