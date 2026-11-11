@@ -854,3 +854,6 @@ Staggered court agenda preparation across daily batches to reduce stutters in ca
 Fixed starting-child generation to respect custom adulthood ages and compatibility with Start As Anyone mod.
 Fixed peace parleys creating landless independent realms from titles without supporting territory. Released titles now require actual towns or castles controlled by the released houses, and existing ghost realms are safely retired while surviving clans enter exile.
 Improved chat notification performance and clarified notification settings.
+
+1.4.13 CHANGELOG
+
