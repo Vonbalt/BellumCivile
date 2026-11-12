@@ -7895,7 +7895,7 @@
     <string id="BC_VoluntaryPact_InfluenceBlocked" text="Your clan needs 100 influence to propose this pledge." />
     <string id="BC_VoluntaryPact_HoldingBlocked" text="Each ruling house needs a secure settlement to receive a hostage." />
     <string id="BC_VoluntaryPact_HostageBlocked" text="Each ruling house needs an eligible relative to offer as a hostage." />
-    <string id="BC_VoluntaryPact_NeighborBlocked" text="Only neighboring realms can propose this pledge." />
+    <string id="BC_VoluntaryPact_NeighborBlocked" text="Kingdoms aren't neighbors." />
     <string id="BC_VoluntaryPact_OfferHostageTitle" text="Offer a Hostage" />
     <string id="BC_VoluntaryPact_OfferHostageBody" text="Choose a relative of your ruling house to offer as a pledge of peace." />
     <string id="BC_VoluntaryPact_Next" text="Next" />

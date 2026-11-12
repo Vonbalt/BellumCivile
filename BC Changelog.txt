@@ -856,3 +856,6 @@ Fixed peace parleys creating landless independent realms from titles without sup
 Improved chat notification performance and clarified notification settings.
 
 1.5 CHANGELOG
+
+Added option to sign non-aggression pacts during peace time, those require a mutual exchange of hostages.
+Fixed small issue on ransom broker dialogue to ransom clan members.

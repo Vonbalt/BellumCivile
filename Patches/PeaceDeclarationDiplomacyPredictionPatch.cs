@@ -80,14 +80,11 @@ namespace BellumCivile.Patches
             TextObject support = WarDeclarationCouncilService.GetSupportLabel(evaluation.Tally);
             string oldExplanation = BuildVanillaExplanation(dailyTribute, durationInDays, support).ToString();
             KingdomDiplomacyProposalActionItemVM action = __instance.Actions
-                .FirstOrDefault(candidate => string.Equals(candidate?.Explanation, oldExplanation, StringComparison.Ordinal));
+                .FirstOrDefault(candidate => HasOriginalExplanation(candidate, oldExplanation));
             if (action == null)
                 return;
 
-            TextObject explanation = new TextObject("{=BC_PeaceCouncil_ProposalExplanation}Consider making peace ({SUPPORT})");
-            explanation.SetTextVariable("SUPPORT", support);
-            ExplanationTextField?.SetValue(action, explanation);
-            action.Explanation = explanation.ToString();
+            SetNegotiatedPeaceExplanation(action, support);
 
             Kingdom playerKingdom = WarPeaceRevampBehavior.GetPlayerPoliticalKingdom();
             if (StorylineWarProtectionHelper.TryGetPeaceBlock(playerKingdom, target, out TextObject storylineReason))
@@ -97,6 +94,20 @@ namespace BellumCivile.Patches
                 return;
             }
 
+        }
+
+        private static void SetNegotiatedPeaceExplanation(KingdomDiplomacyProposalActionItemVM action, TextObject support)
+        {
+            TextObject explanation = new TextObject("{=BC_PeaceCouncil_ProposalExplanation}Consider making peace ({SUPPORT})");
+            explanation.SetTextVariable("SUPPORT", support);
+            ExplanationTextField.SetValue(action, explanation);
+            action.RefreshValues();
+        }
+
+        private static bool HasOriginalExplanation(KingdomDiplomacyProposalActionItemVM action, string expected)
+        {
+            var original = action == null ? null : ExplanationTextField?.GetValue(action) as TextObject;
+            return original != null && string.Equals(original.ToString(), expected, StringComparison.Ordinal);
         }
 
         private static TextObject BuildVanillaExplanation(int dailyTribute, int durationInDays, TextObject support)

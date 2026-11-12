@@ -8,6 +8,7 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.Diplomacy;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -55,10 +56,61 @@ internal static class DiplomacyOverviewTests
             check(document.OuterXml == once, "Overview layout patch is idempotent: " + file);
         }
         CheckLayout(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/KingdomManagement/Diplomacy/DiplomacyPanel.xml"), false);
+        var actionPatchType = assembly.GetType("BellumCivile.ViewModelMixin.DiplomacyActionLayoutPatch", true);
+        var actionPatch = Activator.CreateInstance(actionPatchType, true);
+        void CheckActions(string file)
+        {
+            var document = new XmlDocument(); document.Load(file);
+            var button = document.SelectSingleNode("//ListPanel[@DataSource='{Actions}']/ItemTemplate/ListPanel/Children/Widget[@Id='KingdomDiplomacyAction']") as XmlElement;
+            string width = button.GetAttribute("SuggestedWidth");
+            string[] commands = document.SelectNodes("//*[@Command.Click]").Cast<XmlElement>().Select(n => n.GetAttribute("Command.Click")).ToArray();
+            AccessTools.Method(actionPatchType, "Apply").Invoke(actionPatch, new object[] { document });
+            var column = (XmlElement)document.SelectSingleNode("//ListPanel[@DataSource='{Actions}']/ItemTemplate/ListPanel");
+            var label = (XmlElement)column.SelectSingleNode("Children/TextWidget[@Text='@Explanation']");
+            check(label.GetAttribute("SuggestedWidth") == "270" && column.GetAttribute("MarginLeft") == "3"
+                && column.GetAttribute("MarginRight") == "3", "Diplomacy action columns fit four actions with smaller gaps: " + file);
+            check(button.GetAttribute("SuggestedWidth") == width && commands.SequenceEqual(document.SelectNodes("//*[@Command.Click]")
+                .Cast<XmlElement>().Select(n => n.GetAttribute("Command.Click"))), "Action sizing and commands remain native: " + file);
+            string once = document.OuterXml;
+            AccessTools.Method(actionPatchType, "Apply").Invoke(actionPatch, new object[] { document });
+            check(once == document.OuterXml, "Diplomacy action layout patch is idempotent: " + file);
+        }
+        CheckActions(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/KingdomManagement/Diplomacy/DiplomacyPanel.xml"));
+        var formatType = assembly.GetType("BellumCivile.Patches.DiplomacyActionExplanationPatch", true);
+        var format = AccessTools.Method(formatType, "Format");
+        string Format(string value, params string[] labels) => (string)format.Invoke(null, new object[] { value, labels });
+        check(Format("Consider declaring war (Low support)", "Low support") == "Consider declaring war\n(Low support)"
+            && Format("Propose non-aggression pact (Good support)", "Good support") == "Propose non-aggression pact\n(Good support)",
+            "Recognized native and Bellum support labels occupy their own line");
+        check(Format("Considerer une alliance (Soutien faible)", "Soutien faible") == "Considerer une alliance\n(Soutien faible)"
+            && Format("Resolve existing decision (urgent)", "Low support") == "Resolve existing decision (urgent)"
+            && Format("A\n(Low support)", "Low support") == "A\n(Low support)",
+            "Localized support is handled without changing unrelated parentheticals or duplicating line breaks");
+        var peaceType = assembly.GetType("BellumCivile.Patches.PeaceDeclarationDiplomacyHintPatch", true);
+        var matchesPeace = AccessTools.Method(peaceType, "HasOriginalExplanation");
+        var peaceAction = Empty<KingdomDiplomacyProposalActionItemVM>();
+        const string vanillaPeace = "Consider making peace, paying 600 tribute/day for 100 days. (Low support)";
+        AccessTools.Field(typeof(KingdomDiplomacyProposalActionItemVM), "_explanationText")
+            .SetValue(peaceAction, new TextObject("{=!}" + vanillaPeace));
+        peaceAction.Explanation = Format(vanillaPeace, "Low support");
+        check(peaceAction.Explanation != vanillaPeace
+            && (bool)matchesPeace.Invoke(null, new object[] { peaceAction, vanillaPeace })
+            && !(bool)matchesPeace.Invoke(null, new object[] { peaceAction, "Resolve existing decision" }),
+            "Peace replacement matches the original native explanation after display formatting without targeting other actions");
+        AccessTools.Field(typeof(KingdomDiplomacyProposalActionItemVM), "_nameText")
+            .SetValue(peaceAction, new TextObject("{=!}Propose"));
+        AccessTools.Method(peaceType, "SetNegotiatedPeaceExplanation")
+            .Invoke(null, new object[] { peaceAction, new TextObject("{=!}Low support") });
+        string negotiated = peaceAction.Explanation;
+        peaceAction.RefreshValues();
+        check(negotiated.Contains("Consider making peace") && !negotiated.Contains("tribute")
+            && negotiated.Contains("Low support") && peaceAction.Explanation == negotiated,
+            "Bellum's negotiated peace explanation replaces and survives refresh of the original tribute text");
         string diplomacyDirectory = Path.Combine(game, "Modules/Decompiled mods/Bannerlord.Diplomacy-dev/src/Bannerlord.Diplomacy/_Module/GUI/Prefabs/KingdomManagement/Diplomacy");
         if (Directory.Exists(diplomacyDirectory))
         {
             CheckLayout(Path.Combine(diplomacyDirectory, "DiplomacyPanelCustom.xml"), true);
+            CheckActions(Path.Combine(diplomacyDirectory, "DiplomacyPanelButtons.xml"));
             var stats = new XmlDocument(); stats.Load(Path.Combine(diplomacyDirectory, "StatsTab.xml"));
             var type = assembly.GetType("BellumCivile.ViewModelMixin.DiplomacyOverviewStatsVisibilityPatch");
             AccessTools.Method(type, "Apply").Invoke(Activator.CreateInstance(type, true), new object[] { stats });

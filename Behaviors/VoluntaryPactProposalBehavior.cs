@@ -186,7 +186,7 @@ namespace BellumCivile.Behaviors
                 || !TreatyHostageEligibility.GetCandidates(target).Any(c => c.Hero != null && c.Hero != Hero.MainHero))
                 reason = new TextObject("{=BC_VoluntaryPact_HostageBlocked}Each ruling house needs an eligible relative to offer as a hostage.");
             else if (!AreNeighbors(source, target))
-                reason = new TextObject("{=BC_VoluntaryPact_NeighborBlocked}Only neighboring realms can propose this pledge.");
+                reason = new TextObject("{=BC_VoluntaryPact_NeighborBlocked}Kingdoms aren't neighbors.");
             else return true;
             return false;
         }
