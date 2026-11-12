@@ -7873,12 +7873,12 @@
     <string id="BC_VoluntaryPact_AllianceSupport" text="Voluntary hostage pact" />
     <string id="BC_VoluntaryPact_VoteApprove" text="Approve" />
     <string id="BC_VoluntaryPact_VoteReject" text="Reject" />
-    <string id="BC_VoluntaryPact_ApproveDescription" text="Approve the proposed exchange of hostages and pledge of peace." />
-    <string id="BC_VoluntaryPact_RejectDescription" text="Reject the proposed pledge of peace." />
-    <string id="BC_VoluntaryPact_VoteTitle" text="Hostage pledge of peace" />
-    <string id="BC_VoluntaryPact_VoteApproved" text="The council has approved the proposed pledge." />
-    <string id="BC_VoluntaryPact_VoteRejected" text="The council has rejected the proposed pledge." />
-    <string id="BC_VoluntaryPact_VoteInvalid" text="The proposed pledge could no longer be decided." />
+    <string id="BC_VoluntaryPact_ApproveDescription" text="We approve the proposed non-aggression pact." />
+    <string id="BC_VoluntaryPact_RejectDescription" text="We reject the proposed non-aggression pact." />
+    <string id="BC_VoluntaryPact_VoteTitle" text="Sign non-aggression pact" />
+    <string id="BC_VoluntaryPact_VoteApproved" text="The council has approved the proposed pact." />
+    <string id="BC_VoluntaryPact_VoteRejected" text="The council has rejected the proposed pact." />
+    <string id="BC_VoluntaryPact_VoteInvalid" text="The proposed pact could no longer be decided." />
     <string id="BC_VoluntaryPact_HostageToBeChosen" text="a relative chosen by its ruler" />
     <string id="BC_VoluntaryPact_BallotDescription" text="{SOURCE} and {TARGET} would pledge peace for {DAYS} days. {SOURCE} would offer {SOURCE_HOSTAGE}; {TARGET} would offer {TARGET_HOSTAGE}. The proposing house would pay {GOLD} denars to the receiving house." />
     <string id="BC_VoluntaryPact_DeclineOffer" text="Decline the proposal" />
@@ -7907,12 +7907,19 @@
     <string id="BC_VoluntaryPact_Submit" text="Propose" />
     <string id="BC_VoluntaryPact_UnavailableTitle" text="Pledge Unavailable" />
     <string id="BC_VoluntaryPact_Ok" text="Done" />
-    <string id="BC_VoluntaryPact_ActionDescription" text="Propose a mutual hostage pledge of peace." />
+    <string id="BC_VoluntaryPact_ActionDescription" text="Propose non-aggression pact." />
+    <string id="BC_VoluntaryPact_ActionSupport" text="Propose non-aggression pact ({SUPPORT})" />
+    <string id="BC_VoluntaryPact_Return" text="Return" />
+    <string id="BC_VoluntaryPact_ForecastApprove" text="The council of {TARGET} is likely to approve ({SUPPORT})." />
+    <string id="BC_VoluntaryPact_ForecastReject" text="The council of {TARGET} is likely to reject ({SUPPORT})." />
+    <string id="BC_VoluntaryPact_ForecastTied" text="The council of {TARGET} is evenly divided ({SUPPORT})." />
+    <string id="BC_VoluntaryPact_ForecastUnavailable" text="The other council's position cannot currently be predicted." />
+    <string id="BC_VoluntaryPact_ForecastNote" text="This is an estimate; the ruler may overrule the council, and circumstances can change before the vote." />
     <string id="BC_VoluntaryPact_ResultSigned" text="{SOURCE} and {TARGET} have exchanged hostages and pledged peace for {DAYS} days." />
-    <string id="BC_VoluntaryPact_ResultSourceRejected" text="The council of {SOURCE} rejected the proposed pledge with {TARGET}." />
-    <string id="BC_VoluntaryPact_ResultTargetRejected" text="The council of {TARGET} rejected the proposed pledge with {SOURCE}." />
-    <string id="BC_VoluntaryPact_ResultDeclined" text="The ruler of {TARGET} declined the proposed pledge with {SOURCE}." />
-    <string id="BC_VoluntaryPact_ResultInvalid" text="The proposed pledge between {SOURCE} and {TARGET} could no longer be concluded." />
+    <string id="BC_VoluntaryPact_ResultSourceRejected" text="The council of {SOURCE} rejected the proposed pact with {TARGET}." />
+    <string id="BC_VoluntaryPact_ResultTargetRejected" text="The council of {TARGET} rejected the proposed pact with {SOURCE}." />
+    <string id="BC_VoluntaryPact_ResultDeclined" text="The ruler of {TARGET} declined the proposed pact with {SOURCE}." />
+    <string id="BC_VoluntaryPact_ResultInvalid" text="The proposed pact between {SOURCE} and {TARGET} could no longer be concluded." />
     <string id="BC_VoluntaryPact_RefusalCooldown" text="These realms recently rejected a pledge. Another proposal may be made in {DAYS} days." />
   </strings>
 </base>

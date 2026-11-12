@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
@@ -23,9 +24,22 @@ namespace BellumCivile.Patches
             bool enabled = owner.CanPropose(source, target, Clan.PlayerClan, out TextObject reason);
             if (enabled && !CampaignUIHelper.GetMapScreenActionIsEnabledWithReason(out var blocked))
             { enabled = false; reason = blocked; }
+            var description = new TextObject("{=BC_VoluntaryPact_ActionDescription}Propose non-aggression pact.");
+            if (enabled)
+            {
+                var hostage = TreatyHostageEligibility.GetCandidates(source)
+                    .Where(c => c.Hero != null && c.Hero != Hero.MainHero)
+                    .OrderByDescending(c => c.Tier).ThenBy(c => c.Hero.StringId, StringComparer.Ordinal)
+                    .FirstOrDefault()?.Hero;
+                int days = BellumCivileOptions.HostagePactMinimumDurationDays;
+                var preview = VoluntaryPactPreview.Create(source, target, Clan.PlayerClan, hostage, days, 0);
+                if (VoluntaryPactPreview.TryEvaluate(preview, false, out var support, out _))
+                    description = new TextObject("{=BC_VoluntaryPact_ActionSupport}Propose non-aggression pact ({SUPPORT})")
+                        .SetTextVariable("SUPPORT", VoluntaryPactPreview.SupportText(support));
+            }
             __instance.Actions.Add(new KingdomDiplomacyProposalActionItemVM(
                 new TextObject("{=BC_VoluntaryPact_Submit}Propose"),
-                new TextObject("{=BC_VoluntaryPact_ActionDescription}Propose a mutual hostage pledge of peace."),
+                description,
                 PeacetimeHostagePactRules.ProposalInfluenceCost, enabled, reason,
                 () => VoluntaryPactPlayerFlow.Open(owner, source, target, ____forceDecision)));
         }

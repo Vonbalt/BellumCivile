@@ -98,6 +98,11 @@ internal static class PeacetimePactPlacementTests
     private static bool Neighbors(ref bool __result) { __result = _neighbors; return false; }
     private static bool MinimumDuration(ref int __result) { __result = 50; return false; }
     private static bool PlayerTarget(ref bool __result) { __result = _playerTarget; return false; }
+    private static bool PreviewClans(Kingdom __instance, ref MBReadOnlyList<Clan> __result)
+    { __result = new MBList<Clan> { __instance == _first ? _firstHouse : _secondHouse }; return false; }
+    private static bool PreviewClanLeader(Clan __instance, ref Hero __result)
+    { __result = __instance == _firstHouse ? _firstLeader : _secondLeader; return false; }
+    private static bool PreviewVoteCost(ref int __result) { __result = 20; return false; }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -224,6 +229,51 @@ internal static class PeacetimePactPlacementTests
                 && Math.Abs((float)sourceScore[2] - 13f) < .001f && (float)targetScore[2] > 70f
                 && tracked.TargetHostage == null,
                 "Scoring compares each house's hostage tier, pays only the recipient and does not select its hostage");
+            Type previewType = mod.GetType("BellumCivile.VoluntaryPactPreview", true);
+            var createPreview = AccessTools.Method(previewType, "Create");
+            var preview = (VoluntaryPactProposalRecord)createPreview.Invoke(null,
+                new object[] { _first, _second, _firstHouse, firstHero, 50, 50000 });
+            object[] previewScore = { preview, _second, 0f, 0f };
+            check((bool)scoreMethod.Invoke(null, previewScore) && (float)previewScore[2] == (float)targetScore[2]
+                && preview.TargetHostage == null && !(bool)pending.Invoke(owner, new object[] { _first, _second })
+                && _filingCalls == 0,
+                "A preview scores the exact proposed terms without filing a ballot or choosing a hostage");
+            var previewDecision = new VoluntaryPactDecision(_secondHouse, preview.Id, true, (float)previewScore[2]);
+            AccessTools.Method(typeof(VoluntaryPactDecision), "SetPreviewProposal").Invoke(previewDecision, new object[] { preview });
+            check(ReferenceEquals(AccessTools.Property(typeof(VoluntaryPactDecision), "Proposal").GetValue(previewDecision), preview),
+                "A preview ballot reads its temporary proposal without requiring a saved record");
+            var compare = AccessTools.Method(previewType, "CompareVotes");
+            check((int)compare.Invoke(null, new object[] { 4f, 2f }) == 1
+                && (int)compare.Invoke(null, new object[] { 1f, 2f }) == -1
+                && (int)compare.Invoke(null, new object[] { 0f, 0f }) == 0,
+                "Forecasts distinguish approval, rejection and tied or absent votes");
+            var previewHarmony = new Harmony("bellum.tests.pact_preview_election");
+            try
+            {
+                void PreviewPatch(MethodBase method, string prefix) => previewHarmony.Patch(method,
+                    prefix: new HarmonyMethod(typeof(PeacetimePactPlacementTests), prefix));
+                PreviewPatch(AccessTools.PropertyGetter(typeof(Kingdom), "Clans"), nameof(PreviewClans));
+                PreviewPatch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), nameof(PreviewClanLeader));
+                PreviewPatch(AccessTools.PropertyGetter(typeof(Supporter), "IsPlayer"), nameof(No));
+                PreviewPatch(AccessTools.Method(typeof(KingdomDecision), "GetInfluenceCostOfSupport"), nameof(PreviewVoteCost));
+                _secondHouse.Influence = 1000;
+                object cautiousCandidate = Activator.CreateInstance(candidateType, BindingFlags.NonPublic | BindingFlags.Instance,
+                    null, new object[] { secondHero, 3 }, null);
+                _candidates.Remove(secondCandidate);
+                _candidates.Add(cautiousCandidate);
+                var evaluate = AccessTools.Method(previewType, "TryEvaluate");
+                object[] args = { preview, true, KingdomElection.ElectionOutcomeSupport.LowSupport, 0 };
+                check((bool)evaluate.Invoke(null, args) && (int)args[3] == 1
+                    && preview.TargetHostage == null && _filingCalls == 0,
+                    "A compensated offer forecasts the receiving native council without filing or selecting a hostage");
+                preview.Compensation = 0;
+                object[] freeArgs = { preview, true, KingdomElection.ElectionOutcomeSupport.LowSupport, 0 };
+                check((bool)evaluate.Invoke(null, freeArgs) && (int)freeArgs[3] == -1,
+                    "Removing compensation updates the receiving council's forecast to rejection");
+                _candidates.Remove(cautiousCandidate);
+                _candidates.Add(secondCandidate);
+            }
+            finally { previewHarmony.UnpatchAll(previewHarmony.Id); }
             Hero targetHeir = Blank<Hero>();
             object heirCandidate = Activator.CreateInstance(candidateType, BindingFlags.NonPublic | BindingFlags.Instance,
                 null, new object[] { targetHeir, 1 }, null);

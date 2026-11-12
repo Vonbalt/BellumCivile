@@ -519,12 +519,12 @@ namespace BellumCivile.Behaviors
                 var text = new TextObject(proposal.Phase == VoluntaryPactProposalPhase.Completed
                     ? "{=BC_VoluntaryPact_ResultSigned}{SOURCE} and {TARGET} have exchanged hostages and pledged peace for {DAYS} days."
                     : proposal.CloseReason == (int)VoluntaryPactCloseReason.SourceRejected
-                    ? "{=BC_VoluntaryPact_ResultSourceRejected}The council of {SOURCE} rejected the proposed pledge with {TARGET}."
+                    ? "{=BC_VoluntaryPact_ResultSourceRejected}The council of {SOURCE} rejected the proposed pact with {TARGET}."
                     : proposal.CloseReason == (int)VoluntaryPactCloseReason.TargetRejected
-                    ? "{=BC_VoluntaryPact_ResultTargetRejected}The council of {TARGET} rejected the proposed pledge with {SOURCE}."
+                    ? "{=BC_VoluntaryPact_ResultTargetRejected}The council of {TARGET} rejected the proposed pact with {SOURCE}."
                     : proposal.CloseReason == (int)VoluntaryPactCloseReason.TargetDeclined
-                    ? "{=BC_VoluntaryPact_ResultDeclined}The ruler of {TARGET} declined the proposed pledge with {SOURCE}."
-                    : "{=BC_VoluntaryPact_ResultInvalid}The proposed pledge between {SOURCE} and {TARGET} could no longer be concluded.");
+                    ? "{=BC_VoluntaryPact_ResultDeclined}The ruler of {TARGET} declined the proposed pact with {SOURCE}."
+                    : "{=BC_VoluntaryPact_ResultInvalid}The proposed pact between {SOURCE} and {TARGET} could no longer be concluded.");
                 text.SetTextVariable("SOURCE", proposal.Source?.Name ?? TextObject.GetEmpty());
                 text.SetTextVariable("TARGET", proposal.Target?.Name ?? TextObject.GetEmpty());
                 text.SetTextVariable("DAYS", proposal.DurationDays);

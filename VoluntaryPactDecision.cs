@@ -21,8 +21,8 @@ namespace BellumCivile
                 ? new TextObject("{=BC_VoluntaryPact_VoteApprove}Approve")
                 : new TextObject("{=BC_VoluntaryPact_VoteReject}Reject");
             public override TextObject GetDecisionDescription() => Approve
-                ? new TextObject("{=BC_VoluntaryPact_ApproveDescription}Approve the proposed exchange of hostages and pledge of peace.")
-                : new TextObject("{=BC_VoluntaryPact_RejectDescription}Reject the proposed pledge of peace.");
+                ? new TextObject("{=BC_VoluntaryPact_ApproveDescription}We approve the proposed non-aggression pact.")
+                : new TextObject("{=BC_VoluntaryPact_RejectDescription}We reject the proposed non-aggression pact.");
             public override string GetDecisionLink() => null;
             public override ImageIdentifier GetDecisionImageIdentifier() => null;
         }
@@ -32,6 +32,7 @@ namespace BellumCivile
         [SaveableField(102)] internal float StrategicSupport;
         [SaveableField(103)] internal bool OutcomeRecorded;
         [SaveableField(104)] internal float RulerWarTargetScore;
+        private VoluntaryPactProposalRecord _previewProposal;
 
         public VoluntaryPactDecision(Clan proposer, string proposalId, bool targetVote, float strategicSupport,
             float rulerWarTargetScore = 0f) : base(proposer)
@@ -43,7 +44,8 @@ namespace BellumCivile
         }
 
         private static VoluntaryPactProposalBehavior Owner => Campaign.Current?.GetCampaignBehavior<VoluntaryPactProposalBehavior>();
-        private VoluntaryPactProposalRecord Proposal => Owner?.Find(ProposalId);
+        private VoluntaryPactProposalRecord Proposal => _previewProposal ?? Owner?.Find(ProposalId);
+        internal void SetPreviewProposal(VoluntaryPactProposalRecord proposal) => _previewProposal = proposal;
         public override bool IsAllowed()
         {
             var proposal = Proposal;
@@ -56,7 +58,7 @@ namespace BellumCivile
                     : proposal.Phase == VoluntaryPactProposalPhase.SourceVote && Kingdom == proposal.Source && ProposerClan == proposal.Sponsor);
         }
         public override int GetProposalInfluenceCost() => IsTargetVote ? 0 : PeacetimeHostagePactRules.ProposalInfluenceCost;
-        public override TextObject GetGeneralTitle() => new TextObject("{=BC_VoluntaryPact_VoteTitle}Hostage pledge of peace");
+        public override TextObject GetGeneralTitle() => new TextObject("{=BC_VoluntaryPact_VoteTitle}Sign non-aggression pact");
         public override TextObject GetSupportTitle() => GetGeneralTitle();
         public override TextObject GetChooseTitle() => GetGeneralTitle();
         public override TextObject GetSupportDescription() => BuildDescription();
@@ -100,10 +102,10 @@ namespace BellumCivile
         public override DecisionOutcome GetQueriedDecisionOutcome(MBReadOnlyList<DecisionOutcome> outcomes)
             => outcomes?.OfType<PactOutcome>().FirstOrDefault(o => o.Approve);
         public override TextObject GetChosenOutcomeText(DecisionOutcome outcome, SupportStatus status, bool isShortVersion = false)
-            => !OutcomeRecorded ? new TextObject("{=BC_VoluntaryPact_VoteInvalid}The proposed pledge could no longer be decided.")
+            => !OutcomeRecorded ? new TextObject("{=BC_VoluntaryPact_VoteInvalid}The proposed pact could no longer be decided.")
                 : outcome is PactOutcome choice && choice.Approve
-                ? new TextObject("{=BC_VoluntaryPact_VoteApproved}The council has approved the proposed pledge.")
-                : new TextObject("{=BC_VoluntaryPact_VoteRejected}The council has rejected the proposed pledge.");
+                ? new TextObject("{=BC_VoluntaryPact_VoteApproved}The council has approved the proposed pact.")
+                : new TextObject("{=BC_VoluntaryPact_VoteRejected}The council has rejected the proposed pact.");
 
         private TextObject BuildDescription()
         {
