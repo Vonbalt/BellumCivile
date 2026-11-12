@@ -181,6 +181,8 @@
     <string id="BC_MCM_RetainedPrisonerMobileEscape" text="Retained Prisoner Mobile Escape Chance" />
     <string id="BC_MCM_RetainedPrisonerMobileEscape_Hint" text="Base daily escape chance for nobles retained after a Bellum peace treaty, in a travelling party. The vanilla 50% player-captor reduction and relevant perks still apply. Vanilla normally releases nobles at peace. Default values: Bellum: 3%; Vanilla: 8-20% depending on healthy party members, before modifiers." />
     <!-- Household ransom broker -->
+    <string id="BC_HouseholdRansom_BrokerRefusal" text="{BC_HOUSEHOLD_RANSOM_REFUSAL}" />
+    <string id="BC_HouseholdRansom_Finished" text="Very well. Let me know if you need my services again." />
     <string id="BC_HouseholdRansom_Request" text="I wish to arrange the ransom of a member of my household." />
     <string id="BC_HouseholdRansom_BrokerAccepts" text="Of course, my {?PLAYER.GENDER}lady{?}lord{\?}. Let us discuss the terms, and I'll dispatch one of my associates to deliver your ransom offer." />
     <string id="BC_HouseholdRansom_None" text="None of your household are presently held for ransom, my {?PLAYER.GENDER}lady{?}lord{\?}." />

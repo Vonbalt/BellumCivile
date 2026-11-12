@@ -18,6 +18,8 @@ namespace BellumCivile.Behaviors
     /// </summary>
     public sealed class HouseholdRansomBehavior : CampaignBehaviorBase
     {
+        private TextObject _brokerRefusal;
+
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
@@ -35,13 +37,13 @@ namespace BellumCivile.Behaviors
                 "bc_household_ransom_response",
                 "{=BC_HouseholdRansom_Request}I wish to arrange the ransom of a member of my household.",
                 IsSpeakingToRansomBroker,
-                null,
+                () => _brokerRefusal = null,
                 120);
 
             starter.AddDialogLine(
                 "bc_household_ransom_available",
                 "bc_household_ransom_response",
-                "close_window",
+                "bc_household_ransom_result",
                 "{=BC_HouseholdRansom_BrokerReviews}Tell me whom you seek to free, my {?PLAYER.GENDER}lady{?}lord{\\?}, and I shall see what can be arranged.",
                 HasEligibleHouseholdPrisoner,
                 OpenHouseholdRansomInquiry,
@@ -55,6 +57,40 @@ namespace BellumCivile.Behaviors
                 null,
                 null,
                 100);
+
+            starter.AddDialogLine(
+                "bc_household_ransom_hostage_refusal",
+                "bc_household_ransom_result",
+                "bc_household_ransom_understood",
+                "{=BC_HouseholdRansom_BrokerRefusal}{BC_HOUSEHOLD_RANSOM_REFUSAL}",
+                HasBrokerRefusal,
+                null,
+                120);
+
+            starter.AddPlayerLine(
+                "bc_household_ransom_understood",
+                "bc_household_ransom_understood",
+                "ransom_broker_pretalk",
+                "{=BC_Hostage_BrokerUnderstood}I understand.",
+                null,
+                () => _brokerRefusal = null,
+                120);
+
+            starter.AddDialogLine(
+                "bc_household_ransom_finished",
+                "bc_household_ransom_result",
+                "close_window",
+                "{=BC_HouseholdRansom_Finished}Very well. Let me know if you need my services again.",
+                null,
+                null,
+                100);
+        }
+
+        private bool HasBrokerRefusal()
+        {
+            if (_brokerRefusal == null) return false;
+            MBTextManager.SetTextVariable("BC_HOUSEHOLD_RANSOM_REFUSAL", _brokerRefusal);
+            return true;
         }
 
         private static bool IsSpeakingToRansomBroker()
@@ -68,15 +104,21 @@ namespace BellumCivile.Behaviors
             return GetEligibleHouseholdPrisoners().Count > 0;
         }
 
-        private static void OpenHouseholdRansomInquiry()
+        private void OpenHouseholdRansomInquiry()
         {
+            TryOpenHouseholdRansomInquiry();
+        }
+
+        private bool TryOpenHouseholdRansomInquiry()
+        {
+            _brokerRefusal = null;
             List<HouseholdRansomCandidate> candidates = BuildRansomCandidates();
             if (candidates.Count == 0)
             {
                 BellumCivileNotifications.ShowPersonal(
                     new TextObject("{=BC_HouseholdRansom_NoLongerAvailable}No member of your household is presently available for ransom."),
                     BellumNotificationColors.Warning);
-                return;
+                return false;
             }
 
             int availableGold = Hero.MainHero?.Gold ?? 0;
@@ -99,16 +141,31 @@ namespace BellumCivile.Behaviors
                 new TextObject("{=BC_HouseholdRansom_Confirm}Confirm").ToString(),
                 new TextObject("{=BC_HouseholdRansom_Cancel}Cancel").ToString(),
                 OnHouseholdRansomConfirmed,
-                null);
+                _ => ResumeBrokerConversation());
 
             MBInformationManager.ShowMultiSelectionInquiry(inquiry, true);
+            return true;
         }
 
-        private static void OnHouseholdRansomConfirmed(List<InquiryElement> selected)
+        private void OnHouseholdRansomConfirmed(List<InquiryElement> selected)
+        {
+            if (HandleHouseholdRansomSelection(selected))
+                ResumeBrokerConversation();
+        }
+
+        private static void ResumeBrokerConversation()
+        {
+            var conversation = Campaign.Current?.ConversationManager;
+            if (conversation?.IsConversationInProgress == true)
+                conversation.ContinueConversation();
+        }
+
+        // False means a stale protected quote opened a replacement inquiry.
+        private bool HandleHouseholdRansomSelection(List<InquiryElement> selected)
         {
             HouseholdRansomCandidate quote = selected?.FirstOrDefault()?.Identifier as HouseholdRansomCandidate;
             if (quote == null)
-                return;
+                return true;
 
             Hero prisoner = quote.Prisoner;
             if (prisoner?.IsAlive == true && prisoner.IsPrisoner && prisoner.Clan == Clan.PlayerClan)
@@ -116,20 +173,15 @@ namespace BellumCivile.Behaviors
                 var pact = HostagePactText.Find(prisoner);
                 if (pact != null)
                 {
-                    InformationManager.ShowInquiry(new InquiryData(
-                        new TextObject("{=BC_Hostage_BrokerTitle}Ransom Broker").ToString(),
-                        HostagePactText.BrokerRefusal(pact, prisoner).ToString(), true, false,
-                        new TextObject("{=BC_Hostage_BrokerUnderstood}I understand.").ToString(), null,
-                        OpenHouseholdRansomInquiry, null), true);
-                    return;
+                    _brokerRefusal = HostagePactText.BrokerRefusal(pact, prisoner);
+                    return true;
                 }
             }
             // A protected entry is not a zero-price quote if the pact ended while the
             // selection was open. Rebuild it using ordinary ransom valuation instead.
             if (quote.IsTreatyHostage)
             {
-                OpenHouseholdRansomInquiry();
-                return;
+                return !TryOpenHouseholdRansomInquiry();
             }
             PartyBase currentCaptorParty = prisoner?.PartyBelongedToAsPrisoner;
             Clan currentCaptorClan = ResolveCaptorClan(prisoner);
@@ -146,7 +198,7 @@ namespace BellumCivile.Behaviors
                 BellumCivileNotifications.ShowPersonal(
                     new TextObject("{=BC_HouseholdRansom_ChangedCustody}The captive's circumstances have changed, and the broker can no longer honor that ransom offer."),
                     BellumNotificationColors.Warning);
-                return;
+                return true;
             }
 
             if ((Hero.MainHero?.Gold ?? 0) < quote.RansomPrice)
@@ -154,7 +206,7 @@ namespace BellumCivile.Behaviors
                 TextObject insufficient = new TextObject("{=BC_HouseholdRansom_InsufficientGold}You do not have the {COST} denars required to pay this ransom.");
                 insufficient.SetTextVariable("COST", quote.RansomPrice.ToString("N0"));
                 BellumCivileNotifications.ShowPersonal(insufficient, BellumNotificationColors.Warning);
-                return;
+                return true;
             }
 
             GiveGoldAction.ApplyBetweenCharacters(Hero.MainHero, currentCaptorClan.Leader, quote.RansomPrice);
@@ -165,6 +217,7 @@ namespace BellumCivile.Behaviors
             BellumCivileNotifications.ShowPersonal(released, BellumNotificationColors.Success);
             BellumCivileLogger.Log(
                 $"Player household ransom completed; prisoner={prisoner.StringId}; captor={currentCaptorClan.StringId}; price={quote.RansomPrice}.");
+            return true;
         }
 
         private static List<HouseholdRansomCandidate> BuildRansomCandidates()
