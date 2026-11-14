@@ -406,6 +406,10 @@ internal static class PeaceParleyPresentationTests
         var vmSource = File.ReadAllText(Path.Combine(root, "UI/Parley/PeaceParleyVM.cs"));
         check(vmSource.Contains("DraftTermsHeight = IsPlayerVassal ? 246 : 199;"),
             "Vassal draft viewport makes room for the native handshake without moving its vote controls");
+        var draftRow = (XmlElement)document.SelectSingleNode("//*[@Id='DraftTermsList']/ItemTemplate/ListPanel");
+        check(draftRow.GetAttribute("SuggestedHeight") == "@RowHeight"
+            && vmSource.Contains("DraftTerms.Sum(term => term.RowHeight) > DraftTermsHeight"),
+            "Forecast rows reserve their own height and are included in the draft scrollbar calculation");
         foreach (var mode in new[] { new { Name = "ruler", Height = 351, Terms = 199, Controls = 0 },
             new { Name = "vassal", Height = 609, Terms = 246, Controls = 196 } })
         {

@@ -8,7 +8,9 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.Diplomacy;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -17,10 +19,83 @@ internal static class DiplomacyOverviewTests
     private static T Empty<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool RealmName(Kingdom __instance, ref TextObject __result)
     { __result = new TextObject(__instance.StringId); return false; }
+    private sealed class PendingActions
+    {
+        internal KingdomDecision War;
+        internal KingdomDecision Peace;
+        internal void OpenWar() => Consume(War);
+        internal void OpenPeace() => Consume(Peace);
+        private static void Consume(KingdomDecision value) { }
+    }
 
     internal static void Run(Action<bool, string> check, string game)
     {
         var assembly = typeof(HostagePactRecord).Assembly;
+        DiplomacyActionExecutionTests.Run(check);
+        var menu = assembly.GetType("BellumCivile.UI.Diplomacy.BellumDiplomacyActionMenu", true);
+        var describeAction = AccessTools.Method(menu, "Describe");
+        var actionLabel = AccessTools.Method(menu, "ActionLabel");
+        var sameAction = AccessTools.Method(menu, "Matches");
+        var buildChoice = AccessTools.Method(menu, "BuildChoice");
+        KingdomDiplomacyProposalActionItemVM Action(string explanation, int cost = 0, bool enabled = true,
+            string hint = "", Action callback = null) => new KingdomDiplomacyProposalActionItemVM(
+                new TextObject("Propose"), new TextObject(explanation), cost, enabled, new TextObject(hint), callback ?? (() => { }));
+        object Describe(KingdomDiplomacyProposalActionItemVM value) => describeAction.Invoke(null, new object[] { value });
+        string Label(object value) => (string)actionLabel.Invoke(null, new[] { value });
+        bool Matches(object first, object second) => (bool)sameAction.Invoke(null, new[] { first, second });
+        var warAction = Action("{=PYaUEZzn}Consider declaring war (Low support)", 200, false, "Not enough influence");
+        var warSelection = Describe(warAction);
+        var warChoice = (InquiryElement)buildChoice.Invoke(null, new object[] { warAction });
+        check(Label(warSelection) == "Declare War" && warChoice.Title.Contains("200") && warChoice.Title.Contains("<img")
+            && !warChoice.IsEnabled && warChoice.Hint.Contains("Low support") && warChoice.Hint.Contains("Not enough influence"),
+            "The action menu retains the native cost, disabled reason and support while using a concise localized label");
+        check(Label(Describe(Action("{=MTtrk28a}Consider making an alliance"))) == "Form Alliance"
+            && Label(Describe(Action("{=gdUE1h39}Consider a trade agreement"))) == "Sign Trade Agreement"
+            && Label(Describe(Action("{=BC_PeaceCouncil_ProposalExplanation}Consider making peace"))) == "Negotiate Peace"
+            && Label(Describe(Action("{=BC_DefensivePact_LeaveActionSupport}Leave defensive pact (Good support)"))) == "Leave Defensive Pact",
+            "Native and Bellum action identities do not depend on translated display text");
+        var custom = Action("A custom diplomatic action");
+        check(Label(Describe(custom)) == custom.Explanation && Matches(Describe(custom), Describe(Action("A custom diplomatic action"))),
+            "Unrecognized mod actions keep their original text and can be safely matched after refresh");
+        var pending = new PendingActions { War = Empty<DeclareWarDecision>(), Peace = Empty<MakePeaceKingdomDecision>() };
+        var resolveWar = Describe(Action("{=XgioIHv6}Resolve existing decision", callback: pending.OpenWar));
+        var resolvePeace = Describe(Action("{=XgioIHv6}Resolve existing decision", callback: pending.OpenPeace));
+        check(Label(resolveWar) == "Resolve War Decision" && Label(resolvePeace) == "Resolve Peace Decision"
+            && !Matches(resolveWar, resolvePeace)
+            && Matches(resolveWar, Describe(Action("{=XgioIHv6}Resolve existing decision", callback: pending.OpenWar))),
+            "Multiple native pending decisions remain distinguishable after actions are rebuilt");
+        var unknownResolve = (InquiryElement)buildChoice.Invoke(null, new object[] { Action("{=XgioIHv6}Resolve existing decision") });
+        check(!unknownResolve.IsEnabled && unknownResolve.Hint.Contains("cannot be identified safely"),
+            "An unidentifiable pending decision is disabled instead of risking the wrong resolution");
+        var nativeClosure = typeof(KingdomDiplomacyVM).GetNestedTypes(System.Reflection.BindingFlags.NonPublic)
+            .First(type => AccessTools.Field(type, "unresolvedWarDecision") != null);
+        var nativeInstance = Activator.CreateInstance(nativeClosure, true);
+        var nativeWar = Empty<DeclareWarDecision>();
+        var nativeAlliance = Empty<StartAllianceDecision>();
+        AccessTools.Field(nativeClosure, "unresolvedWarDecision").SetValue(nativeInstance, nativeWar);
+        AccessTools.Field(nativeClosure, "unresolvedAllianceDecision").SetValue(nativeInstance, nativeAlliance);
+        Action NativeCallback(string fieldName)
+        {
+            var method = nativeClosure.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public)
+                .First(candidate => candidate.ReturnType == typeof(void) && candidate.GetParameters().Length == 0
+                    && PatchProcessor.GetOriginalInstructions(candidate).Any(instruction => instruction.operand is System.Reflection.FieldInfo field
+                        && field.Name == fieldName));
+            return (Action)Delegate.CreateDelegate(typeof(Action), nativeInstance, method);
+        }
+        var nativeWarAction = Describe(Action("{=XgioIHv6}Resolve existing decision", callback: NativeCallback("unresolvedWarDecision")));
+        var nativeAllianceAction = Describe(Action("{=XgioIHv6}Resolve existing decision", callback: NativeCallback("unresolvedAllianceDecision")));
+        check(Label(nativeWarAction) == "Resolve War Decision" && Label(nativeAllianceAction) == "Resolve Alliance Decision"
+            && !Matches(nativeWarAction, nativeAllianceAction),
+            "Actual Bannerlord callbacks identify simultaneous war and alliance decisions separately");
+        string repoRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../../../"));
+        var strings = new XmlDocument(); strings.Load(Path.Combine(repoRoot, "ModuleData/Languages/EN/strings.xml"));
+        var localizedIds = strings.SelectNodes("//string[@id]").Cast<XmlElement>().Select(node => node.GetAttribute("id")).ToArray();
+        var actionIds = new[] { "UI/Diplomacy/BellumDiplomacyActionMenu.cs", "UI/Diplomacy/KingdomDiplomacyOverviewMixin.cs",
+                "Patches/DefensivePactDiplomacyPatch.cs", "DefensivePactJoinDecision.cs", "Behaviors/DefensivePactBehavior.cs" }
+            .SelectMany(file => System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(Path.Combine(repoRoot, file)), @"\{=(?<id>BC_(?:Diplomacy|DefensivePact)_[A-Za-z0-9_]+)\}")
+                .Cast<System.Text.RegularExpressions.Match>().Select(match => match.Groups["id"].Value)).Distinct().ToArray();
+        check(actionIds.All(id => localizedIds.Count(existing => existing == id) == 1),
+            "Diplomacy menu and defensive-pact vote strings have unique English localization entries");
         var patchType = assembly.GetType("BellumCivile.ViewModelMixin.KingdomDiplomacyOverviewPrefabPatch");
         var patch = Activator.CreateInstance(patchType, true);
         void Apply(XmlDocument document) => AccessTools.Method(patchType, "Apply").Invoke(patch, new object[] { document });
@@ -63,14 +138,26 @@ internal static class DiplomacyOverviewTests
             var document = new XmlDocument(); document.Load(file);
             var button = document.SelectSingleNode("//ListPanel[@DataSource='{Actions}']/ItemTemplate/ListPanel/Children/Widget[@Id='KingdomDiplomacyAction']") as XmlElement;
             string width = button.GetAttribute("SuggestedWidth");
+            string nativeColumn = document.SelectSingleNode("//ListPanel[@DataSource='{Actions}']/ItemTemplate/ListPanel").OuterXml;
             string[] commands = document.SelectNodes("//*[@Command.Click]").Cast<XmlElement>().Select(n => n.GetAttribute("Command.Click")).ToArray();
             AccessTools.Method(actionPatchType, "Apply").Invoke(actionPatch, new object[] { document });
             var column = (XmlElement)document.SelectSingleNode("//ListPanel[@DataSource='{Actions}']/ItemTemplate/ListPanel");
-            var label = (XmlElement)column.SelectSingleNode("Children/TextWidget[@Text='@Explanation']");
-            check(label.GetAttribute("SuggestedWidth") == "270" && column.GetAttribute("MarginLeft") == "3"
-                && column.GetAttribute("MarginRight") == "3", "Diplomacy action columns fit four actions with smaller gaps: " + file);
-            check(button.GetAttribute("SuggestedWidth") == width && commands.SequenceEqual(document.SelectNodes("//*[@Command.Click]")
-                .Cast<XmlElement>().Select(n => n.GetAttribute("Command.Click"))), "Action sizing and commands remain native: " + file);
+            check(column.OuterXml == nativeColumn && button.GetAttribute("SuggestedWidth") == width,
+                "Native diplomacy action columns remain unchanged when the revamp is off: " + file);
+            var native = (XmlElement)document.SelectSingleNode("//*[@Id='BellumNativeDiplomacyActions']");
+            var central = (XmlElement)document.SelectSingleNode("//*[@Id='BellumDiplomacyActionButton']");
+            check(native?.GetAttribute("IsVisible") == "@BellumNativeDiplomacyActionsVisible"
+                && central?.GetAttribute("IsVisible") == "@BellumCentralDiplomacyActionVisible"
+                && central?.GetAttribute("Command.Click") == "ExecuteBellumDiplomaticAction",
+                "The central button and the native action list use opposite visibility bindings: " + file);
+            check(central?.GetAttribute("SuggestedWidth") == "227" && central.GetAttribute("SuggestedHeight") == "40"
+                && central.GetAttribute("DoNotPassEventsToChildren") == "true",
+                "Central button matches Overview and Stats dimensions and receives clicks over its label: " + file);
+            foreach (XmlElement external in document.SelectNodes("//ListPanel[@DataSource='{CurrentSelectedDiplomacyItem}' and (@IsVisible='@IsDirectActionVisible' or @IsVisible='@IsNonAggressionPactVisible') ]"))
+                check((external.ParentNode?.ParentNode as XmlElement)?.GetAttribute("IsVisible") == "@BellumDiplomacyExternalButtonsVisible",
+                    "Diplomacy's optional action remains intact in a reversible visibility wrapper: " + external.GetAttribute("IsVisible"));
+            check(commands.All(command => document.SelectNodes("//*[@Command.Click]").Cast<XmlElement>()
+                .Any(n => n.GetAttribute("Command.Click") == command)), "Existing action commands are preserved: " + file);
             string once = document.OuterXml;
             AccessTools.Method(actionPatchType, "Apply").Invoke(actionPatch, new object[] { document });
             check(once == document.OuterXml, "Diplomacy action layout patch is idempotent: " + file);
@@ -111,6 +198,10 @@ internal static class DiplomacyOverviewTests
         {
             CheckLayout(Path.Combine(diplomacyDirectory, "DiplomacyPanelCustom.xml"), true);
             CheckActions(Path.Combine(diplomacyDirectory, "DiplomacyPanelButtons.xml"));
+            var external = new XmlDocument(); external.Load(Path.Combine(diplomacyDirectory, "DiplomacyPanelButtons.xml"));
+            AccessTools.Method(actionPatchType, "Apply").Invoke(actionPatch, new object[] { external });
+            check(external.SelectNodes("//Widget[@Id='BellumDiplomacyExternalAction']").Count == 2,
+                "Both Diplomacy-specific action panels use the compatibility visibility binding");
             var stats = new XmlDocument(); stats.Load(Path.Combine(diplomacyDirectory, "StatsTab.xml"));
             var type = assembly.GetType("BellumCivile.ViewModelMixin.DiplomacyOverviewStatsVisibilityPatch");
             AccessTools.Method(type, "Apply").Invoke(Activator.CreateInstance(type, true), new object[] { stats });

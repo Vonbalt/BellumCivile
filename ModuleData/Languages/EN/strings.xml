@@ -118,6 +118,29 @@
     <string id="BC_MCM_HostageMinimumDuration_Hint" text="Minimum and starting duration for new hostage pacts, rounded up to the next ten days. Increasing makes new pacts start longer; decreasing makes them start shorter. NPC rulers negotiate from this baseline. Each extra ten days costs 1 War Score; council duration penalties and recovery benefits count only time beyond the saved baseline. Existing pacts and pending negotiations retain their recorded rules, prices and durations. Bellum default: 50 days." />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar" text="Minimum Peace Before Renewed War" />
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar_Hint" text="Minimum number of days two realms must remain at peace before Bellum&apos;s AI will consider another offensive against the same realm. A value of 0 disables this waiting period. Client liberation wars remain exempt. Default: 20." />
+    <string id="BC_MCM_DefensivePactThreatDecay" text="Weekly Threat Decay" />
+    <string id="BC_MCM_DefensivePactThreatDecay_Hint" text="Base threat lost every seven campaign days before realm size and council effects. Increasing makes threat fall faster and defensive pacts less likely; decreasing makes threat last longer. Zero disables base decay. Bellum default: 1 threat per seven days." />
+    <string id="BC_Council_AssignmentReassureRealms" text="Reassure Other Realms" />
+    <string id="BC_Council_AssignmentReassureRealmsHint" text="The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment and is suspended while the chancellor is captive." />
+    <string id="BC_Council_AssignmentStatusReassureRealms" text="Threat decays {BONUS}% faster after the realm-size adjustment." />
+    <string id="BC_DefensivePact_CallTitle" text="A Call to Arms" />
+    <string id="BC_DefensivePact_CallConfirm" text="I understand." />
+    <string id="BC_DefensivePact_CallAttacked" text="A messenger brings word that {TARGET} has attacked our realm. By the defensive pact, the other signatory realms have been called to arms. Each will fight its own war against the aggressor." />
+    <string id="BC_DefensivePact_CallFailed" text="A messenger brings word that {TARGET} has attacked {ATTACKED}. Our realm was called upon under the defensive pact, but could not enter the war under the present circumstances." />
+    <string id="BC_DefensivePact_CallJoined" text="A messenger brings word that {TARGET} has attacked {ATTACKED}. By the defensive pact, our realm has taken up arms against the aggressor. Each signatory fights its own war." />
+    <string id="BC_DefensivePact_CallEnded" text="A messenger brings word that {TARGET} attacked {ATTACKED}. Our realm answered the defensive pact&apos;s call to arms, though our separate war has since ended." />
+    <string id="BC_DefensivePact_UnknownTarget" text="the aggressor" />
+    <string id="BC_DefensivePact_UnknownMember" text="a fellow signatory" />
+    <string id="BC_DefensivePact_VoteApprove" text="Approve" />
+    <string id="BC_DefensivePact_VoteReject" text="Reject" />
+    <string id="BC_DefensivePact_ApproveDescription" text="We should enter the defensive pact." />
+    <string id="BC_DefensivePact_RejectDescription" text="We should not enter the defensive pact." />
+    <string id="BC_DefensivePact_VoteTitle" text="Join a defensive pact" />
+    <string id="BC_DefensivePact_VoteDescription" text="The realm would join a defensive pact against {TARGET}. If {TARGET} attacks a signatory, the others will take up arms in separate wars." />
+    <string id="BC_DefensivePact_VoteInvalid" text="The proposed pact could no longer be decided." />
+    <string id="BC_DefensivePact_VoteJoined" text="The realm has joined the defensive pact." />
+    <string id="BC_DefensivePact_VoteNotJoined" text="The realm did not join the defensive pact." />
+    <string id="BC_DefensivePact_VoteAwaitingVerification" text="The council approved the pact; current circumstances are being verified." />
     <string id="BC_Parley_Reason_LengthyPact" text="This pact would bind our hands for too long." />
     <string id="BC_Parley_Reason_PactRecovery" text="Our realm needs time to recover." />
     <string id="BC_MCM_TreatyReparationsPerWarScore" text="Reparations per War Score" />
@@ -7923,5 +7946,72 @@
     <string id="BC_VoluntaryPact_ResultDeclined" text="The ruler of {TARGET} declined the proposed pact with {SOURCE}." />
     <string id="BC_VoluntaryPact_ResultInvalid" text="The proposed pact between {SOURCE} and {TARGET} could no longer be concluded." />
     <string id="BC_VoluntaryPact_RefusalCooldown" text="These realms recently rejected a pledge. Another proposal may be made in {DAYS} days." />
+    <string id="BC_DefensivePact_ForecastIncrease" text="{REALM}: threat increases from {BEFORE} to {AFTER}." />
+    <string id="BC_DefensivePact_ForecastDecrease" text="{REALM}: threat decreases from {BEFORE} to {AFTER}." />
+    <string id="BC_DefensivePact_ForecastUnchanged" text="{REALM}: threat remains at {BEFORE}." />
+    <string id="BC_DefensivePact_ForecastUnavailable" text="Treaty threat forecast unavailable." />
+    <string id="BC_DefensivePact_ProposeUnavailable" text="A defensive pact cannot be proposed under the current circumstances." />
+    <string id="BC_DefensivePact_AlreadyMember" text="Your realm already belongs to a defensive pact." />
+    <string id="BC_DefensivePact_VotePending" text="Your realm is already considering a defensive pact." />
+    <string id="BC_DefensivePact_InfluenceBlocked" text="Your clan needs 100 influence to propose a defensive pact." />
+    <string id="BC_DefensivePact_CooldownBlocked" text="A defensive pact against this realm cannot yet be formed again." />
+    <string id="BC_DefensivePact_AssessmentPending" text="The realms' current circumstances and frontiers are still being assessed." />
+    <string id="BC_DefensivePact_PeaceRequired" text="Your realm must be at peace to join a defensive pact." />
+    <string id="BC_DefensivePact_ProtectedTie" text="Your realm has a protected agreement or client relationship with this realm." />
+    <string id="BC_DefensivePact_RelationRequired" text="The rulers must have negative relations." />
+    <string id="BC_DefensivePact_SizeBlocked" text="Your realm must have fewer than 25 towns and castles." />
+    <string id="BC_DefensivePact_StrengthBlocked" text="Your realm must have less than 80% of the target's strength." />
+    <string id="BC_DefensivePact_ThreatBlocked" text="The target's threat is {THREAT}; it must reach {THRESHOLD} for a realm at this distance." />
+    <string id="BC_DefensivePact_ProposeButton" text="Propose" />
+    <string id="BC_DefensivePact_JoinAction" text="Join defensive pact" />
+    <string id="BC_DefensivePact_FormAction" text="Form defensive pact" />
+    <string id="BC_DefensivePact_UnavailableTitle" text="Defensive Pact Unavailable" />
+    <string id="BC_DefensivePact_Done" text="Done" />
+    <string id="BC_Overview_DefensivePacts" text="Defensive Pacts" />
+    <string id="BC_Overview_DefensiveAgainst" text="Against {REALM}" />
+    <string id="BC_Overview_DefensiveThreat" text="Threat: {THREAT}" />
+    <string id="BC_Overview_DefensiveThreatUnavailable" text="Threat is currently unavailable." />
+    <string id="BC_Overview_DefensiveMembers" text="Members: {MEMBERS}" />
+    <string id="BC_Diplomacy_ActionButton" text="Diplomatic Action" />
+    <string id="BC_Diplomacy_ActionTitle" text="Diplomatic Action" />
+    <string id="BC_Diplomacy_ActionPrompt" text="Select an action concerning {REALM}." />
+    <string id="BC_Diplomacy_ActionWithInfluence" text="{ACTION} ({COST} {ICON})" />
+    <string id="BC_Diplomacy_ActionPropose" text="Propose" />
+    <string id="BC_Diplomacy_ActionCancel" text="Cancel" />
+    <string id="BC_Diplomacy_ActionDone" text="Done" />
+    <string id="BC_Diplomacy_ActionUnavailableTitle" text="Action Unavailable" />
+    <string id="BC_Diplomacy_ActionUnavailable" text="The diplomatic situation has changed. Please review the available actions again." />
+    <string id="BC_Diplomacy_ActionIdentityUnavailable" text="This decision cannot be identified safely here; use its kingdom notification instead." />
+    <string id="BC_Diplomacy_DeclareWar" text="Declare War" />
+    <string id="BC_Diplomacy_NegotiatePeace" text="Negotiate Peace" />
+    <string id="BC_Diplomacy_FormAlliance" text="Form Alliance" />
+    <string id="BC_Diplomacy_TradeAgreement" text="Sign Trade Agreement" />
+    <string id="BC_Diplomacy_NonAggression" text="Propose Non-Aggression Pact" />
+    <string id="BC_Diplomacy_FormDefensive" text="Form Defensive Pact" />
+    <string id="BC_Diplomacy_JoinDefensive" text="Join Defensive Pact" />
+    <string id="BC_Diplomacy_LeaveDefensive" text="Leave Defensive Pact" />
+    <string id="BC_Diplomacy_ResolveWar" text="Resolve War Decision" />
+    <string id="BC_Diplomacy_ResolvePeace" text="Resolve Peace Decision" />
+    <string id="BC_Diplomacy_ResolveAlliance" text="Resolve Alliance Decision" />
+    <string id="BC_Diplomacy_ResolveTrade" text="Resolve Trade Decision" />
+    <string id="BC_Diplomacy_ResolveDecision" text="Resolve Decision" />
+    <string id="BC_DefensivePact_LeaveVoteTitle" text="Leave a defensive pact" />
+    <string id="BC_DefensivePact_LeaveVoteDescription" text="The realm would leave the defensive pact against {TARGET} and would no longer be bound to answer its calls to arms." />
+    <string id="BC_DefensivePact_ApproveDeparture" text="We should leave the defensive pact." />
+    <string id="BC_DefensivePact_RejectDeparture" text="We should remain in the defensive pact." />
+    <string id="BC_DefensivePact_VoteLeft" text="The realm has left the defensive pact." />
+    <string id="BC_DefensivePact_VoteStayed" text="The realm remains in the defensive pact." />
+    <string id="BC_DefensivePact_LeaveUnavailable" text="Your realm cannot propose leaving this defensive pact now." />
+    <string id="BC_DefensivePact_LeaveInfluenceBlocked" text="Your clan needs 100 influence to propose leaving the defensive pact." />
+    <string id="BC_DefensivePact_LeaveAction" text="Leave defensive pact" />
+    <string id="BC_DefensivePact_LeaveActionSupport" text="Leave defensive pact ({SUPPORT})" />
+    <string id="BC_DefensivePact_JoinActionSupport" text="Join defensive pact ({SUPPORT})" />
+    <string id="BC_DefensivePact_FormActionSupport" text="Form defensive pact ({SUPPORT})" />
+    <string id="BC_DefensivePact_FormSupportUnavailable" text="Form defensive pact (support unavailable)" />
+    <string id="BC_DefensivePact_JoinSupportUnavailable" text="Join defensive pact (support unavailable)" />
+    <string id="BC_DefensivePact_LeaveSupportUnavailable" text="Leave defensive pact (support unavailable)" />
+    <string id="BC_DefensivePact_ResolveButton" text="Resolve" />
+    <string id="BC_DefensivePact_ResolveAction" text="Resolve defensive pact decision" />
+    <string id="BC_Diplomacy_ResolveDefensive" text="Resolve Defensive Pact Decision" />
   </strings>
 </base>

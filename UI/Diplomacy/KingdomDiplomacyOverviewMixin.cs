@@ -19,6 +19,11 @@ namespace BellumCivile.ViewModelMixin
         [DataSourceProperty] public bool BellumStatsControlsVisible => !_overviewSelected && ViewModel.IsWar;
         [DataSourceProperty] public string BellumOverviewText => new TextObject("{=BC_Overview_Title}Overview").ToString();
         [DataSourceProperty] public string BellumStatsText => new TextObject("{=BC_Overview_Stats}Stats").ToString();
+        [DataSourceProperty] public bool BellumCentralDiplomacyActionVisible => BellumCivileOptions.EnableWarPeaceLogicRevamp;
+        [DataSourceProperty] public bool BellumNativeDiplomacyActionsVisible => !BellumCentralDiplomacyActionVisible;
+        [DataSourceProperty] public bool BellumDiplomacyExternalButtonsVisible => !BellumCentralDiplomacyActionVisible
+            || !DiplomacyExternalActionAdapter.CanReplace(ViewModel.CurrentSelectedDiplomacyItem);
+        [DataSourceProperty] public string BellumDiplomaticActionText => new TextObject("{=BC_Diplomacy_ActionButton}Diplomatic Action").ToString();
 
         public KingdomDiplomacyOverviewMixin(KingdomDiplomacyVM vm) : base(vm)
         {
@@ -36,7 +41,14 @@ namespace BellumCivile.ViewModelMixin
             var item = ViewModel.CurrentSelectedDiplomacyItem;
             BellumOverview.Refresh(item?.Faction1 as Kingdom, item?.Faction2 as Kingdom);
             NotifySelection();
+            ViewModel.OnPropertyChangedWithValue(BellumCentralDiplomacyActionVisible, nameof(BellumCentralDiplomacyActionVisible));
+            ViewModel.OnPropertyChangedWithValue(BellumNativeDiplomacyActionsVisible, nameof(BellumNativeDiplomacyActionsVisible));
+            ViewModel.OnPropertyChangedWithValue(BellumDiplomacyExternalButtonsVisible, nameof(BellumDiplomacyExternalButtonsVisible));
+            ViewModel.OnPropertyChangedWithValue(BellumDiplomaticActionText, nameof(BellumDiplomaticActionText));
         }
+
+        [DataSourceMethod]
+        public void ExecuteBellumDiplomaticAction() => BellumDiplomacyActionMenu.Open(ViewModel);
 
         [DataSourceMethod]
         public void ExecuteBellumOverview()

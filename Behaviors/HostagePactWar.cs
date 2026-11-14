@@ -27,7 +27,9 @@ namespace BellumCivile.Behaviors
                 if (pact.FirstRealm.RulingClan != pact.FirstHouse || pact.SecondRealm.RulingClan != pact.SecondHouse)
                     pact.TryBeginResolution(HostagePactEndReason.HouseReplaced);
                 else if (pact.IsDue(CampaignTime.Now.ToDays)) pact.TryBeginResolution(HostagePactEndReason.Expired);
-                else pact.TryBeginResolution(HostagePactEndReason.War, IsVoluntaryDeclaration(detail) ? first as Kingdom : null);
+                else if (pact.TryBeginResolution(HostagePactEndReason.War, IsVoluntaryDeclaration(detail) ? first as Kingdom : null)
+                    && pact.VoluntaryAggressor != null)
+                    Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?.RecordPactBreach(pact, pact.VoluntaryAggressor);
                 BellumCivileLogger.Log($"Hostage pact war observed; pact={pact.Id}; detail={detail}; aggressor={pact.VoluntaryAggressor?.StringId ?? "unknown"}.");
             }
             // Execute on the hourly pass, after every war listener has registered the conflict.

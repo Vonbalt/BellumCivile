@@ -253,9 +253,23 @@ namespace BellumCivile.WarPeace
                 result.Reasons.Add(powerScore > 0f
                     ? $"target looks vulnerable +{powerScore:0}"
                     : $"target looks dangerous {powerScore:0}");
-                if (powerScore > 0f)
-                    AddMotive(result, WarTargetMotiveType.MilitaryVulnerability, powerScore);
             }
+
+            float pactPenalty = 0f;
+            if (!activeWar && !liberationTarget)
+            {
+                float additional = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>()
+                    ?.AdditionalDefensiveStrength(sourceKingdom, targetKingdom) ?? 0f;
+                pactPenalty = additional > 0f ? DefensivePactWarRisk.AdditionalTargetPenalty(sourceKingdom.CurrentTotalStrength,
+                    targetKingdom.CurrentTotalStrength, additional) : 0f;
+                if (pactPenalty > .01f)
+                {
+                    result.Score -= pactPenalty;
+                    result.Reasons.Add($"defensive pact additional strength {additional:0}; target score -{pactPenalty:0}");
+                }
+            }
+            if (powerScore - pactPenalty > .01f)
+                AddMotive(result, WarTargetMotiveType.MilitaryVulnerability, powerScore - pactPenalty);
 
             if (!activeWar && !liberationTarget)
             {
@@ -318,6 +332,7 @@ namespace BellumCivile.WarPeace
                 result.Score -= hostageDeterrence;
                 result.Reasons.Add($"hostage-backed peace -{hostageDeterrence:0}");
             }
+            result.DefensivePactPenaltyApplied = DefensivePactWarRisk.AppliedToClampedScore(result.Score, pactPenalty);
             result.Score = Math.Max(0f, Math.Min(100f, result.Score));
             return result;
         }
@@ -412,12 +427,7 @@ namespace BellumCivile.WarPeace
         {
             float sourceStrength = Math.Max(1f, sourceKingdom?.CurrentTotalStrength ?? 1f);
             float targetStrength = Math.Max(1f, targetKingdom?.CurrentTotalStrength ?? 1f);
-            float ratio = sourceStrength / targetStrength;
-            if (ratio >= 1.25f)
-                return Math.Min(C.WarPeaceRevampPowerOpportunityCap, (ratio - 1f) * C.WarPeaceRevampPowerScoreSlope);
-            if (ratio <= 0.85f)
-                return -Math.Min(C.WarPeaceRevampPowerDangerCap, ((1f / Math.Max(0.01f, ratio)) - 1f) * C.WarPeaceRevampPowerScoreSlope);
-            return 0f;
+            return DefensivePactWarRisk.PowerScore(sourceStrength, targetStrength);
         }
 
         private static float CalculateRelationScore(Clan clan, Kingdom targetKingdom)

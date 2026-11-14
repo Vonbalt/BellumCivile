@@ -11,7 +11,7 @@ namespace BellumCivile.Patches
     {
         private static bool Prefix(KingdomDecisionsVM __instance, KingdomDecision decision, ref DecisionItemBaseVM __result)
         {
-            if (!(decision is VoluntaryPactDecision)) return true;
+            if (!(decision is VoluntaryPactDecision) && !(decision is DefensivePactJoinDecision)) return true;
             var done = AccessTools.MethodDelegate<Action>(AccessTools.Method(typeof(KingdomDecisionsVM), "OnDecisionOver"), __instance);
             __result = new DecisionItemBaseVM(decision, done);
             return false;

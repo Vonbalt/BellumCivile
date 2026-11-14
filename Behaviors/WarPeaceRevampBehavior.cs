@@ -512,6 +512,14 @@ namespace BellumCivile.Behaviors
             raw -= Campaign.Current?.GetCampaignBehavior<HostagePactBehavior>()?.WarDeterrence(voter, target, council: true) ?? 0;
             if (!liberationTarget)
             {
+                float additional = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>()
+                    ?.AdditionalDefensiveStrength(source, target) ?? 0f;
+                if (additional > 0f)
+                {
+                    float pactPenalty = DefensivePactWarRisk.AdditionalTargetPenalty(source.CurrentTotalStrength,
+                        target.CurrentTotalStrength, additional);
+                    raw -= DefensivePactWarRisk.CouncilPenalty(pactPenalty, targetScore?.DefensivePactPenaltyApplied ?? 0f);
+                }
                 WarFrontReadinessAssessment frontReadiness = WarFrontReadinessService.Assess(source, target);
                 if (frontReadiness.IsAdditionalFront)
                 {

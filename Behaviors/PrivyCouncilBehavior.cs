@@ -270,10 +270,36 @@ namespace BellumCivile.Behaviors
                 _recordIndexesDirty = true;
         }
 
-        private void OnCouncillorCaptured(PartyBase captor, Hero prisoner) => InvalidateRuntimeCache();
+        private void OnCouncillorCaptured(PartyBase captor, Hero prisoner)
+        {
+            InvalidateRuntimeCache();
+            RefreshThreatDecayAfterCaptivity(prisoner);
+        }
 
         private void OnCouncillorReleased(Hero prisoner, PartyBase party, IFaction capturer,
-            EndCaptivityDetail detail, bool showNotification) => InvalidateRuntimeCache();
+            EndCaptivityDetail detail, bool showNotification)
+        {
+            InvalidateRuntimeCache();
+            RefreshThreatDecayAfterCaptivity(prisoner);
+        }
+
+        private void RefreshThreatDecayAfterCaptivity(Hero hero)
+        {
+            Clan clan = hero?.Clan;
+            Kingdom kingdom = clan?.Kingdom;
+            if (hero == null || clan?.Leader != hero) return;
+            var threat = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            if (threat?.HasLiveThreat(kingdom) != true) return;
+            if (GetOfficeHolder(kingdom, PrivyCouncilOffice.Chancellor) == clan
+                || GetOfficeHolder(kingdom, PrivyCouncilOffice.FirstAdvisor) == clan
+                || GetOfficeHolder(kingdom, PrivyCouncilOffice.SecondAdvisor) == clan)
+                threat.RefreshCouncilRate(kingdom);
+        }
+
+        private static void RefreshThreatDecayForCouncil(Kingdom kingdom)
+        {
+            Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?.RefreshCouncilRate(kingdom);
+        }
 
         internal static bool CanPerformCouncilDuties(Clan holder) =>
             holder?.Leader != null && !holder.Leader.IsPrisoner;
@@ -603,6 +629,7 @@ namespace BellumCivile.Behaviors
             record.SetAssignment(assignment.Id, (float)CampaignTime.Now.ToDays);
             GetIncidentBehavior()?.ClearAssignmentAspectModifiers(kingdom, office);
             InvalidateRuntimeCache();
+            RefreshThreatDecayForCouncil(kingdom);
             BellumCivileLogger.Log($"Privy council assignment changed; kingdom={kingdom.StringId}; office={office}; assignment={assignment.Id}; ruler={assigningClan.StringId}.");
             return true;
         }
@@ -970,6 +997,11 @@ namespace BellumCivile.Behaviors
                     summary.SetTextVariable("PROGRESS", FormatNumber(25f * effect * aspect(CouncilIncidentAspects.FabricationProgress)));
                     summary.SetTextVariable("DISCOVERY", FormatNumber(5f * drawback * aspect(CouncilIncidentAspects.FabricationDiscoveryRisk)));
                     summary.SetTextVariable("CONTROVERSY", FormatNumber(drawback * aspect(CouncilIncidentAspects.FabricationWeeklyControversy)));
+                    return summary;
+                case DefensivePactThreatRules.ChancellorAssignmentId:
+                    summary = new TextObject("{=BC_Council_AssignmentStatusReassureRealms}Threat decays {BONUS}% faster after the realm-size adjustment.");
+                    summary.SetTextVariable("BONUS", FormatNumber((float)DefensivePactThreatRules.ChancellorEffect(
+                        IsAssignmentActive(kingdom, office, assignmentId), GetEffectiveCoreOfficeCompetence(kingdom, office)) * 100f));
                     return summary;
                 case "seneschal_audit_vassals":
                     summary = new TextObject("{=BC_Council_AssignmentStatusAuditVassals}Feudal service income reaching the crown is increased by {SERVICE}%. Generates {CONTROVERSY} Seneschal controversy each week.");
@@ -1768,6 +1800,12 @@ namespace BellumCivile.Behaviors
                         + snapshot.AvailableForeignClaimTargets * 8f
                         - snapshot.ActiveWars * 8f;
                     break;
+                case DefensivePactThreatRules.ChancellorAssignmentId:
+                    var threat = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+                    score = threat?.IsReady == true
+                        ? (float)threat.GetThreat(context.Kingdom.StringId, CampaignTime.Now.ToDays) - 10f
+                        : -100f;
+                    break;
                 case "seneschal_audit_vassals":
                     score = snapshot.VassalClans * 6f
                         + Math.Max(0f, 50000f - snapshot.CrownGold) / 2500f;
@@ -2474,6 +2512,7 @@ namespace BellumCivile.Behaviors
                 currentDay);
             record.ScheduleAssignmentReview(currentDay);
             InvalidateRuntimeCache();
+            RefreshThreatDecayForCouncil(kingdom);
             string disgraceKey = BuildDisgraceKey(kingdom, candidate);
             _disgracedUntilByClan.Remove(disgraceKey);
             _disgraceIntentByClan.Remove(disgraceKey);
@@ -2545,6 +2584,7 @@ namespace BellumCivile.Behaviors
             ChangeClanInfluenceAction.Apply(actingClan, -DirectDismissalInfluenceCost);
             record.Vacate((float)CampaignTime.Now.ToDays);
             InvalidateRuntimeCache();
+            RefreshThreatDecayForCouncil(kingdom);
 
             if (ruler != null && councilor != null && ruler != councilor)
             {
@@ -2725,6 +2765,7 @@ namespace BellumCivile.Behaviors
         {
             InvalidateRuntimeCache(recordsChanged: true);
             float currentDay = (float)CampaignTime.Now.ToDays;
+            var threatBehavior = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
             foreach (Kingdom kingdom in Kingdom.All.Where(IsEligiblePermanentRealm).ToList())
             {
                 try
@@ -2763,6 +2804,8 @@ namespace BellumCivile.Behaviors
                                 currentDay);
                         }
                     }
+
+                    threatBehavior?.RefreshCouncilRate(kingdom);
 
                 }
                 catch (Exception ex)

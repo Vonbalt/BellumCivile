@@ -24,9 +24,12 @@ namespace BellumCivile.UI.Diplomacy
             var wars = Add("{=BC_Overview_Wars}Wars");
             var allies = Add("{=BC_Overview_Alliances}Alliances");
             var pacts = Add("{=BC_Overview_Pacts}Non-Aggression Pacts");
+            var defensive = !BellumCivileOptions.EnableWarPeaceLogicRevamp
+                || Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>() == null
+                ? null : Add("{=BC_Overview_DefensivePacts}Defensive Pacts");
             var clients = Add("{=BC_Overview_Clients}Client States");
-            Fill(first, wars.Left, allies.Left, pacts.Left, clients.Left);
-            Fill(second, wars.Right, allies.Right, pacts.Right, clients.Right);
+            Fill(first, wars.Left, allies.Left, pacts.Left, defensive?.Left, clients.Left);
+            Fill(second, wars.Right, allies.Right, pacts.Right, defensive?.Right, clients.Right);
             foreach (var section in Sections) section.RefreshHeight();
         }
 
@@ -39,7 +42,7 @@ namespace BellumCivile.UI.Diplomacy
 
         private static void Fill(Kingdom realm, MBBindingList<DiplomacyOverviewRealmVM> wars,
             MBBindingList<DiplomacyOverviewRealmVM> allies, MBBindingList<DiplomacyOverviewRealmVM> pacts,
-            MBBindingList<DiplomacyOverviewRealmVM> clients)
+            MBBindingList<DiplomacyOverviewRealmVM> defensive, MBBindingList<DiplomacyOverviewRealmVM> clients)
         {
             foreach (var enemy in realm.FactionsAtWarWith.OfType<Kingdom>()
                 .Where(k => k != realm && !k.IsEliminated).Distinct().OrderBy(k => k.Name.ToString()))
@@ -61,6 +64,8 @@ namespace BellumCivile.UI.Diplomacy
                     pacts.Add(new DiplomacyOverviewRealmVM(partner, () => PactHint(pact, realm)));
                 }
 
+            FillDefensivePacts(realm, defensive);
+
             if (clientBehavior == null) return;
             var suzerain = clientBehavior.GetSuzerain(realm);
             if (suzerain != null)
@@ -72,6 +77,48 @@ namespace BellumCivile.UI.Diplomacy
                 .OrderBy(k => k.Name.ToString()))
                 clients.Add(new DiplomacyOverviewRealmVM(client,
                     () => ClientLibertyTooltip.Build(clientBehavior.BuildLibertyAssessment(client))));
+        }
+
+        private static void FillDefensivePacts(Kingdom realm, MBBindingList<DiplomacyOverviewRealmVM> entries)
+        {
+            var owner = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>();
+            if (entries == null || owner == null || realm == null) return;
+            var targets = new HashSet<string>(StringComparer.Ordinal);
+            string membershipTarget = owner.GetMembershipTarget(realm.StringId);
+            if (!string.IsNullOrWhiteSpace(membershipTarget)) targets.Add(membershipTarget);
+            if (owner.GetMembersAgainst(realm.StringId).Count > 0) targets.Add(realm.StringId);
+            if (targets.Count == 0) return;
+            foreach (var target in Kingdom.All.Where(k => k != null && !k.IsEliminated && targets.Contains(k.StringId))
+                .OrderBy(k => k.Name.ToString()))
+            {
+                var name = new TextObject("{=BC_Overview_DefensiveAgainst}Against {REALM}")
+                    .SetTextVariable("REALM", target.Name).ToString();
+                entries.Add(new DiplomacyOverviewRealmVM(target, () => DefensivePactHint(target), name));
+            }
+        }
+
+        private static List<TooltipProperty> DefensivePactHint(Kingdom target)
+        {
+            var owner = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>();
+            var threats = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            var result = new List<TooltipProperty> { Title(new TextObject("{=BC_Overview_DefensiveAgainst}Against {REALM}")
+                .SetTextVariable("REALM", target.Name)) };
+            if (owner == null || owner.GetMembersAgainst(target.StringId).Count == 0)
+            {
+                result.Add(Paragraph(new TextObject("{=BC_Overview_AgreementEnded}This agreement is no longer in force.")));
+                return result;
+            }
+            if (threats?.IsReady == true)
+                result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveThreat}Threat: {THREAT}")
+                    .SetTextVariable("THREAT", threats.GetThreat(target.StringId, CampaignTime.Now.ToDays).ToString("0.##"))));
+            else result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveThreatUnavailable}Threat is currently unavailable.")));
+            var memberIds = new HashSet<string>(owner.GetMembersAgainst(target.StringId)
+                .Where(m => m != null && !string.IsNullOrWhiteSpace(m.RealmId)).Select(m => m.RealmId), StringComparer.Ordinal);
+            var members = Kingdom.All.Where(k => k != null && !k.IsEliminated && memberIds.Contains(k.StringId))
+                .OrderBy(k => k.Name.ToString()).Select(k => k.Name.ToString());
+            result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveMembers}Members: {MEMBERS}")
+                .SetTextVariable("MEMBERS", string.Join(", ", members))));
+            return result;
         }
 
         private static List<TooltipProperty> WarHint(Kingdom realm, Kingdom enemy)

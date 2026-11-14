@@ -88,6 +88,32 @@ namespace BellumCivile.UI.Parley
             Refresh(proposal);
         }
 
+        private void AddThreatForecast(WarScoreRecord war, TreatyProposalRecord proposal, Kingdom winner,
+            Kingdom loser, Kingdom playerSide, Kingdom opponent)
+        {
+            var threats = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || threats == null
+                || war?.ConflictType != WarScoreConflictType.ForeignWar) return;
+            try
+            {
+                var projection = threats.IsReady
+                    ? DefensivePactCampaignTreatyFacts.Capture(war, proposal, winner, loser)?.Evaluate(null) : null;
+                if (projection?.IsReliable == true && playerSide != null && opponent != null)
+                {
+                    double now = CampaignTime.Now.ToDays;
+                    projection.Impacts.TryGetValue(playerSide.StringId, out var playerImpact);
+                    projection.Impacts.TryGetValue(opponent.StringId, out var opponentImpact);
+                    string first = TreatyTermVM.BuildThreatForecast(playerSide.Name, threats.GetThreat(playerSide.StringId, now), playerImpact);
+                    string second = TreatyTermVM.BuildThreatForecast(opponent.Name, threats.GetThreat(opponent.StringId, now), opponentImpact);
+                    DraftTerms.Add(new TreatyTermVM(first));
+                    DraftTerms.Add(new TreatyTermVM(second));
+                    return;
+                }
+            }
+            catch (Exception ex) { BellumCivileLogger.Log("Defensive pact treaty forecast unavailable: " + ex); }
+            DraftTerms.Add(new TreatyTermVM(new TextObject("{=BC_DefensivePact_ForecastUnavailable}Treaty threat forecast unavailable.").ToString()));
+        }
+
         public void Refresh(TreatyProposalRecord proposal)
         {
             CloseTooltips();
@@ -235,6 +261,7 @@ namespace BellumCivile.UI.Parley
                         proposal.Terms[index],
                         proposal.WinnerKingdomId,
                         termImpacts[index]));
+                AddThreatForecast(war, proposal, winner, loser, playerSide, opponent);
 
                 Kingdom sourceRealm = IsDemandsMode ? opponent : playerSide;
                 Kingdom receivingRealm = IsDemandsMode ? playerSide : opponent;
@@ -493,7 +520,7 @@ namespace BellumCivile.UI.Parley
                             .SetTextVariable("THIRD_REALM", candidate.ThirdRealm.Name)));
                 }
                 IsPoliticsDraftScrollbarVisible = AvailablePoliticsTerms.Sum(option => option.RowHeight) > DraftEditorHeight;
-                IsDraftTermsScrollbarVisible = DraftTerms.Count * 32 > DraftTermsHeight;
+                IsDraftTermsScrollbarVisible = DraftTerms.Sum(term => term.RowHeight) > DraftTermsHeight;
 
                 int reparationsScore = proposal.Terms.FirstOrDefault(term => term?.Type == TreatyTermType.Reparations
                     && term.FromKingdomId == sourceRealm?.StringId && term.ToKingdomId == receivingRealm?.StringId)?.WarScoreCost ?? 0;

@@ -12,7 +12,7 @@ namespace BellumCivile.Patches
     {
         private static void Postfix(KingdomDiplomacyProposalActionItemVM __instance)
         {
-            if (__instance == null || string.IsNullOrEmpty(__instance.Explanation)) return;
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || __instance == null || string.IsNullOrEmpty(__instance.Explanation)) return;
             var labels = new List<string>();
             foreach (KingdomElection.ElectionOutcomeSupport support in Enum.GetValues(typeof(KingdomElection.ElectionOutcomeSupport)))
             {

@@ -1967,6 +1967,17 @@ namespace BellumCivile.Behaviors
                 return false;
 
             bool whitePeace = proposal.Terms.Any(term => term?.Type == TreatyTermType.WhitePeace);
+            DefensivePactTreatyJournal threatJournal = null;
+            var threatBehavior = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            if (threatBehavior != null && !whitePeace && proposal.Terms.Any(DefensivePactTreatySnapshot.IsRelevant))
+            {
+                try
+                {
+                    var threatSnapshot = DefensivePactCampaignTreatyFacts.Capture(war, proposal, winner, loser);
+                    threatJournal = threatBehavior.PrepareTreaty(proposal, threatSnapshot, CampaignTime.Now.ToDays);
+                }
+                catch (Exception ex) { BellumCivileLogger.Log("Defensive pact treaty preparation failed: " + ex); }
+            }
             CourtAgendaBehavior.Current?.BeginRallySettlement(war);
             var rallyGold = new Dictionary<TreatyTermRecord,int>();
             var rallyDelivered = new HashSet<TreatyTermRecord>();
@@ -1977,12 +1988,12 @@ namespace BellumCivile.Behaviors
             {
                 // A royal marriage is validated while the realms are still at war. Execute it before
                 // fief transfers, prisoner retention, and MakePeaceAction can alter spouse eligibility.
-                ApplyRoyalMarriageTerms(proposal);
+                ApplyRoyalMarriageTerms(proposal, rallyDelivered, threatJournal);
             }
 
             // Occupation is temporary unless the treaty explicitly cedes the fief. White peace has
             // no transfer clauses, so it must still restore every surviving wartime occupation.
-            ApplyTerritorialTerms(war, proposal, winner, loser, prisonerReleases);
+            ApplyTerritorialTerms(war, proposal, winner, loser, prisonerReleases, rallyDelivered, threatJournal);
             if (!whitePeace)
             {
                 foreach (TreatyTermRecord term in proposal.Terms)
@@ -2025,8 +2036,33 @@ namespace BellumCivile.Behaviors
                     MakePeaceAction.Apply(winner, loser);
             });
             ShowTreatyAcceptedMessage(proposal, winner, loser, whitePeace, prisonerReleases);
-            ApplyStructuralPoliticalTerms(proposal,rallyDelivered);
+            ApplyStructuralPoliticalTerms(proposal, rallyDelivered, threatJournal);
+            if (threatJournal != null)
+            {
+                try
+                {
+                    if (!threatBehavior.CaptureTreatyRates(threatJournal, winner, loser)) threatJournal.Invalidate();
+                }
+                catch (Exception ex)
+                {
+                    threatJournal.Invalidate();
+                    BellumCivileLogger.Log("Defensive pact treaty rate capture failed: " + ex);
+                }
+            }
             proposal.SetState(TreatyProposalState.Applied, whitePeace ? "white peace signed" : "terms applied", (float)CampaignTime.Now.ToDays);
+            try
+            {
+                if (threatJournal != null && (!threatJournal.Seal(proposal) || !threatBehavior.CompleteSealedTreaty(threatJournal)))
+                {
+                    threatBehavior.SuspendRateUpdates();
+                    BellumCivileLogger.Log($"Defensive pact treaty journal could not be sealed; proposal={proposal.ProposalId}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                threatBehavior?.SuspendRateUpdates();
+                BellumCivileLogger.Log("Defensive pact treaty journal settlement failed: " + ex);
+            }
             ApplyConcedeDefeatTerm(proposal);
             QueueRebelDemandResolutions(proposal);
             try { CourtRallySettlement.Record(war,proposal,rallyGold,rallyDelivered); }
@@ -2041,7 +2077,20 @@ namespace BellumCivile.Behaviors
             return proposal != null && !proposal.IsOverBudget;
         }
 
-        private static void ApplyRoyalMarriageTerms(TreatyProposalRecord proposal)
+        private static void RecordTreatyDelivery(HashSet<TreatyTermRecord> delivered, TreatyTermRecord term,
+            DefensivePactTreatyJournal threatJournal)
+        {
+            delivered?.Add(term);
+            try { threatJournal?.RecordDelivery(term); }
+            catch (Exception ex)
+            {
+                threatJournal?.Invalidate();
+                BellumCivileLogger.Log("Defensive pact treaty delivery recording failed: " + ex);
+            }
+        }
+
+        private static void ApplyRoyalMarriageTerms(TreatyProposalRecord proposal, HashSet<TreatyTermRecord> delivered,
+            DefensivePactTreatyJournal threatJournal)
         {
             foreach (TreatyTermRecord term in (proposal?.Terms ?? Enumerable.Empty<TreatyTermRecord>())
                 .Where(candidate => candidate?.Type == TreatyTermType.ArrangeRoyalMarriage))
@@ -2055,6 +2104,7 @@ namespace BellumCivile.Behaviors
                     term.HeroId, term.SecondaryHeroId, out TreatyRoyalMarriageCandidate candidate)
                     && TreatyRoyalMarriageService.TryApply(candidate, out marriageReason))
                 {
+                    RecordTreatyDelivery(delivered, term, threatJournal);
                     ApplyTreatyRelationChange(concedingRealm?.RulingClan?.Leader, receivingRealm?.RulingClan?.Leader, 15,
                         RelationMemorySources.TreatyRoyalMarriage);
                     TextObject message = new TextObject("{=BC_Treaty_RoyalMarriageConcluded}To seal the peace between {CONCEDING_REALM} and {RECEIVING_REALM}, {FIRST_NAME} has married {SECOND_NAME} and joined the {RECEIVING_CLAN}.")
@@ -2628,7 +2678,8 @@ namespace BellumCivile.Behaviors
             return score;
         }
 
-        private static void ApplyStructuralPoliticalTerms(TreatyProposalRecord proposal, HashSet<TreatyTermRecord> delivered = null)
+        private static void ApplyStructuralPoliticalTerms(TreatyProposalRecord proposal, HashSet<TreatyTermRecord> delivered,
+            DefensivePactTreatyJournal threatJournal)
         {
             foreach (TreatyTermRecord term in (proposal?.Terms ?? Enumerable.Empty<TreatyTermRecord>())
                 .OrderBy(term => term?.Type == TreatyTermType.ArrangeRoyalMarriage ? 0
@@ -2647,7 +2698,7 @@ namespace BellumCivile.Behaviors
                     if (clients?.GetSuzerain(clientRealm) == formerSuzerain
                         && clients.EndClientStatus(clientRealm, "released by peace treaty"))
                     {
-                        delivered?.Add(term);
+                        RecordTreatyDelivery(delivered, term, threatJournal);
                         Hero liberator = liberatingRealm?.RulingClan?.Leader;
                         ApplyNamedTreatyRelationChange(clientRealm?.RulingClan?.Leader, liberator, C.TreatyClientReleaseRulerRelationGain,
                             RelationMemorySources.LiberatedMyRealm, 20f, RelationMemoryScope.House, clientRealm?.Name?.ToString());
@@ -2679,7 +2730,7 @@ namespace BellumCivile.Behaviors
                     if (TreatyRealmTransitionService.TryReleaseVassal(sourceRealm, releasedClan, title,
                         out Kingdom independentRealm, out string releaseReason))
                     {
-                        delivered?.Add(term);
+                        RecordTreatyDelivery(delivered, term, threatJournal);
                         ApplyNamedTreatyRelationChange(releasedClan?.Leader, imposingRealm?.RulingClan?.Leader, 20,
                             RelationMemorySources.LiberatedMyRealm, 20f, RelationMemoryScope.House, independentRealm?.Name?.ToString());
                         ApplyTreatyRelationChange(releasedClan?.Leader, sourceRealm?.RulingClan?.Leader, -20,
@@ -2706,7 +2757,7 @@ namespace BellumCivile.Behaviors
                     TextObject victorName = victorRealm?.Name ?? TextObject.GetEmpty();
                     if (TreatyRealmTransitionService.TryForceVassalize(victorRealm, defeatedRealm, out string forceReason))
                     {
-                        delivered?.Add(term);
+                        RecordTreatyDelivery(delivered, term, threatJournal);
                         ApplyTreatyRelationChange(defeatedRuler, victorRuler, -30,
                             RelationMemorySources.ForcedVassalization);
                         TextObject message = new TextObject("{=BC_Treaty_RealmVassalized}{DEFEATED_REALM} has surrendered its sovereignty. Its ruler and vassals now owe allegiance to {VICTOR_REALM}.")
@@ -2734,7 +2785,7 @@ namespace BellumCivile.Behaviors
                         term.WasVoluntaryOffering,
                         out clientReason))
                     {
-                        delivered?.Add(term);
+                        RecordTreatyDelivery(delivered, term, threatJournal);
                         ApplyTreatyRelationChange(clientRuler, suzerainRuler, term.WasVoluntaryOffering ? 5 : -30,
                             term.WasVoluntaryOffering ? RelationMemorySources.VoluntaryClientage : RelationMemorySources.ForcedClientage);
                         if (!term.WasVoluntaryOffering)
@@ -2789,7 +2840,9 @@ namespace BellumCivile.Behaviors
             TreatyProposalRecord proposal,
             Kingdom winner,
             Kingdom loser,
-            TreatyPrisonerReleaseTally prisonerReleases)
+            TreatyPrisonerReleaseTally prisonerReleases,
+            HashSet<TreatyTermRecord> delivered,
+            DefensivePactTreatyJournal threatJournal)
         {
             var territory = new ClientWarTerritory(war);
             var recognitions = proposal.Terms.Where(t => t?.Type == TreatyTermType.RecognizeClientOccupation)
@@ -2813,6 +2866,7 @@ namespace BellumCivile.Behaviors
                     && currentKingdom.StringId == recognition.ThirdKingdomId && settlement.OwnerClan.StringId == recognition.ClanId
                     && territory.OnSide(currentKingdom, ResolveKingdom(recognition.ToKingdomId)))
                 {
+                    RecordTreatyDelivery(delivered, recognition, threatJournal);
                     BellumCivileLogger.Log($"Treaty client occupation retained; fief={settlement.StringId}; client={currentKingdom.StringId}; owner={settlement.OwnerClan.StringId}.");
                     continue;
                 }
@@ -2856,7 +2910,10 @@ namespace BellumCivile.Behaviors
                     continue;
                 }
                 if (current == to)
+                {
+                    RecordTreatyDelivery(delivered, term, threatJournal);
                     continue;
+                }
                 if (current != from)
                 {
                     BellumCivileLogger.Log($"Treaty territorial transfer skipped after ownership changed; settlement={settlement.StringId}; expected_from={from.StringId}; current={current.StringId}; to={to.StringId}.");
@@ -2877,6 +2934,8 @@ namespace BellumCivile.Behaviors
                     BellumCivileLogger.Log($"Treaty territorial transfer failed to establish the intended owner; settlement={settlement.StringId}; expected={to.StringId}; actual={settlement.OwnerClan?.Kingdom?.StringId ?? "null"}.");
                     continue;
                 }
+
+                RecordTreatyDelivery(delivered, term, threatJournal);
 
                 ReleasePrisonersBundledWithFief(settlement, from, to, prisonerReleases);
                 FiefDeliberationBehavior deliberation = Campaign.Current

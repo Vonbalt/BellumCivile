@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -705,7 +706,9 @@ namespace BellumCivile.Behaviors
 
                         if (isDiscovered)
                         {
-                            ApplyDiscoveryFallout(Clan.PlayerClan.Kingdom, discoveryFalloutKingdom, action, null);
+                            string missionId = "player:" + heroId.Length + ":" + heroId + ":"
+                                + _playerMissionReturnDates[heroId].ToDays.ToString("R", CultureInfo.InvariantCulture);
+                            ApplyDiscoveryFallout(Clan.PlayerClan.Kingdom, discoveryFalloutKingdom, action, null, missionId);
 
                             float deathChance = CalculateExecutionChance(companion);
 
@@ -944,7 +947,9 @@ namespace BellumCivile.Behaviors
 
                 if (isDiscovered)
                 {
-                    ApplyDiscoveryFallout(actingKingdom, isRebelKingdom ? activeRebellion.ParentKingdom : targetKingdom, rolledAction, null);
+                    string missionId = "ai:" + actingKingdom.StringId.Length + ":" + actingKingdom.StringId + ":"
+                        + CampaignTime.Now.ToDays.ToString("R", CultureInfo.InvariantCulture);
+                    ApplyDiscoveryFallout(actingKingdom, isRebelKingdom ? activeRebellion.ParentKingdom : targetKingdom, rolledAction, null, missionId);
                     _aiCooldowns[actingKingdom.StringId] = CampaignTime.Now + CampaignTime.Days(GetCooldownForAction(rolledAction));
                     return;
                 }
@@ -1347,11 +1352,14 @@ namespace BellumCivile.Behaviors
             return 1f - CalculateExecutionChance(actingAgent);
         }
 
-        private void ApplyDiscoveryFallout(Kingdom actingKingdom, Kingdom targetKingdom, int actionType, Hero specificTarget = null)
+        private void ApplyDiscoveryFallout(Kingdom actingKingdom, Kingdom targetKingdom, int actionType, Hero specificTarget, string missionId)
         {
             Hero actingRuler = actingKingdom?.RulingClan?.Leader;
             Hero targetRuler = targetKingdom?.RulingClan?.Leader;
             if (actingRuler == null || actingRuler.IsDead || targetRuler == null || targetRuler.IsDead) return;
+
+            Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?
+                .RecordExposedSubterfuge(actingKingdom, targetKingdom, missionId);
 
             int tier = GetActionTier(actionType);
             int relationPenalty   = tier == 1 ? DISCOVERY_RELATION_PENALTY_T1 : tier == 2 ? DISCOVERY_RELATION_PENALTY_T2 : DISCOVERY_RELATION_PENALTY_T3;

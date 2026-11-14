@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Localization;
@@ -76,6 +77,7 @@ namespace BellumCivile
             new Dictionary<PrivyCouncilOffice, List<PrivyCouncilAssignmentDefinition>>();
         private static readonly Dictionary<PrivyCouncilOffice, PrivyCouncilAssignmentDefinition> DefaultByOffice =
             new Dictionary<PrivyCouncilOffice, PrivyCouncilAssignmentDefinition>();
+        private static IReadOnlyList<PrivyCouncilAssignmentDefinition> _chancellorWithoutThreat;
 
         static PrivyCouncilAssignmentRegistry()
         {
@@ -91,6 +93,7 @@ namespace BellumCivile
                 throw new InvalidOperationException("A council assignment with id '" + definition.Id + "' is already registered.");
 
             Definitions.Add(definition);
+            _chancellorWithoutThreat = null;
             DefinitionsById.Add(definition.Id, definition);
             if (!DefinitionsByOffice.TryGetValue(definition.Office, out List<PrivyCouncilAssignmentDefinition> officeDefinitions))
             {
@@ -106,7 +109,14 @@ namespace BellumCivile
         public static IReadOnlyList<PrivyCouncilAssignmentDefinition> GetAssignments(PrivyCouncilOffice office)
         {
             if (DefinitionsByOffice.TryGetValue(office, out List<PrivyCouncilAssignmentDefinition> definitions))
+            {
+                if (office == PrivyCouncilOffice.Chancellor
+                    && (!BellumCivileOptions.EnableWarPeaceLogicRevamp
+                        || Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?.IsReady != true))
+                    return _chancellorWithoutThreat ?? (_chancellorWithoutThreat = definitions
+                        .Where(item => item.Id != DefensivePactThreatRules.ChancellorAssignmentId).ToArray());
                 return definitions;
+            }
             return Array.Empty<PrivyCouncilAssignmentDefinition>();
         }
 
@@ -148,6 +158,9 @@ namespace BellumCivile
             RegisterAssignment("chancellor_fabricate_grievances", PrivyCouncilOffice.Chancellor,
                 "{=BC_Council_AssignmentFabricateGrievances}Fabricate Grievances",
                 "{=BC_Council_AssignmentFabricateGrievancesHint}At average competence: +25% ruling-clan claim fabrication progress, but +5 percentage points to its discovery chance. Creates 1 {OFFICE} controversy each week.");
+            RegisterAssignment(DefensivePactThreatRules.ChancellorAssignmentId, PrivyCouncilOffice.Chancellor,
+                "{=BC_Council_AssignmentReassureRealms}Reassure Other Realms",
+                "{=BC_Council_AssignmentReassureRealmsHint}The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment and is suspended while the chancellor is captive.");
 
             RegisterNoneAssignment(PrivyCouncilOffice.Seneschal, "seneschal");
             RegisterAssignment("seneschal_audit_vassals", PrivyCouncilOffice.Seneschal,

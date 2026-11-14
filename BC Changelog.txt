@@ -857,5 +857,6 @@ Improved chat notification performance and clarified notification settings.
 
 1.5 CHANGELOG
 
-Added option to sign non-aggression pacts during peace time, those require a mutual exchange of hostages.
 Fixed small issue on ransom broker dialogue to ransom clan members.
+Added option to sign non-aggression pacts during peace time, those require a mutual exchange of hostages.
+Added defensive pacts, now realms acumulate threat based on their perceived aggressive expansionism which may lead others to band together in defensive pacts for survival.

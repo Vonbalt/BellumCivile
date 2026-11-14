@@ -1,4 +1,6 @@
 using System.Linq;
+using System;
+using System.Globalization;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
@@ -10,20 +12,47 @@ namespace BellumCivile.UI.Parley
     {
         private string _name;
         private string _costText;
+        private int _rowHeight;
 
         public TreatyTermVM(TreatyTermRecord term, string favoredKingdomId = "", int? effectiveImpact = null)
         {
             Name = BuildName(term);
+            RowHeight = 32;
             int impact = effectiveImpact ?? term?.GetWarScoreImpact(favoredKingdomId) ?? 0;
             CostText = new TextObject("{=BC_Parley_WarScoreCost}{VALUE} WS")
                 .SetTextVariable("VALUE", impact.ToString("+0;-0;0"))
                 .ToString();
         }
 
+        internal TreatyTermVM(string name)
+        {
+            Name = name ?? string.Empty;
+            CostText = string.Empty;
+            RowHeight = 72;
+        }
+
+        internal static string BuildThreatForecast(TextObject realmName, double current, DefensivePactTreatyThreat impact)
+        {
+            double before = Math.Round(current, 2, MidpointRounding.AwayFromZero);
+            double after = Math.Round(impact?.Project(current) ?? current, 2, MidpointRounding.AwayFromZero);
+            string template = after > before
+                ? "{=BC_DefensivePact_ForecastIncrease}{REALM}: threat increases from {BEFORE} to {AFTER}."
+                : after < before
+                    ? "{=BC_DefensivePact_ForecastDecrease}{REALM}: threat decreases from {BEFORE} to {AFTER}."
+                    : "{=BC_DefensivePact_ForecastUnchanged}{REALM}: threat remains at {BEFORE}.";
+            return new TextObject(template)
+                .SetTextVariable("REALM", realmName ?? TextObject.GetEmpty())
+                .SetTextVariable("BEFORE", before.ToString("0.##", CultureInfo.CurrentCulture))
+                .SetTextVariable("AFTER", after.ToString("0.##", CultureInfo.CurrentCulture)).ToString();
+        }
+
         [DataSourceProperty]
         public string Name { get => _name; set { if (value != _name) { _name = value; OnPropertyChangedWithValue(value, "Name"); } } }
         [DataSourceProperty]
         public string CostText { get => _costText; set { if (value != _costText) { _costText = value; OnPropertyChangedWithValue(value, "CostText"); } } }
+
+        [DataSourceProperty]
+        public int RowHeight { get => _rowHeight; set { if (value != _rowHeight) { _rowHeight = value; OnPropertyChangedWithValue(value, nameof(RowHeight)); } } }
 
         private static string BuildName(TreatyTermRecord term)
         {

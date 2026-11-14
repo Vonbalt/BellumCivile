@@ -37,6 +37,7 @@ namespace BellumCivile.Behaviors
                 return false;
             }
             victim.ExecutionSucceeded = true;
+            Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?.RecordPactBreach(pact, pact.VoluntaryAggressor);
             if (!victim.ActionCompleted) FinishWarDisposition(pact, victim);
             ApplyBetrayalConsequences(pact, victim);
             // Relations and native execution reactions have changed before this draw.

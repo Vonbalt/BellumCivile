@@ -356,7 +356,7 @@
                                   <Children>
                                     <ListPanel Id="DraftTermsList" DataSource="{DraftTerms}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                       <ItemTemplate>
-                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32">
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@RowHeight">
                                           <Children>
                                             <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Info.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Left" Text="@Name" />
                                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" MarginRight="8" Brush="Info.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Right" Text="@CostText" />

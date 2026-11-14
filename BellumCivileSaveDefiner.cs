@@ -16,6 +16,14 @@ namespace BellumCivile
 
         protected override void DefineClassTypes()
         {
+            AddClassDefinition(typeof(DefensivePactThreatLedger), 150);
+            AddClassDefinition(typeof(DefensivePactMemberRecord), 151);
+            AddClassDefinition(typeof(DefensivePactCallRecord), 152);
+            AddClassDefinition(typeof(DefensivePactRecord), 153);
+            AddClassDefinition(typeof(DefensivePactTreatyTermFact), 154);
+            AddClassDefinition(typeof(DefensivePactTreatyJournal), 155);
+            AddClassDefinition(typeof(DefensivePactJoinDecision), 156);
+            AddClassDefinition(typeof(DefensivePactJoinDecision.JoinOutcome), 157);
             AddClassDefinition(typeof(VoluntaryPactDecision), 148);
             AddClassDefinition(typeof(VoluntaryPactDecision.PactOutcome), 149);
             AddClassDefinition(typeof(CourtTermPreparationRecord), 145);
@@ -175,6 +183,13 @@ namespace BellumCivile
 
         protected override void DefineContainerDefinitions()
         {
+            ConstructContainerDefinition(typeof(List<DefensivePactThreatLedger>));
+            ConstructContainerDefinition(typeof(List<DefensivePactMemberRecord>));
+            ConstructContainerDefinition(typeof(List<DefensivePactCallRecord>));
+            ConstructContainerDefinition(typeof(List<DefensivePactRecord>));
+            ConstructContainerDefinition(typeof(List<DefensivePactTreatyTermFact>));
+            ConstructContainerDefinition(typeof(List<DefensivePactTreatyJournal>));
+            ConstructContainerDefinition(typeof(List<DefensivePactJoinDecision>));
             ConstructContainerDefinition(typeof(List<VoluntaryPactProposalRecord>));
             ConstructContainerDefinition(typeof(Dictionary<string, CourtTermPreparationRecord>));
             ConstructContainerDefinition(typeof(Dictionary<string, AsylumVisitRecord>));

@@ -12,6 +12,14 @@ internal static class IntegrationSaveDefinitionTests
     private static readonly Type[] Records = { typeof(BellumIntegration).Assembly.GetType("BellumCivile.PartitionCompletionRecord"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.PartitionRecipientRecord"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.IntegrationVoteRecord"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactThreatLedger"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactMemberRecord"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactCallRecord"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactRecord"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactTreatyTermFact"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactTreatyJournal"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactJoinDecision"),
+        typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactJoinDecision+JoinOutcome"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.CouncilAppointmentResultRecord"), typeof(CivilWarGraceRecord),
         typeof(TreatyTermRecord), typeof(TreatyHostageRecord), typeof(RestoredRealmCreationRecord), typeof(CivilWarCollapseRecord), typeof(RegencyRecord), typeof(CourtTitleGrantRecord),
         typeof(TitleAcquiredMapNotification), typeof(CourtTermPreparationRecord) };
@@ -38,11 +46,12 @@ internal static class IntegrationSaveDefinitionTests
             {
                 check(AccessTools.Method(typeof(DefinitionContext), "GetClassDefinition", new[] { typeof(Type) })
                     .Invoke(context, new object[] { type }) != null
-                    && (type == typeof(TreatyHostageRecord) || AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
+                    && (type == typeof(TreatyHostageRecord) || type == typeof(DefensivePactJoinDecision.JoinOutcome)
+                        || AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
                     .Invoke(context, new object[] { type == typeof(CourtTermPreparationRecord)
                         ? typeof(Dictionary<string, CourtTermPreparationRecord>) : typeof(List<>).MakeGenericType(type) }) != null),
                     "Native save registry resolves persisted record and any required list: " + type.Name);
-                var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
                 check(fields.All(f => f.GetCustomAttributesData().Count(a => a.AttributeType == typeof(SaveableFieldAttribute)) == 1),
                     "Every persisted record field has a save ID: " + type.Name);
             }

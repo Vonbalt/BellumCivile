@@ -43,6 +43,18 @@ namespace BellumCivile
         public override string FolderName => "BellumCivile";
         public override string FormatType => "json2";
 
+        public override void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        {
+            base.OnPropertyChanged(propertyName);
+            if (propertyName != MCM.Abstractions.Base.BaseSettings.SaveTriggered || !object.ReferenceEquals(this, Instance)) return;
+            try
+            {
+                TaleWorlds.CampaignSystem.Campaign.Current?.GetCampaignBehavior<Behaviors.DefensivePactThreatBehavior>()
+                    ?.RefreshCampaignRateSettings(BellumCivileOptions.DefensivePactWeeklyThreatDecay);
+            }
+            catch (System.Exception ex) { BellumCivileLogger.Log("Defensive pact settings update failed: " + ex); }
+        }
+
         [SettingPropertyDropdown("{=BC_MCM_TitleStylePreset}Title Terminology Preset", Order = 0, RequireRestart = true, HintText = "{=BC_MCM_TitleStylePreset_Hint}Selects the cultural rank and landed-title terminology loaded from bellum_title_styles_*.xml. The selected preset is applied after the main hierarchy file, while compatibility patches still apply last. Additional preset files are discovered when the game starts. Default: Anglicized.")]
         [SettingPropertyGroup(FeudalTitles, GroupOrder = FeudalTitlesGroupOrder)]
         public Dropdown<string> TitleStylePreset { get; set; } = FeudalTitleStylePresetCatalog.CreateDropdown();
@@ -87,6 +99,10 @@ namespace BellumCivile
         [SettingPropertyInteger("{=BC_MCM_HostageMinimumDuration}Minimum Hostage Pact Duration (Days)", 10, 1000, Order = 7, RequireRestart = false, HintText = "{=BC_MCM_HostageMinimumDuration_Hint}Minimum and starting duration for new hostage pacts, rounded up to the next ten days. Increasing makes new pacts start longer; decreasing makes them start shorter. NPC rulers negotiate from this baseline. Each extra ten days costs 1 War Score; council duration penalties and recovery benefits count only time beyond the saved baseline. Existing pacts and pending negotiations retain their recorded rules, prices and durations. Bellum default: 50 days.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int HostagePactMinimumDurationDays { get; set; } = HostagePactRules.DefaultDurationDays;
+
+        [SettingPropertyFloatingInteger("{=BC_MCM_DefensivePactThreatDecay}Weekly Threat Decay", 0f, 10f, "0.00", Order = 8, RequireRestart = false, HintText = "{=BC_MCM_DefensivePactThreatDecay_Hint}Base threat lost every seven campaign days before realm size and council effects. Increasing makes threat fall faster and defensive pacts less likely; decreasing makes threat last longer. Zero disables base decay. Bellum default: 1 threat per seven days.")]
+        [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
+        public float DefensivePactWeeklyThreatDecay { get; set; } = 1f;
 
         [SettingPropertyInteger("{=BC_MCM_TreatyReparationsPerWarScore}Reparations per War Score", 0, 100000, Order = 10, RequireRestart = false, HintText = "{=BC_MCM_TreatyReparationsPerWarScore_Hint}Denars paid as immediate reparations for each War Score spent on the treaty term. A value of 0 disables reparations. Default: 5,000 denars per War Score.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]

@@ -50,6 +50,14 @@ namespace BellumCivile
         public static int HostagePactMinimumDurationDays =>
             ((Math.Max(10, Math.Min(HostagePactRules.MaximumDurationDays,
                 Settings?.HostagePactMinimumDurationDays ?? HostagePactRules.DefaultDurationDays)) + 9) / 10) * 10;
+        public static float DefensivePactWeeklyThreatDecay
+        {
+            get
+            {
+                float value = Settings?.DefensivePactWeeklyThreatDecay ?? 1f;
+                return float.IsNaN(value) || float.IsInfinity(value) ? 1f : Clamp(value, 0f, 10f);
+            }
+        }
         public static int MinimumPeaceBeforeRenewedWarDays =>
             Math.Max(0, Math.Min(500, Settings?.MinimumPeaceBeforeRenewedWarDays ?? C.WarPeaceRevampRecentPeaceBlockDays));
         public static int TreatyReparationsGoldPerWarScore =>

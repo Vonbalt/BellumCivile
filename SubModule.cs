@@ -329,6 +329,9 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new ClientKingdomBehavior());
                 campaignStarter.AddBehavior(new ForeignTreatyBehavior());
                 campaignStarter.AddBehavior(new WarScoreBehavior());
+                campaignStarter.AddBehavior(new DefensivePactBehavior());
+                campaignStarter.AddBehavior(new DefensivePactThreatBehavior());
+                campaignStarter.AddBehavior(new DefensivePactAiBehavior());
                 campaignStarter.AddBehavior(new WarScoreMapWidgetBehavior());
                 campaignStarter.AddBehavior(new WarPeaceRevampBehavior());
                 campaignStarter.AddBehavior(new WarPeaceYearlySummaryBehavior());

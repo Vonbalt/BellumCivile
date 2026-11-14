@@ -33,6 +33,7 @@ namespace BellumCivile.WarPeace
     {
         public Kingdom TargetKingdom { get; set; }
         public float Score { get; set; }
+        public float DefensivePactPenaltyApplied { get; set; }
         public bool IsNeighboringRealm { get; set; }
         public bool IsMaritimeNeighbor { get; set; }
         public bool IsLocalLandNeighbor { get; set; }

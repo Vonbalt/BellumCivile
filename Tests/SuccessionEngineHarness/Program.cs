@@ -50,7 +50,22 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--peacetime-pact-rules"))
+            if (args.Contains("--client-occupation"))
+            {
+                ClientOccupationTreatyTests.Run(Check);
+                Console.WriteLine($"{_checks} client occupation checks passed.");
+            }
+            else if (args.Contains("--defensive-pact-threat"))
+            {
+                DefensivePactThreatTests.Run(Check);
+                Console.WriteLine($"{_checks} defensive pact threat checks passed.");
+            }
+            else if (args.Contains("--defensive-pact-votes"))
+            {
+                DefensivePactVoteTests.Run(Check);
+                Console.WriteLine($"{_checks} defensive pact vote checks passed.");
+            }
+            else if (args.Contains("--peacetime-pact-rules"))
             {
                 PeacetimePactRulesTests.Run(Check);
                 PeacetimePactPlacementTests.Run(Check);

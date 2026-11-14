@@ -32,13 +32,19 @@ internal static class ClientLiberationResolveTests
     private static Clan _clan;
     private static Hero _leader;
     private static float _desire;
+    private static float _additionalDefense;
+    private static float _appliedPactPenalty;
     private static float _willingnessThreshold;
     private static bool Threshold(ref float __result) { __result = _willingnessThreshold; return false; }
     private static bool _eligible, _includeTarget;
+    private static bool _revampEnabled;
     private static int _rankings;
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
+    private static bool RevampEnabled(ref bool __result) { __result = _revampEnabled; return false; }
     private static bool Zero(ref int __result) { __result = 0; return false; }
+    private static bool PactStrength(ref float __result) { __result = _additionalDefense; return false; }
+    private static bool RealmStrength(ref float __result) { __result = 100f; return false; }
     private static bool Trait(ref TraitObject __result) { __result = null; return false; }
     private static bool Realm(ref Kingdom __result) { __result = _client; return false; }
     private static bool Crown(ref Clan __result) { __result = _clan; return false; }
@@ -74,6 +80,7 @@ internal static class ClientLiberationResolveTests
             var item = Activator.CreateInstance(itemType);
             AccessTools.Property(itemType, "TargetKingdom").SetValue(item, _target);
             AccessTools.Property(itemType, "Score").SetValue(item, 60f);
+            AccessTools.Property(itemType, "DefensivePactPenaltyApplied").SetValue(item, _appliedPactPenalty);
             list.Add(item);
         }
         __result = list;
@@ -96,6 +103,8 @@ internal static class ClientLiberationResolveTests
         var warType = typeof(WarPeaceRevampBehavior);
         var assembly = clientsType.Assembly;
         _clients = new ClientKingdomBehavior();
+        _additionalDefense = 0;
+        _appliedPactPenalty = 0;
         var war = new WarPeaceRevampBehavior();
         _client = Blank<Kingdom>(); _client.StringId = "resolve_client";
         _suzerain = Blank<Kingdom>(); _suzerain.StringId = "resolve_suzerain";
@@ -107,6 +116,10 @@ internal static class ClientLiberationResolveTests
         records.Add(new ClientKingdomRecord(_client.StringId, _suzerain.StringId, 0, false, 0));
         var wills = (Dictionary<string, float>)AccessTools.Field(warType, "_warWillByClanId").GetValue(war);
         var manager = new Manager(); manager.AddBehavior(war); manager.AddBehavior(_clients);
+        manager.AddBehavior(new DefensivePactBehavior());
+        var threats = new DefensivePactThreatBehavior();
+        AccessTools.Field(typeof(DefensivePactThreatBehavior), "_ratesInitialized").SetValue(threats, true);
+        manager.AddBehavior(threats);
         var campaign = Blank<Campaign>(); campaign.AddCampaignBehaviorManager(manager);
         var adjustedWill = AccessTools.Method(clientsType, "GetLiberationWarWill");
         var vote = AccessTools.Method(warType, "TryEvaluateWarSupport");
@@ -134,6 +147,8 @@ internal static class ClientLiberationResolveTests
             Patch(AccessTools.Method(clientsType, "IsLawfulSuzerainty"), nameof(No));
             Patch(AccessTools.Method(clientsType, "IsEligiblePoliticalClan"), nameof(Yes));
             Patch(AccessTools.Method(warType, "IsRevampEnabled"), nameof(Yes));
+            _revampEnabled = true;
+            Patch(AccessTools.PropertyGetter(assembly.GetType("BellumCivile.BellumCivileOptions"), "EnableWarPeaceLogicRevamp"), nameof(RevampEnabled));
             Patch(AccessTools.Method(warType, "IsValidEvaluatedClan"), nameof(Yes));
             Patch(AccessTools.Method(warType, "GetRankedTargets"), nameof(Targets));
             Patch(AccessTools.Method(warType, "GetActiveDirectWarKingdoms"), nameof(Enemies));
@@ -143,6 +158,8 @@ internal static class ClientLiberationResolveTests
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Crown));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "UnresolvedDecisions"), nameof(Decisions));
             Patch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"), nameof(No));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "CurrentTotalStrength"), nameof(RealmStrength));
+            Patch(AccessTools.Method(typeof(DefensivePactBehavior), "AdditionalDefensiveStrength"), nameof(PactStrength));
             Patch(AccessTools.PropertyGetter(typeof(KingdomDecision), "Kingdom"), nameof(Realm));
             var getTrait = PatchProcessor.GetOriginalInstructions(vote).Select(instruction => instruction.operand)
                 .OfType<MethodInfo>().First(method => method.Name == "GetTraitLevel");
@@ -151,6 +168,14 @@ internal static class ClientLiberationResolveTests
                 Patch(AccessTools.PropertyGetter(typeof(DefaultTraits), name), nameof(Trait));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "ValidRealm"), nameof(Yes));
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.WarPeace.WarFrontReadinessService"), "Assess"), nameof(EmptyFront));
+
+            var assignments = AccessTools.Method(assembly.GetType("BellumCivile.PrivyCouncilAssignmentRegistry"), "GetAssignments");
+            bool HasReassurance() => ((IEnumerable)assignments.Invoke(null, new object[] { PrivyCouncilOffice.Chancellor }))
+                .Cast<object>().Any(item => (string)AccessTools.Property(item.GetType(), "Id").GetValue(item) == "chancellor_reassure_realms");
+            check(HasReassurance(), "A ready defensive-pact system exposes its chancellor assignment");
+            _revampEnabled = false;
+            check(!HasReassurance(), "Disabling the War and Peace revamp hides the defensive-pact assignment");
+            _revampEnabled = true;
 
             _eligible = true; _includeTarget = false;
             check(CanPropose(80, 60), "Personal desire 80 plus real War Will 60 qualifies for liberation");
@@ -173,6 +198,15 @@ internal static class ClientLiberationResolveTests
             check(Support(true) == 20, "Liberation resolve still applies when a voter has no ranked target entry");
             _includeTarget = true; _target = foreign;
             check(Support(true) == 26, "Foreign-war council support receives no liberation resolve");
+            _additionalDefense = 100;
+            check(Support(true) == 15.5f && Support(false) == -15.5f,
+                "Defensive pact strength lowers both sides of the actual war vote consistently");
+            _appliedPactPenalty = 30;
+            check(Support(true) == 26, "The council does not charge again for risk already included in target score");
+            _includeTarget = false;
+            check(Support(true) == -5.5f && war.GetWarWill(_clan) == 60,
+                "Pact deterrence survives the target-ranking floor without changing stored War Will");
+            _additionalDefense = 0; _appliedPactPenalty = 0; _includeTarget = true;
             check((float)adjustedWill.Invoke(_clients, new object[] { _clan, foreign, 60f }) == 60,
                 "Unrelated target leaves actual willingness untouched");
             _target = _client;
