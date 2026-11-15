@@ -8013,5 +8013,13 @@
     <string id="BC_DefensivePact_ResolveButton" text="Resolve" />
     <string id="BC_DefensivePact_ResolveAction" text="Resolve defensive pact decision" />
     <string id="BC_Diplomacy_ResolveDefensive" text="Resolve Defensive Pact Decision" />
+    <string id="BC_FeudConfirm_Title" text="Start a Private Feud" />
+    <string id="BC_FeudConfirm_Body" text="Press your claim to {TITLE}, currently held by {HOLDER}? Starting this feud costs {INFLUENCE} influence." />
+    <string id="BC_FeudConfirm_Accept" text="Start Feud" />
+    <string id="BC_FeudConfirm_Back" text="Go Back" />
+    <string id="BC_FeudConfirm_Changed" text="The proposed feud is no longer available. Please review your choice again." />
+    <string id="BC_FeudConfirm_Unavailable" text="The dispute is no longer available." />
+    <string id="BC_FeudConfirm_HolderChanged" text="The title's holder has changed. Please review the dispute again." />
+    <string id="BC_FeudConfirm_Started" text="You have begun pressing your claim to {TITLE} against {HOLDER}." />
   </strings>
 </base>

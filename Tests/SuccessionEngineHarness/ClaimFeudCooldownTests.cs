@@ -1,12 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Xml;
 using BellumCivile;
 using BellumCivile.Behaviors;
+using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
@@ -68,6 +71,10 @@ internal static class ClaimFeudCooldownTests
     private static FeudalTitleRecord _title;
     private static float _day, _influence;
     private static int _spends;
+    private static InquiryData _inquiry;
+    private static float _playerInfluenceSpent;
+    private static bool CaptureInquiry(InquiryData data) { _inquiry = data; return false; }
+    private static bool CapturePlayerInfluence(float amount) { _playerInfluenceSpent -= amount; return false; }
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static T Field<T>(object o, string name) => (T)AccessTools.Field(o.GetType(), name).GetValue(o);
     private static object Call(object o, string name, params object[] args) => AccessTools.Method(o.GetType(), name).Invoke(o, args);
@@ -75,6 +82,8 @@ internal static class ClaimFeudCooldownTests
     private static Dictionary<string, float> PeaceTimers => Field<Dictionary<string, float>>(_peace, "_royalPeaceUntilByRealmId");
     private static bool Skip() => false;
     private static bool No(ref bool __result) { __result = false; return false; }
+    private static bool ZeroFloat(ref float __result) { __result = 0; return false; }
+    private static bool ZeroInt(ref int __result) { __result = 0; return false; }
     private static bool Current(ref Campaign __result) { __result = _campaign; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool Head(Clan __instance, ref Hero __result) { Heads.TryGetValue(__instance, out __result); return false; }
@@ -175,8 +184,114 @@ internal static class ClaimFeudCooldownTests
                 new[] { typeof(FeudalTitleRecord), typeof(Clan) }), nameof(TitleName));
             Patch(AccessTools.Method(mod.GetType("BellumCivile.NpcInfluenceBudgetService"), "TrySpend"), nameof(Spend));
             RunCases(check);
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.ClanFiefDesireHelper"), "CalculateRebelliousFiefDesirePressure"), nameof(ZeroFloat));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.ClanFiefDesireHelper"), "CalculateFiefDesirePressure"), nameof(ZeroFloat));
+            Patch(AccessTools.Method(typeof(ClaimFeudBehavior), "CalculatePowerAdvantageScore"), nameof(ZeroFloat));
+            Patch(AccessTools.Method(typeof(ClaimFeudBehavior), "CalculatePersonalityScore"), nameof(ZeroFloat));
+            Patch(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }), nameof(ZeroInt));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.MarriageAllianceHelper"), "HasMarriageAlliance"), nameof(No));
+            Patch(AccessTools.Method(typeof(ClaimFeudBehavior), "AreCloseDynasticKin"), nameof(No));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.NotificationHelper"), "ShowClaimFeudStarted"), nameof(Skip));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.BellumCivileDebug"), "Trace"), nameof(Skip));
+            Patch(AccessTools.Method(typeof(InformationManager), "ShowInquiry", new[] { typeof(InquiryData), typeof(bool), typeof(bool) }), nameof(CaptureInquiry));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.BellumCivileNotifications"), "ShowPersonal", new[] { typeof(TextObject), typeof(Color) }), nameof(Skip));
+            Patch(AccessTools.Method(typeof(FactionsWindowVM), "RefreshAvailableFactionTypes"), nameof(Skip));
+            Patch(AccessTools.Method(typeof(FactionsWindowVM), "RefreshButtonStates"), nameof(Skip));
+            Patch(AccessTools.Method(typeof(FactionsWindowVM), "RefreshFactionList"), nameof(Skip));
+            Patch(AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.ChangeClanInfluenceAction), "Apply"), nameof(CapturePlayerInfluence));
+            RunSelectionCases(check);
         }
         finally { h.UnpatchAll(h.Id); _campaign = null; }
+    }
+
+    private static void RunSelectionCases(Action<bool, string> check)
+    {
+        DirectoryInfo root = null;
+        foreach (string searchRoot in new[] { Environment.CurrentDirectory, AppDomain.CurrentDomain.BaseDirectory })
+        {
+            root = new DirectoryInfo(searchRoot);
+            while (root != null && !File.Exists(Path.Combine(root.FullName, "BellumCivile.csproj"))) root = root.Parent;
+            if (root != null) break;
+        }
+        check(root != null, "Repository found for faction-selection prefab checks");
+        var prefab = new XmlDocument();
+        prefab.Load(Path.Combine(root.FullName, "GUI/Prefabs/KingdomManagement/Factions/BellumFactionsPanel.xml"));
+        var confirm = (XmlElement)prefab.SelectSingleNode("//ButtonWidget[@Command.Click='ExecuteConfirmCreate']");
+        check(confirm != null && confirm.GetAttribute("IsEnabled") == "@IsCreationChoiceSelected",
+            "The founding confirmation button is disabled until an explicit selection exists");
+        var row = (XmlElement)prefab.SelectSingleNode("//*[@Id='BellumTypeList']//ButtonWidget[@Command.Click='ExecuteSelect']");
+        check(row != null && row.GetAttribute("IsSelected") == "@IsSelected" && row.GetAttribute("DoNotPassEventsToChildren") == "true",
+            "The selected row is visibly highlighted and receives clicks over its label");
+        var strings = new XmlDocument(); strings.Load(Path.Combine(root.FullName, "ModuleData/Languages/EN/strings.xml"));
+        foreach (string id in new[] { "Title", "Body", "Accept", "Back", "Changed", "Unavailable", "HolderChanged", "Started" })
+            check(strings.SelectNodes("//string[@id='BC_FeudConfirm_" + id + "']").Count == 1,
+                "The feud confirmation text has one English localization entry: " + id);
+        Reset();
+        var window = Blank<FactionsWindowVM>();
+        window.AvailableFactionTypes = new MBBindingList<PoliticalActionVM>();
+        PoliticalActionVM Choice(string title, string holder, string name, string house, bool enabled = true)
+            => PoliticalActionVM.ForClaimFeud(new ClaimFeudActionPreview
+            {
+                TitleId = title, TitleName = name, HolderClanId = holder, HolderName = house, IsEnabled = enabled
+            }, null, "Start feud over " + name, "");
+        var pravend = Choice("town_V3", "dey_tihr", "Barony of Pravend", "dey Tihr");
+        var ormanfard = Choice("castle_V4", "dey_folcun", "Barony of Ormanfard", "dey Folcun");
+        var disabled = Choice("blocked", "other", "Blocked", "Other", false);
+        window.AvailableFactionTypes.Add(ormanfard);
+        window.AvailableFactionTypes.Add(pravend);
+        window.AvailableFactionTypes.Add(disabled);
+        window.SelectedFactionType = ormanfard; ormanfard.IsSelected = true;
+        Call(window, "OpenCreationSelector");
+        check(window.IsCreatingFaction && window.SelectedFactionType == null && !window.IsCreationChoiceSelected && !ormanfard.IsSelected,
+            "Opening the founding menu clears the old selection instead of choosing the first feud");
+        Call(window, "OnFactionTypeSelected", disabled);
+        Call(window, "OnFactionTypeSelected", Choice("stale", "other", "Stale", "Other"));
+        check(window.SelectedFactionType == null, "Disabled or stale rows cannot become the selected action");
+        Call(window, "OnFactionTypeSelected", pravend);
+        check(window.SelectedFactionType == pravend && pravend.IsSelected && window.IsCreationChoiceSelected && !ormanfard.IsSelected,
+            "The explicitly clicked claim, not the first claim, becomes selected");
+        _inquiry = null; window.ExecuteConfirmCreate();
+        check(_inquiry != null && _inquiry.Text.Contains("Barony of Pravend") && _inquiry.Text.Contains("dey Tihr")
+            && _inquiry.Text.Contains("100") && Records.Count == 0,
+            "Feud confirmation names the selected title, holder and cost before creating a dispute");
+        var confirmation = _inquiry;
+        Call(window, "OnFactionTypeSelected", ormanfard);
+        confirmation.AffirmativeAction();
+        check(Records.Count == 0 && window.SelectedFactionType == ormanfard,
+            "Changing selection after confirmation prevents the old feud from starting");
+        Call(window, "OnFactionTypeSelected", pravend); _inquiry = null; window.ExecuteConfirmCreate();
+        _influence = 0; _inquiry.AffirmativeAction();
+        check(Records.Count == 0 && window.IsCreatingFaction, "Influence lost before confirmation prevents the feud without closing the menu");
+        _influence = 1000;
+        window.ExecuteCancelCreate();
+        check(!window.IsCreatingFaction && window.SelectedFactionType == null && !pravend.IsSelected,
+            "Cancelling clears the selected action before the next opening");
+
+        var start = AccessTools.Method(typeof(ClaimFeudBehavior), "TryStartPlayerFeudForHolder");
+        var changed = new object[] { _claimant, _title.TitleId, _other.StringId, null, null };
+        check(!(bool)start.Invoke(_feuds, changed) && Records.Count == 0
+            && ((string)changed[4]).Contains("holder has changed"),
+            "The real feud backend rejects the selected title when its current holder differs from the confirmed house");
+        var matching = new object[] { _claimant, _title.TitleId, _holder.StringId, null, null };
+        bool started = (bool)start.Invoke(_feuds, matching);
+        var record = matching[3] as ClaimFeudRecord;
+        check(started && record != null && record.TargetTitleId == _title.TitleId && record.HolderClanId == _holder.StringId,
+            "The real feud backend records the exact confirmed title and holder when both remain eligible");
+
+        Reset(); _playerInfluenceSpent = 0;
+        window.AvailableFactionTypes.Clear();
+        var real = Choice(_title.TitleId, _holder.StringId, "County", "Holder");
+        window.AvailableFactionTypes.Add(real);
+        Call(window, "OpenCreationSelector");
+        Call(window, "OnFactionTypeSelected", real);
+        _inquiry = null; window.ExecuteConfirmCreate();
+        check(_inquiry != null && Records.Count == 0 && _playerInfluenceSpent == 0,
+            "An unaccepted confirmation does not start a feud or spend influence");
+        _inquiry.AffirmativeAction();
+        check(Records.Count == 1 && Records[0].TargetTitleId == _title.TitleId
+            && Records[0].HolderClanId == _holder.StringId && _playerInfluenceSpent == 100
+            && !window.IsCreatingFaction && window.SelectedFactionType == null,
+            "Accepting a valid confirmation starts exactly the selected feud and charges once");
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

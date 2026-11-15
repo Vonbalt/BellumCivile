@@ -247,7 +247,8 @@ namespace BellumCivile.UI
                 PoliticalActionVM refreshedSelection = AvailableFactionTypes.FirstOrDefault(f =>
                     f.ActionKind == SelectedFactionType.ActionKind
                     && f.FactionType == SelectedFactionType.FactionType
-                    && f.TargetTitleId == SelectedFactionType.TargetTitleId);
+                    && f.TargetTitleId == SelectedFactionType.TargetTitleId
+                    && f.TargetHolderClanId == SelectedFactionType.TargetHolderClanId);
                 if (refreshedSelection != null)
                 {
                     SelectedFactionType = refreshedSelection;
@@ -412,6 +413,7 @@ namespace BellumCivile.UI
 
         private void OnFactionTypeSelected(PoliticalActionVM typeVM)
         {
+            if (typeVM == null || !typeVM.IsEnabled || AvailableFactionTypes?.Contains(typeVM) != true) return;
             if (SelectedFactionType != null) SelectedFactionType.IsSelected = false;
             SelectedFactionType = typeVM;
             SelectedFactionType.IsSelected = true;
@@ -1297,11 +1299,21 @@ namespace BellumCivile.UI
             }
             else
             {
-                IsCreatingFaction = true;
-                PoliticalActionVM firstValid = AvailableFactionTypes.FirstOrDefault(CanAffordAction)
-                    ?? AvailableFactionTypes.FirstOrDefault(f => f.IsEnabled);
-                if (firstValid != null) OnFactionTypeSelected(firstValid);
+                OpenCreationSelector();
             }
+        }
+
+        private void OpenCreationSelector()
+        {
+            ClearCreationSelection();
+            IsCreatingFaction = true;
+        }
+
+        private void ClearCreationSelection()
+        {
+            if (SelectedFactionType != null) SelectedFactionType.IsSelected = false;
+            SelectedFactionType = null;
+            RefreshSelectedActionCost();
         }
 
         public void ExecuteConfirmCreate()
@@ -1324,29 +1336,7 @@ namespace BellumCivile.UI
 
                 if (SelectedFactionType.ActionKind == PoliticalActionKind.StartClaimFeud)
                 {
-                    ClaimFeudBehavior feudBehavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudBehavior>();
-                    ClaimFeudRecord record = null;
-                    string report = null;
-                    bool startedFeud = feudBehavior != null
-                        && feudBehavior.TryStartPlayerFeud(Clan.PlayerClan, SelectedFactionType.TargetTitleId, out record, out report);
-                    if (!startedFeud)
-                    {
-                        TextObject failed = new TextObject("{=BC_UI_Err_StartFeudFailed}The feud could not be started: {REASON}");
-                        failed.SetTextVariable("REASON", report ?? new TextObject("{=BC_RoyalPeace_ErrUnavailable}The realm's peace cannot be enforced right now.").ToString());
-                        BellumCivileNotifications.ShowPersonal(failed, BellumNotificationColors.Danger);
-                        RefreshAvailableFactionTypes();
-                        RefreshButtonStates();
-                        return;
-                    }
-
-                    if (SelectedFactionType.InfluenceCost > 0)
-                        ChangeClanInfluenceAction.Apply(Clan.PlayerClan, -SelectedFactionType.InfluenceCost);
-
-                    TextObject started = new TextObject("{=BC_UI_Msg_StartedClaimFeud}You have begun pressing your claim. The feud is now active.");
-                    BellumCivileNotifications.ShowPersonal(started, BellumNotificationColors.Warning);
-                    RefreshAvailableFactionTypes();
-                    RefreshFactionList();
-                    IsCreatingFaction = false;
+                    ConfirmSelectedClaimFeud(SelectedFactionType);
                     return;
                 }
 
@@ -1403,6 +1393,66 @@ namespace BellumCivile.UI
                 formedMsg.SetTextVariable("FACTION_NAME", GetDynamicFactionName(newFaction));
                 BellumCivileNotifications.ShowPersonal(formedMsg, BellumNotificationColors.Success);
             }
+            IsCreatingFaction = false;
+        }
+
+        private void ConfirmSelectedClaimFeud(PoliticalActionVM choice)
+        {
+            Clan claimant = Clan.PlayerClan;
+            if (claimant == null || choice == null || string.IsNullOrWhiteSpace(choice.TargetTitleId)
+                || string.IsNullOrWhiteSpace(choice.TargetHolderClanId))
+                return;
+
+            string titleId = choice.TargetTitleId;
+            string holderId = choice.TargetHolderClanId;
+            string titleName = choice.TargetTitleName;
+            string holderName = choice.TargetHolderName;
+            int influenceCost = choice.InfluenceCost;
+            var prompt = new TextObject("{=BC_FeudConfirm_Body}Press your claim to {TITLE}, currently held by {HOLDER}? Starting this feud costs {INFLUENCE} influence.")
+                .SetTextVariable("TITLE", titleName ?? titleId)
+                .SetTextVariable("HOLDER", holderName ?? holderId)
+                .SetTextVariable("INFLUENCE", influenceCost);
+            InformationManager.ShowInquiry(new InquiryData(
+                new TextObject("{=BC_FeudConfirm_Title}Start a Private Feud").ToString(), prompt.ToString(), true, true,
+                new TextObject("{=BC_FeudConfirm_Accept}Start Feud").ToString(),
+                new TextObject("{=BC_FeudConfirm_Back}Go Back").ToString(),
+                () => StartConfirmedClaimFeud(claimant, titleId, holderId, titleName, holderName, influenceCost), null), true);
+        }
+
+        private void StartConfirmedClaimFeud(Clan claimant, string titleId, string holderId, string titleName, string holderName, int influenceCost)
+        {
+            PoliticalActionVM selected = SelectedFactionType;
+            if (!IsCreatingFaction || claimant != Clan.PlayerClan || selected == null
+                || selected.ActionKind != PoliticalActionKind.StartClaimFeud
+                || AvailableFactionTypes?.Contains(selected) != true
+                || selected.TargetTitleId != titleId || selected.TargetHolderClanId != holderId
+                || selected.InfluenceCost != influenceCost || !CanAffordAction(selected))
+            {
+                BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_FeudConfirm_Changed}The proposed feud is no longer available. Please review your choice again."), BellumNotificationColors.Warning);
+                RefreshAvailableFactionTypes();
+                RefreshButtonStates();
+                return;
+            }
+
+            ClaimFeudBehavior behavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudBehavior>();
+            string report = null;
+            if (behavior == null || !behavior.TryStartPlayerFeudForHolder(claimant, titleId, holderId, out _, out report))
+            {
+                TextObject failed = new TextObject("{=BC_UI_Err_StartFeudFailed}The feud could not be started: {REASON}");
+                failed.SetTextVariable("REASON", report ?? new TextObject("{=BC_FeudConfirm_Unavailable}The dispute is no longer available.").ToString());
+                BellumCivileNotifications.ShowPersonal(failed, BellumNotificationColors.Danger);
+                RefreshAvailableFactionTypes();
+                RefreshButtonStates();
+                return;
+            }
+
+            if (influenceCost > 0) ChangeClanInfluenceAction.Apply(claimant, -influenceCost);
+            var started = new TextObject("{=BC_FeudConfirm_Started}You have begun pressing your claim to {TITLE} against {HOLDER}.")
+                .SetTextVariable("TITLE", titleName ?? titleId).SetTextVariable("HOLDER", holderName ?? holderId);
+            BellumCivileNotifications.ShowPersonal(started, BellumNotificationColors.Warning);
+            ClearCreationSelection();
+            RefreshAvailableFactionTypes();
+            RefreshFactionList();
             IsCreatingFaction = false;
         }
 
@@ -1683,6 +1733,7 @@ namespace BellumCivile.UI
 
         public void ExecuteCancelCreate()
         {
+            ClearCreationSelection();
             IsCreatingFaction = false;
         }
 
@@ -1716,7 +1767,8 @@ namespace BellumCivile.UI
         [DataSourceProperty] public bool HasSelectedFaction { get => _hasSelectedFaction; set { if (value != _hasSelectedFaction) { _hasSelectedFaction = value; OnPropertyChangedWithValue(value, "HasSelectedFaction"); } } }
         [DataSourceProperty] public string HeaderText { get => _headerText; set { if (value != _headerText) { _headerText = value; OnPropertyChangedWithValue(value, "HeaderText"); } } }
         [DataSourceProperty] public MBBindingList<PoliticalActionVM> AvailableFactionTypes { get => _availableFactionTypes; set { if (value != _availableFactionTypes) { _availableFactionTypes = value; OnPropertyChangedWithValue(value, "AvailableFactionTypes"); } } }
-        [DataSourceProperty] public PoliticalActionVM SelectedFactionType { get => _selectedFactionType; set { if (value != _selectedFactionType) { _selectedFactionType = value; OnPropertyChangedWithValue(value, "SelectedFactionType"); } } }
+        [DataSourceProperty] public PoliticalActionVM SelectedFactionType { get => _selectedFactionType; set { if (value != _selectedFactionType) { _selectedFactionType = value; OnPropertyChangedWithValue(value, "SelectedFactionType"); OnPropertyChangedWithValue(IsCreationChoiceSelected, nameof(IsCreationChoiceSelected)); } } }
+        [DataSourceProperty] public bool IsCreationChoiceSelected => SelectedFactionType != null && SelectedFactionType.IsEnabled;
         [DataSourceProperty] public bool IsSelectedActionCostVisible { get => _isSelectedActionCostVisible; set { if (value != _isSelectedActionCostVisible) { _isSelectedActionCostVisible = value; OnPropertyChangedWithValue(value, "IsSelectedActionCostVisible"); } } }
         [DataSourceProperty] public string SelectedActionCostText { get => _selectedActionCostText; set { if (value != _selectedActionCostText) { _selectedActionCostText = value; OnPropertyChangedWithValue(value, "SelectedActionCostText"); } } }
         [DataSourceProperty] public string JoinLeaveText { get => _joinLeaveText; set { if (value != _joinLeaveText) { _joinLeaveText = value; OnPropertyChangedWithValue(value, "JoinLeaveText"); } } }

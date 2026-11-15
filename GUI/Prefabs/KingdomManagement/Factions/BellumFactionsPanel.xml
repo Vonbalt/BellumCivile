@@ -933,7 +933,7 @@
                           <Children>
                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom" MarginRight="10">
                               <Children>
-                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="45" Brush="ButtonBrush1" Command.Click="ExecuteConfirmCreate" UpdateChildrenStates="true">
+                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="45" Brush="ButtonBrush1" Command.Click="ExecuteConfirmCreate" IsEnabled="@IsCreationChoiceSelected" UpdateChildrenStates="true">
                                   <Children>
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="26" Text="@ConfirmText" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                   </Children>

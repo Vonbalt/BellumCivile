@@ -17,6 +17,9 @@ namespace BellumCivile.UI
         public PoliticalActionKind ActionKind { get; private set; }
         public FactionType FactionType { get; private set; }
         public string TargetTitleId { get; private set; }
+        public string TargetTitleName { get; private set; }
+        public string TargetHolderClanId { get; private set; }
+        public string TargetHolderName { get; private set; }
         public int InfluenceCost { get; private set; }
 
         private PoliticalActionVM(
@@ -27,11 +30,17 @@ namespace BellumCivile.UI
             Action<PoliticalActionVM> onSelection,
             bool isEnabled,
             string hintText,
-            int influenceCost)
+            int influenceCost,
+            string targetHolderClanId = null,
+            string targetHolderName = null,
+            string targetTitleName = null)
         {
             ActionKind = actionKind;
             FactionType = factionType;
             TargetTitleId = targetTitleId;
+            TargetTitleName = targetTitleName;
+            TargetHolderClanId = targetHolderClanId;
+            TargetHolderName = targetHolderName;
             _name = name;
             _onSelection = onSelection;
             _isEnabled = isEnabled;
@@ -72,7 +81,10 @@ namespace BellumCivile.UI
                 onSelection,
                 preview?.IsEnabled == true,
                 hintText,
-                100);
+                100,
+                preview?.HolderClanId,
+                preview?.HolderName,
+                preview?.TitleName);
         }
 
         public void ExecuteSelect()

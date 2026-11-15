@@ -647,6 +647,9 @@ namespace BellumCivile.Behaviors
         }
 
         public bool TryStartPlayerFeud(Clan clan, string titleId, out ClaimFeudRecord record, out string report)
+            => TryStartPlayerFeudForHolder(clan, titleId, null, out record, out report);
+
+        internal bool TryStartPlayerFeudForHolder(Clan clan, string titleId, string expectedHolderClanId, out ClaimFeudRecord record, out string report)
         {
             EnsureCollectionsInitialized();
             record = null;
@@ -678,6 +681,11 @@ namespace BellumCivile.Behaviors
                 report = "No valid claim feud target was found for that title.";
                 return false;
             }
+            if (!string.IsNullOrWhiteSpace(expectedHolderClanId) && candidate.Holder?.StringId != expectedHolderClanId)
+            {
+                report = new TextObject("{=BC_FeudConfirm_HolderChanged}The title's holder has changed. Please review the dispute again.").ToString();
+                return false;
+            }
 
             record = StartFeud(candidate, "player_action");
             if (record == null)
@@ -687,6 +695,7 @@ namespace BellumCivile.Behaviors
             }
 
             report = $"Started claim feud over {FeudalTitleDisplayHelper.FormatTitleName(candidate.Title, clan)}.";
+            BellumCivileLogger.Log($"Player founded claim feud; claimant={clan.StringId}; title={candidate.Title.TitleId}; holder={candidate.Holder.StringId}; feud={record.RecordId}; source_claim={candidate.SourceClaimId ?? "none"}.");
             return true;
         }
 
