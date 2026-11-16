@@ -201,7 +201,7 @@ namespace BellumCivile
                     }
                 }
 
-                AddLandlessRulerGrievance(ref score, reasons, firstClan, secondClan);
+                AddLandlessRulerGrievance(ref score, reasons, firstHero, secondHero);
                 AddCourtFactionScore(ref score, reasons, firstClan, secondClan);
                 AddCivilWarScore(ref score, reasons, firstClan, secondClan);
                 Add(ref score, reasons, ElectiveSuccessionBehavior.Instance?.EndorsementOpinion(firstHero, secondHero) ?? 0,
@@ -247,12 +247,16 @@ namespace BellumCivile
             return Math.Max(C.DynamicRelationBaselineMin, Math.Min(C.DynamicRelationBaselineMax, score));
         }
 
-        private static void AddLandlessRulerGrievance(ref int score, List<string> reasons, Clan firstClan, Clan secondClan)
+        private static void AddLandlessRulerGrievance(ref int score, List<string> reasons, Hero firstHero, Hero secondHero)
         {
+            Clan firstClan = firstHero?.Clan;
+            Clan secondClan = secondHero?.Clan;
             if (firstClan?.Kingdom == null
                 || secondClan?.Kingdom == null
                 || firstClan.Kingdom != secondClan.Kingdom
-                || firstClan == secondClan)
+                || firstClan == secondClan
+                || firstClan.Leader != firstHero
+                || secondClan.Leader != secondHero)
             {
                 return;
             }
@@ -287,6 +291,10 @@ namespace BellumCivile
             {
                 return false;
             }
+
+            var grant = LordshipBehavior.Instance?.GetGrant(clan.Leader);
+            if (grant?.IsVassalGrant == true && grant.BeneficiaryClan == clan && grant.IsValid)
+                return false;
 
             FeudalTitleBehavior titleBehavior = FeudalTitleBehavior.Instance;
             return titleBehavior == null || !titleBehavior.GetTitlesHeldByClan(clan, deJure: false).Any(title => title != null && title.IsActive);

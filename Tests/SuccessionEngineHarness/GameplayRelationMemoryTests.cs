@@ -197,12 +197,12 @@ internal static class GameplayRelationMemoryTests
         {
             Changes.Clear();
             judge.Invoke(null, new object[] { ruler, claimant, holder, judgment, ClaimFeudResponse.Accept, ClaimFeudResponse.Accept });
-            string[] expected = judgment == ClaimFeudJudgment.Suppress ? new[] { RelationMemorySources.SuppressedMyClaim }
+            string[] expected = judgment == ClaimFeudJudgment.Suppress ? Array.Empty<string>()
                 : judgment == ClaimFeudJudgment.Abstain ? new[] { RelationMemorySources.WithheldFeudJudgment, RelationMemorySources.WithheldFeudJudgment }
                 : new[] { RelationMemorySources.UpheldMyTitleRights, RelationMemorySources.RejectedMyTitleRights };
             check(Changes.Select(c => c.Source).SequenceEqual(expected) && Changes.All(c => c.Second == ruler
                 && c.Scope == RelationMemoryScope.Personal && c.Days == DefaultDays(c.Amount)),
-                "Feud ruling has specific causes with unchanged decay: " + judgment);
+                "Current feud rulings retain their specific memories; legacy suppression adds none: " + judgment);
         }
         Changes.Clear();
         judge.Invoke(null, new object[] { ruler, claimant, holder, ClaimFeudJudgment.None, ClaimFeudResponse.Defy, ClaimFeudResponse.Defy });

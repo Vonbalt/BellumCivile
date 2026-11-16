@@ -860,3 +860,6 @@ Improved chat notification performance and clarified notification settings.
 Fixed small issue on ransom broker dialogue to ransom clan members.
 Added option to sign non-aggression pacts during peace time, those require a mutual exchange of hostages.
 Added defensive pacts, now realms acumulate threat based on their perceived aggressive expansionism which may lead others to band together in defensive pacts for survival.
+Fixed the landed-title grievance affecting retainers and not recognizing a vassal leader’s lordship.
+Fixed hero tooltips showing inconsistent relation values.
+Fixed personal-friend army summons using clan relations instead of individual relations.

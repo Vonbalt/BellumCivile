@@ -49,6 +49,7 @@ namespace BellumCivile.Behaviors
             public float Day;
             public int PoliticalRevision;
             public int TitleRevision;
+            public int LordshipRevision;
         }
 
         private struct VisibleRelationCacheEntry
@@ -60,6 +61,7 @@ namespace BellumCivile.Behaviors
             public int FoundationRevision;
             public int PoliticalRevision;
             public int TitleRevision;
+            public int LordshipRevision;
             public int MemoryRevision;
             public int HouseMemoryRevision;
         }
@@ -431,6 +433,7 @@ namespace BellumCivile.Behaviors
             _foundationRevision++;
             InvalidateBaselineCache();
             PruneExpiredMemories(true);
+            Patches.HeroTooltipPersonalRelationPatch.Initialize();
         }
 
         private void OnDailyTick()
@@ -853,6 +856,7 @@ namespace BellumCivile.Behaviors
                 || cached.FoundationRevision != _foundationRevision
                 || cached.PoliticalRevision != _politicalRevision
                 || cached.TitleRevision != (FeudalTitleBehavior.Instance?.RuntimeRevision ?? 0)
+                || cached.LordshipRevision != (LordshipBehavior.Instance?.Revision ?? 0)
                 || cached.MemoryRevision != _memoryRevision
                 || cached.HouseMemoryRevision != GetHouseMemoryRevision(key.FirstHero, key.SecondHero)
                 || cached.Spouses != PersonalKinshipHelper.IsSpouse(key.FirstHero, key.SecondHero)
@@ -874,6 +878,7 @@ namespace BellumCivile.Behaviors
                 FoundationRevision = _foundationRevision,
                 PoliticalRevision = _politicalRevision,
                 TitleRevision = FeudalTitleBehavior.Instance?.RuntimeRevision ?? 0,
+                LordshipRevision = LordshipBehavior.Instance?.Revision ?? 0,
                 MemoryRevision = _memoryRevision,
                 HouseMemoryRevision = GetHouseMemoryRevision(key.FirstHero, key.SecondHero),
                 Spouses = PersonalKinshipHelper.IsSpouse(key.FirstHero, key.SecondHero),
@@ -998,8 +1003,10 @@ namespace BellumCivile.Behaviors
         {
             float day = CurrentDay;
             int titleRevision = FeudalTitleBehavior.Instance?.RuntimeRevision ?? 0;
+            int lordshipRevision = LordshipBehavior.Instance?.Revision ?? 0;
             if (_politicalCache.TryGetValue(key, out PoliticalCacheEntry cached) && day - cached.Day < PoliticalCacheLifetimeDays
                 && cached.PoliticalRevision == _politicalRevision && cached.TitleRevision == titleRevision
+                && cached.LordshipRevision == lordshipRevision
                 && cached.CustodyModifier == DynamicRelationBaselineHelper.GetPrisonerCustodyModifier(firstHero, secondHero))
             {
 #if DEBUG
@@ -1011,7 +1018,7 @@ namespace BellumCivile.Behaviors
             _diagnosticPoliticalMisses++;
 #endif
             int value = DynamicRelationBaselineHelper.CalculatePoliticalConditionsRaw(firstHero, secondHero);
-            _politicalCache[key] = new PoliticalCacheEntry { Value = value, Day = day, PoliticalRevision = _politicalRevision, TitleRevision = titleRevision,
+            _politicalCache[key] = new PoliticalCacheEntry { Value = value, Day = day, PoliticalRevision = _politicalRevision, TitleRevision = titleRevision, LordshipRevision = lordshipRevision,
                 CustodyModifier = DynamicRelationBaselineHelper.GetPrisonerCustodyModifier(firstHero, secondHero) };
             EnqueueCacheKey(key, _politicalPruneQueue, _queuedPoliticalKeys);
             return value;

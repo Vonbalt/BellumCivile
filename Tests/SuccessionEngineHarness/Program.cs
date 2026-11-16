@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--client-occupation"))
+            if (args.Contains("--personal-relation-integration"))
+            {
+                PersonalRelationIntegrationTests.Run(Check);
+                Console.WriteLine($"{_checks} personal relation integration checks passed.");
+            }
+            else if (args.Contains("--client-occupation"))
             {
                 ClientOccupationTreatyTests.Run(Check);
                 Console.WriteLine($"{_checks} client occupation checks passed.");

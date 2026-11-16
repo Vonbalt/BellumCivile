@@ -106,7 +106,7 @@ namespace BellumCivile
                 && refusalKind == ArmySummonsRefusalKind.NotLegalVassal
                 && caller != null
                 && called != null
-                && called.GetRelation(caller) >= O.ArmyPersonalFriendRelationThreshold;
+                && CharacterRelationManager.GetHeroRelation(called, caller) >= O.ArmyPersonalFriendRelationThreshold;
         }
 
         internal static bool ShouldRefuseArmyMenuCall(

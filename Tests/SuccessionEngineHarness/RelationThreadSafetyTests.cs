@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,11 @@ internal static class RelationThreadSafetyTests
     private static Hero _first, _second;
     private static string Key(Hero first, Hero second) => RelationMemoryRecord.BuildPairKey(first.StringId, second.StringId);
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
+    // Invoke after Harmony has patched the native methods; Bannerlord's tiny accessors can be inlined.
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    private static int ReadRelation(Hero first, Hero second) => CharacterRelationManager.GetHeroRelation(first, second);
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    private static void WriteRelation(Hero first, Hero second, int value) => CharacterRelationManager.SetHeroRelation(first, second, value);
     private static object Call(object instance, string method, params object[] args) => AccessTools.Method(Behavior, method).Invoke(instance, args);
     private static IDictionary Data(object instance, string field) => (IDictionary)AccessTools.Field(Behavior, field).GetValue(instance);
     private static bool Suppressed
@@ -118,7 +124,7 @@ internal static class RelationThreadSafetyTests
             _first = Hero("thread_first"); _second = Hero("thread_second");
             var unknown = Hero("thread_unknown");
             Raw[Key(_first, _second)] = 30; Raw[Key(_first, unknown)] = -7;
-            check(CharacterRelationManager.GetHeroRelation(_first, _second) == 30,
+            check(ReadRelation(_first, _second) == 30,
                 "Campaign read still materializes the exact opening relation");
             int memoryCount = memories.Count;
             int publishedCount = Data(behavior, "_runtimeMaterializedPairValues").Count;
@@ -126,8 +132,8 @@ internal static class RelationThreadSafetyTests
             check(Worker(() => behavior.GetRelationForRead(_first, _second, -99) == 30
                 && behavior.GetRelationForRead(_first, unknown, -7) == -7),
                 "Background reads use the published scalar or preserve the supplied native fallback");
-            check(Worker(() => CharacterRelationManager.GetHeroRelation(_first, _second) == 30
-                && CharacterRelationManager.GetHeroRelation(_first, unknown) == -7),
+            check(Worker(() => ReadRelation(_first, _second) == 30
+                && ReadRelation(_first, unknown) == -7),
                 "Actual Harmony relation-read path is safe for cached and previously unseen pairs");
             check(memories.Count == memoryCount && Data(behavior, "_runtimeMaterializedPairValues").Count == publishedCount
                 && Data(behavior, "_visibleRelationCache").Count == visibleCount,
@@ -137,7 +143,7 @@ internal static class RelationThreadSafetyTests
             Worker(() => { behavior.InvalidateBaselineCache(); return true; });
             check((int)AccessTools.Field(Behavior, "_politicalRevision").GetValue(behavior) == revision,
                 "Background invalidation does not clear campaign-owned collections");
-            CharacterRelationManager.GetHeroRelation(_first, _second);
+            ReadRelation(_first, _second);
             check((int)AccessTools.Field(Behavior, "_politicalRevision").GetValue(behavior) == revision + 1,
                 "The next campaign read consumes pending political invalidation");
 
@@ -171,12 +177,12 @@ internal static class RelationThreadSafetyTests
             Worker(() =>
             {
                 using (RelationMemoryService.Begin("thread_favor", 2, contextText: "Deferred event"))
-                    CharacterRelationManager.SetHeroRelation(_first, _second, 35);
+                    WriteRelation(_first, _second, 35);
                 return true;
             });
             check(_nativeWrites == writesBefore && Raw[Key(_first, _second)] == 30,
                 "Background setter is deferred before native campaign mutation");
-            check(CharacterRelationManager.GetHeroRelation(_first, _second) == 30,
+            check(ReadRelation(_first, _second) == 30,
                 "A relation postfix does not flush pending writes against an already-read native value");
             using (RelationMemoryService.Begin("unrelated_campaign_context", 1))
             {
@@ -185,7 +191,7 @@ internal static class RelationThreadSafetyTests
                 check((string)AccessTools.Property(context.GetType(), "SourceId").GetValue(context) == "unrelated_campaign_context",
                     "Queued writer restores the campaign caller's memory context");
             }
-            check(Raw[Key(_first, _second)] == 35 && CharacterRelationManager.GetHeroRelation(_first, _second) == 35
+            check(Raw[Key(_first, _second)] == 35 && ReadRelation(_first, _second) == 35
                 && memories.Any(m => m.SourceId == "thread_favor" && m.Value == 5 && m.ContextText == "Deferred event"
                     && m.ExpiryDay - m.StartDay == 2 * Math.Max(1, CampaignTime.DaysInYear)),
                 "Deferred setter retains its exact delta and original memory source");
@@ -198,8 +204,8 @@ internal static class RelationThreadSafetyTests
                 using ((IDisposable)AccessTools.Method(typeof(RelationMemoryService), "BeginNativeLabels")
                     .Invoke(null, new object[] { "queued_native_favor", "queued_native_grievance" }))
                 {
-                    CharacterRelationManager.SetHeroRelation(_first, favored, 9);
-                    CharacterRelationManager.SetHeroRelation(_first, offended, -9);
+                    WriteRelation(_first, favored, 9);
+                    WriteRelation(_first, offended, -9);
                 }
                 return true;
             });
@@ -214,9 +220,9 @@ internal static class RelationThreadSafetyTests
             Worker(() =>
             {
                 using (RelationMemoryService.Begin("failed_deferred_event", 1))
-                    CharacterRelationManager.SetHeroRelation(_first, _second, 36);
+                    WriteRelation(_first, _second, 36);
                 using (RelationMemoryService.Begin("after_deferred_failure", 1))
-                    CharacterRelationManager.SetHeroRelation(_first, _second, 37);
+                    WriteRelation(_first, _second, 37);
                 return true;
             });
             _throwWrite = true;
@@ -238,14 +244,14 @@ internal static class RelationThreadSafetyTests
             _enabled = true;
 
             var targets = Enumerable.Range(0, 96).Select(i => Hero("parallel_" + i)).ToArray();
-            foreach (var target in targets) { Raw[Key(_first, target)] = 20; CharacterRelationManager.GetHeroRelation(_first, target); }
+            foreach (var target in targets) { Raw[Key(_first, target)] = 20; ReadRelation(_first, target); }
             var started = new CountdownEvent(8); var start = new ManualResetEventSlim(false);
             var workers = Enumerable.Range(0, 8).Select(worker => Task.Run(() =>
             {
                 started.Signal(); start.Wait();
                 for (int i = 0; i < 10000; i++)
                 {
-                    int value = CharacterRelationManager.GetHeroRelation(_first, targets[(i + worker) % targets.Length]);
+                    int value = ReadRelation(_first, targets[(i + worker) % targets.Length]);
                     if (value < -100 || value > 100) throw new Exception("Invalid published relation");
                     if (i % 64 == 0) behavior.InvalidateBaselineCache();
                 }
@@ -255,8 +261,8 @@ internal static class RelationThreadSafetyTests
             for (int i = 0; i < 3000; i++)
             {
                 var target = targets[i % targets.Length];
-                CharacterRelationManager.SetHeroRelation(_first, target, 20 + i % 2);
-                CharacterRelationManager.GetHeroRelation(_first, target);
+                WriteRelation(_first, target, 20 + i % 2);
+                ReadRelation(_first, target);
                 if (i % 64 == 0) { _day += 1; Call(behavior, "OnDailyTick"); }
             }
             if (!Task.WaitAll(workers, TimeSpan.FromSeconds(30))) throw new Exception("Relation concurrency test timed out");
@@ -272,7 +278,7 @@ internal static class RelationThreadSafetyTests
                 "Concurrent readers leave visible cache pruning membership consistent and bounded");
 
             Worker(() => { using (RelationMemoryService.Begin("before_save", 1))
-                    CharacterRelationManager.SetHeroRelation(_first, _second, 41); return true; });
+                    WriteRelation(_first, _second, 41); return true; });
             var store = new Store(); behavior.SyncData(store);
             check(Raw[Key(_first, _second)] == 41 && memories.Any(m => m.SourceId == "before_save"),
                 "Pending relation writes are materialized before campaign serialization");

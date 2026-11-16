@@ -46,6 +46,25 @@ internal static partial class LordshipTests
         Governors.Clear(); Posts.Clear();
         AccessTools.Field(typeof(Clan), "_leader").SetValue(_player, _main);
         Realm(source, realmA); Ruler(realmA, source);
+        int LandlessGrievance(Hero first, Hero second)
+        {
+            object[] arguments = { 0, null, first, second };
+            AccessTools.Method(Type("DynamicRelationBaselineHelper"), "AddLandlessRulerGrievance").Invoke(null, arguments);
+            return (int)arguments[0];
+        }
+        var retainer = person(source, "ruling_retainer");
+        Realm(_player, realmA);
+        AccessTools.Field(typeof(Hero), "_clan").SetValue(_main, _player);
+        AccessTools.Field(typeof(Hero), "_clan").SetValue(lord, source);
+        AccessTools.Field(typeof(Hero), "_clan").SetValue(retainer, source);
+        check((bool)Call(Type("DynamicRelationBaselineHelper"), "IsLandlessNobleVassal", null, _player, source),
+            "The unlanded player clan qualifies for the landed-title grievance fixture");
+        int forward = LandlessGrievance(_main, lord), reverse = LandlessGrievance(lord, _main);
+        check(forward == -10 && reverse == -10,
+            $"A landless vassal leader and ruler have the same landed-title grievance in either order ({forward}, {reverse})");
+        check(LandlessGrievance(_main, retainer) == 0,
+            "The ruling house's retainers do not inherit the ruler's landed-title grievance");
+        Realm(_player, null);
         var third = villageOf(source, "third");
         villageOf(source, "fourth");
         int tax = 1500;
@@ -88,6 +107,8 @@ internal static partial class LordshipTests
         var grant = registry.GetGrant(_main);
         check(grant?.IsVassalGrant == true && expected.Contains(grant.Village) && grant.BeneficiaryClan == _player,
             "Successful oath endows one low-income spare village without changing the player's clan");
+        check(LandlessGrievance(_main, lord) == 0,
+            "A valid personal vassal lordship satisfies the landless leader's desire for a title");
         var grantNotice = new TitleAcquiredMapNotification(null, grant, _main, 0);
         check(grantNotice.IsValid() && grantNotice.DescriptionText.ToString().Contains(LordshipBehavior.Name(grant.Village).ToString())
             && grantNotice.DescriptionText.ToString().Contains(_main.Name.ToString()),
