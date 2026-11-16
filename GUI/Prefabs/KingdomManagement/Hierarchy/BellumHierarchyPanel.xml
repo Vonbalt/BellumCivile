@@ -143,6 +143,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteChallenge" UpdateChildrenStates="true" IsEnabled="@IsChallengeEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ChallengeText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{ChallengeHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{ChallengeHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -153,6 +154,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteClaim" UpdateChildrenStates="true" IsEnabled="@IsClaimEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ClaimText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{ClaimHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{ClaimHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -163,6 +165,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRenounce" UpdateChildrenStates="true" IsEnabled="@IsRenounceEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RenounceText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{RenounceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{RenounceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -173,6 +176,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteUsurp" UpdateChildrenStates="true" IsEnabled="@IsUsurpEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@UsurpText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{UsurpHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{UsurpHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -183,6 +187,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRevoke" UpdateChildrenStates="true" IsEnabled="@IsRevocationEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RevokeText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{RevocationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{RevocationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -193,6 +198,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteForm" UpdateChildrenStates="true" IsEnabled="@IsFormationEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@FormText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{FormationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{FormationHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -203,6 +209,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteService" UpdateChildrenStates="true" IsEnabled="@IsServiceEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@ServiceText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{ServiceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{ServiceHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -213,6 +220,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteGrant" UpdateChildrenStates="true" IsEnabled="@IsGrantEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@GrantText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{GrantHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{GrantHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -223,6 +231,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteRename" UpdateChildrenStates="true" IsEnabled="@IsRenameEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@RenameText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{RenameHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{RenameHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
@@ -233,6 +242,7 @@
                             <HierarchyActionButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Standard.DropdownItem" Command.Click="ExecuteDissolve" UpdateChildrenStates="true" IsEnabled="@IsDissolutionEnabled">
                               <Children>
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Dropdown.Item.Text" Text="@DissolveText" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <HintWidget DataSource="{DissolutionHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                               </Children>
                             </HierarchyActionButtonWidget>
                             <HintWidget DataSource="{DissolutionHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />

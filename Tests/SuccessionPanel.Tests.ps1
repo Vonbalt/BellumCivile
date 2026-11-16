@@ -13,6 +13,19 @@ foreach ($pair in @(@('SuccessionLeftLaws', 'GenderLaws', 'ElectiveTerms'), @('S
     Check ($lists.Count -eq 2 -and $lists[0].DataSource -eq "{$($pair[1])}" -and $lists[1].DataSource -eq "{$($pair[2])}") "Correct group order in $($pair[0])."
 }
 Check ($xml.SelectNodes("//*[@DataSource='{SuccessionLaws}']").Count -eq 0) 'Old mixed succession list removed.'
+foreach ($group in @('GenderLaws', 'HereditaryLaws', 'ElectiveLaws', 'ElectiveTerms')) {
+    $row = $xml.SelectSingleNode("//*[@DataSource='{$group}']/ItemTemplate/Widget/Children")
+    $button = $row.SelectSingleNode("ButtonWidget[@Command.Click='ExecuteSelect']")
+    $enabledHint = $button.SelectSingleNode("Children/HintWidget[@DataSource='{Hint}']")
+    $disabledHint = $row.SelectSingleNode("HintWidget[@DataSource='{Hint}']")
+    Check ($null -ne $enabledHint -and $null -ne $disabledHint -and
+        $enabledHint.GetAttribute('Command.HoverBegin') -eq 'ExecuteBeginHint' -and
+        $enabledHint.GetAttribute('Command.HoverEnd') -eq 'ExecuteEndHint' -and
+        $disabledHint.GetAttribute('Command.HoverBegin') -eq 'ExecuteBeginHint' -and
+        $disabledHint.GetAttribute('Command.HoverEnd') -eq 'ExecuteEndHint' -and
+        $button.IsEnabled -eq '@IsButtonEnabled' -and $button.IsSelected -eq '@IsActive') "$group forwards hints for both enabled and disabled choices without changing selection."
+}
+Check ($vm -match 'IsEnabled\s*=\s*canChange\s*&&\s*!isActive' -and $vm -match 'if\s*\(IsEnabled\)\s*_onSelected\?\.Invoke\(\)') 'Current law remains non-actionable even when its selected button receives hover.'
 $scroll = $xml.SelectSingleNode('//ScrollablePanel')
 Check ($scroll.ClipRect -eq 'SuccessionPolicyLawClip' -and
     $scroll.InnerPanel -eq 'SuccessionPolicyLawClip\SuccessionPolicyLawColumns' -and

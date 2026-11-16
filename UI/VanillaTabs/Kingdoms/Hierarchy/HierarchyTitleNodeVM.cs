@@ -1076,12 +1076,26 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             if (!IsTitleNode)
             {
                 var registry = LordshipBehavior.Instance;
-                bool owner = LordshipVillage.Village?.Bound?.OwnerClan == Clan.PlayerClan;
-                bool occupied = registry?.GetGrant(LordshipVillage) != null;
-                IsGrantEnabled = owner && !occupied;
-                IsRevocationEnabled = owner && occupied;
-                GrantHint = new HintViewModel(LordshipBehavior.EstateText("BC_Lordship_RevenueHint", "The holder alone will receive the revenues of {LORDSHIP}.", LordshipVillage));
-                RevocationHint = new HintViewModel(LordshipBehavior.EstateText("BC_Lordship_RevokeHint", "Return the revenues of {LORDSHIP} to the household. Relations decrease by 15.", LordshipVillage));
+                var playerClan = Clan.PlayerClan;
+                var parent = LordshipVillage.Village?.Bound;
+                bool owner = playerClan != null && parent?.OwnerClan == playerClan;
+                var personalGrant = registry?.GetGrant(LordshipVillage);
+                TextObject unavailable = LordshipBehavior.Text("BC_Lordship_ActionUnavailable", "Village grants are not available at this time.");
+                TextObject notOwner = LordshipBehavior.Text("BC_Lordship_ActionNotOwner", "Your house must hold the parent barony to manage this grant.");
+                TextObject grantBlock = registry == null ? unavailable
+                    : !owner ? notOwner
+                    : personalGrant != null ? LordshipBehavior.EstateText("BC_Lordship_Occupied", "{LORDSHIP} already has a holder.", LordshipVillage)
+                    : FeudalTitleBehavior.Instance?.IsHeldForAllocation(parent, playerClan) == true
+                        ? LordshipBehavior.Text("BC_Lordship_AwaitingAllocation", "This barony is awaiting allocation. Its temporary custodian cannot grant its village revenues.")
+                        : null;
+                TextObject revokeBlock = registry == null ? unavailable
+                    : !owner ? notOwner
+                    : personalGrant == null ? LordshipBehavior.Text("BC_Lordship_RevokeVacant", "This village grant has no holder to revoke it from.")
+                    : personalGrant.GrantingClan != playerClan ? notOwner : null;
+                IsGrantEnabled = grantBlock == null;
+                IsRevocationEnabled = revokeBlock == null;
+                GrantHint = new HintViewModel(BuildLordshipActionHint(LordshipVillage, false, grantBlock));
+                RevocationHint = new HintViewModel(BuildLordshipActionHint(LordshipVillage, true, revokeBlock));
                 return;
             }
             var renounceBlock = FeudalTitlePlayerActionService.GetRenunciationBlock(Title, out bool renounceVisible);
@@ -1130,6 +1144,16 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             GrantHint = new HintViewModel(BuildGrantHint(grant));
             RenameHint = new HintViewModel(BuildRenameHint(rename));
             DissolutionHint = new HintViewModel(BuildDissolutionHint(dissolution));
+        }
+
+        private static TextObject BuildLordshipActionHint(Settlement village, bool revoke, TextObject block)
+        {
+            var description = revoke
+                ? LordshipBehavior.EstateText("BC_Lordship_RevokeActionHint", "Revoke {LORDSHIP}, returning its revenues to your house. Relations with the holder decrease by 15. A retainer without another lordship or active indenture may also lose their appointment.", village)
+                : LordshipBehavior.EstateText("BC_Lordship_GrantActionHint", "Grant {LORDSHIP} to an eligible household member or landless vassal house. Its revenues go to the holder or their house, and relations with the recipient increase by 10.", village);
+            if (block == null) return description;
+            return new TextObject("{=BC_Lordship_ActionBlockedHint}{DESCRIPTION}\n\n{REASON}")
+                .SetTextVariable("DESCRIPTION", description).SetTextVariable("REASON", block);
         }
 
         private TextObject BuildClaimHint(FeudalFabricationPreview preview)

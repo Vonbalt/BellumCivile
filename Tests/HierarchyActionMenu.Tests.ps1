@@ -9,11 +9,18 @@ if ($overlay.NextSibling) { throw 'Overlay must render after the hierarchy.' }
 if ($panel.SelectSingleNode('//*[@Id="HierarchyActionClipRect"]')) { throw 'Legacy bottom bar remains.' }
 $menu = $overlay.SelectSingleNode('.//*[@Id="TitleActionMenu"]')
 if ($menu.DataSource -ne '{SelectedTitle}') { throw 'Menu must target the selected title.' }
-$commands = @('Claim','Usurp','Revoke','Form','Service','Grant','Rename','Dissolve')
-foreach ($command in $commands) {
+$hints = @{ Challenge='Challenge'; Claim='Claim'; Renounce='Renounce'; Usurp='Usurp'; Revoke='Revocation'; Form='Formation'; Service='Service'; Grant='Grant'; Rename='Rename'; Dissolve='Dissolution' }
+foreach ($command in $hints.Keys) {
     $matches = $menu.SelectNodes(".//HierarchyActionButtonWidget[@Command.Click='Execute$command']")
     if ($matches.Count -ne 1) { throw "Missing or duplicate action: $command" }
-    if (!$matches[0].ParentNode.SelectSingleNode('HintWidget')) { throw "Missing tooltip: $command" }
+    $expected = '{' + $hints[$command] + 'Hint}'
+    $enabledHint = $matches[0].SelectSingleNode('Children/HintWidget')
+    $disabledHint = $matches[0].ParentNode.SelectSingleNode('HintWidget')
+    foreach ($hint in @($enabledHint, $disabledHint)) {
+        if (!$hint -or $hint.DataSource -ne $expected -or
+            $hint.GetAttribute('Command.HoverBegin') -ne 'ExecuteBeginHint' -or
+            $hint.GetAttribute('Command.HoverEnd') -ne 'ExecuteEndHint') { throw "Incomplete enabled or disabled tooltip: $command" }
+    }
 }
 foreach ($command in @('Grant','Revoke')) {
     $row = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='Execute$command']").ParentNode.ParentNode
@@ -38,4 +45,4 @@ if ($slot.HeightSizePolicy -ne 'Fixed') { throw 'Selection must not change node 
 if (!$slot.SelectSingleNode('.//HierarchyOptionsButtonWidget[@IsVisible="@IsSelected"]')) { throw 'Options must be selection-only.' }
 if ($strings.SelectNodes('//string[@id="BC_Hierarchy_TitleOptions"]').Count -ne 1) { throw 'Options localization invalid.' }
 if ($node.Prefab.Window.FirstChild.Name -ne 'HierarchyTitleTreeNodeWidget') { throw 'Hierarchy must use scoped dynamic connector cleanup.' }
-'Hierarchy action menu structure checks passed (8 commands, lordship visibility, tooltip bindings, overlay layering, fixed node slot, dynamic tree widget).'
+'Hierarchy action menu structure checks passed (10 commands, lordship visibility, enabled/disabled tooltip bindings, overlay layering, fixed node slot, dynamic tree widget).'

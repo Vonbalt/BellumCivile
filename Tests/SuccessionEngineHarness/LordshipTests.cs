@@ -257,6 +257,7 @@ internal static partial class LordshipTests
                 "Poverty blocks discretionary gifts without revoking an existing endowment");
             CheckRoundTrip(check, registry, legacy);
             CheckPrefab(check);
+            CheckActionHints(check, registry, clan, village, second);
             LordshipHierarchyTests.Run(check, village);
             Patch(typeof(Hero), "CanLeadParty", nameof(NotSpecial), false);
             check(!(bool)Call(Type("Patches.LordshipAppointmentPatches"), "FallbackCommander", null, leader),

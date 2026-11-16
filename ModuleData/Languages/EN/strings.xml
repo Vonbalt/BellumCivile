@@ -7272,6 +7272,12 @@
     <string id="BC_Lordship_Retainer" text="Retainer" />
     <string id="BC_Lordship_Retainers" text="Retainers" />
     <string id="BC_Lordship_RevenueHint" text="The holder alone will receive the revenues of {LORDSHIP}." />
+    <string id="BC_Lordship_GrantActionHint" text="Grant {LORDSHIP} to an eligible household member or landless vassal house. Its revenues go to the holder or their house, and relations with the recipient increase by 10." />
+    <string id="BC_Lordship_RevokeActionHint" text="Revoke {LORDSHIP}, returning its revenues to your house. Relations with the holder decrease by 15. A retainer without another lordship or active indenture may also lose their appointment." />
+    <string id="BC_Lordship_ActionBlockedHint" text="{DESCRIPTION}&#xA;&#xA;{REASON}" />
+    <string id="BC_Lordship_ActionUnavailable" text="Village grants are not available at this time." />
+    <string id="BC_Lordship_ActionNotOwner" text="Your house must hold the parent barony to manage this grant." />
+    <string id="BC_Lordship_RevokeVacant" text="This village grant has no holder to revoke it from." />
     <string id="BC_Lordship_RevokeConfirm" text="Revoke {LORDSHIP} from {HERO}? Relations will decrease by 15. A retainer without another lordship or active indenture will also be relieved of party command or governorship when it is safe." />
     <string id="BC_Lordship_RevokeHint" text="Return the revenues of {LORDSHIP} to the household. Relations decrease by 15." />
     <string id="BC_Lordship_RevokeTitle" text="Revoke {LORDSHIP_TYPE}" />
