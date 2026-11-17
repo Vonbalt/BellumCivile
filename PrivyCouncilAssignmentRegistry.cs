@@ -111,7 +111,7 @@ namespace BellumCivile
             if (DefinitionsByOffice.TryGetValue(office, out List<PrivyCouncilAssignmentDefinition> definitions))
             {
                 if (office == PrivyCouncilOffice.Chancellor
-                    && (!BellumCivileOptions.EnableWarPeaceLogicRevamp
+                    && (!BellumCivileOptions.DefensivePactsActive
                         || Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>()?.IsReady != true))
                     return _chancellorWithoutThreat ?? (_chancellorWithoutThreat = definitions
                         .Where(item => item.Id != DefensivePactThreatRules.ChancellorAssignmentId).ToArray());

@@ -120,6 +120,10 @@
     <string id="BC_MCM_MinimumPeaceBeforeRenewedWar_Hint" text="Minimum number of days two realms must remain at peace before Bellum&apos;s AI will consider another offensive against the same realm. A value of 0 disables this waiting period. Client liberation wars remain exempt. Default: 20." />
     <string id="BC_MCM_DefensivePactThreatDecay" text="Weekly Threat Decay" />
     <string id="BC_MCM_DefensivePactThreatDecay_Hint" text="Base threat lost every seven campaign days before realm size and council effects. Increasing makes threat fall faster and defensive pacts less likely; decreasing makes threat last longer. Zero disables base decay. Bellum default: 1 threat per seven days." />
+    <string id="BC_MCM_EnableDefensivePacts" text="Enable Defensive Pacts" />
+    <string id="BC_MCM_EnableDefensivePacts_Hint" text="Enables threat accumulation and defensive pacts against threatening realms. When disabled, no new threat is gained and pacts do not form or answer new attacks. Existing threat and pacts are preserved; threat continues to decay and pacts are checked when re-enabled. Pending votes may be cancelled. Requires the War &amp; Peace Logic Revamp. Bellum default: On." />
+    <string id="BC_MCM_TreatyThreatGain" text="Treaty Threat Gain Multiplier (%)" />
+    <string id="BC_MCM_TreatyThreatGain_Hint" text="Scales threat gained from peace treaty terms. Increasing makes defensive pacts against expanding realms more likely; decreasing makes them less likely. At 0%, treaties generate no new threat. Threat lost by conceding territory and threat from other actions are unchanged. The existing maximum gain of 50 threat per treaty still applies. Changes affect new treaty settlements, not already committed settlements. Bellum default: 100%." />
     <string id="BC_Council_AssignmentReassureRealms" text="Reassure Other Realms" />
     <string id="BC_Council_AssignmentReassureRealmsHint" text="The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment and is suspended while the chancellor is captive." />
     <string id="BC_Council_AssignmentStatusReassureRealms" text="Threat decays {BONUS}% faster after the realm-size adjustment." />
@@ -7956,6 +7960,8 @@
     <string id="BC_DefensivePact_ForecastDecrease" text="{REALM}: threat decreases from {BEFORE} to {AFTER}." />
     <string id="BC_DefensivePact_ForecastUnchanged" text="{REALM}: threat remains at {BEFORE}." />
     <string id="BC_DefensivePact_ForecastUnavailable" text="Treaty threat forecast unavailable." />
+    <string id="BC_DefensivePact_CurrentThreat" text="{REALM}: current threat is {THREAT}." />
+    <string id="BC_DefensivePact_ThreatIndicatorHint" text="{FORECAST}&#xA;&#xA;Higher threat makes defensive pacts against this realm more likely. Eligible realms may form or join at these thresholds:&#xA;{NEIGHBOR}: neighboring realms&#xA;{TWO}: up to two borders away&#xA;{THREE}: up to three borders away&#xA;{ANYWHERE}: any distance&#xA;&#xA;Joining also requires peace with other kingdoms, fewer than 25 towns and castles, strength below 80% of the target's, and negative relations between the rulers. Alliance, a hostage pact or clientage with the target, existing defensive pact membership, and cooldowns may prevent joining." />
     <string id="BC_DefensivePact_ProposeUnavailable" text="A defensive pact cannot be proposed under the current circumstances." />
     <string id="BC_DefensivePact_AlreadyMember" text="Your realm already belongs to a defensive pact." />
     <string id="BC_DefensivePact_VotePending" text="Your realm is already considering a defensive pact." />

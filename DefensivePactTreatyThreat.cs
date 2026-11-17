@@ -7,6 +7,14 @@ namespace BellumCivile
     {
         internal double Gain { get; private set; }
         internal double Loss { get; private set; }
+        private double _gainMultiplier = 1d;
+
+        internal void SetGainMultiplier(double multiplier)
+        {
+            if (!DefensivePactThreatRules.Finite(multiplier) || multiplier < 0d || multiplier > 2d)
+                throw new ArgumentOutOfRangeException(nameof(multiplier));
+            _gainMultiplier = multiplier;
+        }
 
         internal void GainFief(int warScoreCost, bool hasClaimOrDeJure)
         {
@@ -23,7 +31,7 @@ namespace BellumCivile
             Gain += QuarterCost(warScoreCost);
         }
 
-        internal double CappedGain => Math.Min(DefensivePactThreatRules.MaximumTreatyGain, Gain);
+        internal double CappedGain => Math.Min(DefensivePactThreatRules.MaximumTreatyGain, Gain * _gainMultiplier);
         internal double NetChange => CappedGain - Loss;
         internal double Project(double current) => DefensivePactThreatRules.ApplyDelta(current, NetChange);
 

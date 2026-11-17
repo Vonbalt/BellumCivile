@@ -11,6 +11,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.Diplomacy;
 using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -98,10 +99,17 @@ internal static class DiplomacyOverviewTests
             "Diplomacy menu and defensive-pact vote strings have unique English localization entries");
         var patchType = assembly.GetType("BellumCivile.ViewModelMixin.KingdomDiplomacyOverviewPrefabPatch");
         var patch = Activator.CreateInstance(patchType, true);
+        var threatPatchType = assembly.GetType("BellumCivile.ViewModelMixin.KingdomDiplomacyThreatPrefabPatch", true);
+        var threatPatch = Activator.CreateInstance(threatPatchType, true);
         void Apply(XmlDocument document) => AccessTools.Method(patchType, "Apply").Invoke(patch, new object[] { document });
+        void ApplyThreat(XmlDocument document) => AccessTools.Method(threatPatchType, "Apply").Invoke(threatPatch, new object[] { document });
         void CheckLayout(string file, bool diplomacy)
         {
             var document = new XmlDocument(); document.Load(file);
+            var strategy = (XmlElement)document.SelectSingleNode("//*[@Id='DropdownParent']/ancestor::Widget[@IsVisible='@IsAcceptableItemSelected'][1]");
+            string originalStrategy = strategy.OuterXml;
+            var nativeIcons = (XmlElement)document.SelectSingleNode("//ListPanel[@DataSource='{CurrentSelectedDiplomacyItem}' and @HorizontalAlignment='Right' and @MarginTop='122']");
+            string originalIcons = nativeIcons.OuterXml;
             var commandsBefore = document.SelectNodes("//*[@Command.Click]").Cast<XmlElement>()
                 .Select(n => n.GetAttribute("Command.Click"))
                 .Where(c => c != "ExecuteShowOverview" && c != "ExecuteShowStats").ToArray();
@@ -129,6 +137,26 @@ internal static class DiplomacyOverviewTests
             string once = document.OuterXml;
             Apply(document);
             check(document.OuterXml == once, "Overview layout patch is idempotent: " + file);
+            ApplyThreat(document);
+            foreach (string side in new[] { "First", "Second" })
+            {
+                var marker = (XmlElement)document.SelectSingleNode("//*[@Id='Bellum" + side + "DiplomacyThreat']");
+                var icon = (XmlElement)marker.SelectSingleNode("Children/Widget");
+                check(marker.GetAttribute("IsVisible") == "@Bellum" + side + "ThreatVisible"
+                    && icon.GetAttribute("DataSource") == "{Bellum" + side + "ThreatHint}"
+                    && icon.GetAttribute("Sprite") == @"SPGeneral\Clan\Status\Dead"
+                    && icon.GetAttribute("Command.HoverBegin") == "ExecuteBeginHint"
+                    && icon.GetAttribute("Command.HoverEnd") == "ExecuteEndHint"
+                    && !icon.HasAttribute("Command.Click"), side + " threat skull is a non-actionable, realm-bound hint: " + file);
+            }
+            var left = (XmlElement)document.SelectSingleNode("//*[@Id='BellumFirstDiplomacyThreat']");
+            var right = (XmlElement)document.SelectSingleNode("//*[@Id='BellumSecondDiplomacyThreat']");
+            check(int.Parse(left.GetAttribute("MarginLeft")) + int.Parse(left.GetAttribute("SuggestedWidth")) <= int.Parse(strategy.GetAttribute("MarginLeft"))
+                && int.Parse(right.GetAttribute("MarginRight")) >= int.Parse(nativeIcons.GetAttribute("MarginRight")) + int.Parse(nativeIcons.GetAttribute("SuggestedWidth"))
+                && strategy.OuterXml == originalStrategy && nativeIcons.OuterXml == originalIcons,
+                "Threat icons do not overlap or alter the war strategy or existing relationship icons: " + file);
+            once = document.OuterXml; ApplyThreat(document);
+            check(document.OuterXml == once, "Threat prefab patch is idempotent: " + file);
         }
         CheckLayout(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/KingdomManagement/Diplomacy/DiplomacyPanel.xml"), false);
         var actionPatchType = assembly.GetType("BellumCivile.ViewModelMixin.DiplomacyActionLayoutPatch", true);
@@ -213,6 +241,31 @@ internal static class DiplomacyOverviewTests
         var replaced = new XmlDocument(); replaced.LoadXml("<Prefab><Window><DiplomacyPanelCustom /></Window></Prefab>");
         var unchanged = replaced.OuterXml; Apply(replaced);
         check(replaced.OuterXml == unchanged, "Native patch safely defers when Diplomacy has already replaced its panel");
+        ApplyThreat(replaced);
+        check(replaced.OuterXml == unchanged, "Threat patch also safely defers on a replacement wrapper");
+
+        var threatHint = assembly.GetType("BellumCivile.UI.DefensivePactThreatHint", true);
+        var currentHint = AccessTools.Method(threatHint, "Current");
+        string CurrentThreatText(string name, double value) => currentHint.Invoke(null, new object[] { new TextObject(name), value }).ToString();
+        string firstThreat = CurrentThreatText("First Realm", 10), secondThreat = CurrentThreatText("Second Realm", 25);
+        check(firstThreat.Contains("First Realm: current threat is 10") && secondThreat.Contains("Second Realm: current threat is 25")
+            && !firstThreat.Contains("Second Realm") && !secondThreat.Contains("First Realm"),
+            "Each diplomacy tooltip identifies the correct realm and current threat");
+        string explanation = firstThreat.Substring(firstThreat.IndexOf("\n\n", StringComparison.Ordinal));
+        check(explanation == secondThreat.Substring(secondThreat.IndexOf("\n\n", StringComparison.Ordinal))
+            && explanation.Contains("25: neighboring") && explanation.Contains("50: up to two borders")
+            && explanation.Contains("75: up to three borders") && explanation.Contains("95: any distance")
+            && explanation.Contains("80%") && explanation.Contains("negative relations"),
+            "Both realms share the parley threshold and eligibility explanation");
+        var parleyType = assembly.GetType("BellumCivile.UI.Parley.TreatyThreatIndicatorVM", true);
+        var parleyIndicator = Activator.CreateInstance(parleyType, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+            null, new object[] { new TextObject("First Realm"), 10d, null }, null);
+        string parleyHint = ((HintViewModel)AccessTools.Field(parleyType, "_hint").GetValue(parleyIndicator)).HintText.ToString();
+        check(parleyHint.Substring(parleyHint.IndexOf("\n\n", StringComparison.Ordinal)) == explanation,
+            "Diplomacy and peace parley use the same actual defensive-pact explanation");
+        check(localizedIds.Count(id => id == "BC_DefensivePact_CurrentThreat") == 1
+            && localizedIds.Count(id => id == "BC_DefensivePact_ThreatIndicatorHint") == 1,
+            "Current threat and shared rules have unique English localization entries");
 
         string root = FindRoot();
         var overview = new XmlDocument(); overview.Load(Path.Combine(root, "GUI/Prefabs/KingdomManagement/Diplomacy/BellumDiplomacyOverview.xml"));
@@ -291,6 +344,31 @@ internal static class DiplomacyOverviewTests
         var mixinType = assembly.GetType("BellumCivile.ViewModelMixin.KingdomDiplomacyOverviewMixin");
         var mixin = Activator.CreateInstance(mixinType, new object[] { vm });
         bool Selected(string name) => (bool)AccessTools.Property(mixinType, name).GetValue(mixin);
+        check(!Selected("BellumFirstThreatVisible") && !Selected("BellumSecondThreatVisible"),
+            "Threat icons are hidden when no campaign or tracked realm is available");
+        var tracker = new DefensivePactThreatBehavior();
+        var adjust = AccessTools.Method(typeof(DefensivePactThreatBehavior), "AdjustThreat");
+        adjust.Invoke(tracker, new object[] { "first", 0d, 1d, 10d });
+        adjust.Invoke(tracker, new object[] { "second", 0d, 1d, 25d });
+        var updateThreat = AccessTools.Method(mixinType, "UpdateThreatHint");
+        var leftHint = new HintViewModel(); var rightHint = new HintViewModel();
+        var hintHarmony = new Harmony("bellum.tests.overview.threat");
+        try
+        {
+            hintHarmony.Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Name"),
+                prefix: new HarmonyMethod(typeof(DiplomacyOverviewTests), nameof(RealmName)));
+            bool Update(Kingdom realm, double day, HintViewModel hint) => (bool)updateThreat.Invoke(null, new object[] { realm, tracker, day, hint });
+            check(Update(first, 0, leftHint) && Update(second, 0, rightHint)
+                && leftHint.HintText.ToString().Contains("first: current threat is 10")
+                && rightHint.HintText.ToString().Contains("second: current threat is 25"),
+                "Diplomacy reads each selected kingdom's actual threat ledger");
+            check(Update(second, 7, leftHint) && Update(first, 7, rightHint)
+                && leftHint.HintText.ToString().Contains("second: current threat is 24")
+                && rightHint.HintText.ToString().Contains("first: current threat is 9")
+                && !Update(null, 7, leftHint),
+                "Switching realms refreshes the correct hint and reads lazy threat decay; missing realms are hidden");
+        }
+        finally { hintHarmony.UnpatchAll(hintHarmony.Id); }
         check(Selected("BellumOverviewSelected") && !Selected("BellumStatsSelected"), "Overview is the initial diplomacy view");
         AccessTools.Method(mixinType, "ExecuteBellumStats").Invoke(mixin, null);
         AccessTools.Method(mixinType, "OnRefresh").Invoke(mixin, null);

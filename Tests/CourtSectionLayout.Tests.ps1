@@ -36,16 +36,25 @@ foreach ($binding in @('@Agenda', '@RivalsText')) {
 }
 Write-Output 'PASS: Matching Crown header and agenda outcome colors are bound.'
 $banners = $prefab.SelectSingleNode("//ListPanel[@DataSource='{FavorBanners}']")
-if ($null -eq $banners.SelectSingleNode(".//ButtonWidget[@Command.Click='ExecuteSelect' and @IsEnabled='@IsEnabled' and @IsSelected='@IsSelected']")) {
-    throw 'Crown banners need guarded selection and selected-state bindings.'
+if ($null -eq $banners.SelectSingleNode(".//ButtonWidget[@Command.Click='ExecuteSelect' and @IsEnabled='@IsEnabled' and @Brush='ButtonBrush1']//TextWidget[@Text='@Name']")) {
+    throw 'The faction name needs a guarded crown-style selection button.'
 }
-if ($null -eq $banners.SelectSingleNode(".//HintWidget[@DataSource='{Hint}']/Children/ButtonWidget")) {
-    throw 'Banner hint must wrap button so disabled choices retain hover information.'
+$favorButton = $banners.SelectSingleNode(".//ButtonWidget[@Command.Click='ExecuteSelect']")
+if ($null -eq $favorButton.SelectSingleNode("Children/HintWidget[@DataSource='{Hint}']") -or
+    $null -eq $favorButton.ParentNode.SelectSingleNode("HintWidget[@DataSource='{Hint}']")) {
+    throw 'Favor buttons need hints for enabled and disabled hover targets.'
+}
+if ($null -eq $banners.SelectSingleNode(".//Widget[@DoNotAcceptEvents='true']/Children/MaskedTextureWidget[@DataSource='{BannerVisual}']") -or
+    $null -eq $banners.SelectSingleNode(".//Widget[@Sprite='SelectionBorder@2x_9' and @IsVisible='@IsSelected']")) {
+    throw 'Favor banners must remain noninteractive and preserve the selected outline.'
+}
+if ($banners.SelectNodes(".//HintWidget[Children/*] | .//ButtonWidget[Children/MaskedTextureWidget[@DataSource='{BannerVisual}']]").Count -ne 0) {
+    throw 'Banners must not host a hint or a selection button.'
 }
 if ($prefab.SelectNodes("//TextWidget[@Text='@LegitimacyText']").Count -ne 0) { throw 'Retired legitimacy placeholder must not return.' }
 $flow = Get-Content -Raw (Join-Path $root 'Behaviors/CourtAgendaPlayerFlow.cs')
 if ($flow.Contains('TryShowCrownInquiry')) { throw 'Annual Crown favor popup must not return.' }
-Write-Output 'PASS: Crown favor banners and disabled hover hints remain; legitimacy and annual popup are removed.'
+Write-Output 'PASS: Crown favor names use guarded buttons with enabled and disabled hints; banners remain visual only.'
 foreach ($width in @('@LoyalistWidth', '@UncommittedWidth', '@RebelWidth')) {
     if ($prefab.SelectNodes("//Widget[@SuggestedWidth='$width']").Count -ne 0) { throw "Retired Crown power segment returned: $width" }
 }

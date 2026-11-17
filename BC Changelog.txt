@@ -863,3 +863,4 @@ Added defensive pacts, now realms acumulate threat based on their perceived aggr
 Fixed the landed-title grievance affecting retainers and not recognizing a vassal leader’s lordship.
 Fixed hero tooltips showing inconsistent relation values.
 Fixed personal-friend army summons using clan relations instead of individual relations.
+Fixed tooltips not showing on active succession laws and available options of the hierarchy tree.

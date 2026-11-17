@@ -16,7 +16,7 @@ namespace BellumCivile.Patches
         private static void Postfix(KingdomDiplomacyVM __instance, KingdomTruceItemVM item,
             Action<KingdomDecision> ____forceDecision)
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || __instance?.Actions == null
+            if (!BellumCivileOptions.DefensivePactsActive || __instance?.Actions == null
                 || !(item?.Faction1 is Kingdom source) || !(item.Faction2 is Kingdom target)
                 || source == target || Clan.PlayerClan?.Kingdom != source) return;
             var owner = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>();

@@ -52,6 +52,10 @@
 * civilwars.foreign_vote [war/peace] [Kingdom Name] | [Target Kingdom Name]
 * civilwars.war_will [Clan or Leader Name]
 * civilwars.realm_war_will [Kingdom Name]
+* civilwars.defensive_pact_threat [Kingdom Name/Id] | [0..100]
+* civilwars.defensive_pact_join [Member Kingdom] | [Target Kingdom] [| force]
+* civilwars.defensive_pact_status [Target Kingdom]
+* civilwars.defensive_pact_attack [Target Kingdom] | [Member Kingdom]
  * civilwars.war_score [Kingdom Name] | [Target Kingdom Name]
  * civilwars.foreign_treaties
  * civilwars.client_realms
@@ -71,6 +75,7 @@
 using BellumCivile.Behaviors;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
@@ -89,6 +94,151 @@ namespace BellumCivile
     /// </summary>
     public static class CheatCommands
     {
+        [CommandLineFunctionality.CommandLineArgumentFunction("defensive_pact_threat", "civilwars")]
+        public static string SetDefensivePactThreat(List<string> args)
+        {
+            const string usage = "Usage: civilwars.defensive_pact_threat [Kingdom Name/Id] | [0..100]. This changes the save's real threat; use a test save.";
+            if (Campaign.Current == null) return "Error: Load a campaign first.";
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp) return "Error: Enable the war and peace revamp first.";
+            if (!BellumCivileOptions.EnableDefensivePacts) return "Error: Enable defensive pacts in the mod settings first.";
+            var parts = string.Join(" ", args ?? new List<string>()).Split('|').Select(p => p.Trim()).ToArray();
+            if (parts.Length != 2 || !double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double value)
+                || !DefensivePactThreatRules.Finite(value) || value < 0 || value > 100) return usage;
+            if (!TryResolveDefensivePactRealm(parts[0], out var realm, out string error)) return error;
+            var threat = Campaign.Current.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            if (threat?.SetThreatForTesting(realm, value, CampaignTime.Now.ToDays) != true)
+                return "Error: Threat tracking is not ready. Wait until the campaign finishes loading.";
+            return $"Set {realm.Name} ({realm.StringId}) threat to {value.ToString("0.##", CultureInfo.InvariantCulture)}. Normal threat decay still applies.";
+        }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("defensive_pact_join", "civilwars")]
+        public static string JoinDefensivePactForTesting(List<string> args)
+        {
+            const string usage = "Usage: civilwars.defensive_pact_join [Member Kingdom] | [Target Kingdom] [| force]. Use 'player' for your realm. This bypasses the vote and modifies the save.";
+            if (Campaign.Current == null) return "Error: Load a campaign first.";
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp) return "Error: Enable the war and peace revamp first.";
+            if (!BellumCivileOptions.EnableDefensivePacts) return "Error: Enable defensive pacts in the mod settings first.";
+            var parts = string.Join(" ", args ?? new List<string>()).Split('|').Select(p => p.Trim()).ToArray();
+            if (parts.Length < 2 || parts.Length > 3 || parts.Length == 3 && !parts[2].Equals("force", StringComparison.OrdinalIgnoreCase)) return usage;
+            if (!TryResolveDefensivePactRealm(parts[0], out var member, out string error)) return error;
+            if (!TryResolveDefensivePactRealm(parts[1], out var target, out error)) return error;
+            if (member == target) return "Error: The pact member and target must be different realms.";
+            var pacts = Campaign.Current.GetCampaignBehavior<DefensivePactBehavior>();
+            var threats = Campaign.Current.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            var hostages = Campaign.Current.GetCampaignBehavior<HostagePactBehavior>();
+            var clients = ClientKingdomBehavior.Instance;
+            if (pacts == null || threats?.IsReady != true || hostages == null || clients == null)
+                return "Error: Defensive pact tracking is not ready. Wait until the campaign finishes loading.";
+            if (pacts.HasMembership(member.StringId)) return $"Error: {member.Name} already belongs to a defensive pact against {pacts.GetMembershipTarget(member.StringId)}.";
+            double now = CampaignTime.Now.ToDays;
+            if (pacts.IsCooldownActive(target.StringId, now)) return "Error: The target's defensive-pact cooldown is active.";
+            bool forced = parts.Length == 3;
+            if (!forced)
+            {
+                var assessment = pacts.Assess(member, target);
+                if (assessment == null) return "Error: Frontier assessment is not ready. Let campaign time pass, or use | force for setup.";
+                if (!assessment.IsEligible)
+                    return $"Error: Normal eligibility failed: threat {assessment.Threat:0.##}/{assessment.JoiningThreshold}; fiefs {assessment.Fiefs}/24; strength {assessment.MemberStrength:0.##}/{assessment.TargetStrength:0.##}; ruler relation {assessment.RulerRelation}; at peace {assessment.AtPeace}; allied {assessment.Allied}; hostage pact {assessment.HasPledge}; target client {assessment.IsTargetClient}. Use | force only for a test setup.";
+                if (!pacts.TryJoinAfterVote(member, target)) return "Error: The pact could not be joined; circumstances may have changed.";
+            }
+            else
+            {
+                if (member.RulingClan?.Leader?.IsAlive != true || target.RulingClan?.Leader?.IsAlive != true)
+                    return "Error: Both realms need living rulers.";
+                if (member.FactionsAtWarWith == null || member.FactionsAtWarWith.OfType<Kingdom>().Any(k => k != null && !k.IsEliminated))
+                    return "Error: The member realm must be at peace with other kingdoms before joining.";
+                if (member.IsAllyWith(target) || hostages.HasPactBetween(member, target)
+                    || clients.IsClientOf(member, target) || clients.IsClientOf(target, member))
+                    return "Error: An alliance, hostage pact or client relationship between these realms prevents this test.";
+                int relation = member.RulingClan.Leader.GetRelation(target.RulingClan.Leader);
+                if (relation >= 60) return "Error: Ruler relations are at least 60, so normal maintenance would immediately remove this member.";
+                double threat = threats.GetThreat(target.StringId, now);
+                if (threat < 25) return $"Error: Target threat is {threat:0.##}; set it to at least 25 with civilwars.defensive_pact_threat first.";
+                // Test-only setup bypasses joining geography, size, strength and hostility, but uses the real membership registry.
+                if (!pacts.TryJoin(member.StringId, target.StringId, now, threat, 25, 0, 1, 2,
+                    Math.Min(-1, relation), true, false, false, false))
+                    return "Error: The defensive pact registry rejected the test member.";
+            }
+            return $"{member.Name} ({member.StringId}) joined the defensive pact against {target.Name} ({target.StringId}). "
+                + (forced ? "Forced setup uses a 25-threat joining threshold and bypasses geography, size, strength and negative-relations requirements. " : "Normal eligibility was satisfied. ")
+                + "No vote or influence cost was applied; normal maintenance and call-to-arms rules remain active.";
+        }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("defensive_pact_status", "civilwars")]
+        public static string DefensivePactStatus(List<string> args)
+        {
+            if (Campaign.Current == null) return "Error: Load a campaign first.";
+            if (!BellumCivileOptions.DefensivePactsActive) return "Error: Enable defensive pacts and the war and peace revamp first.";
+            string query = string.Join(" ", args ?? new List<string>()).Trim();
+            if (query.Length == 0) return "Usage: civilwars.defensive_pact_status [Target Kingdom].";
+            if (!TryResolveDefensivePactRealm(query, out var target, out string error)) return error;
+            var pacts = Campaign.Current.GetCampaignBehavior<DefensivePactBehavior>();
+            var threats = Campaign.Current.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            if (pacts == null || threats?.IsReady != true) return "Error: Defensive pact tracking is not ready.";
+            var members = pacts.GetMembersAgainst(target.StringId);
+            string lines = members.Count == 0 ? "No active members." : string.Join("\n", members.Select(m =>
+            {
+                var realm = Kingdom.All.FirstOrDefault(k => k?.StringId == m.RealmId);
+                return $"- {realm?.Name?.ToString() ?? m.RealmId} ({m.RealmId}), joining threshold {m.JoiningThreshold}";
+            }));
+            return $"Target: {target.Name} ({target.StringId}); threat {threats.GetThreat(target.StringId, CampaignTime.Now.ToDays):0.##}; cooldown active: {pacts.IsCooldownActive(target.StringId, CampaignTime.Now.ToDays)}.\n{lines}";
+        }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("defensive_pact_attack", "civilwars")]
+        public static string AttackDefensivePactForTesting(List<string> args)
+        {
+            const string usage = "Usage: civilwars.defensive_pact_attack [Target Kingdom] | [Member Kingdom]. This starts a real war; use a test save.";
+            if (Campaign.Current == null) return "Error: Load a campaign first.";
+            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp) return "Error: Enable the war and peace revamp first.";
+            if (!BellumCivileOptions.EnableDefensivePacts) return "Error: Enable defensive pacts in the mod settings first.";
+            var parts = string.Join(" ", args ?? new List<string>()).Split('|').Select(p => p.Trim()).ToArray();
+            if (parts.Length != 2) return usage;
+            if (!TryResolveDefensivePactRealm(parts[0], out var target, out string error)) return error;
+            if (!TryResolveDefensivePactRealm(parts[1], out var member, out error)) return error;
+            var pacts = Campaign.Current.GetCampaignBehavior<DefensivePactBehavior>();
+            var hostages = Campaign.Current.GetCampaignBehavior<HostagePactBehavior>();
+            var clients = ClientKingdomBehavior.Instance;
+            if (pacts == null || hostages == null || clients == null) return "Error: Defensive pact services are not ready.";
+            if (!pacts.IsMemberAgainst(member.StringId, target.StringId)) return "Error: That realm is not an active member of a pact against the target.";
+            if (target.IsAtWarWith(member)) return "Error: The target and member are already at war.";
+            if (target.IsAllyWith(member) || hostages.HasPactBetween(target, member)
+                || clients.IsClientOf(target, member) || clients.IsClientOf(member, target))
+                return "Error: A protected agreement or client relationship prevents this test attack.";
+            double day = CampaignTime.Now.ToDays;
+            try { DeclareWarAction.ApplyByKingdomDecision(target, member); }
+            catch (Exception ex)
+            {
+                BellumCivileLogger.Log("Defensive pact test attack interrupted: " + ex);
+                return $"Error: War declaration was interrupted. Check the campaign state and Bellum log before retrying; at war: {target.IsAtWarWith(member)}.";
+            }
+            if (!target.IsAtWarWith(member)) return "Error: The war declaration was not applied; another rule or mod may have blocked it.";
+            return pacts.WasActivatedAt(target.StringId, member.StringId, day)
+                ? $"{target.Name} declared war on {member.Name}. The pact activated; its other members are processed on the next hourly tick."
+                : "War began, but the pact did not activate. Check membership, the Bellum log and other diplomacy mods.";
+        }
+
+        private static bool TryResolveDefensivePactRealm(string query, out Kingdom realm, out string error)
+        {
+            if (string.Equals(query?.Trim(), "player", StringComparison.OrdinalIgnoreCase))
+            {
+                realm = Clan.PlayerClan?.Kingdom;
+                error = realm == null ? "Error: The player is not in a kingdom." : null;
+            }
+            else if (!TryResolveKingdom(query, out realm, out error)) return false;
+            if (realm == null) return false;
+            if (realm.IsEliminated || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(realm))
+            {
+                error = "Error: Choose a living permanent kingdom, not a temporary war realm.";
+                return false;
+            }
+            if (CivilWarConflictBehavior.IsRealmTransferPending(realm))
+            {
+                error = "Error: This realm is in a pending civil-war transfer. Let the transition finish before testing.";
+                return false;
+            }
+            return true;
+        }
+
         [CommandLineFunctionality.CommandLineArgumentFunction("test_asylum", "civilwars")]
         public static string TestAsylum(List<string> args)
         {

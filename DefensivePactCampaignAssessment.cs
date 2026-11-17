@@ -26,7 +26,7 @@ namespace BellumCivile
             double now, DefensivePactBehavior pacts, DefensivePactThreatBehavior threatBehavior,
             HostagePactBehavior hostages, ClientKingdomBehavior clients)
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || member == null || target == null || member == target
+            if (!BellumCivileOptions.DefensivePactsActive || member == null || target == null || member == target
                 || member.IsEliminated || target.IsEliminated
                 || string.IsNullOrWhiteSpace(member.StringId) || string.IsNullOrWhiteSpace(target.StringId)
                 || member.RulingClan?.Leader?.IsAlive != true || target.RulingClan?.Leader?.IsAlive != true

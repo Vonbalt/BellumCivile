@@ -24,7 +24,7 @@ namespace BellumCivile.UI.Diplomacy
             var wars = Add("{=BC_Overview_Wars}Wars");
             var allies = Add("{=BC_Overview_Alliances}Alliances");
             var pacts = Add("{=BC_Overview_Pacts}Non-Aggression Pacts");
-            var defensive = !BellumCivileOptions.EnableWarPeaceLogicRevamp
+            var defensive = !BellumCivileOptions.DefensivePactsActive
                 || Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>() == null
                 ? null : Add("{=BC_Overview_DefensivePacts}Defensive Pacts");
             var clients = Add("{=BC_Overview_Clients}Client States");

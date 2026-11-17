@@ -16,8 +16,13 @@ Check ($flow.Contains('BC_CrownFavorUnaffordable') -and $flow.Contains('if (Crow
 Check ($budget.Contains('case NpcInfluenceExpenseKind.Discretionary:') -and $budget.Contains('return Math.Max(promised, Math.Max(GetRoleReserve(clan), cost));')) 'NPC sponsorship protects the existing discretionary reserve and outstanding vote promises.'
 [xml]$panel = Read 'GUI/Prefabs/KingdomManagement/Factions/BellumFactionsPanel.xml'
 $banner = $panel.SelectSingleNode('//ListPanel[@DataSource="{FavorBanners}"]/ItemTemplate/ListPanel/Children')
+$action = $banner.SelectSingleNode("Widget/Children/ButtonWidget[@Command.Click='ExecuteSelect']")
+Check ($null -ne $action -and $action.GetAttribute('IsEnabled') -eq '@IsEnabled' -and $action.GetAttribute('Brush') -eq 'ButtonBrush1' -and
+    $action.SelectSingleNode("Children/TextWidget[@Text='@Name']") -ne $null) 'Each faction name uses the guarded Crown Actions button style.'
+Check ($action.ParentNode.SelectNodes("HintWidget[@DataSource='{Hint}']").Count -eq 1 -and
+    $action.SelectNodes("Children/HintWidget[@DataSource='{Hint}']").Count -eq 1) 'The same favor hint is available over enabled and disabled buttons.'
 $cost = $banner.SelectSingleNode('ListPanel/Children/TextWidget[@Text="@InfluenceCostText"]')
-Check ($null -ne $cost -and $cost.GetAttribute('DoNotAcceptEvents') -eq 'true') 'Every repeated banner has a click-through cost below its name.'
+Check ($null -ne $cost -and $cost.GetAttribute('DoNotAcceptEvents') -eq 'true') 'Every faction action has a click-through cost below its button.'
 $icon = $cost.ParentNode.SelectSingleNode('Widget')
 Check ($icon.GetAttribute('Sprite') -eq 'SPKingdom\influence_icon_small' -and
     $icon.GetAttribute('SuggestedWidth') -eq '17' -and $icon.GetAttribute('SuggestedHeight') -eq '27') 'Cost uses the native kingdom influence icon at vanilla proposal-cost dimensions.'

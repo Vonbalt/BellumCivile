@@ -50,7 +50,7 @@ namespace BellumCivile
             try
             {
                 TaleWorlds.CampaignSystem.Campaign.Current?.GetCampaignBehavior<Behaviors.DefensivePactThreatBehavior>()
-                    ?.RefreshCampaignRateSettings(BellumCivileOptions.DefensivePactWeeklyThreatDecay);
+                    ?.RefreshFeatureSettings();
             }
             catch (System.Exception ex) { BellumCivileLogger.Log("Defensive pact settings update failed: " + ex); }
         }
@@ -100,11 +100,19 @@ namespace BellumCivile
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int HostagePactMinimumDurationDays { get; set; } = HostagePactRules.DefaultDurationDays;
 
-        [SettingPropertyFloatingInteger("{=BC_MCM_DefensivePactThreatDecay}Weekly Threat Decay", 0f, 10f, "0.00", Order = 8, RequireRestart = false, HintText = "{=BC_MCM_DefensivePactThreatDecay_Hint}Base threat lost every seven campaign days before realm size and council effects. Increasing makes threat fall faster and defensive pacts less likely; decreasing makes threat last longer. Zero disables base decay. Bellum default: 1 threat per seven days.")]
+        [SettingPropertyBool("{=BC_MCM_EnableDefensivePacts}Enable Defensive Pacts", Order = 8, RequireRestart = false, HintText = "{=BC_MCM_EnableDefensivePacts_Hint}Enables threat accumulation and defensive pacts against threatening realms. When disabled, no new threat is gained and pacts do not form or answer new attacks. Existing threat and pacts are preserved; threat continues to decay and pacts are checked when re-enabled. Pending votes may be cancelled. Requires the War & Peace Logic Revamp. Bellum default: On.")]
+        [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
+        public bool EnableDefensivePacts { get; set; } = true;
+
+        [SettingPropertyInteger("{=BC_MCM_TreatyThreatGain}Treaty Threat Gain Multiplier (%)", 0, 200, Order = 9, RequireRestart = false, HintText = "{=BC_MCM_TreatyThreatGain_Hint}Scales threat gained from peace treaty terms. Increasing makes defensive pacts against expanding realms more likely; decreasing makes them less likely. At 0%, treaties generate no new threat. Threat lost by conceding territory and threat from other actions are unchanged. The existing maximum gain of 50 threat per treaty still applies. Changes affect new treaty settlements, not already committed settlements. Bellum default: 100%.")]
+        [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
+        public int TreatyThreatGainPercent { get; set; } = 100;
+
+        [SettingPropertyFloatingInteger("{=BC_MCM_DefensivePactThreatDecay}Weekly Threat Decay", 0f, 10f, "0.00", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_DefensivePactThreatDecay_Hint}Base threat lost every seven campaign days before realm size and council effects. Increasing makes threat fall faster and defensive pacts less likely; decreasing makes threat last longer. Zero disables base decay. Bellum default: 1 threat per seven days.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public float DefensivePactWeeklyThreatDecay { get; set; } = 1f;
 
-        [SettingPropertyInteger("{=BC_MCM_TreatyReparationsPerWarScore}Reparations per War Score", 0, 100000, Order = 10, RequireRestart = false, HintText = "{=BC_MCM_TreatyReparationsPerWarScore_Hint}Denars paid as immediate reparations for each War Score spent on the treaty term. A value of 0 disables reparations. Default: 5,000 denars per War Score.")]
+        [SettingPropertyInteger("{=BC_MCM_TreatyReparationsPerWarScore}Reparations per War Score", 0, 100000, Order = 11, RequireRestart = false, HintText = "{=BC_MCM_TreatyReparationsPerWarScore_Hint}Denars paid as immediate reparations for each War Score spent on the treaty term. A value of 0 disables reparations. Default: 5,000 denars per War Score.")]
         [SettingPropertyGroup(War, GroupOrder = WarGroupOrder)]
         public int TreatyReparationsGoldPerWarScore { get; set; } = C.TreatyReparationsGoldPerWarScore;
 

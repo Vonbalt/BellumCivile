@@ -24,13 +24,6 @@ namespace BellumCivile.UI.Parley
                 .ToString();
         }
 
-        internal TreatyTermVM(string name)
-        {
-            Name = name ?? string.Empty;
-            CostText = string.Empty;
-            RowHeight = 72;
-        }
-
         internal static string BuildThreatForecast(TextObject realmName, double current, DefensivePactTreatyThreat impact)
         {
             double before = Math.Round(current, 2, MidpointRounding.AwayFromZero);

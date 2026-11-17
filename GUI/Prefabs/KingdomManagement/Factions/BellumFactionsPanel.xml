@@ -364,17 +364,23 @@
                                   <ItemTemplate>
                                     <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="190" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                       <Children>
-                                        <HintWidget DataSource="{Hint}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="160" SuggestedHeight="180" HorizontalAlignment="Center" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+                                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="160" SuggestedHeight="180" HorizontalAlignment="Center">
                                           <Children>
-                                            <ButtonWidget DataSource="{..}" DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Encyclopedia.NoAudioButton" Command.Click="ExecuteSelect" IsEnabled="@IsEnabled" IsSelected="@IsSelected" UpdateChildrenStates="true">
+                                            <MaskedTextureWidget DataSource="{BannerVisual}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="112" SuggestedHeight="155" HorizontalAlignment="Center" VerticalAlignment="Center" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" Brush="Flat.Tuple.Banner.Small" />
+                                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsSelected" />
+                                          </Children>
+                                        </Widget>
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="180" SuggestedHeight="42" HorizontalAlignment="Center" MarginTop="5">
+                                          <Children>
+                                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonBrush1" Command.Click="ExecuteSelect" IsEnabled="@IsEnabled" UpdateChildrenStates="true">
                                               <Children>
-                                                <MaskedTextureWidget DataSource="{BannerVisual}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="112" SuggestedHeight="155" HorizontalAlignment="Center" VerticalAlignment="Center" ImageId="@Id" AdditionalArgs="@AdditionalArgs" TextureProviderName="@TextureProviderName" Brush="Flat.Tuple.Banner.Small" />
-                                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SelectionBorder@2x_9" IsVisible="@IsSelected" />
+                                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="22" Text="@Name" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                                <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
                                               </Children>
                                             </ButtonWidget>
+                                            <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
                                           </Children>
-                                        </HintWidget>
-                                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="24" Text="@Name" MarginTop="5" />
+                                        </Widget>
                                         <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" MarginTop="3">
                                           <Children>
                                             <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MaxWidth="160" CanBreakWords="false" Brush="Kingdom.GeneralButtons.Text" Brush.FontSize="24" Brush.TextVerticalAlignment="Center" Text="@InfluenceCostText" MarginRight="4" VerticalAlignment="Center" />

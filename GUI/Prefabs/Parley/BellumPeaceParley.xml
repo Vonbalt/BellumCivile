@@ -318,7 +318,9 @@
                       <Children>
                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="24" MarginRight="24" MarginTop="18" MarginBottom="18" StackLayout.LayoutMethod="VerticalTopToBottom">
                           <Children>
-                        <Widget Id="RatificationStrip" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="75" MarginBottom="6" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginPredictedOutcomeHint" Command.HoverEnd="ExecuteEndPredictedOutcomeHint">
+                        <Widget Id="RatificationArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="75" MarginBottom="6">
+                          <Children>
+                        <Widget Id="RatificationStrip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginPredictedOutcomeHint" Command.HoverEnd="ExecuteEndPredictedOutcomeHint">
                           <Children>
                             <Widget DataSource="{PlayerCouncilSummary}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230.5" SuggestedHeight="28" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="Barter\slider_boxy_canvas" DoNotAcceptEvents="true">
                               <Children>
@@ -345,6 +347,28 @@
                                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Bellum.Parley.VoteBalance.Text" Text="@BalanceText" />
                               </Children>
                             </Widget>
+                          </Children>
+                        </Widget>
+                        <Widget Id="PlayerThreatIndicator" IsVisible="@IsThreatForecastVisible" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="190" SuggestedHeight="22" HorizontalAlignment="Left" VerticalAlignment="Top">
+                          <Children>
+                            <ListPanel DataSource="{PlayerThreat}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+                              <Children>
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="22" SuggestedHeight="20" VerticalAlignment="Center" Sprite="SPGeneral\Clan\Status\Dead" />
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="5" Brush="Info.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@ValueText" />
+                              </Children>
+                            </ListPanel>
+                          </Children>
+                        </Widget>
+                        <Widget Id="OpponentThreatIndicator" IsVisible="@IsThreatForecastVisible" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="190" SuggestedHeight="22" HorizontalAlignment="Right" VerticalAlignment="Top">
+                          <Children>
+                            <ListPanel DataSource="{OpponentThreat}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotPassEventsToChildren="true" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="5" Brush="Info.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@ValueText" />
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="22" SuggestedHeight="20" VerticalAlignment="Center" Sprite="SPGeneral\Clan\Status\Dead" />
+                              </Children>
+                            </ListPanel>
+                          </Children>
+                        </Widget>
                           </Children>
                         </Widget>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" HorizontalAlignment="Center" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="23" Brush.FontColor="@BudgetColor" Text="@BudgetText" />

@@ -46,7 +46,12 @@ namespace BellumCivile
 
         // Null means hypothetical draft; an empty delivery set means nothing was delivered.
         internal DefensivePactDraftProjection Evaluate(ISet<TreatyTermRecord> delivered)
+            => EvaluateScaled(delivered, 1d);
+
+        internal DefensivePactDraftProjection EvaluateScaled(ISet<TreatyTermRecord> delivered, double gainMultiplier)
         {
+            if (!DefensivePactThreatRules.Finite(gainMultiplier) || gainMultiplier < 0d || gainMultiplier > 2d)
+                throw new ArgumentOutOfRangeException(nameof(gainMultiplier));
             var empty = new Dictionary<string, DefensivePactTreatyThreat>();
             if (_terms.Any(t => t.Type == TreatyTermType.WhitePeace)) return new DefensivePactDraftProjection(true, empty);
             bool Effective(TreatyTermRecord term) => delivered == null || delivered.Contains(term);
@@ -67,6 +72,7 @@ namespace BellumCivile
                 term => _territory.TryGetValue(term, out var result) && result == DefensivePactTerritorialResult.Concession
                     && _basis.TryGetValue(term, out var basis) && basis != DefensivePactLegalBasis.Unknown,
                 term => _basis.TryGetValue(term, out var basis) && basis == DefensivePactLegalBasis.Established);
+            foreach (var impact in impacts.Values) impact.SetGainMultiplier(gainMultiplier);
             return new DefensivePactDraftProjection(true, impacts);
         }
 

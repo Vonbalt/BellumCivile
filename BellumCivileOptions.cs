@@ -43,6 +43,9 @@ namespace BellumCivile
             Settings?.EnableNpcSubterfugeMissions ?? true;
 
         public static bool EnableWarPeaceLogicRevamp => Settings?.EnableWarPeaceLogicRevamp ?? true;
+        public static bool EnableDefensivePacts => Settings?.EnableDefensivePacts ?? true;
+        public static bool DefensivePactsActive => EnableWarPeaceLogicRevamp && EnableDefensivePacts;
+        public static int TreatyThreatGainPercent => Math.Max(0, Math.Min(200, Settings?.TreatyThreatGainPercent ?? 100));
         public static bool EnableWarScoreMapWidget => Settings?.EnableWarScoreMapWidget ?? true;
         public static bool EnableClientStateMapWidget => Settings?.EnableClientStateMapWidget ?? true;
         public static int WarDurationReluctanceDays => Math.Max(1, Math.Min(500,

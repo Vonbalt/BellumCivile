@@ -608,6 +608,11 @@ internal static class Program
                 StartingClientageTests.Run(Check);
                 Console.WriteLine($"{_checks} starting clientage checks passed.");
             }
+            else if (args.Contains("--diplomacy-overview"))
+            {
+                DiplomacyOverviewTests.Run(Check, _game);
+                Console.WriteLine($"{_checks} diplomacy overview checks passed.");
+            }
             else if (args.Contains("--client-liberation"))
             {
                 ClientLiberationResolveTests.Run(Check);

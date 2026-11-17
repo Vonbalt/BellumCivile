@@ -37,6 +37,9 @@ namespace BellumCivile.UI.Parley
         private bool _treatyWillPass;
         private TreatyCouncilSummaryVM _playerCouncilSummary;
         private TreatyCouncilSummaryVM _opponentCouncilSummary;
+        private TreatyThreatIndicatorVM _playerThreat = new TreatyThreatIndicatorVM();
+        private TreatyThreatIndicatorVM _opponentThreat = new TreatyThreatIndicatorVM();
+        private bool _isThreatForecastVisible;
         private string _playerVoteText;
         private string _playerCommitmentText;
         private string _playerRatificationText;
@@ -88,35 +91,39 @@ namespace BellumCivile.UI.Parley
             Refresh(proposal);
         }
 
-        private void AddThreatForecast(WarScoreRecord war, TreatyProposalRecord proposal, Kingdom winner,
+        private void UpdateThreatForecast(WarScoreRecord war, TreatyProposalRecord proposal, Kingdom winner,
             Kingdom loser, Kingdom playerSide, Kingdom opponent)
         {
             var threats = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || threats == null
-                || war?.ConflictType != WarScoreConflictType.ForeignWar) return;
+            IsThreatForecastVisible = BellumCivileOptions.DefensivePactsActive
+                && war?.ConflictType == WarScoreConflictType.ForeignWar;
+            if (!IsThreatForecastVisible) return;
+            PlayerThreat = new TreatyThreatIndicatorVM();
+            OpponentThreat = new TreatyThreatIndicatorVM();
+            if (threats == null) return;
             try
             {
                 var projection = threats.IsReady
-                    ? DefensivePactCampaignTreatyFacts.Capture(war, proposal, winner, loser)?.Evaluate(null) : null;
+                    ? DefensivePactCampaignTreatyFacts.Capture(war, proposal, winner, loser)?.EvaluateScaled(null, BellumCivileOptions.TreatyThreatGainPercent / 100d) : null;
                 if (projection?.IsReliable == true && playerSide != null && opponent != null)
                 {
                     double now = CampaignTime.Now.ToDays;
                     projection.Impacts.TryGetValue(playerSide.StringId, out var playerImpact);
                     projection.Impacts.TryGetValue(opponent.StringId, out var opponentImpact);
-                    string first = TreatyTermVM.BuildThreatForecast(playerSide.Name, threats.GetThreat(playerSide.StringId, now), playerImpact);
-                    string second = TreatyTermVM.BuildThreatForecast(opponent.Name, threats.GetThreat(opponent.StringId, now), opponentImpact);
-                    DraftTerms.Add(new TreatyTermVM(first));
-                    DraftTerms.Add(new TreatyTermVM(second));
+                    var first = new TreatyThreatIndicatorVM(playerSide.Name, threats.GetThreat(playerSide.StringId, now), playerImpact);
+                    var second = new TreatyThreatIndicatorVM(opponent.Name, threats.GetThreat(opponent.StringId, now), opponentImpact);
+                    PlayerThreat = first;
+                    OpponentThreat = second;
                     return;
                 }
             }
             catch (Exception ex) { BellumCivileLogger.Log("Defensive pact treaty forecast unavailable: " + ex); }
-            DraftTerms.Add(new TreatyTermVM(new TextObject("{=BC_DefensivePact_ForecastUnavailable}Treaty threat forecast unavailable.").ToString()));
         }
 
         public void Refresh(TreatyProposalRecord proposal)
         {
             CloseTooltips();
+            IsThreatForecastVisible = false;
             _proposal = proposal;
             ForeignTreatyBehavior treaties = Campaign.Current?.GetCampaignBehavior<ForeignTreatyBehavior>();
             WarScoreRecord war = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(proposal?.WarKey);
@@ -261,7 +268,7 @@ namespace BellumCivile.UI.Parley
                         proposal.Terms[index],
                         proposal.WinnerKingdomId,
                         termImpacts[index]));
-                AddThreatForecast(war, proposal, winner, loser, playerSide, opponent);
+                UpdateThreatForecast(war, proposal, winner, loser, playerSide, opponent);
 
                 Kingdom sourceRealm = IsDemandsMode ? opponent : playerSide;
                 Kingdom receivingRealm = IsDemandsMode ? playerSide : opponent;
@@ -596,9 +603,18 @@ namespace BellumCivile.UI.Parley
         public void CloseTooltips()
         {
             ExecuteEndPredictedOutcomeHint();
+            PlayerThreat?.ExecuteEndHint();
+            OpponentThreat?.ExecuteEndHint();
             foreach (var member in PlayerCouncil) member.ExecuteEndReasonHint();
             foreach (var member in OpponentCouncil) member.ExecuteEndReasonHint();
         }
+
+        [DataSourceProperty]
+        public TreatyThreatIndicatorVM PlayerThreat { get => _playerThreat; private set { if (value != _playerThreat) { _playerThreat = value; OnPropertyChangedWithValue(value, nameof(PlayerThreat)); } } }
+        [DataSourceProperty]
+        public TreatyThreatIndicatorVM OpponentThreat { get => _opponentThreat; private set { if (value != _opponentThreat) { _opponentThreat = value; OnPropertyChangedWithValue(value, nameof(OpponentThreat)); } } }
+        [DataSourceProperty]
+        public bool IsThreatForecastVisible { get => _isThreatForecastVisible; private set { if (value != _isThreatForecastVisible) { _isThreatForecastVisible = value; OnPropertyChangedWithValue(value, nameof(IsThreatForecastVisible)); } } }
         public void ExecuteSelectFiefsTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = true; IsPrisonersTabSelected = false; IsPoliticsTabSelected = false; IsWealthTabSelected = false; }
         public void ExecuteSelectPrisonersTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = false; IsPrisonersTabSelected = true; IsPoliticsTabSelected = false; IsWealthTabSelected = false; }
         public void ExecuteSelectPoliticsTab() { if (IsDraftEditingDisabled) return; IsFiefsTabSelected = false; IsPrisonersTabSelected = false; IsPoliticsTabSelected = true; IsWealthTabSelected = false; }

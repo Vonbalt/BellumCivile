@@ -13,6 +13,7 @@ using TaleWorlds.CampaignSystem.Actions;
 internal static class DefensivePactThreatTests
 {
     private static bool SkipLog() => false;
+    private static bool TestDecayRate(ref double __result) { __result = 1d; return false; }
     private sealed class MemoryStore : IDataStore
     {
         internal readonly Dictionary<string, object> Data = new Dictionary<string, object>();
@@ -52,6 +53,20 @@ internal static class DefensivePactThreatTests
         try
         {
             cachedSettings.SetValue(null, settings);
+            var configuredGain = AccessTools.Property(settingsType, "TreatyThreatGainPercent");
+            var effectiveGain = AccessTools.Property(optionsType, "TreatyThreatGainPercent");
+            var enabled = AccessTools.Property(settingsType, "EnableDefensivePacts");
+            check((bool)enabled.GetValue(settings) && (int)effectiveGain.GetValue(null) == 100,
+                "Defensive pacts default to enabled and treaty gains default to 100 percent");
+            configuredGain.SetValue(settings, -20);
+            check((int)effectiveGain.GetValue(null) == 0, "Treaty gain percentage clamps below zero");
+            configuredGain.SetValue(settings, 250);
+            check((int)effectiveGain.GetValue(null) == 200, "Treaty gain percentage clamps above 200");
+            configuredGain.SetValue(settings, 100);
+            enabled.SetValue(settings, false);
+            check(!(bool)AccessTools.Property(optionsType, "DefensivePactsActive").GetValue(null),
+                "The master toggle disables defensive-pact activity");
+            enabled.SetValue(settings, true);
             check(Near((float)effectiveDecay.GetValue(null), 1), "Threat decay setting defaults to one point per seven days");
             configuredDecay.SetValue(settings, -3f);
             check(Near((float)effectiveDecay.GetValue(null), 0), "Threat decay setting clamps negative values");
@@ -130,6 +145,31 @@ internal static class DefensivePactThreatTests
             .Invoke(b, new object[] { id, day });
         void Add(DefensivePactThreatBehavior b, string id, double day, double rate, double delta)
             => AccessTools.Method(ownerType, "AdjustThreat").Invoke(b, new object[] { id, day, rate, delta });
+        var debugHarmony = new Harmony("bellum.tests.defensive_pact_debug");
+        try
+        {
+            debugHarmony.Patch(AccessTools.Method(ownerType, "CampaignWeeklyRate"),
+                prefix: new HarmonyMethod(typeof(DefensivePactThreatTests), nameof(TestDecayRate)));
+            var debugThreats = new DefensivePactThreatBehavior();
+            var realm = (Kingdom)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Kingdom));
+            realm.StringId = "debug_realm";
+            var setTestThreat = AccessTools.Method(ownerType, "SetThreatForTesting");
+            bool Set(double value, double day) => (bool)setTestThreat.Invoke(debugThreats, new object[] { realm, value, day });
+            check(!Set(50, 10) && Near(Get(debugThreats, "debug_realm", 10), 0),
+                "The threat command cannot alter a ledger before campaign tracking is ready");
+            AccessTools.Field(ownerType, "_ratesInitialized").SetValue(debugThreats, true);
+            check(Set(60, 10) && Near(Get(debugThreats, "debug_realm", 10), 60)
+                && Near(Get(debugThreats, "debug_realm", 17), 59),
+                "Test threat is set exactly and continues normal lazy weekly decay");
+            check(Set(30, 17) && Near(Get(debugThreats, "debug_realm", 17), 30)
+                && !Set(101, 17) && !Set(double.NaN, 17) && Near(Get(debugThreats, "debug_realm", 17), 30),
+                "Repeated test adjustments settle prior decay and reject invalid values without mutation");
+            var savedDebugThreat = new MemoryStore { IsSaving = true }; debugThreats.SyncData(savedDebugThreat);
+            var loadedDebugThreat = new DefensivePactThreatBehavior(); savedDebugThreat.IsSaving = false; loadedDebugThreat.SyncData(savedDebugThreat);
+            check(Near(Get(loadedDebugThreat, "debug_realm", 24), 29),
+                "Command-set threat survives a save/load and keeps its normal decay rate");
+        }
+        finally { debugHarmony.UnpatchAll(debugHarmony.Id); }
         var records = AccessTools.Field(ownerType, "_records");
         check(Near(Get(owner, "one", 0), 0) && ((System.Collections.ICollection)records.GetValue(owner)).Count == 0,
             "Reading an unthreatened realm creates no saved snapshot");
@@ -208,11 +248,29 @@ internal static class DefensivePactThreatTests
         check(Forecast(100, recipient).Contains("remains at 100")
             && Forecast(0, null).Contains("remains at 0"),
             "A capped or unaffected treaty forecast reports no change");
-        var forecastRow = Activator.CreateInstance(termVm, BindingFlags.Instance | BindingFlags.NonPublic,
-            null, new object[] { "forecast" }, null);
-        check((int)AccessTools.Property(termVm, "RowHeight").GetValue(forecastRow) == 72
-            && (string)AccessTools.Property(termVm, "CostText").GetValue(forecastRow) == string.Empty,
-            "Forecast rows reserve extra height and do not display a war-score cost");
+        var indicatorType = assembly.GetType("BellumCivile.UI.Parley.TreatyThreatIndicatorVM", true);
+        object Indicator(double before, object impact) => Activator.CreateInstance(indicatorType,
+            BindingFlags.Instance | BindingFlags.NonPublic, null,
+            new object[] { new TaleWorlds.Localization.TextObject("Vlandia"), before, impact }, null);
+        string Display(object indicator) => (string)AccessTools.Property(indicatorType, "ValueText").GetValue(indicator);
+        string Hint(object indicator) => ((TaleWorlds.Core.ViewModelCollection.Information.HintViewModel)
+            AccessTools.Field(indicatorType, "_hint").GetValue(indicator)).HintText.ToString();
+        var increase = Indicator(30, recipient); var decrease = Indicator(3, conceder);
+        check(Display(increase) == "30 +20" && Display(decrease) == "3 -3"
+            && Display(Indicator(100, recipient)) == "100 +0" && Display(Indicator(0, null)) == "0 +0",
+            "Threat counters show the clamped change rather than an unattainable raw gain or loss");
+        object quarter = Impact(); ImpactCall(quarter, "GainForcedTerm", 1);
+        string fraction = .25.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture);
+        check(Display(Indicator(10, quarter)) == "10 +" + fraction && Display(Indicator(99, recipient)) == "99 +1",
+            "Fractional and near-cap forecasts show precise, locally formatted changes");
+        string hint = Hint(increase);
+        check(hint.Contains("increases from 30 to 50") && hint.Contains("25: neighboring")
+            && hint.Contains("50: up to two borders") && hint.Contains("75: up to three borders")
+            && hint.Contains("95: any distance") && hint.Contains("80%") && hint.Contains("negative relations"),
+            "Each threat tooltip includes its own forecast, actual reach thresholds and key eligibility restrictions");
+        var unavailable = Activator.CreateInstance(indicatorType, true);
+        check(Display(unavailable) == "?" && Hint(unavailable).Contains("forecast unavailable"),
+            "Unavailable projections do not invent a threat value or outcome");
         ImpactCall(recipient, "GainFief", 40, true);
         ImpactCall(recipient, "GainForcedTerm", 60);
         check(Near(ImpactValue(recipient, "Gain"), 45), "Claimed land and forced terms use the normal quarter-cost rate");
@@ -356,6 +414,21 @@ internal static class DefensivePactThreatTests
         check(Reliable(noneDelivered) && Impacts(noneDelivered).Count == 0
             && Reliable(castleDelivered) && Near(Project(Impacts(castleDelivered)["vlandia"], 30), 50),
             "A pre-settlement snapshot counts a concession only after its delivery receipt, even if ownership facts later change");
+        var evaluateScaled = AccessTools.Method(snapshotType, "EvaluateScaled");
+        object Scaled(double multiplier) => evaluateScaled.Invoke(snapshot, new object[] { new HashSet<TreatyTermRecord> { castle }, multiplier });
+        var zeroGain = Scaled(0);
+        var halfGain = Scaled(.5);
+        var doubleGain = Scaled(2);
+        check(Near(Project(Impacts(zeroGain)["vlandia"], 30), 30)
+            && Near(Project(Impacts(halfGain)["vlandia"], 30), 40)
+            && Near(Project(Impacts(doubleGain)["vlandia"], 30), 70)
+            && Near(Project(Impacts(zeroGain)["battania"], 40), 30)
+            && Near(Project(Impacts(doubleGain)["battania"], 40), 30),
+            "Treaty gain multiplier scales only positive threat; territorial losses are unchanged");
+        var cappedImpact = Activator.CreateInstance(assembly.GetType("BellumCivile.DefensivePactTreatyThreat", true), true);
+        AccessTools.Method(cappedImpact.GetType(), "GainFief").Invoke(cappedImpact, new object[] { 200, false });
+        AccessTools.Method(cappedImpact.GetType(), "SetGainMultiplier").Invoke(cappedImpact, new object[] { 2d });
+        check(Near(Project(cappedImpact, 0), 50), "The treaty gain cap applies after the multiplier");
         var journalType = assembly.GetType("BellumCivile.DefensivePactTreatyJournal", true);
         object Prepare(DefensivePactThreatBehavior b, TreatyProposalRecord proposal, object captured, double day = 0,
             double winnerRate = 1, double loserRate = 1)
@@ -369,6 +442,40 @@ internal static class DefensivePactThreatTests
         bool Seal(object journal, TreatyProposalRecord proposal) => (bool)AccessTools.Method(journalType, "Seal")
             .Invoke(journal, new object[] { proposal });
         object FinalImpact(object journal) => AccessTools.Method(journalType, "EvaluateDelivered").Invoke(journal, null);
+        try
+        {
+            cachedSettings.SetValue(null, settings);
+            var configuredGain = AccessTools.Property(settingsType, "TreatyThreatGainPercent");
+            var enabled = AccessTools.Property(settingsType, "EnableDefensivePacts");
+            enabled.SetValue(settings, true);
+            configuredGain.SetValue(settings, 50);
+            var savedMultiplierOwner = new DefensivePactThreatBehavior();
+            var savedMultiplierJournal = Prepare(savedMultiplierOwner, draft, snapshot);
+            configuredGain.SetValue(settings, 200);
+            var multiplierStore = new MemoryStore { IsSaving = true };
+            savedMultiplierOwner.SyncData(multiplierStore);
+            var multiplierResumed = new DefensivePactThreatBehavior();
+            multiplierStore.IsSaving = false;
+            multiplierResumed.SyncData(multiplierStore);
+            var multiplierJournal = AccessTools.Method(ownerType, "FindTreaty").Invoke(multiplierResumed, new object[] { draft.ProposalId });
+            Delivery(multiplierJournal, castle);
+            draft.SetState(TreatyProposalState.Applied, "test", 0);
+            check(Seal(multiplierJournal, draft)
+                && Near((double)AccessTools.Property(journalType, "GainMultiplier").GetValue(multiplierJournal), .5)
+                && Near(Project(Impacts(FinalImpact(multiplierJournal))["vlandia"], 30), 40),
+                "A resumed treaty retains its captured gain multiplier when settings change");
+            enabled.SetValue(settings, false);
+            check(Prepare(new DefensivePactThreatBehavior(), draft, snapshot) == null
+                && !(bool)AccessTools.Method(ownerType, "ApplySealedTreaty").Invoke(multiplierResumed, new[] { multiplierJournal }),
+                "Disabling defensive pacts prevents new treaty journals and defers sealed treaty threat");
+            var legacyJournal = AccessTools.Method(snapshotType, "CreateJournal").Invoke(snapshot, new object[] { "legacy", 0d });
+            check(Near((double)AccessTools.Property(journalType, "GainMultiplier").GetValue(legacyJournal), 1),
+                "A journal saved before multiplier support retains the original 100 percent behavior");
+            draft.SetState(TreatyProposalState.ParleyPending, "test");
+            configuredGain.SetValue(settings, 100);
+            enabled.SetValue(settings, true);
+        }
+        finally { cachedSettings.SetValue(null, priorSettings); }
         var journalOwner = new DefensivePactThreatBehavior();
         var journal = Prepare(journalOwner, draft, snapshot);
         check(journal != null && ReferenceEquals(journal, Prepare(journalOwner, draft, snapshot))
@@ -815,6 +922,34 @@ internal static class DefensivePactThreatTests
                 new object[] { member, target, day, 75d, 50, 2, 40d, 100d, -10, peace, false, false, false });
         bool ActivatePact(DefensivePactBehavior behavior, string target, string victim, double day)
             => (bool)AccessTools.Method(pactBehaviorType, "Activate").Invoke(behavior, new object[] { target, victim, day });
+        try
+        {
+            cachedSettings.SetValue(null, settings);
+            var enabled = AccessTools.Property(settingsType, "EnableDefensivePacts");
+            enabled.SetValue(settings, true);
+            var suspendedPact = new DefensivePactBehavior();
+            bool joinedBeforeDisable = JoinPact(suspendedPact, "suspended", "target", 0);
+            enabled.SetValue(settings, false);
+            check(joinedBeforeDisable && !JoinPact(suspendedPact, "late", "target", 1)
+                && !ActivatePact(suspendedPact, "target", "suspended", 1)
+                && (string)AccessTools.Method(pactBehaviorType, "GetMembershipTarget").Invoke(suspendedPact, new object[] { "suspended" }) == "target",
+                "Disabling pacts preserves existing membership but prevents joins and activation");
+            enabled.SetValue(settings, true);
+            check(ActivatePact(suspendedPact, "target", "suspended", 2),
+                "An existing pact can activate again after the feature is re-enabled");
+        }
+        finally { cachedSettings.SetValue(null, priorSettings); }
+        var testSetup = new DefensivePactBehavior();
+        var joinMethod = AccessTools.Method(pactBehaviorType, "TryJoin");
+        bool ForcedJoin(string member, double threat) => (bool)joinMethod.Invoke(testSetup,
+            new object[] { member, "test_target", 0d, threat, 25, 0, 1d, 2d, -1, true, false, false, false });
+        check(!ForcedJoin("too_early", 24.99) && ForcedJoin("first", 25) && ForcedJoin("second", 25)
+            && !ForcedJoin("first", 25),
+            "Forced test setup still records real members once and requires its stored joining threshold");
+        var joinCommand = PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(CheatCommands), "JoinDefensivePactForTesting"));
+        check(joinCommand.Any(i => i.Calls(joinMethod))
+            && joinCommand.Any(i => i.Calls(AccessTools.Method(pactBehaviorType, "TryJoinAfterVote"))),
+            "Test joins use the real membership registry, with normal and explicitly forced setup paths");
         check(JoinPact(pactBehavior, "victim", "target", 0) && JoinPact(pactBehavior, "defender", "target", 0)
             && !JoinPact(pactBehavior, "defender", "other_target", 0)
             && !JoinPact(pactBehavior, "wartime", "target", 0, false),
@@ -834,6 +969,11 @@ internal static class DefensivePactThreatTests
         check(!ActivatePact(pactBehavior, "target", "outsider", 20) && ActivatePact(pactBehavior, "target", "victim", 20)
             && !ActivatePact(pactBehavior, "target", "victim", 20),
             "An attack activates only the target's pact and removes it from active membership");
+        var recorded = AccessTools.Method(pactBehaviorType, "WasActivatedAt");
+        bool ActivationRecorded(string target, string victim, double day) => (bool)recorded.Invoke(pactBehavior, new object[] { target, victim, day });
+        check(ActivationRecorded("target", "victim", 20) && !ActivationRecorded("target", "outsider", 20)
+            && !ActivationRecorded("target", "victim", 21),
+            "Attack diagnostics distinguish actual activation from membership removal or a different event");
         var pactStore = new MemoryStore { IsSaving = true }; pactBehavior.SyncData(pactStore);
         var loadedPacts = new DefensivePactBehavior(); pactStore.IsSaving = false; loadedPacts.SyncData(pactStore);
         check((bool)AccessTools.Field(pactBehaviorType, "_hasPendingCalls").GetValue(loadedPacts)
@@ -855,5 +995,11 @@ internal static class DefensivePactThreatTests
             && !Attack(DeclareWarAction.DeclareWarDetail.CausedByPlayerHostility, calling: true)
             && !Attack(DeclareWarAction.DeclareWarDetail.CausedByKingdomDecision, hostile: false),
             "Only a confirmed deliberate attack activates a pact, excluding automatic calls and client synchronization");
+        var command = AccessTools.Method(typeof(CheatCommands), "AttackDefensivePactForTesting");
+        var instructions = PatchProcessor.GetOriginalInstructions(command);
+        check(instructions.Any(i => i.Calls(AccessTools.Method(typeof(DeclareWarAction), "ApplyByKingdomDecision")))
+            && !instructions.Any(i => i.Calls(AccessTools.Method(pactBehaviorType, "Activate")))
+            && instructions.Any(i => i.Calls(recorded)),
+            "The test attack uses the genuine triggering declaration and reports only a recorded activation");
     }
 }

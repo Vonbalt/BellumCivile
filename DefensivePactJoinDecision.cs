@@ -68,7 +68,7 @@ namespace BellumCivile
         private bool BasicIdentityValid => Owner != null && ProposerClan != null && !ProposerClan.IsEliminated
             && !ProposerClan.IsUnderMercenaryService && Member != null && ProposerClan.Kingdom == Member
             && Kingdom == Member && Target != null && Member != Target && !Member.IsEliminated && !Target.IsEliminated
-            && BellumCivileOptions.EnableWarPeaceLogicRevamp && Member.RulingClan?.Leader?.IsAlive == true
+            && BellumCivileOptions.DefensivePactsActive && Member.RulingClan?.Leader?.IsAlive == true
             && Target.RulingClan?.Leader?.IsAlive == true && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(Member)
             && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(Target);
         public override bool IsAllowed()

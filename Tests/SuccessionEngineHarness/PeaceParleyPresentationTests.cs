@@ -351,9 +351,10 @@ internal static class PeaceParleyPresentationTests
         var document = new XmlDocument();
         document.Load(Path.Combine(root, "GUI/Prefabs/Parley/BellumPeaceParley.xml"));
         var strip = (XmlElement)document.SelectSingleNode("//*[@Id='RatificationStrip']");
-        var list = (XmlElement)strip.ParentNode.ParentNode;
-        check(strip.PreviousSibling == null && strip.NextSibling.Attributes["Text"].Value == "@BudgetText",
-            "Ratification strip sits above Drafted Terms");
+        var area = (XmlElement)document.SelectSingleNode("//*[@Id='RatificationArea']");
+        var list = (XmlElement)area.ParentNode.ParentNode;
+        check(area.PreviousSibling == null && area.NextSibling.Attributes["Text"].Value == "@BudgetText"
+            && strip.ParentNode.ParentNode == area, "Ratification area sits above Drafted Terms");
         check(strip.GetAttribute("DoNotPassEventsToChildren") == "true"
             && strip.GetAttribute("Command.HoverBegin") == "ExecuteBeginPredictedOutcomeHint"
             && strip.GetAttribute("Command.HoverEnd") == "ExecuteEndPredictedOutcomeHint"
@@ -380,7 +381,7 @@ internal static class PeaceParleyPresentationTests
         var nativeIcon = (XmlElement)nativeBarter.SelectSingleNode("//ButtonWidget[@Id='AutoOfferButton']");
         check(icon.GetAttribute("SuggestedWidth") == nativeIcon.GetAttribute("SuggestedWidth")
             && icon.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
-            && strip.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
+            && area.GetAttribute("SuggestedHeight") == nativeIcon.GetAttribute("SuggestedHeight")
             && icon.GetAttribute("HorizontalAlignment") == "Center" && icon.GetAttribute("VerticalAlignment") == "Center"
             && bars.All(bar => bar.GetAttribute("VerticalAlignment") == "Center"),
             "Handshake matches the actual native barter dimensions and stays centered between both bars");
@@ -392,6 +393,25 @@ internal static class PeaceParleyPresentationTests
         check(document.SelectSingleNode("//*[@Text='@PredictedOutcomeText']") == null,
             "Old bottom outcome label is removed");
         CheckNativeAttributes(strip, check);
+        foreach (string side in new[] { "Player", "Opponent" })
+        {
+            var indicator = (XmlElement)area.SelectSingleNode("Children/Widget[@Id='" + side + "ThreatIndicator']");
+            var target = (XmlElement)indicator.SelectSingleNode("Children/ListPanel[@DataSource='{" + side + "Threat}']");
+            check(indicator.GetAttribute("IsVisible") == "@IsThreatForecastVisible"
+                && indicator.GetAttribute("SuggestedHeight") == "22" && target.GetAttribute("DoNotPassEventsToChildren") == "true"
+                && target.GetAttribute("Command.HoverBegin") == "ExecuteBeginHint" && target.GetAttribute("Command.HoverEnd") == "ExecuteEndHint"
+                && target.SelectSingleNode("Children/Widget[@Sprite='SPGeneral\\Clan\\Status\\Dead']") != null
+                && target.SelectSingleNode("Children/TextWidget[@Text='@ValueText']") != null,
+                side + " threat indicator uses the native skull and a separate, bounded hover target");
+            check(int.Parse(indicator.GetAttribute("SuggestedHeight")) <=
+                (int.Parse(area.GetAttribute("SuggestedHeight")) - int.Parse(bars[0].GetAttribute("SuggestedHeight"))) / 2,
+                side + " threat hover target ends above the centered ratification bar");
+            CheckNativeAttributes(indicator, check);
+        }
+        var sprites = new XmlDocument();
+        sprites.Load(Path.Combine(game, "Modules/Native/GUI/NativeSpriteData.xml"));
+        check(sprites.SelectNodes("//*[Name='SPGeneral\\Clan\\Status\\Dead']").Count > 0,
+            "The threat skull refers to a sprite supplied by the installed game");
         var brushes = new XmlDocument();
         brushes.Load(Path.Combine(root, "GUI/Brushes/BellumParley.xml"));
         var brush = (XmlElement)brushes.SelectSingleNode("/Brushes/Brush[@Name='Bellum.Parley.VoteBalance.Text']");
@@ -409,12 +429,20 @@ internal static class PeaceParleyPresentationTests
         var draftRow = (XmlElement)document.SelectSingleNode("//*[@Id='DraftTermsList']/ItemTemplate/ListPanel");
         check(draftRow.GetAttribute("SuggestedHeight") == "@RowHeight"
             && vmSource.Contains("DraftTerms.Sum(term => term.RowHeight) > DraftTermsHeight"),
-            "Forecast rows reserve their own height and are included in the draft scrollbar calculation");
+            "Draft term rows retain their own heights in the scrollbar calculation");
+        check(!vmSource.Contains("DraftTerms.Add(new TreatyTermVM(first))")
+            && !vmSource.Contains("DraftTerms.Add(new TreatyTermVM(second))"),
+            "Threat forecasts no longer occupy draft-term rows");
+        check(vmSource.Contains("new TreatyThreatIndicatorVM(playerSide.Name, threats.GetThreat(playerSide.StringId, now), playerImpact)")
+            && vmSource.Contains("new TreatyThreatIndicatorVM(opponent.Name, threats.GetThreat(opponent.StringId, now), opponentImpact)")
+            && vmSource.Contains("PlayerThreat?.ExecuteEndHint()") && vmSource.Contains("OpponentThreat?.ExecuteEndHint()")
+            && vmSource.Contains("war?.ConflictType == WarScoreConflictType.ForeignWar"),
+            "Each realm uses its own live threat and treaty impact; hints close on refresh and foreign-war gating remains");
         foreach (var mode in new[] { new { Name = "ruler", Height = 351, Terms = 199, Controls = 0 },
             new { Name = "vassal", Height = 609, Terms = 246, Controls = 196 } })
         {
             int available = mode.Height - int.Parse(list.GetAttribute("MarginTop")) - int.Parse(list.GetAttribute("MarginBottom"));
-            int required = int.Parse(strip.GetAttribute("SuggestedHeight")) + 6 + 30 + 4 + mode.Terms + mode.Controls;
+            int required = int.Parse(area.GetAttribute("SuggestedHeight")) + 6 + 30 + 4 + mode.Terms + mode.Controls;
             check(required <= available, "Ratification strip preserves the " + mode.Name + " panel's existing height and controls");
         }
         CheckMemberLayout(document, bars[0], check);

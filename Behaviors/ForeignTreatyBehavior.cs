@@ -1969,7 +1969,7 @@ namespace BellumCivile.Behaviors
             bool whitePeace = proposal.Terms.Any(term => term?.Type == TreatyTermType.WhitePeace);
             DefensivePactTreatyJournal threatJournal = null;
             var threatBehavior = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
-            if (threatBehavior != null && !whitePeace && proposal.Terms.Any(DefensivePactTreatySnapshot.IsRelevant))
+            if (BellumCivileOptions.DefensivePactsActive && threatBehavior != null && !whitePeace && proposal.Terms.Any(DefensivePactTreatySnapshot.IsRelevant))
             {
                 try
                 {

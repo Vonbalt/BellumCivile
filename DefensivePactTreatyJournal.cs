@@ -43,10 +43,13 @@ namespace BellumCivile
         [SaveableField(8)] private double _winnerWeeklyDecay;
         [SaveableField(9)] private double _loserWeeklyDecay;
         [SaveableField(10)] private bool _ratesCaptured;
+        [SaveableField(11)] private double _gainMultiplier;
+        [SaveableField(12)] private bool _gainMultiplierCaptured;
 
         internal string ProposalId => _proposalId;
         internal bool IsSealed => _sealed;
         internal double SettlementDay => _settlementDay;
+        internal double GainMultiplier => _gainMultiplierCaptured ? _gainMultiplier : 1d;
 
         internal DefensivePactTreatyJournal(string proposalId, string winnerId, string loserId,
             List<DefensivePactTreatyTermFact> facts, double settlementDay)
@@ -80,6 +83,15 @@ namespace BellumCivile
         }
 
         internal void Invalidate() { if (!_sealed) _invalid = true; }
+
+        internal bool CaptureGainMultiplier(double multiplier)
+        {
+            if (_sealed || _invalid || _gainMultiplierCaptured || !DefensivePactThreatRules.Finite(multiplier)
+                || multiplier < 0d || multiplier > 2d) return false;
+            _gainMultiplier = multiplier;
+            _gainMultiplierCaptured = true;
+            return true;
+        }
 
         internal bool CaptureRates(double winnerRate, double loserRate)
         {
@@ -117,7 +129,7 @@ namespace BellumCivile
         {
             if (!_sealed || _facts == null) return null;
             var snapshot = DefensivePactTreatySnapshot.FromJournal(_winnerId, _loserId, _facts);
-            return snapshot?.Evaluate(new HashSet<TreatyTermRecord>(_facts.Where(f => f.Delivered).Select(f => f.Term)));
+            return snapshot?.EvaluateScaled(new HashSet<TreatyTermRecord>(_facts.Where(f => f.Delivered).Select(f => f.Term)), GainMultiplier);
         }
 
         private static bool SameTerm(TreatyTermRecord a, TreatyTermRecord b) => a != null && b != null

@@ -30,9 +30,17 @@ namespace BellumCivile.Behaviors
 
         private void InitializeCampaignRates()
         {
+            if (!BellumCivileOptions.DefensivePactsActive) { _ratesInitialized = false; return; }
             if (!RecoverAppliedTreaties()) return;
             _ratesInitialized = true;
             RefreshCampaignRateSettings(BellumCivileOptions.DefensivePactWeeklyThreatDecay, true);
+        }
+
+        internal void RefreshFeatureSettings()
+        {
+            if (!BellumCivileOptions.DefensivePactsActive) { _ratesInitialized = false; return; }
+            if (!_ratesInitialized) InitializeCampaignRates();
+            else RefreshCampaignRateSettings(BellumCivileOptions.DefensivePactWeeklyThreatDecay);
         }
 
         private void OnSettlementOwnerChanged(Settlement settlement, bool openToClaim, Hero newOwner, Hero oldOwner,
@@ -51,7 +59,7 @@ namespace BellumCivile.Behaviors
 
         private void OnWarDeclared(IFaction attackerFaction, IFaction defenderFaction, DeclareWarAction.DeclareWarDetail detail)
         {
-            if (!_ratesInitialized || !BellumCivileOptions.EnableWarPeaceLogicRevamp
+            if (!_ratesInitialized || !BellumCivileOptions.DefensivePactsActive
                 || !(attackerFaction is Kingdom attacker) || !(defenderFaction is Kingdom defender)
                 || attacker == defender || attacker.IsEliminated || defender.IsEliminated
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(attacker)
@@ -71,7 +79,7 @@ namespace BellumCivile.Behaviors
         internal bool RecordUnjustifiedWar(Kingdom attacker, Kingdom defender, double day, double warStart,
             DefensivePactLegalBasis justification)
         {
-            if (!_ratesInitialized || attacker == null || defender == null || attacker == defender
+            if (!_ratesInitialized || !BellumCivileOptions.DefensivePactsActive || attacker == null || defender == null || attacker == defender
                 || string.IsNullOrWhiteSpace(attacker.StringId) || string.IsNullOrWhiteSpace(defender.StringId)
                 || justification != DefensivePactLegalBasis.NotEstablished || !DefensivePactThreatRules.Finite(day)
                 || !DefensivePactThreatRules.Finite(warStart) || warStart < 0 || day < warStart) return false;
@@ -82,7 +90,7 @@ namespace BellumCivile.Behaviors
 
         internal bool RecordPactBreach(HostagePactRecord pact, Kingdom aggressor)
         {
-            if (!_ratesInitialized || !BellumCivileOptions.EnableWarPeaceLogicRevamp || pact == null || aggressor == null || aggressor.IsEliminated
+            if (!_ratesInitialized || !BellumCivileOptions.DefensivePactsActive || pact == null || aggressor == null || aggressor.IsEliminated
                 || string.IsNullOrWhiteSpace(pact.Id) || pact.VoluntaryAggressor != aggressor
                 || pact.Phase != HostagePactPhase.Resolving || (pact.EndReason != HostagePactEndReason.War
                     && (pact.EndReason != HostagePactEndReason.Betrayal
@@ -93,7 +101,7 @@ namespace BellumCivile.Behaviors
 
         internal bool RecordExposedSubterfuge(Kingdom actor, Kingdom target, string missionId)
         {
-            if (!_ratesInitialized || !BellumCivileOptions.EnableWarPeaceLogicRevamp || actor == null || target == null || actor == target
+            if (!_ratesInitialized || !BellumCivileOptions.DefensivePactsActive || actor == null || target == null || actor == target
                 || actor.IsEliminated || target.IsEliminated || string.IsNullOrWhiteSpace(missionId)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(actor)
                 || BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(target)) return false;
@@ -208,6 +216,16 @@ namespace BellumCivile.Behaviors
             return _byRealm.TryGetValue(realmId, out var record) ? record.Peek(now) : 0d;
         }
 
+        internal bool SetThreatForTesting(Kingdom realm, double value, double now)
+        {
+            if (!_ratesInitialized || !BellumCivileOptions.DefensivePactsActive || realm == null || realm.IsEliminated || string.IsNullOrWhiteSpace(realm.StringId)
+                || !DefensivePactThreatRules.Finite(value) || value < 0d || value > 100d
+                || !DefensivePactThreatRules.Finite(now) || now < 0d) return false;
+            double current = GetThreat(realm.StringId, now);
+            AdjustThreat(realm.StringId, now, CampaignWeeklyRate(realm, _baseWeeklyDecay), value - current);
+            return true;
+        }
+
         internal void AdjustThreat(string realmId, double now, double weeklyDecay, double delta)
         {
             if (string.IsNullOrWhiteSpace(realmId)) throw new ArgumentException(nameof(realmId));
@@ -281,10 +299,11 @@ namespace BellumCivile.Behaviors
         internal DefensivePactTreatyJournal PrepareTreaty(TreatyProposalRecord proposal, DefensivePactTreatySnapshot snapshot,
             double settlementDay)
         {
-            if (proposal == null || string.IsNullOrWhiteSpace(proposal.ProposalId)) return null;
+            if (!BellumCivileOptions.DefensivePactsActive || proposal == null || string.IsNullOrWhiteSpace(proposal.ProposalId)) return null;
             if (_journalsByProposal.TryGetValue(proposal.ProposalId, out var existing)) return existing;
             if (proposal.State != TreatyProposalState.ParleyPending || snapshot == null || !snapshot.Matches(proposal)) return null;
             var journal = snapshot.CreateJournal(proposal.ProposalId, settlementDay);
+            if (!journal.CaptureGainMultiplier(BellumCivileOptions.TreatyThreatGainPercent / 100d)) return null;
             _treatyJournals.Add(journal);
             _journalsByProposal.Add(proposal.ProposalId, journal);
             return journal;
@@ -312,7 +331,7 @@ namespace BellumCivile.Behaviors
         // Callers must settle pending journals before advancing other threat events past their settlement day.
         internal bool ApplySealedTreaty(DefensivePactTreatyJournal journal)
         {
-            if (journal == null || !journal.IsSealed || FindTreaty(journal.ProposalId) != journal) return false;
+            if (!BellumCivileOptions.DefensivePactsActive || journal == null || !journal.IsSealed || FindTreaty(journal.ProposalId) != journal) return false;
             var projection = journal.EvaluateDelivered();
             if (projection == null || !projection.IsReliable) return false;
             double settlementDay = journal.SettlementDay;
@@ -346,6 +365,7 @@ namespace BellumCivile.Behaviors
 
         internal bool CompleteSealedTreaty(DefensivePactTreatyJournal journal)
         {
+            if (!BellumCivileOptions.DefensivePactsActive) return false;
             if (!ApplySealedTreaty(journal)) return false;
             _journalsByProposal.Remove(journal.ProposalId);
             _treatyJournals.Remove(journal);

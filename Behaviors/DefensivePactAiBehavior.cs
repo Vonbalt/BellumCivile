@@ -47,7 +47,7 @@ namespace BellumCivile.Behaviors
 
         private void OnDailyTick()
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || Campaign.Current == null) return;
+            if (!BellumCivileOptions.DefensivePactsActive || Campaign.Current == null) return;
             double now = CampaignTime.Now.ToDays;
             if (!DefensivePactThreatRules.Finite(now) || now < 0 || now >= int.MaxValue - EvaluationIntervalDays) return;
             int today = (int)Math.Floor(now);

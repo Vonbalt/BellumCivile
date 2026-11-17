@@ -101,7 +101,7 @@ namespace BellumCivile.Behaviors
             int fiefs, double strength, double targetStrength, int rulerRelation, bool atPeace,
             bool alliedToTarget, bool pactWithTarget, bool clientOfTarget)
         {
-            if (string.IsNullOrWhiteSpace(memberId) || string.IsNullOrWhiteSpace(targetId) || memberId == targetId
+            if (!BellumCivileOptions.DefensivePactsActive || string.IsNullOrWhiteSpace(memberId) || string.IsNullOrWhiteSpace(targetId) || memberId == targetId
                 || !DefensivePactThreatRules.Finite(now) || now < 0) return false;
             bool alreadyMember = _activeByMember.ContainsKey(memberId);
             bool cooldown = _cooldowns.TryGetValue(targetId, out double until) && now < until;
@@ -124,7 +124,7 @@ namespace BellumCivile.Behaviors
 
         private void MaintainMemberships()
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || Campaign.Current == null || _membershipChecks.Count == 0) return;
+            if (!BellumCivileOptions.DefensivePactsActive || Campaign.Current == null || _membershipChecks.Count == 0) return;
             var threats = Campaign.Current.GetCampaignBehavior<DefensivePactThreatBehavior>();
             var hostages = Campaign.Current.GetCampaignBehavior<HostagePactBehavior>();
             var clients = ClientKingdomBehavior.Instance;
@@ -147,12 +147,13 @@ namespace BellumCivile.Behaviors
         }
 
         private void CheckMembership(string id, DefensivePactRecord pact, DefensivePactThreatBehavior threats,
-            HostagePactBehavior hostages, ClientKingdomBehavior clients, double now)
+            HostagePactBehavior hostages, ClientKingdomBehavior clients, double now, bool removeExistingWar = true)
         {
             if (!_frontierRealms.TryGetValue(id, out var member)
                 || !_frontierRealms.TryGetValue(pact.TargetId, out var target)) return;
             if (member.IsEliminated) { RemoveRealm(id); return; }
             if (target.IsEliminated) { RemoveRealm(pact.TargetId); return; }
+            if (removeExistingWar && member.IsAtWarWith(target)) { TryLeave(id); return; }
             var entry = pact.Members.FirstOrDefault(m => m?.RealmId == id);
             if (ShouldLeave(entry, member, target, threats, hostages, clients, now) == true) TryLeave(id);
         }
@@ -172,7 +173,7 @@ namespace BellumCivile.Behaviors
                 clients.IsClientOf(member, target), playerRealm);
         }
 
-        private void RecheckBeforeAttack(DefensivePactRecord pact, double now)
+        private void RecheckBeforeAttack(DefensivePactRecord pact, string attackedMemberId, double now)
         {
             var threats = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
             var hostages = Campaign.Current?.GetCampaignBehavior<HostagePactBehavior>();
@@ -183,7 +184,7 @@ namespace BellumCivile.Behaviors
             {
                 string id = entry?.RealmId;
                 if (id == null || !_activeByMember.TryGetValue(id, out var current) || current != pact) continue;
-                try { CheckMembership(id, pact, threats, hostages, clients, now); }
+                try { CheckMembership(id, pact, threats, hostages, clients, now, id != attackedMemberId); }
                 catch (Exception ex) { BellumCivileLogger.Log($"Defensive pact pre-attack check deferred; member={id}; error={ex}"); }
             }
         }
@@ -221,13 +222,17 @@ namespace BellumCivile.Behaviors
             && !string.IsNullOrWhiteSpace(targetId) && _activeByMember.TryGetValue(realmId, out var pact)
             && pact.TargetId == targetId;
 
+        internal bool WasActivatedAt(string targetId, string attackedMemberId, double day)
+            => _pacts.Any(p => p?.Activated == true && p.TargetId == targetId
+                && p.AttackedMemberId == attackedMemberId && p.ActivatedDay == day);
+
         internal IReadOnlyList<DefensivePactMemberRecord> GetMembersAgainst(string targetId)
             => !string.IsNullOrWhiteSpace(targetId) && _activeByTarget.TryGetValue(targetId, out var pact)
                 ? pact.Members : Array.Empty<DefensivePactMemberRecord>();
 
         internal float AdditionalDefensiveStrength(Kingdom attacker, Kingdom defender)
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || Campaign.Current == null) return 0f;
+            if (!BellumCivileOptions.DefensivePactsActive || Campaign.Current == null) return 0f;
             return EstimateAdditionalDefensiveStrength(attacker, defender,
                 Campaign.Current.GetCampaignBehavior<DefensivePactThreatBehavior>(),
                 Campaign.Current.GetCampaignBehavior<HostagePactBehavior>(), ClientKingdomBehavior.Instance, CampaignTime.Now.ToDays);
@@ -236,7 +241,7 @@ namespace BellumCivile.Behaviors
         internal float EstimateAdditionalDefensiveStrength(Kingdom attacker, Kingdom defender,
             DefensivePactThreatBehavior threats, HostagePactBehavior hostages, ClientKingdomBehavior clients, double now)
         {
-            if (attacker == null || defender == null || attacker == defender
+            if (!BellumCivileOptions.DefensivePactsActive || attacker == null || defender == null || attacker == defender
                 || attacker.IsEliminated || defender.IsEliminated || attacker.IsAtWarWith(defender)
                 || !IsMemberAgainst(defender.StringId, attacker.StringId)
                 || !_activeByTarget.TryGetValue(attacker.StringId, out var pact)) return 0f;
@@ -274,7 +279,7 @@ namespace BellumCivile.Behaviors
 
         internal DefensivePactCampaignAssessment Assess(Kingdom member, Kingdom target)
         {
-            if (Campaign.Current == null || member == null || target == null
+            if (!BellumCivileOptions.DefensivePactsActive || Campaign.Current == null || member == null || target == null
                 || !TryGetFrontierDistance(member.StringId, target.StringId, out int distance)) return null;
             try
             {
@@ -311,7 +316,7 @@ namespace BellumCivile.Behaviors
         {
             reason = null;
             Kingdom member = proposer?.Kingdom;
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || member == null || target == null || member == target
+            if (!BellumCivileOptions.DefensivePactsActive || member == null || target == null || member == target
                 || proposer.IsEliminated || proposer.IsUnderMercenaryService || target.IsEliminated)
                 reason = new TextObject("{=BC_DefensivePact_ProposeUnavailable}A defensive pact cannot be proposed under the current circumstances.");
             else if (HasMembership(member.StringId))
@@ -365,7 +370,7 @@ namespace BellumCivile.Behaviors
         {
             reason = null;
             var member = proposer?.Kingdom;
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || member == null || target == null || member == target
+            if (!BellumCivileOptions.DefensivePactsActive || member == null || target == null || member == target
                 || proposer.IsEliminated || proposer.IsUnderMercenaryService || member.IsEliminated || target.IsEliminated
                 || !IsMemberAgainst(member.StringId, target.StringId))
                 reason = new TextObject("{=BC_DefensivePact_LeaveUnavailable}Your realm cannot propose leaving this defensive pact now.");
@@ -452,7 +457,7 @@ namespace BellumCivile.Behaviors
 
         internal bool Activate(string targetId, string attackedMemberId, double now)
         {
-            if (string.IsNullOrWhiteSpace(targetId) || !_activeByTarget.TryGetValue(targetId, out var pact)
+            if (!BellumCivileOptions.DefensivePactsActive || string.IsNullOrWhiteSpace(targetId) || !_activeByTarget.TryGetValue(targetId, out var pact)
                 || !pact.TryActivate(attackedMemberId, now)) return false;
             _activeByTarget.Remove(targetId);
             foreach (var member in pact.Members)
@@ -466,12 +471,12 @@ namespace BellumCivile.Behaviors
 
         private void OnWarDeclared(IFaction attacker, IFaction defender, DeclareWarAction.DeclareWarDetail detail)
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || !(attacker is Kingdom target) || !(defender is Kingdom member) || target == member
+            if (!BellumCivileOptions.DefensivePactsActive || !(attacker is Kingdom target) || !(defender is Kingdom member) || target == member
                 || !IsInitiatingAttack(detail, _processingCalls,
                     ClientKingdomBehavior.Instance?.IsSynchronizingDiplomacy == true, target.IsAtWarWith(member))) return;
             _activeByTarget.TryGetValue(target.StringId, out var pact);
             double now = CampaignTime.Now.ToDays;
-            RecheckBeforeAttack(pact, now);
+            RecheckBeforeAttack(pact, member.StringId, now);
             if (Activate(target.StringId, member.StringId, now))
             {
                 var playerRealm = Campaign.Current != null ? Clan.PlayerClan?.Kingdom : null;
@@ -519,7 +524,7 @@ namespace BellumCivile.Behaviors
 
         private void MaintainFrontierCache()
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || Campaign.Current == null) return;
+            if (!BellumCivileOptions.DefensivePactsActive || Campaign.Current == null) return;
             double day = CampaignTime.Now.ToDays;
             if (!DefensivePactThreatRules.Finite(day) || day < 0 || day >= int.MaxValue - FrontierDiscoveryIntervalDays) return;
             int today = (int)Math.Floor(day);
@@ -564,7 +569,7 @@ namespace BellumCivile.Behaviors
 
         private void ProcessPendingCalls()
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || !_hasPendingCalls || _processingCalls) return;
+            if (!BellumCivileOptions.DefensivePactsActive || !_hasPendingCalls || _processingCalls) return;
             _processingCalls = true;
             try
             {
@@ -617,7 +622,7 @@ namespace BellumCivile.Behaviors
 
         private void ProcessPlayerNotice(float dt)
         {
-            if (!BellumCivileOptions.EnableWarPeaceLogicRevamp || !_hasReadyNotice || _noticeOpen || InformationManager.IsAnyInquiryActive()
+            if (!BellumCivileOptions.DefensivePactsActive || !_hasReadyNotice || _noticeOpen || InformationManager.IsAnyInquiryActive()
                 || !(Game.Current?.GameStateManager?.ActiveState is MapState map) || map.AtMenu
                 || map.MapConversationActive || map.NextIncident != null || PlayerEncounter.Current != null
                 || Campaign.Current?.CurrentMenuContext != null) return;
