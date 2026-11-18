@@ -42,7 +42,7 @@ internal static class CouncilCaptivityTests
     private static readonly HashSet<Hero> Captives = new HashSet<Hero>();
     private static Kingdom _realm, _enemy;
     private static Clan _crown, _holder, _challenger, _newCaptive, _player;
-    private static float _day;
+    private static float _day, _competence;
     private static bool _war;
     private static int _dismissals, _notices;
     private static bool Skip() => false;
@@ -65,7 +65,7 @@ internal static class CouncilCaptivityTests
     private static bool Zero(ref float __result) { __result = 0; return false; }
     private static bool Relation(ref int __result) { __result = 0; return false; }
     private static bool Weight(ref float __result) { __result = 2; return false; }
-    private static bool Competence(ref float __result) { __result = 60; return false; }
+    private static bool Competence(ref float __result) { __result = _competence; return false; }
     private static bool Name(ref TextObject __result) { __result = new TextObject("{=!}Test councillor"); return false; }
     private static bool Dismiss(ref int __result) { _dismissals++; __result = 25; return false; }
     private static bool Notice() { _notices++; return false; }
@@ -103,7 +103,7 @@ internal static class CouncilCaptivityTests
             .Invoke(b, new object[] { _realm, office });
         try
         {
-            ticks.SetValue(null, 1000L); Heads.Clear(); Captives.Clear(); _day = 10; _war = false;
+            ticks.SetValue(null, 1000L); Heads.Clear(); Captives.Clear(); _day = 10; _war = false; _competence = 60;
             _realm = Blank<Kingdom>(); _realm.StringId = "council_captivity";
             _enemy = Blank<Kingdom>(); _enemy.StringId = "enemy";
             _crown = House("crown"); _holder = House("holder"); _challenger = House("challenger");
@@ -201,6 +201,49 @@ internal static class CouncilCaptivityTests
             Captives.Add(Heads[_holder]);
             check(b.GetIntrigueProxy(_realm) == Heads[_crown] && b.GetIntrigueSkillModifier(_realm, true) == 0
                 && b.GetIntrigueSkillModifier(_realm, false) == -50, "Captured spymaster is unavailable for intrigue duties");
+
+            Captives.Clear();
+            var reassurance = Seat(PrivyCouncilOffice.Chancellor, 20);
+            reassurance.SetAssignment("chancellor_reassure_realms", 2);
+            Invalidate();
+            var assignmentUpkeep = AccessTools.Method(type, "ApplyAssignmentUpkeepControversy");
+            var reassuranceDefinition = PrivyCouncilAssignmentRegistry.GetAssignment(reassurance.AssignmentId);
+            check(b.GetAssignmentDescription(reassuranceDefinition, _realm).ToString().Contains("1 Chancellor controversy each week")
+                && b.GetAssignmentStatusHint(_realm, PrivyCouncilOffice.Chancellor).ToString().Contains(
+                    $"{.9f:0.#} Chancellor controversy each week"),
+                "Reassurance description shows the base cost and its active tooltip shows the competence-adjusted cost");
+            assignmentUpkeep.Invoke(b, new object[] { _realm });
+            check(Math.Abs(reassurance.Controversy - 20.9f) < .001f,
+                "Reassuring realms generates competence-adjusted weekly controversy once");
+            _competence = 50;
+            Invalidate();
+            float beforeAverageUpkeep = reassurance.Controversy;
+            assignmentUpkeep.Invoke(b, new object[] { _realm });
+            check(Math.Abs(reassurance.Controversy - beforeAverageUpkeep - 1f) < .001f,
+                "Reassuring realms generates one controversy at average competence");
+            _competence = 60;
+            Captives.Add(Heads[_holder]);
+            Invalidate();
+            float beforeCaptiveUpkeep = reassurance.Controversy;
+            assignmentUpkeep.Invoke(b, new object[] { _realm });
+            check(reassurance.Controversy == beforeCaptiveUpkeep,
+                "A captive chancellor does not generate reassurance assignment upkeep");
+            Captives.Clear();
+            var options = type.Assembly.GetType("BellumCivile.BellumCivileOptions", true);
+            var settingsType = type.Assembly.GetType("BellumCivile.BellumCivileSettings", true);
+            var settingsField = AccessTools.Field(options, "_settings");
+            var oldSettings = settingsField.GetValue(null);
+            try
+            {
+                var settings = Activator.CreateInstance(settingsType, true);
+                AccessTools.Property(settingsType, "EnableDefensivePacts").SetValue(settings, false);
+                settingsField.SetValue(null, settings);
+                assignmentUpkeep.Invoke(b, new object[] { _realm });
+                check(reassurance.Controversy == beforeCaptiveUpkeep,
+                    "Reassurance upkeep stops when defensive pacts are disabled");
+            }
+            finally { settingsField.SetValue(null, oldSettings); }
+            Captives.Add(Heads[_holder]);
 
             // Exercise the native decision contract, then the behavior's save/load callback.
             var retained = Seat(PrivyCouncilOffice.Marshal, 35);

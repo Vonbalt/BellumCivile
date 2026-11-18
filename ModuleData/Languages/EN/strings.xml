@@ -125,8 +125,8 @@
     <string id="BC_MCM_TreatyThreatGain" text="Treaty Threat Gain Multiplier (%)" />
     <string id="BC_MCM_TreatyThreatGain_Hint" text="Scales threat gained from peace treaty terms. Increasing makes defensive pacts against expanding realms more likely; decreasing makes them less likely. At 0%, treaties generate no new threat. Threat lost by conceding territory and threat from other actions are unchanged. The existing maximum gain of 50 threat per treaty still applies. Changes affect new treaty settlements, not already committed settlements. Bellum default: 100%." />
     <string id="BC_Council_AssignmentReassureRealms" text="Reassure Other Realms" />
-    <string id="BC_Council_AssignmentReassureRealmsHint" text="The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment and is suspended while the chancellor is captive." />
-    <string id="BC_Council_AssignmentStatusReassureRealms" text="Threat decays {BONUS}% faster after the realm-size adjustment." />
+    <string id="BC_Council_AssignmentReassureRealmsHint" text="The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment. At average competence, this creates 1 {OFFICE} controversy each week. The assignment is suspended while the chancellor is captive." />
+    <string id="BC_Council_AssignmentStatusReassureRealms" text="Threat decays {BONUS}% faster after the realm-size adjustment. Generates {CONTROVERSY} {OFFICE} controversy each week." />
     <string id="BC_DefensivePact_CallTitle" text="A Call to Arms" />
     <string id="BC_DefensivePact_CallConfirm" text="I understand." />
     <string id="BC_DefensivePact_CallAttacked" text="A messenger brings word that {TARGET} has attacked our realm. By the defensive pact, the other signatory realms have been called to arms. Each will fight its own war against the aggressor." />

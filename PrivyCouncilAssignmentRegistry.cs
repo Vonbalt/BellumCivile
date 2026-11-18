@@ -160,7 +160,7 @@ namespace BellumCivile
                 "{=BC_Council_AssignmentFabricateGrievancesHint}At average competence: +25% ruling-clan claim fabrication progress, but +5 percentage points to its discovery chance. Creates 1 {OFFICE} controversy each week.");
             RegisterAssignment(DefensivePactThreatRules.ChancellorAssignmentId, PrivyCouncilOffice.Chancellor,
                 "{=BC_Council_AssignmentReassureRealms}Reassure Other Realms",
-                "{=BC_Council_AssignmentReassureRealmsHint}The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment and is suspended while the chancellor is captive.");
+                "{=BC_Council_AssignmentReassureRealmsHint}The chancellor reassures other realms of your peaceful intentions, increasing threat decay by up to 100% according to competence. This bonus applies after the realm-size adjustment. At average competence, this creates 1 {OFFICE} controversy each week. The assignment is suspended while the chancellor is captive.");
 
             RegisterNoneAssignment(PrivyCouncilOffice.Seneschal, "seneschal");
             RegisterAssignment("seneschal_audit_vassals", PrivyCouncilOffice.Seneschal,

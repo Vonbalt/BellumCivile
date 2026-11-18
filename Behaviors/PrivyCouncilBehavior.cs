@@ -501,6 +501,7 @@ namespace BellumCivile.Behaviors
                 && !string.IsNullOrEmpty(assignmentId)
                 && state.Assignment.Office == state.Record.Office
                 && string.Equals(state.Assignment.Id, assignmentId, StringComparison.OrdinalIgnoreCase)
+                && (state.Assignment.Id != DefensivePactThreatRules.ChancellorAssignmentId || BellumCivileOptions.DefensivePactsActive)
                 && CanPerformCouncilDuties(state.Holder);
         }
 
@@ -999,9 +1000,10 @@ namespace BellumCivile.Behaviors
                     summary.SetTextVariable("CONTROVERSY", FormatNumber(drawback * aspect(CouncilIncidentAspects.FabricationWeeklyControversy)));
                     return summary;
                 case DefensivePactThreatRules.ChancellorAssignmentId:
-                    summary = new TextObject("{=BC_Council_AssignmentStatusReassureRealms}Threat decays {BONUS}% faster after the realm-size adjustment.");
+                    summary = new TextObject("{=BC_Council_AssignmentStatusReassureRealms}Threat decays {BONUS}% faster after the realm-size adjustment. Generates {CONTROVERSY} {OFFICE} controversy each week.");
                     summary.SetTextVariable("BONUS", FormatNumber((float)DefensivePactThreatRules.ChancellorEffect(
                         IsAssignmentActive(kingdom, office, assignmentId), GetEffectiveCoreOfficeCompetence(kingdom, office)) * 100f));
+                    summary.SetTextVariable("CONTROVERSY", FormatNumber(drawback));
                     return summary;
                 case "seneschal_audit_vassals":
                     summary = new TextObject("{=BC_Council_AssignmentStatusAuditVassals}Feudal service income reaching the crown is increased by {SERVICE}%. Generates {CONTROVERSY} Seneschal controversy each week.");
@@ -1412,12 +1414,15 @@ namespace BellumCivile.Behaviors
                 && !chancellorAssignment.Id.EndsWith("_none", StringComparison.Ordinal)
                 && IsAssignmentActive(kingdom, PrivyCouncilOffice.Chancellor, chancellorAssignment.Id))
             {
-                string controversyAspect = chancellorAssignment.Id == "chancellor_appease_nobles"
-                    ? CouncilIncidentAspects.NobleAppeasementWeeklyControversy
-                    : chancellorAssignment.Id == "chancellor_improve_foreign_relations"
-                        ? CouncilIncidentAspects.ForeignRelationsWeeklyControversy
-                        : CouncilIncidentAspects.FabricationWeeklyControversy;
-                float incidentMultiplier = Campaign.Current?
+                string controversyAspect;
+                switch (chancellorAssignment.Id)
+                {
+                    case "chancellor_appease_nobles": controversyAspect = CouncilIncidentAspects.NobleAppeasementWeeklyControversy; break;
+                    case "chancellor_improve_foreign_relations": controversyAspect = CouncilIncidentAspects.ForeignRelationsWeeklyControversy; break;
+                    case DefensivePactThreatRules.ChancellorAssignmentId: controversyAspect = null; break;
+                    default: controversyAspect = CouncilIncidentAspects.FabricationWeeklyControversy; break;
+                }
+                float incidentMultiplier = controversyAspect == null ? 1f : Campaign.Current?
                     .GetCampaignBehavior<CouncilIncidentBehavior>()?
                     .GetAssignmentAspectMultiplier(
                         kingdom,
