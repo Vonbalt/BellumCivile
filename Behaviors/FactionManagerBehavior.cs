@@ -178,6 +178,8 @@ namespace BellumCivile.Behaviors
                 if (!rebelKingdom.IsAtWarWith(collapsedRebelFaction.ParentKingdom)) continue;
                 if (CountStrongholds(rebelKingdom) > 0) continue;
 
+                ConflictOutcomeBehavior.RecordCivilEnding(collapsedRebelFaction, rebelKingdom,
+                    new TextObject("{=BC_Result_InternalRebelLandless}The rebels were left without a stronghold and could no longer keep the field."));
                 resolutionBehavior?.ResolveLiegeVictory(collapsedRebelFaction, rebelKingdom);
             }
 

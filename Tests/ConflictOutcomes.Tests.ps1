@@ -16,7 +16,7 @@ Check ($rival.IndexOf('BeginCivil(loser.Faction') -lt $rival.IndexOf('ReleaseMer
 Check ($feud.Contains('originalParent?.RulingClan == Clan.PlayerClan') -and $feud.Contains('DecodeIds(war.ClaimantClanIds).Contains(Clan.PlayerClan.StringId)')) 'Feud popup includes participating clans and the parent ruler, not every parent vassal.'
 Check ($feud.IndexOf('Publish(resultNotice') -gt $feud.IndexOf('ReturnWarClans(war, parent)') -and !$feud.Contains('ShowClaimFeudWarResolved(')) 'Feud result replaces pre-transfer duplicate chat.'
 [xml]$xml = Read 'ModuleData/Languages/EN/strings.xml'
-$files = @('ConflictOutcomeText.cs', 'Behaviors/ConflictOutcomeBehavior.cs', 'Behaviors/CivilWarResolutionBehavior.cs', 'Behaviors/ClaimFeudWarBehavior.cs', 'Behaviors/WarScoreBehavior.cs')
+$files = @('ConflictOutcomeText.cs', 'InternalWarEnding.cs', 'Behaviors/ConflictOutcomeBehavior.cs', 'Behaviors/CivilWarResolutionBehavior.cs', 'Behaviors/ClaimFeudWarBehavior.cs', 'Behaviors/WarScoreBehavior.cs', 'Behaviors/FactionManagerBehavior.cs')
 foreach ($file in $files) {
     foreach ($match in [regex]::Matches((Read $file), '\{=(BC_Result_[A-Za-z0-9_]+)\}([^"\r\n]*)')) {
         $node = $xml.SelectNodes("//string[@id='$($match.Groups[1].Value)']")

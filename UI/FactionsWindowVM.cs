@@ -1244,6 +1244,7 @@ namespace BellumCivile.UI
                 TextObject surrenderMsg = new TextObject("{=BC_UI_Msg_LoyalistSurrendered}The crown has surrendered to the {FACTION_NAME}. Its demands will now be enforced.");
                 surrenderMsg.SetTextVariable("FACTION_NAME", GetDynamicFactionName(selectedRebellion));
                 BellumCivileNotifications.ShowPersonal(surrenderMsg, BellumNotificationColors.Danger);
+                ConflictOutcomeBehavior.RecordCivilEnding(selectedRebellion, rebelKingdom, InternalWarEnding.VoluntarySurrender(parentKingdom, rebelKingdom));
                 resolutionBehavior.ResolveRebelVictory(selectedRebellion, rebelKingdom);
                 RefreshFactionList(false);
                 return;
@@ -1266,6 +1267,7 @@ namespace BellumCivile.UI
                             surrenderMsg.SetTextVariable("FACTION_NAME", GetDynamicFactionName(playerFaction));
                             BellumCivileNotifications.ShowPersonal(surrenderMsg, BellumNotificationColors.Danger);
 
+                            ConflictOutcomeBehavior.RecordCivilEnding(playerFaction, rebelKingdom, InternalWarEnding.VoluntarySurrender(rebelKingdom, playerFaction.ParentKingdom));
                             resolutionBehavior.ResolveLiegeVictory(playerFaction, rebelKingdom);
                             RefreshFactionList(false);
                             return;

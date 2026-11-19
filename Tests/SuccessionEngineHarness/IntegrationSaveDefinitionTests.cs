@@ -22,10 +22,11 @@ internal static class IntegrationSaveDefinitionTests
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.DefensivePactJoinDecision+JoinOutcome"),
         typeof(BellumIntegration).Assembly.GetType("BellumCivile.CouncilAppointmentResultRecord"), typeof(CivilWarGraceRecord),
         typeof(TreatyTermRecord), typeof(TreatyHostageRecord), typeof(RestoredRealmCreationRecord), typeof(CivilWarCollapseRecord), typeof(RegencyRecord), typeof(CourtTitleGrantRecord),
-        typeof(TitleAcquiredMapNotification), typeof(CourtTermPreparationRecord) };
+        typeof(TitleAcquiredMapNotification), typeof(CourtTermPreparationRecord), typeof(InternalPeaceCourierNotice) };
     private static bool OnlyRecords(Type type) => Records.Contains(type);
-    private static bool OnlyLists(Type type) => type == typeof(Dictionary<string, CourtTermPreparationRecord>)
-        || Records.Any(r => r != typeof(CourtTermPreparationRecord) && type == typeof(List<>).MakeGenericType(r));
+    private static Type ContainerOf(Type record) => record == typeof(CourtTermPreparationRecord) || record == typeof(InternalPeaceCourierNotice)
+        ? typeof(Dictionary<,>).MakeGenericType(typeof(string), record) : typeof(List<>).MakeGenericType(record);
+    private static bool OnlyLists(Type type) => Records.Any(record => type == ContainerOf(record));
     internal static void Run(Action<bool, string> check)
     {
         var context = new DefinitionContext();
@@ -48,8 +49,7 @@ internal static class IntegrationSaveDefinitionTests
                     .Invoke(context, new object[] { type }) != null
                     && (type == typeof(TreatyHostageRecord) || type == typeof(DefensivePactJoinDecision.JoinOutcome)
                         || AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
-                    .Invoke(context, new object[] { type == typeof(CourtTermPreparationRecord)
-                        ? typeof(Dictionary<string, CourtTermPreparationRecord>) : typeof(List<>).MakeGenericType(type) }) != null),
+                    .Invoke(context, new object[] { ContainerOf(type) }) != null),
                     "Native save registry resolves persisted record and any required list: " + type.Name);
                 var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
                 check(fields.All(f => f.GetCustomAttributesData().Count(a => a.AttributeType == typeof(SaveableFieldAttribute)) == 1),

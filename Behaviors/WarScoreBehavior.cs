@@ -40,7 +40,13 @@ namespace BellumCivile.Behaviors
         {
             dataStore.SyncData("BellumCivile_WarScore_Wars", ref _wars);
             EnsureCollectionsInitialized();
-            foreach (var war in _wars) war?.EnsureRaidHistory();
+            foreach (var war in _wars)
+            {
+                war?.EnsureRaidHistory();
+                // Old modal offers had no saved response callback to restore.
+                if (dataStore.IsLoading && war != null && war.ConflictType != WarScoreConflictType.ForeignWar)
+                    war.SetWhitePeaceOfferPending(false);
+            }
         }
 
         public IReadOnlyList<WarScoreRecord> GetActiveWars()
@@ -830,11 +836,11 @@ namespace BellumCivile.Behaviors
 
                 if (IsPlayerConflictLeader(war))
                 {
-                    ShowPlayerInternalWhitePeaceInquiry(war, primaryWill, opposingWill);
+                    QueuePlayerInternalWhitePeace(war);
                     continue;
                 }
 
-                ResolveInternalWhitePeace(war, "both sides exhausted without decisive leverage");
+                ResolveInternalWhitePeace(war, InternalWarEnding.MutualExhaustion);
             }
         }
 
@@ -1417,7 +1423,8 @@ namespace BellumCivile.Behaviors
                 primary,
                 opposing,
                 primaryVictory,
-                "losing side exhausted under decisive war score pressure");
+                InternalWarEnding.Exhaustion,
+                losingWill);
             if (!resolved)
             {
                 war.CancelResolution();
@@ -1440,7 +1447,7 @@ namespace BellumCivile.Behaviors
                 + (C.WarScoreInternalWhitePeaceMaximumChance - C.WarScoreInternalWhitePeaceBaseChance) * depletion;
         }
 
-        private static float CalculatePowerWeightedWarWill(Kingdom kingdom, WarScoreRecord war = null)
+        internal static float CalculatePowerWeightedWarWill(Kingdom kingdom, WarScoreRecord war = null)
         {
             WarPeaceRevampBehavior warWill = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>();
             if (kingdom == null || warWill == null)
@@ -1485,7 +1492,8 @@ namespace BellumCivile.Behaviors
                 return false;
             Kingdom primary = ResolveKingdom(war.AttackerKingdomId);
             Kingdom opposing = ResolveKingdom(war.DefenderKingdomId);
-            if (InternalPeaceSettlementBehavior.Current?.QueueWhitePeace(primary, opposing, resolutionAlreadyBegun: true) != true)
+            if (InternalPeaceSettlementBehavior.Current?.QueueSettlementWithReason(primary, opposing, null, awaitingPlayer: false,
+                resolutionAlreadyBegun: true, reason: reason) != true)
             {
                 war.CancelResolution();
                 return false;
@@ -1503,7 +1511,7 @@ namespace BellumCivile.Behaviors
                 && (primary?.RulingClan == Clan.PlayerClan || opposing?.RulingClan == Clan.PlayerClan);
         }
 
-        private void ShowPlayerInternalWhitePeaceInquiry(WarScoreRecord war, float primaryWill, float opposingWill)
+        private void QueuePlayerInternalWhitePeace(WarScoreRecord war)
         {
             if (war == null)
                 return;
@@ -1513,42 +1521,10 @@ namespace BellumCivile.Behaviors
             if (primary == null || opposing == null)
                 return;
 
-            war.SetWhitePeaceOfferPending(true);
-            TextObject description = new TextObject("{=BC_WarScore_PlayerWhitePeaceBody}Envoys report that both sides are exhausted by the conflict between {FIRST_REALM} and {SECOND_REALM}. Neither holds enough advantage to dictate terms.\n\nWar Score: {WAR_SCORE}\n{FIRST_REALM} War Will: {FIRST_WILL}\n{SECOND_REALM} War Will: {SECOND_WILL}");
-            description.SetTextVariable("FIRST_REALM", primary.Name);
-            description.SetTextVariable("SECOND_REALM", opposing.Name);
-            description.SetTextVariable("WAR_SCORE", war.Score.ToString("+0;-0;0"));
-            description.SetTextVariable("FIRST_WILL", primaryWill.ToString("0"));
-            description.SetTextVariable("SECOND_WILL", opposingWill.ToString("0"));
-
-            InformationManager.ShowInquiry(new InquiryData(
-                new TextObject("{=BC_WarScore_PlayerWhitePeaceTitle}White Peace Proposed").ToString(),
-                description.ToString(),
-                true,
-                true,
-                new TextObject("{=BC_WarScore_PlayerWhitePeaceAccept}Accept White Peace").ToString(),
-                new TextObject("{=BC_WarScore_PlayerWhitePeaceContinue}Continue the Conflict").ToString(),
-                () => ResolvePlayerInternalWhitePeaceChoice(war.WarKey, accept: true),
-                () => ResolvePlayerInternalWhitePeaceChoice(war.WarKey, accept: false)));
-        }
-
-        private void ResolvePlayerInternalWhitePeaceChoice(string warKey, bool accept)
-        {
-            WarScoreRecord war = _wars.FirstOrDefault(record => record != null && record.IsActive && record.WarKey == warKey);
-            if (war == null)
-                return;
-
-            war.SetWhitePeaceOfferPending(false);
-            if (accept)
-            {
-                if (!IsMutualWhitePeaceEligible(war, out _, out _)
-                    || CivilWarConflictBehavior.IsScoreTransferPending(war))
-                    return;
-                ResolveInternalWhitePeace(war, "player accepted mutual white peace");
-                return;
-            }
-
-            war.ScheduleNextWhitePeaceCheck(CurrentDay + C.WarScorePlayerWhitePeaceDeclineCooldownDays);
+            bool playerLeadsPrimary = primary.RulingClan == Clan.PlayerClan;
+            InternalPeaceSettlementBehavior.Current?.QueueSettlementWithReason(playerLeadsPrimary ? opposing : primary,
+                playerLeadsPrimary ? primary : opposing, null, awaitingPlayer: true, resolutionAlreadyBegun: false,
+                reason: InternalWarEnding.MutualExhaustion);
         }
 
         private static void ShowWhitePeaceMessage(Kingdom first, Kingdom second)
@@ -1564,19 +1540,27 @@ namespace BellumCivile.Behaviors
             Kingdom primary,
             Kingdom opposing,
             bool primaryVictory,
-            string reason = "war score reached decisive threshold")
+            string reason = "war score reached decisive threshold",
+            float? losingWill = null)
         {
             switch (war.ConflictType)
             {
                 case WarScoreConflictType.ClaimFeud:
                     return Campaign.Current?.GetCampaignBehavior<ClaimFeudWarBehavior>()?
-                        .TryResolveWarScore(primary, opposing, primaryVictory, reason) == true;
+                        .TryResolveScoredFeud(primary, opposing, primaryVictory, reason, losingWill) == true;
 
                 case WarScoreConflictType.CivilWar:
                 {
-                    if (CivilWarConflictBehavior.IsRivalryScore(war))
-                        return Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?.TryResolveRivalVictory(war, primaryVictory) == true;
+                    Kingdom winner = primaryVictory ? primary : opposing;
+                    Kingdom loser = primaryVictory ? opposing : primary;
+                    var ending = InternalWarEnding.Explain(reason, winner, loser, war, losingWill);
                     FactionManagerBehavior factionManager = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
+                    if (CivilWarConflictBehavior.IsRivalryScore(war))
+                    {
+                        ConflictOutcomeBehavior.RecordCivilEnding(factionManager?.GetFactionByRebelKingdom(loser),
+                            loser, ending, "rival:" + loser.StringId, winner);
+                        return Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>()?.TryResolveRivalVictory(war, primaryVictory) == true;
+                    }
                     CivilWarResolutionBehavior resolution = Campaign.Current?.GetCampaignBehavior<CivilWarResolutionBehavior>();
                     FactionObject faction = factionManager?.GetFactionByRebelKingdom(primary)
                         ?? factionManager?.GetFactionByTrackedRebelKingdomId(war.ContextId)
@@ -1585,10 +1569,7 @@ namespace BellumCivile.Behaviors
                         return false;
 
                     BellumCivileLogger.Log($"Civil-war terminal resolution requested; war={war.WarKey}; score={war.Score:0.0}; rebel_victory={primaryVictory}; reason={reason}.");
-                    if (reason == "losing side exhausted under decisive war score pressure")
-                        ConflictOutcomeBehavior.Capture(ConflictOutcomeBehavior.Current?.BeginCivil(faction, primary), "EXHAUSTION",
-                            new TextObject("{=BC_Result_Exhaustion}{LOSER} could no longer sustain the fighting and was forced to concede.")
-                                .SetTextVariable("LOSER", primaryVictory ? opposing.Name : primary.Name));
+                    ConflictOutcomeBehavior.RecordCivilEnding(faction, primary, ending);
 
                     if (primaryVictory)
                     {

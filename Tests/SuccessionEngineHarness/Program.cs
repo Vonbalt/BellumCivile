@@ -670,6 +670,7 @@ internal static class Program
             else if (args.Contains("--internal-peace"))
             {
                 InternalPeaceTests.Run(Check);
+                TestConflictOutcomes();
                 Console.WriteLine($"{_checks} internal peace checks passed.");
             }
             else if (args.Contains("--hostage-adulthood"))
@@ -949,11 +950,17 @@ internal static class Program
             foreach (var key in new[] { "LEADER", "RULER", "REALM", "FACTION", "SUCCESSION", "NEW_REALM", "DEMAND_RESULT",
                 "VICTOR", "CLAIMANT_HOUSE", "HOLDER_HOUSE", "TITLE", "NEW_HOLDER", "HOLDER", "CAUSE", "DEPOSED", "CARETAKER", "DATE" })
                 notice.Names[key] = "Test " + key;
+            if (kind == "feud_claimant" || kind == "satisfied" || kind == "ended") notice.Names["ENDING"] = "The claimant reached decisive leverage.";
+            if (kind == "independence") notice.Names["SEPARATE_REALMS"] = "Two independent banners.";
             notices.Add(notice);
             publish.Invoke(behavior, new object[] { notice, kind, "A surviving war continues." });
             Check(notice.Ready && !notice.Acknowledged, "Involved result awaits acknowledgement: " + kind);
             Check(!string.IsNullOrWhiteSpace(notice.Title) && !notice.Body.Contains("{") && !notice.Chat.Contains("{"),
                 "Outcome renders all name placeholders: " + kind);
+            if (kind == "feud_claimant" || kind == "satisfied" || kind == "ended")
+                Check(notice.Body.Contains("The claimant reached decisive leverage.") == (kind == "feud_claimant"),
+                    "A military explanation cannot override an invalidated or already fulfilled demand: " + kind);
+            if (kind == "independence") Check(notice.Body.Contains("Two independent banners."), "A partitioned independence result lists the separate realms");
             string body = notice.Body;
             publish.Invoke(behavior, new object[] { notice, "ended", "Must not replace a committed result." });
             Check(notice.Body == body, "Duplicate publication preserves committed outcome: " + kind);

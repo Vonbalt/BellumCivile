@@ -214,6 +214,9 @@ namespace BellumCivile.Behaviors
         }
 
         public bool TryResolveUnscriptedPeace(Kingdom first, Kingdom second)
+            => TryResolveFeudPeace(first, second, "unscripted peace");
+
+        internal bool TryResolveFeudPeace(Kingdom first, Kingdom second, string reason)
         {
             EnsureCollectionsInitialized();
             ClaimFeudWarRecord war = _wars.FirstOrDefault(active => active != null
@@ -223,7 +226,7 @@ namespace BellumCivile.Behaviors
             if (war == null)
                 return false;
 
-            ResolveWar(war, ClaimFeudWarOutcome.WhitePeace, "unscripted peace");
+            ResolveWar(war, ClaimFeudWarOutcome.WhitePeace, reason);
             return true;
         }
 
@@ -496,6 +499,9 @@ namespace BellumCivile.Behaviors
         }
 
         public bool TryResolveWarScore(Kingdom claimantKingdom, Kingdom holderKingdom, bool claimantVictory, string reason)
+            => TryResolveScoredFeud(claimantKingdom, holderKingdom, claimantVictory, reason, null);
+
+        internal bool TryResolveScoredFeud(Kingdom claimantKingdom, Kingdom holderKingdom, bool claimantVictory, string reason, float? losingWill)
         {
             EnsureCollectionsInitialized();
             ClaimFeudWarRecord war = _wars.FirstOrDefault(active => active != null
@@ -508,7 +514,8 @@ namespace BellumCivile.Behaviors
             ResolveWar(
                 war,
                 claimantVictory ? ClaimFeudWarOutcome.ClaimantVictory : ClaimFeudWarOutcome.HolderVictory,
-                reason);
+                reason,
+                losingWill: losingWill);
             return true;
         }
 
@@ -558,7 +565,8 @@ namespace BellumCivile.Behaviors
             return null;
         }
 
-        private void ResolveWar(ClaimFeudWarRecord war, ClaimFeudWarOutcome outcome, string reason, bool claimantDefaulted = false, Clan peaceEnforcer = null)
+        private void ResolveWar(ClaimFeudWarRecord war, ClaimFeudWarOutcome outcome, string reason, bool claimantDefaulted = false, Clan peaceEnforcer = null,
+            float? losingWill = null)
         {
             if (war == null || !war.IsActive)
                 return;
@@ -598,6 +606,14 @@ namespace BellumCivile.Behaviors
             ConflictOutcomeBehavior.Capture(resultNotice, "REALM", originalParent?.Name);
             ConflictOutcomeBehavior.Capture(resultNotice, "RULER", peaceEnforcer?.Leader?.Name);
             ConflictOutcomeBehavior.Capture(resultNotice, "TITLE", new TextObject("{=!}" + (title == null ? war.TargetTitleId : FeudalTitleDisplayHelper.FormatTitleName(title))));
+            if (resultNotice?.PlayerInvolved == true && peaceEnforcer == null)
+            {
+                var winner = outcome == ClaimFeudWarOutcome.ClaimantVictory ? claimantKingdom : holderKingdom;
+                var loser = outcome == ClaimFeudWarOutcome.ClaimantVictory ? holderKingdom : claimantKingdom;
+                var score = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(claimantKingdom, holderKingdom);
+                ConflictOutcomeBehavior.Capture(resultNotice, "ENDING", InternalWarEnding.Explain(reason, winner, loser,
+                    outcome != ClaimFeudWarOutcome.WhitePeace ? score : null, losingWill));
+            }
             string resultKind = "feud_peace";
             string claimConsequence = null;
             if (title == null || !title.IsActive)
@@ -631,6 +647,8 @@ namespace BellumCivile.Behaviors
                         $"claimant={claimant.StringId}; reason={claimantAwardResult ?? "unknown"}. Reverting the disputed fief and resolving as white peace.");
                     RestoreFiefSnapshot(war.FiefSnapshot, null);
                     outcome = ClaimFeudWarOutcome.WhitePeace;
+                    resultKind = "ended";
+                    ConflictOutcomeBehavior.Capture(resultNotice, "CAUSE", new TextObject("{=BC_Result_FeudUnawarded}The fighting has ended, but the disputed claim could not be settled. No title was awarded by this settlement."));
                     feud?.SetState(ClaimFeudState.Cooldown);
                 }
             }
@@ -865,6 +883,7 @@ namespace BellumCivile.Behaviors
                     .OrderByDescending(war => war.StartedDay)
                     .FirstOrDefault();
 
+                ConflictOutcomeNotice recovered = null;
                 List<Kingdom> relatedShells = new List<Kingdom> { orphanedShell };
                 if (matchingWar != null)
                 {
@@ -882,6 +901,16 @@ namespace BellumCivile.Behaviors
                         }
                     }
 
+                    // Only announce a live war the player is in, not routine cleanup of old shells.
+                    Kingdom playerRealm = Clan.PlayerClan?.Kingdom;
+                    if (claimantShell?.IsEliminated == false && holderShell?.IsEliminated == false
+                        && (playerRealm == claimantShell || playerRealm == holderShell) && claimantShell.IsAtWarWith(holderShell))
+                    {
+                        var formerRealm = ResolveKingdom(matchingWar.ParentKingdomId);
+                        recovered = ConflictOutcomeBehavior.Current?.Begin("feud:" + matchingWar.WarId, claimantShell, holderShell);
+                        ConflictOutcomeBehavior.Capture(recovered, "REALM", formerRealm?.Name ?? orphanedShell.Name);
+                        ConflictOutcomeBehavior.Capture(recovered, "CAUSE", new TextObject("{=BC_Result_InternalFeudLostTrace}The feuding hosts have dispersed. No victory or award of the disputed title can be confirmed."));
+                    }
                     ApplyPeaceIfNeeded(claimantShell, holderShell);
                 }
 
@@ -900,6 +929,7 @@ namespace BellumCivile.Behaviors
                     BellumCivileLogger.Log(
                         $"Repaired orphaned claim feud realm by restoring its clans; shells={string.Join(",", relatedShells.Select(shell => shell.StringId))}; " +
                         $"return_realm={returnKingdom.StringId}; war={matchingWar.WarId}.");
+                    if (relatedShells.All(shell => shell.IsEliminated)) ConflictOutcomeBehavior.Current?.Publish(recovered, "ended");
                     continue;
                 }
 
@@ -923,6 +953,7 @@ namespace BellumCivile.Behaviors
                             ? "existing-save orphaned claim feud repair"
                             : "untracked orphaned claim feud repair");
                 }
+                if (relatedShells.All(shell => shell.IsEliminated)) ConflictOutcomeBehavior.Current?.Publish(recovered, "ended");
             }
         }
 

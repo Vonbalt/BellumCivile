@@ -48,7 +48,7 @@ namespace BellumCivile.Behaviors
         }
         internal ConflictOutcomeNotice BeginCivil(FactionObject faction, Kingdom rebel, string id = null, Kingdom third = null)
         {
-            var notice = Begin(id ?? "civil:" + (rebel?.StringId ?? faction.GetTrackedRebelKingdomIncludingEliminated()?.StringId),
+            var notice = Begin(id ?? "civil:" + (rebel?.StringId ?? faction.TrackedRebelKingdomId),
                 faction.ParentKingdom, rebel, third);
             if (!notice.Ready && !notice.PlayerInvolved && Clan.PlayerClan != null)
                 notice.PlayerInvolved = faction.Members.Contains(Clan.PlayerClan)
@@ -60,6 +60,11 @@ namespace BellumCivile.Behaviors
             Capture(notice, "REALM", faction.ParentKingdom?.Name);
             Capture(notice, "FACTION", faction.GetDisplayName());
             return notice;
+        }
+        internal static void RecordCivilEnding(FactionObject faction, Kingdom rebel, TextObject ending, string id = null, Kingdom third = null)
+        {
+            if (faction == null || ending == null) return;
+            Capture(Current?.BeginCivil(faction, rebel, id, third), "ENDING", ending);
         }
         internal static void Capture(ConflictOutcomeNotice notice, string key, TextObject value)
         {
@@ -78,9 +83,12 @@ namespace BellumCivile.Behaviors
             notice.Title = Render(notice, copy[0]);
             notice.Chat = Render(notice, copy[1]);
             notice.Body = notice.Chat + "\n\n" + Render(notice, copy[2]);
-            if (notice.Names.TryGetValue("EXHAUSTION", out var exhaustion) && (kind == "claimant" || kind == "loyalist" || kind == "abdication" || kind == "independence"))
+            if (kind != "ended" && kind != "satisfied" && notice.Names.TryGetValue("ENDING", out var ending))
+                notice.Body += "\n\n" + ending;
+            else if (notice.Names.TryGetValue("EXHAUSTION", out var exhaustion) && (kind == "claimant" || kind == "loyalist" || kind == "abdication" || kind == "independence"))
                 notice.Body += "\n\n" + exhaustion;
             if (!string.IsNullOrEmpty(addition)) notice.Body += "\n\n" + addition;
+            if (notice.Names.TryGetValue("SEPARATE_REALMS", out var realms)) notice.Body += "\n\n" + realms;
             if (notice.Names.TryGetValue("TRIBUNAL", out var tribunal)) notice.Body += "\n\n" + tribunal;
             notice.Ready = true;
             if (notice.PlayerInvolved) _pending.Enqueue(notice);

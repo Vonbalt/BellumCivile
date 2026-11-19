@@ -17,6 +17,7 @@ namespace BellumCivile.Behaviors
         private Dictionary<string, string> _winner = new Dictionary<string, string>();
         private Dictionary<string, string> _consentLeader = new Dictionary<string, string>();
         private Dictionary<string, string> _reservedScore = new Dictionary<string, string>();
+        private Dictionary<string, string> _settlementReason = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _lastFailure = new Dictionary<string, string>();
         private bool _applying;
         private float _retrySeconds;
@@ -34,12 +35,15 @@ namespace BellumCivile.Behaviors
             store.SyncData("BC_InternalPeaceWinner", ref _winner);
             store.SyncData("BC_InternalPeaceConsentLeader", ref _consentLeader);
             store.SyncData("BC_InternalPeaceReservedScore", ref _reservedScore);
+            store.SyncData("BC_InternalPeaceSettlementReason", ref _settlementReason);
             SyncOffers(store);
+            SyncCouriers(store);
             _first = _first ?? new Dictionary<string, string>();
             _second = _second ?? new Dictionary<string, string>();
             _winner = _winner ?? new Dictionary<string, string>();
             _consentLeader = _consentLeader ?? new Dictionary<string, string>();
             _reservedScore = _reservedScore ?? new Dictionary<string, string>();
+            _settlementReason = _settlementReason ?? new Dictionary<string, string>();
         }
 
         internal static bool TryIdentify(Kingdom first, Kingdom second, out string key, out bool rivalry)
@@ -66,13 +70,16 @@ namespace BellumCivile.Behaviors
             => QueueSettlement(first, second, null, resolutionAlreadyBegun: resolutionAlreadyBegun);
 
         internal bool QueueSettlement(Kingdom first, Kingdom second, Kingdom winner, bool awaitingPlayer = false, bool resolutionAlreadyBegun = false)
+            => QueueSettlementWithReason(first, second, winner, awaitingPlayer, resolutionAlreadyBegun, null);
+
+        internal bool QueueSettlementWithReason(Kingdom first, Kingdom second, Kingdom winner, bool awaitingPlayer, bool resolutionAlreadyBegun, string reason)
         {
             if (!TryIdentify(first, second, out string key, out bool rivalry) || rivalry && winner == null
                 || winner != null && winner != first && winner != second) return false;
             if (awaitingPlayer && (second.Leader == null || Clan.PlayerClan == null || second.RulingClan != Clan.PlayerClan)) return false;
             if (_first.ContainsKey(key)) return false;
-            var score = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(first, second);
-            if (score != null)
+            var score = GetCourierWar(first, second);
+            if (score != null && !awaitingPlayer)
             {
                 if (!resolutionAlreadyBegun && !score.BeginResolution()) return false;
                 _reservedScore[key] = score.WarKey;
@@ -80,7 +87,12 @@ namespace BellumCivile.Behaviors
             _first[key] = first.StringId;
             _second[key] = second.StringId;
             _winner[key] = winner?.StringId ?? "";
-            if (awaitingPlayer && second.Leader != null) _consentLeader[key] = second.Leader.StringId;
+            if (!string.IsNullOrEmpty(reason)) _settlementReason[key] = reason;
+            if (awaitingPlayer)
+            {
+                _consentLeader[key] = second.Leader.StringId;
+                _couriers[key] = new InternalPeaceCourierNotice(key, first, Today + BellumCivileConstants.TreatyPlayerParleyResponseDays);
+            }
             BellumCivileLogger.Log($"Internal settlement queued; conflict={key}; first={first.StringId}; second={second.StringId}; winner={winner?.StringId ?? "white_peace"}.");
             return true;
         }
@@ -108,9 +120,9 @@ namespace BellumCivile.Behaviors
                     if (InformationManager.IsAnyInquiryActive()) break;
                     try
                     {
-                        var first = Kingdom.All.FirstOrDefault(k => k.StringId == _first[key]);
+                        var first = FindRealm(_first[key]);
                         _second.TryGetValue(key, out string secondId);
-                        var second = Kingdom.All.FirstOrDefault(k => k.StringId == secondId);
+                        var second = FindRealm(secondId);
                         _winner.TryGetValue(key, out string winnerId);
                         if (!TryIdentify(first, second, out string current, out bool rival) || current != key || rival && string.IsNullOrEmpty(winnerId)
                             || !string.IsNullOrEmpty(winnerId) && winnerId != first.StringId && winnerId != second.StringId)
@@ -119,26 +131,32 @@ namespace BellumCivile.Behaviors
                             Remove(key); continue;
                         }
                         if (CivilWarConflictBehavior.IsRealmTransferPending(first) || CivilWarConflictBehavior.IsRealmTransferPending(second)) continue;
-                        if (_consentLeader.TryGetValue(key, out string leader))
+                        if (_consentLeader.ContainsKey(key))
                         {
-                            if (second.Leader?.StringId != leader || second.RulingClan != Clan.PlayerClan || !first.IsAtWarWith(second))
-                            { Remove(key); continue; }
-                            AskPlayerConsent(key, first, second, winnerId, leader);
-                            break;
+                            ProcessCourier(key, first, second);
+                            continue;
                         }
+                        _settlementReason.TryGetValue(key, out string reason);
                         if (key.StartsWith("feud:", StringComparison.Ordinal))
                         {
                             var feuds = Campaign.Current.GetCampaignBehavior<ClaimFeudWarBehavior>();
                             var feud = feuds.GetActiveWars().First(w => "feud:" + w.WarId == key);
-                            if (string.IsNullOrEmpty(winnerId)) feuds.TryResolveUnscriptedPeace(first, second);
+                            if (string.IsNullOrEmpty(winnerId)) feuds.TryResolveFeudPeace(first, second, reason ?? "unscripted peace");
                             else feuds.TryResolveWarScore(FindRealm(feud.ClaimantKingdomId), FindRealm(feud.HolderKingdomId),
-                                winnerId == feud.ClaimantKingdomId, "negotiated internal settlement");
+                                winnerId == feud.ClaimantKingdomId, reason ?? InternalWarEnding.CouncilTerms);
                         }
                         else if (rival)
                         {
                             var score = Campaign.Current.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(first, second);
-                            if (score != null) Campaign.Current.GetCampaignBehavior<CivilWarResolutionBehavior>()?
-                                .TryResolveRivalVictory(score, score.AttackerKingdomId == winnerId);
+                            if (score != null)
+                            {
+                                Kingdom loser = winnerId == first.StringId ? second : first;
+                                var faction = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.GetFactionByRebelKingdom(loser);
+                                ConflictOutcomeBehavior.RecordCivilEnding(faction, loser, InternalWarEnding.Explain(reason),
+                                    "rival:" + loser.StringId, winnerId == first.StringId ? first : second);
+                                Campaign.Current.GetCampaignBehavior<CivilWarResolutionBehavior>()?
+                                    .TryResolveRivalVictory(score, score.AttackerKingdomId == winnerId);
+                            }
                         }
                         else
                         {
@@ -147,6 +165,7 @@ namespace BellumCivile.Behaviors
                             var rebel = first;
                             if (faction?.ParentKingdom != second) { faction = manager.GetFactionByRebelKingdom(second); rebel = second; }
                             var resolution = Campaign.Current.GetCampaignBehavior<CivilWarResolutionBehavior>();
+                            ConflictOutcomeBehavior.RecordCivilEnding(faction, rebel, InternalWarEnding.Explain(reason));
                             if (string.IsNullOrEmpty(winnerId)) resolution?.ResolveUnscriptedPeace(faction, rebel);
                             else if (winnerId == rebel.StringId) resolution?.ResolveRebelVictory(faction, rebel);
                             else resolution?.TryResolveTerminalLiegeVictory(faction, rebel);
@@ -168,34 +187,21 @@ namespace BellumCivile.Behaviors
             finally { _applying = false; }
         }
 
-        private static Kingdom FindRealm(string id) => Kingdom.All.FirstOrDefault(k => k.StringId == id);
-        private void Remove(string key)
+        private static Kingdom FindRealm(string id) => string.IsNullOrEmpty(id) ? null : Kingdom.All.FirstOrDefault(k => k.StringId == id);
+        private void ReleaseReservation(string key)
         {
             if (_reservedScore.TryGetValue(key, out string warKey))
                 Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>()?.GetActiveWar(warKey)?.CancelResolution();
             _reservedScore.Remove(key);
-            _first.Remove(key); _second.Remove(key); _winner.Remove(key); _consentLeader.Remove(key); _lastFailure.Remove(key);
         }
 
-        private void AskPlayerConsent(string key, Kingdom first, Kingdom second, string winner, string leader)
+        private void Remove(string key)
         {
-            TextObject terms = string.IsNullOrEmpty(winner) ? Patches.InternalPeaceVoteText.Terms()
-                : new TextObject("{=BC_InternalPeace_VictoryTerms}Recognize the cause of {REALM} and end this conflict in their favor. This is a concession of defeat, not a white peace; the existing laws of settlement and judgment will apply.")
-                    .SetTextVariable("REALM", FindRealm(winner)?.Name ?? new TextObject(winner));
-            InformationManager.ShowInquiry(new InquiryData(
-                new TextObject("{=BC_InternalPeace_Title}Terms of Reconciliation").ToString(),
-                new TextObject("{=BC_InternalPeace_Received}An envoy from {REALM} brings terms endorsed by their council. Will you accept this settlement?\n\n{TERMS}")
-                    .SetTextVariable("REALM", first.Name).SetTextVariable("TERMS", terms).ToString(),
-                true, true, new TextObject("{=BC_InternalPeace_Accept}Accept the Terms").ToString(),
-                new TextObject("{=BC_InternalPeace_Refuse}Continue the Conflict").ToString(),
-                () =>
-                {
-                    if (_first.ContainsKey(key) && second.Leader?.StringId == leader && second.RulingClan == Clan.PlayerClan
-                        && first.IsAtWarWith(second) && TryIdentify(first, second, out string current, out _) && current == key)
-                        _consentLeader.Remove(key);
-                    else Remove(key);
-                },
-                () => { Remove(key); BellumCivileLogger.Log($"Internal settlement refused by player; conflict={key}."); }));
+            ReleaseReservation(key);
+            _first.Remove(key); _second.Remove(key); _winner.Remove(key); _consentLeader.Remove(key); _lastFailure.Remove(key);
+            _settlementReason.Remove(key);
+            _couriers.Remove(key);
+            _councilReports.Remove(key);
         }
     }
 }

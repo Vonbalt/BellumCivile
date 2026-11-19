@@ -118,6 +118,7 @@ namespace BellumCivile
         public float PeakDiscontent => TaleWorlds.Library.MathF.Max(_peakDiscontent, Discontent);
         public CampaignTime CreationDate { get => _creationDate; private set => _creationDate = value; }
         public bool HasTrackedRebelKingdom => !string.IsNullOrEmpty(_rebelKingdomStringId) || _rebelKingdom != null;
+        internal string TrackedRebelKingdomId => _rebelKingdom?.StringId ?? _rebelKingdomStringId;
         public bool IsUltimatumPending => _ultimatumPending && !_ultimatumResolved;
         public bool IsGrandCoalition => _isGrandCoalition || IsLegacyGrandCoalitionName(Name);
 

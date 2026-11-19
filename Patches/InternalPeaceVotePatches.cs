@@ -6,6 +6,7 @@ using TaleWorlds.Localization;
 using System.Collections.Generic;
 using System.Reflection;
 using TaleWorlds.CampaignSystem.ViewModelCollection.KingdomManagement.Decisions;
+using TaleWorlds.CampaignSystem.ViewModelCollection.Map;
 
 namespace BellumCivile.Patches
 {
@@ -32,6 +33,25 @@ namespace BellumCivile.Patches
             // player's consent afterward, without a tribute-bearing native courier offer.
             __result = true;
             return false;
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class InternalPeaceCourierRegistrationPatch
+    {
+        private static MethodBase TargetMethod() => AccessTools.GetDeclaredConstructors(typeof(MapNotificationVM))[0];
+
+        private static void Postfix(MapNotificationVM __instance) => __instance.RegisterMapNotificationType(
+            typeof(InternalPeaceCourierNotice), typeof(UI.InternalPeaceCourierNotificationItemVM));
+    }
+
+    [HarmonyPatch(typeof(KingdomElection), "ApplyChosenOutcome")]
+    internal static class InternalPeaceCouncilBallotPatch
+    {
+        private static void Postfix(KingdomElection __instance, KingdomDecision ____decision, DecisionOutcome ____chosenOutcome)
+        {
+            if (____decision is MakePeaceKingdomDecision peace)
+                InternalPeaceSettlementBehavior.Current?.RecordCouncilBallot(peace, __instance.PossibleOutcomes, ____chosenOutcome);
         }
     }
 

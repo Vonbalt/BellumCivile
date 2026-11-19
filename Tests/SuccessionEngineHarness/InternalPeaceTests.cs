@@ -12,10 +12,12 @@ using TaleWorlds.Localization;
 internal static class InternalPeaceTests
 {
     private static Kingdom _first, _second;
+    private static Clan _player;
     private static InternalPeaceSettlementBehavior _behavior;
     private static float _day, _firstWill, _secondWill;
     private static bool _internal, _rival, _atWar, _termsAccepted, _revamp;
     private static WarScoreRecord _willContext;
+    private static WarScoreRecord _courierWar;
     private static bool Current(ref InternalPeaceSettlementBehavior __result) { __result = _behavior; return false; }
     private static bool Identify(Kingdom __0, Kingdom __1, ref string __2, ref bool __3, ref bool __result)
     { __2 = "test_pair"; __3 = _rival; __result = _internal && __0 != null && __1 != null && __0 != __1; return false; }
@@ -25,8 +27,10 @@ internal static class InternalPeaceTests
     private static bool False(ref bool __result) { __result = false; return false; }
     private static bool True(ref bool __result) { __result = true; return false; }
     private static bool Day(ref float __result) { __result = _day; return false; }
+    private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days(_day); return false; }
     private static bool Revamp(ref bool __result) { __result = _revamp; return false; }
-    private static bool NoPlayer(ref Clan __result) { __result = null; return false; }
+    private static bool Player(ref Clan __result) { __result = _player; return false; }
+    private static bool CourierWar(ref WarScoreRecord __result) { __result = _courierWar; return false; }
     private static bool Terms(ref TextObject __3, ref bool __result)
     { __3 = new TextObject("test"); __result = _termsAccepted; return false; }
     private static bool Will(Kingdom __0, WarScoreRecord __1, ref float __result)
@@ -52,15 +56,19 @@ internal static class InternalPeaceTests
         void Patch(MethodBase m, string name) => h.Patch(m, prefix: new HarmonyMethod(typeof(InternalPeaceTests), name));
         var type = typeof(InternalPeaceSettlementBehavior);
         var scores = new WarScoreBehavior();
+        var timeTicksPerDay = AccessTools.Field(typeof(CampaignTime), "TimeTicksPerDay");
+        object oldTimeTicks = timeTicksPerDay.GetValue(null);
         _first = Blank<Kingdom>(); _first.StringId = "first";
         _second = Blank<Kingdom>(); _second.StringId = "second";
         _internal = true; _atWar = true; _rival = false; _revamp = false;
         _behavior = new InternalPeaceSettlementBehavior();
         try
         {
+            timeTicksPerDay.SetValue(null, 1000L);
+            Patch(AccessTools.PropertyGetter(typeof(CampaignTime), "Now"), nameof(Now));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsEliminated"), nameof(False));
             Patch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"), nameof(AtWar));
-            Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(NoPlayer));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
             Patch(AccessTools.Method(typeof(WarScoreBehavior), "ResolveKingdom"), nameof(Resolve));
             Patch(AccessTools.Method(typeof(WarScoreBehavior), "ShouldProcessWar"), nameof(True));
             Patch(AccessTools.Method(typeof(WarScoreBehavior), "CalculatePowerWeightedWarWill"), nameof(Will));
@@ -108,7 +116,8 @@ internal static class InternalPeaceTests
             Patch(AccessTools.Method(type, "FindRealm"), nameof(Resolve));
             Patch(AccessTools.Method(type, "CanAcceptTerms"), nameof(Terms));
             foreach (string patch in new[] { "InternalPeaceVoteOutcomePatch", "InternalPeaceResultTextPatch", "InternalPeaceSupportTextPatch", "InternalPeaceCourierPatch",
-                "InternalPeaceRivalVotePatch", "InternalPeaceDescriptionPatch", "InternalPeaceStaleRivalVotePatch", "InternalPeaceRivalInsertionPatch" })
+                "InternalPeaceRivalVotePatch", "InternalPeaceDescriptionPatch", "InternalPeaceStaleRivalVotePatch", "InternalPeaceRivalInsertionPatch",
+                "InternalPeaceCouncilBallotPatch" })
                 h.CreateClassProcessor(type.Assembly.GetType("BellumCivile.Patches." + patch, true)).Patch();
             var yes = new MakePeaceKingdomDecision.MakePeaceDecisionOutcome(true, _first, _second);
             var no = new MakePeaceKingdomDecision.MakePeaceDecisionOutcome(false, _first, _second);
@@ -150,8 +159,72 @@ internal static class InternalPeaceTests
             var reloaded = new InternalPeaceSettlementBehavior(); store.IsLoading = true; reloaded.SyncData(store);
             _behavior = reloaded;
             check(Map<string>("_winner")["test_pair"] == "second", "Deferred outcome survives campaign SyncData round trip");
+
+            Call(_behavior, "Remove", "test_pair");
+            Clan Ruler(Kingdom realm, string id)
+            {
+                var clan = Blank<Clan>(); clan.StringId = id;
+                var hero = Blank<Hero>(); hero.StringId = id + "_head";
+                AccessTools.Field(typeof(Clan), "_leader").SetValue(clan, hero);
+                AccessTools.Field(typeof(Clan), "_kingdom").SetValue(clan, realm);
+                AccessTools.Field(typeof(Kingdom), "_rulingClan").SetValue(realm, clan);
+                AccessTools.Property(typeof(Clan), "Name").SetValue(clan, new TextObject(id));
+                AccessTools.Property(typeof(Kingdom), "Name").SetValue(realm, new TextObject(realm.StringId));
+                return clan;
+            }
+            var sender = Ruler(_first, "sending_house");
+            _player = Ruler(_second, "receiving_house");
+            _courierWar = new WarScoreRecord("pair", "first", "second", 0, null, WarScoreConflictType.CivilWar);
+            Patch(AccessTools.Method(type, "GetCourierWar"), nameof(CourierWar));
+            InternalPeaceCourierNotice CurrentNotice() => Map<InternalPeaceCourierNotice>("_couriers")["test_pair"];
+            bool CanReview(InternalPeaceCourierNotice notice) => (bool)Call(_behavior, "TryReviewCourier", notice, null, null, null);
+            var incoming = Decision(); incoming.ApplyChosenOutcome(yes);
+            var courier = CurrentNotice();
+            check(courier.IsValid() && CanReview(courier) && !_courierWar.ResolutionPending && Map<string>("_reservedScore").Count == 0,
+                "A council-endorsed courier leaves the war and its terminal resolution unlocked");
+            yes.SupporterList.Add(new Supporter(sender) { SupportWeight = Supporter.SupportWeights.FullyPush });
+            no.SupporterList.Add(new Supporter(_player) { SupportWeight = Supporter.SupportWeights.SlightlyFavor });
+            Call(_behavior, "RecordCouncilBallot", Decision(), new DecisionOutcome[] { yes, no }, yes);
+            check(Map<string>("_councilReports").Count == 0, "An unrelated council decision cannot replace the courier's ballot");
+            Call(_behavior, "RecordCouncilBallot", incoming, new DecisionOutcome[] { yes, no }, yes);
+            var ballot = Map<string>("_councilReports")["test_pair"];
+            check(ballot.Contains("For the terms: sending_house") && ballot.Contains("Against the terms: receiving_house"),
+                "The courier shows the recorded support and opposition, not a second forecast ballot");
+            var courierSave = new Store(); _behavior.SyncData(courierSave);
+            _behavior = new InternalPeaceSettlementBehavior(); courierSave.IsLoading = true; _behavior.SyncData(courierSave);
+            check(CurrentNotice() == courier && CanReview(courier) && Map<string>("_councilReports")["test_pair"] == ballot,
+                "An unanswered courier and its original ballot survive reload");
+            Call(_behavior, "RespondToCourier", courier, false);
+            check(!courier.IsValid() && Map<string>("_first").Count == 0 && !_courierWar.ResolutionPending,
+                "Declining a courier closes the offer without reserving or ending the war");
+
+            Decision().ApplyChosenOutcome(yes); courier = CurrentNotice();
+            AccessTools.Field(typeof(WarScoreRecord), "_score").SetValue(_courierWar, 100f);
+            Call(_behavior, "RespondToCourier", courier, true);
+            check(!courier.IsValid() && !_courierWar.ResolutionPending && Map<string>("_first").Count == 0,
+                "A decisive battlefield result supersedes an unanswered offer");
+            AccessTools.Field(typeof(WarScoreRecord), "_score").SetValue(_courierWar, 0f);
+            Decision().ApplyChosenOutcome(yes); courier = CurrentNotice();
+            _day += 4;
+            Call(_behavior, "ProcessCourier", "test_pair", _first, _second);
+            check(!courier.IsValid() && Map<string>("_first").Count == 0 && !_courierWar.ResolutionPending,
+                "An ignored offer expires without silently declaring peace");
+
+            Decision().ApplyChosenOutcome(yes); courier = CurrentNotice();
+            string formerLeaderId = sender.Leader.StringId;
+            sender.Leader.StringId = "new_ruler";
+            check(!CanReview(courier) && !courier.IsValid(), "A change of sending ruler invalidates the old envoy's authority");
+            sender.Leader.StringId = formerLeaderId;
+            Decision().ApplyChosenOutcome(yes); courier = CurrentNotice();
+            Call(_behavior, "RespondToCourier", courier, true);
+            check(!courier.IsValid() && _courierWar.ResolutionPending && Map<string>("_first").Count == 1,
+                "Accepting a valid courier reserves settlement once and retires the actionable notice");
         }
-        finally { h.UnpatchAll(h.Id); _behavior = null; _first = _second = null; }
+        finally
+        {
+            h.UnpatchAll(h.Id); timeTicksPerDay.SetValue(null, oldTimeTicks);
+            _behavior = null; _first = _second = null; _player = null; _courierWar = null;
+        }
     }
 
     private sealed class Store : IDataStore

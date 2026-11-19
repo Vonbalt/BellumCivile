@@ -24,6 +24,7 @@ namespace BellumCivile
             AddClassDefinition(typeof(DefensivePactTreatyJournal), 155);
             AddClassDefinition(typeof(DefensivePactJoinDecision), 156);
             AddClassDefinition(typeof(DefensivePactJoinDecision.JoinOutcome), 157);
+            AddClassDefinition(typeof(InternalPeaceCourierNotice), 158);
             AddClassDefinition(typeof(VoluntaryPactDecision), 148);
             AddClassDefinition(typeof(VoluntaryPactDecision.PactOutcome), 149);
             AddClassDefinition(typeof(CourtTermPreparationRecord), 145);
@@ -263,6 +264,7 @@ namespace BellumCivile
             ConstructContainerDefinition(typeof(Dictionary<string, bool>));
             ConstructContainerDefinition(typeof(Dictionary<string, Hero>));
             ConstructContainerDefinition(typeof(Dictionary<string, string>));
+            ConstructContainerDefinition(typeof(Dictionary<string, InternalPeaceCourierNotice>));
             ConstructContainerDefinition(typeof(Dictionary<Kingdom, int>));
             ConstructContainerDefinition(typeof(List<string>));
             ConstructContainerDefinition(typeof(List<float>));

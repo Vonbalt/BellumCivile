@@ -1475,6 +1475,7 @@ namespace BellumCivile.Behaviors
             if (faction == null || !faction.HasTrackedRebelKingdom) return;
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(faction, SuccessionChallengeOutcome.WhitePeace, faction.ParentKingdom) == false) return;
 
+            var lostWarNotice = BeginUnclearConflictOutcome(faction);
             CompleteCivilWarTracker(faction, null, "civil-war faction lost its rebel realm state");
             Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.RemoveFaction(faction);
 
@@ -1490,6 +1491,17 @@ namespace BellumCivile.Behaviors
             }
 
             BellumCivileLogger.Log($"Cleaned externally resolved civil war faction {faction.Name} after rebel kingdom state was lost.");
+            ConflictOutcomeBehavior.Current?.Publish(lostWarNotice, "ended");
+        }
+
+        private static ConflictOutcomeNotice BeginUnclearConflictOutcome(FactionObject faction)
+        {
+            if (faction?.HasTrackedRebelKingdom != true || faction.ParentKingdom == null || Clan.PlayerClan == null
+                || (Clan.PlayerClan.Kingdom != faction.ParentKingdom && !faction.Members.Contains(Clan.PlayerClan)
+                    && !faction.IsTrackedRebelKingdom(Clan.PlayerClan.Kingdom))) return null;
+            var notice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, faction.GetTrackedRebelKingdomIncludingEliminated());
+            ConflictOutcomeBehavior.Capture(notice, "CAUSE", new TextObject("{=BC_Result_InternalLostTrace}The rebel host has ceased to stand as a separate side. No victory or terms can be confirmed for this contest."));
+            return notice;
         }
 
         private void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification)
@@ -1538,6 +1550,9 @@ namespace BellumCivile.Behaviors
             {
                 TextObject msg = new TextObject("{=BC_CivilWar_RebelLeaderDied}The rebel leader has fallen on the field. With no one left to lead them, the rebellion collapses.");
                 BellumCivileNotifications.Show(msg, BellumNotificationColors.Success, primaryKingdom: activeFaction.ParentKingdom, secondaryKingdom: rebelKingdom, primaryClan: activeFaction.Leader, isMajorEvent: true);
+                ConflictOutcomeBehavior.RecordCivilEnding(activeFaction, rebelKingdom,
+                    new TextObject("{=BC_Result_InternalRebelLeaderFell}{LEADER} has fallen. With no house left to take command, the rebel host scattered.")
+                        .SetTextVariable("LEADER", victim.Name));
                 ResolveLiegeVictory(activeFaction, rebelKingdom);
             }
         }
@@ -1606,10 +1621,10 @@ namespace BellumCivile.Behaviors
             // so a former player mercenary cannot enter the tribunal or reward lists.
             losingClans.RemoveAll(c => c.IsUnderMercenaryService);
             loyalistWinners.RemoveAll(c => c.IsUnderMercenaryService);
+            var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
             if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryLiegeVictory, allowEliminatedRebelShell,
                 additionalMercenaries: returnedMercenaries)) return false;
 
-            var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(faction, SuccessionChallengeOutcome.Defeat, faction.ParentKingdom) == false) return false;
 
             CivilWarConflictBehavior.Instance?.GetRewardHistory(faction)?.RecordCrownDefeat(losingClans);
@@ -1739,8 +1754,8 @@ namespace BellumCivile.Behaviors
                 ResolveWhitePeace(faction, rebelKingdom, cause: new TextObject("{=BC_Result_ClaimantUnavailable}The original claimant can no longer take the throne. The challenge has ended, and the rebel houses return to the realm."));
                 return;
             }
-            if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryRebelVictory)) return;
             var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
+            if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryRebelVictory)) return;
             if (CivilWarConflictBehavior.Instance?.PrepareRivalCrownVictory(faction) == false) return;
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(faction, SuccessionChallengeOutcome.Victory, faction.ParentKingdom) == false) return;
 
@@ -1758,6 +1773,7 @@ namespace BellumCivile.Behaviors
             bool anyExec = false, anyForgive = false, anyExile = false, oldKingExec = false;
             bool usedPlayerTribunal = false;
             bool tribunalDeferredUntilSuccession = false;
+            Kingdom independentRealm = null;
 
             Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()?.RemoveFaction(faction);
 
@@ -1765,7 +1781,8 @@ namespace BellumCivile.Behaviors
             {
                 case FactionType.Independence:
                     Clan formerRulingHouse = faction.ParentKingdom.RulingClan;
-                    PromoteRebelKingdomToIndependentKingdom(faction, rebelKingdom, victoriousLeader);
+                    independentRealm = PromoteRebelKingdomToIndependentKingdom(faction, rebelKingdom, victoriousLeader, out var independentRealms);
+                    CaptureIndependenceRealms(resultNotice, independentRealms);
                     ApplyIndependenceMemories(formerRulingHouse, rebelWinners);
                     break;
 
@@ -1848,7 +1865,7 @@ namespace BellumCivile.Behaviors
             if (!usedPlayerTribunal && !tribunalDeferredUntilSuccession)
                 FlushTribunalReactions();
             SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(faction, faction.ParentKingdom);
-            ConflictOutcomeBehavior.Capture(resultNotice, "NEW_REALM", victoriousLeader.Kingdom?.Name);
+            ConflictOutcomeBehavior.Capture(resultNotice, "NEW_REALM", independentRealm?.Name);
             if (SuccessionChallengeBehavior.Instance?.GetWarRecord(faction) is SuccessionChallengeRecord pendingVictory && !pendingVictory.ResolutionReturned) return;
             CaptureOutcomeTribunal(resultNotice, faction.ParentKingdom);
             var successionText = CrownAccessionBehavior.Instance?.IsPending(faction.ParentKingdom) == true
@@ -1860,9 +1877,11 @@ namespace BellumCivile.Behaviors
                 successionText = new TextObject("{=BC_Result_Caretaker}{CARETAKER} will govern in the interim and judge the defeated houses. Once the judgments are concluded, the nobles will deliberate and elect a sovereign.")
                     .SetTextVariable("CARETAKER", ElectiveSuccessionBehavior.LegalHead(deposition.InterimHouse)?.Name);
             ConflictOutcomeBehavior.Capture(resultNotice, "SUCCESSION", successionText);
+            if (faction.Type == FactionType.Independence && independentRealm == null)
+                ConflictOutcomeBehavior.Capture(resultNotice, "CAUSE", new TextObject("{=BC_Result_IndependenceUnconfirmed}The fighting is over, but no lasting realm can be confirmed for the departing houses."));
             ConflictOutcomeBehavior.Current?.Publish(resultNotice,
                 faction.Type == FactionType.InstallRuler ? "claimant" : faction.Type == FactionType.Abdication ? "abdication"
-                : faction.Type == FactionType.Independence ? "independence" : "victory",
+                : faction.Type == FactionType.Independence ? independentRealm != null ? "independence" : "ended" : "victory",
                 ConflictOutcomeBehavior.ContinuingWars(faction.ParentKingdom));
         }
 
@@ -1950,9 +1969,11 @@ namespace BellumCivile.Behaviors
                 foreach (FactionObject orphanedFaction in factionManager.GetFactionsInKingdom(collapsedParent).Where(f => !f.IsIdeology).ToList())
                 {
                     if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(orphanedFaction, SuccessionChallengeOutcome.WhitePeace, collapsedParent) == false) continue;
+                    var lostWarNotice = BeginUnclearConflictOutcome(orphanedFaction);
                     CompleteCivilWarTracker(orphanedFaction, null, "parent realm collapsed without a surviving rebel realm");
                     factionManager.RemoveFaction(orphanedFaction);
                     SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(orphanedFaction, collapsedParent);
+                    ConflictOutcomeBehavior.Current?.Publish(lostWarNotice, "ended");
                 }
 
                 if (!parentAlreadyDestroyed)
@@ -1979,6 +2000,8 @@ namespace BellumCivile.Behaviors
                 && activeRebellions.TryGetValue(decisiveCivilWarVictor, out Kingdom decisiveRebelKingdom))
             {
                 BellumCivileLogger.Log($"Resolving decisive civil-war occupation through faction demand; parent={collapsedParent.StringId}; faction={decisiveCivilWarVictor.Name}; type={decisiveCivilWarVictor.Type}; rebel={decisiveRebelKingdom.StringId}.");
+                ConflictOutcomeBehavior.RecordCivilEnding(decisiveCivilWarVictor, decisiveRebelKingdom,
+                    new TextObject("{=BC_Result_InternalCrownLandless}The Crown lost its last stronghold and could no longer resist the rebels' demands."));
                 ResolveRebelVictory(decisiveCivilWarVictor, decisiveRebelKingdom);
                 return;
             }
@@ -2057,6 +2080,7 @@ namespace BellumCivile.Behaviors
 
             factionManager.RemoveFaction(strongestFaction);
 
+            var absorbedRebels = new List<string>();
             foreach (KeyValuePair<FactionObject, Kingdom> rivalFaction in successionFactions.Skip(1).ToList())
             {
                 Kingdom rivalKingdom = rivalFaction.Value;
@@ -2070,6 +2094,7 @@ namespace BellumCivile.Behaviors
                 CompleteCivilWarTracker(rivalFaction.Key, rivalKingdom, "rival civil-war realm absorbed by the successor", restoredSuccessorKingdom);
                 factionManager.RemoveFaction(rivalFaction.Key);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(rivalFaction.Key, restoredSuccessorKingdom);
+                absorbedRebels.Add(rivalFaction.Key.GetDisplayName().ToString());
             }
 
             foreach (FactionObject leftover in factionManager.GetFactionsInKingdom(collapsedParent).Where(f => !f.IsIdeology).ToList())
@@ -2106,7 +2131,8 @@ namespace BellumCivile.Behaviors
                 CaptureOutcomeTribunal(resultNotice, restoredSuccessorKingdom);
                 if (resultNotice != null) resultNotice.Names["LEADER"] = restoredSuccessorKingdom.Leader?.Name?.ToString() ?? "";
                 ConflictOutcomeBehavior.Current?.Publish(resultNotice, "collapse",
-                    ConflictOutcomeBehavior.RemainingWars(restoredSuccessorKingdom, inheritedWars));
+                    string.Join("\n\n", new[] { AbsorbedRebelText(absorbedRebels), ConflictOutcomeBehavior.RemainingWars(restoredSuccessorKingdom, inheritedWars) }
+                        .Where(part => !string.IsNullOrEmpty(part))));
             }
         }
 
@@ -3052,11 +3078,27 @@ namespace BellumCivile.Behaviors
                 ? MercenaryReleaseResult.Blocked : MercenaryReleaseResult.Released;
         }
 
-        private Kingdom PromoteRebelKingdomToIndependentKingdom(FactionObject faction, Kingdom rebelKingdom, Clan victoriousLeader)
+        private static string AbsorbedRebelText(IEnumerable<string> names)
         {
-            List<Kingdom> permanentKingdoms = PromoteRebelKingdomToIndependentKingdoms(faction, rebelKingdom, victoriousLeader);
-            return permanentKingdoms.FirstOrDefault(kingdom => kingdom?.RulingClan == victoriousLeader)
-                ?? permanentKingdoms.FirstOrDefault();
+            var absorbed = names.Where(name => !string.IsNullOrWhiteSpace(name)).Distinct().ToList();
+            return absorbed.Count == 0 ? null : new TextObject("{=BC_Result_InternalAbsorbedRebels}The surviving houses of {FACTIONS} have returned under the restored Crown.")
+                .SetTextVariable("FACTIONS", string.Join(", ", absorbed)).ToString();
+        }
+
+        private static void CaptureIndependenceRealms(ConflictOutcomeNotice notice, List<Kingdom> realms)
+        {
+            if (notice == null) return;
+            var liveRealms = realms.Where(realm => realm?.IsEliminated == false).ToList();
+            if (liveRealms.Count < 2) return;
+            ConflictOutcomeBehavior.Capture(notice, "SEPARATE_REALMS", new TextObject("{=BC_Result_IndependenceRealms}The departing houses now stand under separate banners: {REALMS}.")
+                .SetTextVariable("REALMS", string.Join(", ", liveRealms.Select(realm => realm.Name.ToString()))));
+        }
+
+        private Kingdom PromoteRebelKingdomToIndependentKingdom(FactionObject faction, Kingdom rebelKingdom, Clan victoriousLeader, out List<Kingdom> permanentKingdoms)
+        {
+            permanentKingdoms = PromoteRebelKingdomToIndependentKingdoms(faction, rebelKingdom, victoriousLeader);
+            return permanentKingdoms.FirstOrDefault(kingdom => kingdom?.IsEliminated == false && kingdom.RulingClan == victoriousLeader)
+                ?? permanentKingdoms.FirstOrDefault(kingdom => kingdom?.IsEliminated == false);
         }
 
         private List<Kingdom> PromoteRebelKingdomToIndependentKingdoms(FactionObject faction, Kingdom rebelKingdom, Clan victoriousLeader)
@@ -3308,9 +3350,9 @@ namespace BellumCivile.Behaviors
                 $"demand_satisfied={demandSatisfied}; cause={cause}");
             if (CivilWarConflictBehavior.IsFactionTransferPending(faction)) return;
             if (faction?.ParentKingdom == null || rebelKingdom == null) return;
+            var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
             if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryWhitePeace,
                 demandSatisfied: demandSatisfied, cause: cause)) return;
-            var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
             if (resultNotice != null) resultNotice.Names["RESULT_KIND"] = demandSatisfied ? "satisfied" : cause != null ? "ended" : "peace";
             ConflictOutcomeBehavior.Capture(resultNotice, "DEMAND_RESULT", faction.Type == FactionType.Abdication
                 ? new TextObject("{=BC_Result_DepositionFulfilled}the former ruler removed from the throne")
@@ -3361,8 +3403,8 @@ namespace BellumCivile.Behaviors
         private void ResolveRecognizedIndependence(FactionObject faction, Kingdom rebelKingdom, bool parentDestroyed)
         {
             if (CivilWarConflictBehavior.IsFactionTransferPending(faction)) return;
-            if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryIndependence, parentDestroyed)) return;
             var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
+            if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryIndependence, parentDestroyed)) return;
             Campaign.Current.GetCampaignBehavior<RebellionSummaryBehavior>()?.RecordOutcome(faction, RebellionSummaryOutcome.RecognizedIndependence);
             CompleteCivilWarTracker(faction, rebelKingdom, parentDestroyed
                 ? "independence recognized after parent realm destruction"
@@ -3376,7 +3418,7 @@ namespace BellumCivile.Behaviors
 
             List<Clan> independentClans = rebelKingdom.Clans.ToList();
             Clan formerRulingHouse = faction.ParentKingdom.RulingClan;
-            Kingdom permanentKingdom = PromoteRebelKingdomToIndependentKingdom(faction, rebelKingdom, faction.Leader);
+            Kingdom permanentKingdom = PromoteRebelKingdomToIndependentKingdom(faction, rebelKingdom, faction.Leader, out var independentRealms);
             ApplyIndependenceMemories(formerRulingHouse, independentClans);
             faction.RestoreCivilWarInfluenceSnapshots(independentClans);
             if (parentDestroyed)
@@ -3385,6 +3427,9 @@ namespace BellumCivile.Behaviors
 
             if (permanentKingdom == null || permanentKingdom.IsEliminated) return;
             ConflictOutcomeBehavior.Capture(resultNotice, "NEW_REALM", permanentKingdom.Name);
+            CaptureIndependenceRealms(resultNotice, independentRealms);
+            if (parentDestroyed) ConflictOutcomeBehavior.Capture(resultNotice, "ENDING",
+                new TextObject("{=BC_Result_IndependenceAfterCollapse}With the former Crown fallen, there was no sovereign left to contest their departure."));
             ConflictOutcomeBehavior.Current?.Publish(resultNotice, "independence");
         }
 

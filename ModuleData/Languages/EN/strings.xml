@@ -4560,6 +4560,25 @@
     <string id="BC_Result_FeudReturn" text="The surviving houses have returned to {REALM}." />
     <string id="BC_Result_FeudIndependent" text="With their former realm gone, surviving houses that could establish themselves now stand independently." />
     <string id="BC_Result_Exhaustion" text="{LOSER} could no longer sustain the fighting and was forced to concede." />
+    <string id="BC_Result_InternalMutualExhaustion" text="Both sides were exhausted, and neither could press its advantage. They agreed to lay down their arms." />
+    <string id="BC_Result_InternalCouncilTerms" text="The houses ended the fighting under agreed terms of reconciliation." />
+    <string id="BC_Result_InternalFeudSurrender" text="The claimant chose to lay down arms and yield the dispute." />
+    <string id="BC_Result_InternalSideGone" text="{LOSER} could no longer muster a host. The contest could not continue." />
+    <string id="BC_Result_InternalOccupation" text="{WINNER} occupied the enemy strongholds and forced {LOSER} to yield." />
+    <string id="BC_Result_InternalLandlessSurrender" text="Without a stronghold to sustain the war, {LOSER} was forced to yield." />
+    <string id="BC_Result_InternalDecisive" text="{WINNER} gained a decisive advantage. {LOSER} could no longer resist its terms." />
+    <string id="BC_Result_InternalEndingWithWill" text="{ENDING} (War Score for {WINNER}: {SCORE}; {LOSER} War Enthusiasm: {WILL}.)" />
+    <string id="BC_Result_InternalEndingWithScore" text="{ENDING} (War Score for {WINNER}: {SCORE}.)" />
+    <string id="BC_Result_InternalVoluntarySurrender" text="{LOSER} laid down its arms and yielded to {WINNER}." />
+    <string id="BC_Result_InternalLostTrace" text="The rebel host has ceased to stand as a separate side. No victory or terms can be confirmed for this contest." />
+    <string id="BC_Result_InternalFeudLostTrace" text="The feuding hosts have dispersed. No victory or award of the disputed title can be confirmed." />
+    <string id="BC_Result_InternalRebelLeaderFell" text="{LEADER} has fallen. With no house left to take command, the rebel host scattered." />
+    <string id="BC_Result_InternalRebelLandless" text="The rebels were left without a stronghold and could no longer keep the field." />
+    <string id="BC_Result_InternalCrownLandless" text="The Crown lost its last stronghold and could no longer resist the rebels' demands." />
+    <string id="BC_Result_InternalAbsorbedRebels" text="The surviving houses of {FACTIONS} have returned under the restored Crown." />
+    <string id="BC_Result_IndependenceRealms" text="The departing houses now stand under separate banners: {REALMS}." />
+    <string id="BC_Result_IndependenceAfterCollapse" text="With the former Crown fallen, there was no sovereign left to contest their departure." />
+    <string id="BC_Result_IndependenceUnconfirmed" text="The fighting is over, but no lasting realm can be confirmed for the departing houses." />
     <string id="BC_Result_Rivals" text="{RIVALS} still stand against the Crown. Their wars continue." />
     <string id="BC_Result_ForeignWars" text="The war against {ENEMIES} continues." />
     <string id="BC_Result_Continue" text="Continue" />
@@ -5147,6 +5166,23 @@
     <string id="BC_InternalPeace_Pending" text="The houses are already considering terms for this conflict." />
     <string id="BC_InternalPeace_CannotPropose" text="You cannot bring these terms before the council at present." />
     <string id="BC_InternalPeace_NotReady" text="The opposing houses are not yet willing to accept these terms." />
+    <string id="BC_InternalPeace_ExpectedAcceptance" text="The opposing houses are expected to accept, should your council agree." />
+    <string id="BC_InternalPeace_Courier" text="A courier from {REALM} brings terms of reconciliation." />
+    <string id="BC_InternalPeace_CourierExhaustion" text="The envoys tell of weary hosts on either side. With neither able to press its advantage, {REALM} offers to lay down arms." />
+    <string id="BC_InternalPeace_CourierEndorsed" text="The envoy of {REALM} lays these terms before you, bearing the assent of its realm." />
+    <string id="BC_InternalPeace_CourierLeverage" text="War Score for {YOUR_REALM}: {SCORE}&#xA;War Enthusiasm: {YOUR_REALM} {YOUR_WILL}, {OTHER_REALM} {OTHER_WILL}." />
+    <string id="BC_InternalPeace_CourierNoVote" text="No council vote was held. The envoys seek your assent alone." />
+    <string id="BC_InternalPeace_CourierDeadline" text="The envoy will await your answer until {DATE}." />
+    <string id="BC_InternalPeace_CourierSupporters" text="For the terms: {HOUSES}." />
+    <string id="BC_InternalPeace_CourierOpponents" text="Against the terms: {HOUSES}." />
+    <string id="BC_InternalPeace_CourierOverride" text="{RULER} approved the terms despite the council's opposition." />
+    <string id="BC_InternalPeace_FeudWhite" text="Lay down arms without settling the claim to {TITLE}. The houses shall return to the realm and restore their prewar holdings." />
+    <string id="BC_InternalPeace_FeudAward" text="Recognize the claimant's right to {TITLE}. The other wartime occupations shall be restored." />
+    <string id="BC_InternalPeace_FeudRetain" text="Leave {TITLE} with its holder. The defeated claim may be weakened or struck down." />
+    <string id="BC_InternalPeace_RivalTerms" text="The defeated houses shall submit to {REALM}. The contest with the Crown shall continue." />
+    <string id="BC_InternalPeace_CrownTerms" text="Recognize {CLAIMANT} as sovereign. The departing houses shall rejoin the realm, and the defeated houses shall answer for the war." />
+    <string id="BC_InternalPeace_AbdicationTerms" text="The sovereign shall relinquish the Crown. The succession shall be settled according to the laws of the realm." />
+    <string id="BC_InternalPeace_IndependenceTerms" text="Recognize the departing houses as independent of the Crown. They may go forth under more than one banner." />
     <string id="BC_InternalPeace_VictoryTerms" text="Recognize the cause of {REALM} and end this conflict in their favor. This is a concession of defeat, not a white peace; the existing laws of settlement and judgment will apply." />
     <string id="BC_InternalPeace_NoAgreement" text="No settlement has been concluded. The conflict continues." />
     <string id="BC_InternalPeace_AwaitingAnswer" text="The council has endorsed these terms. The opposing leader must now give an answer.&#xA;&#xA;{TERMS}" />

@@ -36,15 +36,24 @@ namespace BellumCivile.Behaviors
                 return;
             }
             var options = new List<InquiryElement>();
-            if (!rival) options.Add(new InquiryElement("", new TextObject("{=BC_InternalPeace_White}Seek White Peace").ToString(), null, true,
-                InternalPeaceVoteText.Terms().ToString()));
-            options.Add(new InquiryElement(second.StringId, new TextObject("{=BC_InternalPeace_Concede}Concede Defeat").ToString(), null, true,
-                new TextObject("{=BC_InternalPeace_ConcedeHint}Accept the opposing side's cause. The settlement will carry the consequences of defeat, including any judgments permitted by this conflict.").ToString()));
-            options.Add(new InquiryElement(first.StringId, new TextObject("{=BC_InternalPeace_Demand}Demand Their Submission").ToString(), null, true,
-                new TextObject("{=BC_InternalPeace_DemandHint}Call upon the opposing side to concede defeat. They will not yield without decisive leverage and exhaustion.").ToString()));
+            void AddTerm(string winner, TextObject label)
+            {
+                bool willing = CanAcceptTerms(first, second, winner, out TextObject reason);
+                TextObject forecast = willing
+                    ? new TextObject("{=BC_InternalPeace_ExpectedAcceptance}The opposing houses are expected to accept, should your council agree.")
+                    : reason;
+                options.Add(new InquiryElement(winner, label.ToString(), null, willing,
+                    DescribeTerms(first, second, winner) + "\n\n" + forecast));
+            }
+            if (!rival) AddTerm("", new TextObject("{=BC_InternalPeace_White}Seek White Peace"));
+            AddTerm(second.StringId, new TextObject("{=BC_InternalPeace_Concede}Concede Defeat"));
+            AddTerm(first.StringId, new TextObject("{=BC_InternalPeace_Demand}Demand Their Submission"));
+            string introduction = new TextObject("{=BC_InternalPeace_Introduction}What terms shall we put before the assembled houses? Your own side must endorse the settlement, and the opposing side must be willing to accept it.").ToString();
+            var leverage = DescribeLeverage(first, second, GetCourierWar(first, second));
+            if (leverage != null) introduction += "\n\n" + leverage;
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                 new TextObject("{=BC_InternalPeace_Title}Terms of Reconciliation").ToString(),
-                new TextObject("{=BC_InternalPeace_Introduction}What terms shall we put before the assembled houses? Your own side must endorse the settlement, and the opposing side must be willing to accept it.").ToString(),
+                introduction,
                 options, true, 1, 1, new TextObject("{=BC_InternalPeace_Propose}Propose Terms").ToString(),
                 new TextObject("{=BC_UI_Cancel}Cancel").ToString(),
                 selected => Propose(first, second, key, (string)selected[0].Identifier), null));
@@ -92,11 +101,46 @@ namespace BellumCivile.Behaviors
 
         internal TextObject TermsFor(MakePeaceKingdomDecision decision)
         {
-            if (!HasOffer(decision) || !TryIdentify(decision.Kingdom, decision.FactionToMakePeaceWith as Kingdom, out string key, out _)
-                || !_offeredWinner.TryGetValue(key, out string winner) || string.IsNullOrEmpty(winner))
-                return InternalPeaceVoteText.Terms();
+            Kingdom other = decision?.FactionToMakePeaceWith as Kingdom;
+            string winner = HasOffer(decision) && TryIdentify(decision.Kingdom, other, out string key, out _)
+                && _offeredWinner.TryGetValue(key, out string saved) ? saved : "";
+            return DescribeTerms(decision?.Kingdom, other, winner);
+        }
+
+        private static TextObject DescribeTerms(Kingdom first, Kingdom second, string winner)
+        {
+            if (!TryIdentify(first, second, out string key, out bool rival)) return InternalPeaceVoteText.Terms();
+            if (key.StartsWith("feud:", StringComparison.Ordinal))
+            {
+                var feud = Campaign.Current?.GetCampaignBehavior<ClaimFeudWarBehavior>()?.GetActiveWars()
+                    .FirstOrDefault(w => "feud:" + w.WarId == key);
+                if (feud == null) return InternalPeaceVoteText.Terms();
+                var title = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>()?.GetTitle(feud.TargetTitleId);
+                if (title == null) return InternalPeaceVoteText.Terms();
+                string text = string.IsNullOrEmpty(winner)
+                    ? "{=BC_InternalPeace_FeudWhite}Lay down arms without settling the claim to {TITLE}. The houses shall return to the realm and restore their prewar holdings."
+                    : winner == feud.ClaimantKingdomId
+                        ? "{=BC_InternalPeace_FeudAward}Recognize the claimant's right to {TITLE}. The other wartime occupations shall be restored."
+                        : "{=BC_InternalPeace_FeudRetain}Leave {TITLE} with its holder. The defeated claim may be weakened or struck down.";
+                return new TextObject(text).SetTextVariable("TITLE", FeudalTitleDisplayHelper.FormatTitleName(title));
+            }
+            if (string.IsNullOrEmpty(winner)) return InternalPeaceVoteText.Terms();
+            var victor = winner == first.StringId ? first : second;
+            if (rival) return new TextObject("{=BC_InternalPeace_RivalTerms}The defeated houses shall submit to {REALM}. The contest with the Crown shall continue.")
+                .SetTextVariable("REALM", victor.Name);
+            var faction = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.GetFactionByRebelKingdom(victor);
+            switch (faction?.Type)
+            {
+                case FactionType.InstallRuler:
+                    return new TextObject("{=BC_InternalPeace_CrownTerms}Recognize {CLAIMANT} as sovereign. The departing houses shall rejoin the realm, and the defeated houses shall answer for the war.")
+                        .SetTextVariable("CLAIMANT", faction.Leader?.Leader?.Name ?? faction.Leader?.Name);
+                case FactionType.Abdication:
+                    return new TextObject("{=BC_InternalPeace_AbdicationTerms}The sovereign shall relinquish the Crown. The succession shall be settled according to the laws of the realm.");
+                case FactionType.Independence:
+                    return new TextObject("{=BC_InternalPeace_IndependenceTerms}Recognize the departing houses as independent of the Crown. They may go forth under more than one banner.");
+            }
             return new TextObject("{=BC_InternalPeace_VictoryTerms}Recognize the cause of {REALM} and end this conflict in their favor. This is a concession of defeat, not a white peace; the existing laws of settlement and judgment will apply.")
-                .SetTextVariable("REALM", FindRealm(winner)?.Name ?? new TextObject(winner));
+                .SetTextVariable("REALM", victor.Name);
         }
 
         internal bool HasOffer(MakePeaceKingdomDecision decision)
@@ -135,7 +179,10 @@ namespace BellumCivile.Behaviors
             Kingdom winnerRealm = string.IsNullOrEmpty(winner) ? null : FindRealm(winner);
             bool awaitingPlayer = Clan.PlayerClan != null && second.RulingClan == Clan.PlayerClan;
             accepted = accepted && (string.IsNullOrEmpty(winner) || winnerRealm != null)
-                && QueueSettlement(first, second, winnerRealm, awaitingPlayer);
+                && QueueSettlementWithReason(first, second, winnerRealm, awaitingPlayer, resolutionAlreadyBegun: false,
+                    reason: InternalWarEnding.CouncilTerms);
+            if (accepted && awaitingPlayer && _couriers.TryGetValue(key, out var courier))
+                _awaitingBallot.Add(decision, courier);
             _voteResults.Add(decision, accepted
                 ? (awaitingPlayer
                     ? new TextObject("{=BC_InternalPeace_AwaitingAnswer}The council has endorsed these terms. The opposing leader must now give an answer.\n\n{TERMS}")
