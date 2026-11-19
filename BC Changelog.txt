@@ -864,3 +864,4 @@ Fixed the landed-title grievance affecting retainers and not recognizing a vassa
 Fixed hero tooltips showing inconsistent relation values.
 Fixed personal-friend army summons using clan relations instead of individual relations.
 Fixed tooltips not showing on active succession laws and available options of the hierarchy tree.
+Fixed companion promotions so eligible spouses, children, and other relatives follow the companion into their new vassal house.

@@ -18,14 +18,56 @@ namespace BellumCivile.Behaviors
         private CompanionSubinfeudationPreview _selectedGrant;
         private string _selectedCompanionId;
         private bool _grantCompleted;
+        private Dictionary<string, string> _pendingHouseholdMoves = new Dictionary<string, string>(StringComparer.Ordinal);
 
         public override void RegisterEvents()
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
+            CampaignEvents.OnClanCreatedEvent.AddNonSerializedListener(this, OnClanCreated);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, RetryHouseholdMoves);
         }
 
         public override void SyncData(IDataStore dataStore)
         {
+            dataStore.SyncData("BellumCivile_CompanionPromotionHouseholdMoves", ref _pendingHouseholdMoves);
+            if (_pendingHouseholdMoves == null)
+                _pendingHouseholdMoves = new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        private void OnClanCreated(Clan clan, bool isCompanion)
+        {
+            // Both the native royal grant and Bellum's subinfeudation raise this event.
+            if (!isCompanion) return;
+            foreach (Hero relative in CompanionPromotionHousehold.GetMovers(Clan.PlayerClan, clan))
+                if (!TryMoveRelative(relative, clan)) _pendingHouseholdMoves[relative.StringId] = clan.StringId;
+        }
+
+        private void RetryHouseholdMoves()
+        {
+            if (_pendingHouseholdMoves.Count == 0) return;
+            Clan source = Clan.PlayerClan;
+            foreach (var group in _pendingHouseholdMoves.ToArray().GroupBy(move => move.Value))
+            {
+                Clan destination = Clan.FindFirst(clan => clan.StringId == group.Key);
+                var eligible = CompanionPromotionHousehold.GetMovers(source, destination)
+                    .ToDictionary(hero => hero.StringId, StringComparer.Ordinal);
+                foreach (var move in group)
+                    if (!eligible.TryGetValue(move.Key, out Hero relative) || TryMoveRelative(relative, destination))
+                        _pendingHouseholdMoves.Remove(move.Key);
+            }
+        }
+
+        private static bool TryMoveRelative(Hero relative, Clan destination)
+        {
+            try
+            {
+                return CompanionPromotionHousehold.TryMove(relative, Clan.PlayerClan, destination);
+            }
+            catch (Exception ex)
+            {
+                BellumCivileLogger.Log($"Companion promotion family move failed; hero={relative.StringId}; clan={destination.StringId}; error={ex}.");
+                return true; // Do not repeat a partially completed native action.
+            }
         }
 
         private void OnSessionLaunched(CampaignGameStarter starter)

@@ -99,6 +99,7 @@ internal static class Program
             {
                 HouseholdMembershipTests.Run(Check, args.FirstOrDefault(a => a.StartsWith("--aoc-dll="))?.Substring("--aoc-dll=".Length));
                 RetainerMarriageTests.Run(Check);
+                CompanionPromotionHouseholdTests.Run(Check);
                 Console.WriteLine($"{_checks} household membership checks passed.");
             }
             else if (args.Contains("--lordship-dialogues"))
