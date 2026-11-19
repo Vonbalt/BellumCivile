@@ -74,6 +74,8 @@ namespace BellumCivile.Behaviors
             Instance = this;
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, SkipNewGameIndependenceRulerRepair);
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, SelectStartingHierarchy);
+            CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(this, ReconcileAdvancedPlayerStart);
             CampaignEvents.OnAfterSessionLaunchedEvent.AddNonSerializedListener(this, StartIndependenceRulerRepair);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ProcessIndependenceRulerRepair);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, OnHourlyTick);
@@ -106,6 +108,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_PlayerTitleNameOverrides", ref _playerTitleNameOverrides);
             dataStore.SyncData("BellumCivile_SubinfeudationParents", ref _subinfeudationParentByTitleId);
             dataStore.SyncData("BellumCivile_FeudalHierarchySchemaVersion", ref _hierarchySchemaVersion);
+            dataStore.SyncData("BellumCivile_GeneratedHierarchyScenarioId", ref _generatedHierarchyScenarioId);
             EnsureCollectionsInitialized();
             if (dataStore.IsLoading)
                 MigrateDeFactoHierarchyIfNeeded();
@@ -3493,7 +3496,7 @@ namespace BellumCivile.Behaviors
                 return _configuredTitleIdsCache;
 
             _configuredTitleIdsCache.Clear();
-            IReadOnlyList<FeudalTitleConfig.ConfiguredTitle> configuredTitles = FeudalTitleConfig.Instance.Titles;
+            IReadOnlyList<FeudalTitleConfig.ConfiguredTitle> configuredTitles = ConfiguredHierarchyTitles;
             if (configuredTitles == null)
             {
                 _configuredTitleIdsCacheReady = true;
@@ -4104,7 +4107,7 @@ namespace BellumCivile.Behaviors
 
         private int ApplyConfiguredTitles(string reason, bool initializeConfiguredHierarchy)
         {
-            IReadOnlyList<FeudalTitleConfig.ConfiguredTitle> configuredTitles = FeudalTitleConfig.Instance.Titles;
+            IReadOnlyList<FeudalTitleConfig.ConfiguredTitle> configuredTitles = ConfiguredHierarchyTitles;
             if (configuredTitles == null || configuredTitles.Count == 0)
                 return 0;
 
@@ -4545,7 +4548,7 @@ namespace BellumCivile.Behaviors
             FeudalTitleRecord record = new FeudalTitleRecord(
                 titleId,
                 titleName,
-                FeudalTitleType.Kingdom,
+                ResolveStartingCrownRank(kingdom.StringId),
                 holderClanId,
                 holderClanId,
                 string.Empty,
@@ -4556,7 +4559,7 @@ namespace BellumCivile.Behaviors
 
             _titlesById[titleId] = record;
             changed = true;
-            BellumCivileLogger.Log($"Feudal kingdom title created; title={titleId}; kingdom={kingdom.StringId}; holder={holderClanId}; reason={reason ?? "unknown"}.");
+            BellumCivileLogger.Log($"Feudal crown title created; title={titleId}; kingdom={kingdom.StringId}; rank={record.TitleType}; holder={holderClanId}; reason={reason ?? "unknown"}.");
             return record;
         }
 
@@ -4565,7 +4568,7 @@ namespace BellumCivile.Behaviors
             if (kingdom == null)
                 return null;
 
-            FeudalTitleConfig.ConfiguredTitle configured = FeudalTitleConfig.Instance.Titles?
+            FeudalTitleConfig.ConfiguredTitle configured = ConfiguredHierarchyTitles?
                 .Where(title => title != null && title.Type == FeudalTitleType.Kingdom)
                 .FirstOrDefault(title => ResolveKingdomReference(title.KingdomRef) == kingdom);
             if (configured == null)
@@ -7170,7 +7173,7 @@ namespace BellumCivile.Behaviors
             if (string.IsNullOrWhiteSpace(query))
                 return string.Empty;
 
-            FeudalTitleConfig.ConfiguredTitle configured = FeudalTitleConfig.Instance.Titles?
+            FeudalTitleConfig.ConfiguredTitle configured = ConfiguredHierarchyTitles?
                 .FirstOrDefault(title => title != null && string.Equals(title.Id, query, StringComparison.OrdinalIgnoreCase));
             if (configured == null)
                 return string.Empty;

@@ -65,6 +65,7 @@
   <TitleName id="county_sulundag" name="{=BC_TitleRoot_Bannerkings_county_sulundag}Sulun Dag" />
   <TitleName id="county_kohirohini" name="{=BC_TitleRoot_Bannerkings_county_kohirohini}Kohi Rohini" />
   <TitleName id="empire_calradia" name="{=BC_TitleRoot_Bannerkings_empire_calradia}Calradium" />
+  <TitleName id="bc_title_kingdom_calradian_empire" name="{=BC_TitleRoot_Bannerkings_empire_calradia}Calradium" />
   <TitleName id="bc_title_kingdom_empire_n" name="{=BC_TitleRoot_Bannerkings_bc_title_kingdom_empire_n}Voreioi Calradoi" />
   <TitleName id="duchy_dryatica" name="{=BC_TitleRoot_Bannerkings_duchy_dryatica}Dryatikon" />
   <TitleName id="duchy_laconia" name="{=BC_TitleRoot_Bannerkings_duchy_laconia}Lakonon" />

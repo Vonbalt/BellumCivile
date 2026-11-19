@@ -50,7 +50,12 @@ internal static class Program
         };
         try
         {
-            if (args.Contains("--personal-relation-integration"))
+            if (args.Contains("--advanced-start-titles"))
+            {
+                AdvancedStartTitleTests.Run(Check);
+                Console.WriteLine($"{_checks} advanced start title checks passed.");
+            }
+            else if (args.Contains("--personal-relation-integration"))
             {
                 PersonalRelationIntegrationTests.Run(Check);
                 Console.WriteLine($"{_checks} personal relation integration checks passed.");

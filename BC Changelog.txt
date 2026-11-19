@@ -866,3 +866,4 @@ Fixed personal-friend army summons using clan relations instead of individual re
 Fixed tooltips not showing on active succession laws and available options of the hierarchy tree.
 Fixed companion promotions so eligible spouses, children, and other relatives follow the companion into their new vassal house.
 Improved civil-war and private-feud result notices to explain why the fighting ended.
+Fixed Advanced Starting Options so Default keeps the handcrafted hierarchy, alternate scenarios generate titles from the starting map, and United Empire starts with a single Empire-tier crown.

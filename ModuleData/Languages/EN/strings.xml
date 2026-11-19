@@ -4228,6 +4228,7 @@
     <string id="BC_RealmRoot_NorthernCalradia" text="Northern Calradia" />
     <string id="BC_RealmRoot_WesternCalradia" text="Western Calradia" />
     <string id="BC_RealmRoot_SouthernCalradia" text="Southern Calradia" />
+    <string id="BC_RealmRoot_Calradia" text="Calradia" />
     <string id="BC_Hierarchy_NoPossessor" text="No de facto holder" />
     <string id="BC_Notification_TitleAssumed" text="After consolidating control of its lands, {USURPER_NAME} of the {USURPER_CLAN} has assumed the vacant {TITLE_NAME}, exercising the house's lawful rights." />
     <string id="BC_Hierarchy_AssumeConfirmDesc" text="Assuming the vacant {TITLE_NAME} will cost {GOLD_COST} denars and {INFLUENCE_COST} influence. Your house already owns the lawful title and will now exercise its authority. Proceed?" />

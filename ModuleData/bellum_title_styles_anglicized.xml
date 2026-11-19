@@ -63,6 +63,7 @@
   <TitleName id="county_sulundag" name="{=BC_TitleRoot_Anglicized_county_sulundag}Sulun Dag" />
   <TitleName id="county_kohirohini" name="{=BC_TitleRoot_Anglicized_county_kohirohini}Kohi Rohini" />
   <TitleName id="empire_calradia" name="{=BC_TitleRoot_Anglicized_empire_calradia}the Calradians" />
+  <TitleName id="bc_title_kingdom_calradian_empire" name="{=BC_TitleRoot_Anglicized_empire_calradia}the Calradians" />
   <TitleName id="bc_title_kingdom_empire_n" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n}the Northern Calradians" />
   <TitleName id="duchy_dryatica" name="{=BC_TitleRoot_Anglicized_duchy_dryatica}Dryatica" />
   <TitleName id="duchy_laconia" name="{=BC_TitleRoot_Anglicized_duchy_laconia}Laconia" />

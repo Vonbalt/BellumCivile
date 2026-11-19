@@ -19,5 +19,6 @@
   <Realm id="empire" nativeName="{=NF627oiX}Northern Empire" root="{=BC_RealmRoot_NorthernCalradia}Northern Calradia" />
   <Realm id="empire_w" nativeName="{=yG3YUySN}Western Empire" root="{=BC_RealmRoot_WesternCalradia}Western Calradia" />
   <Realm id="empire_s" nativeName="{=frBQ9mbP}Southern Empire" root="{=BC_RealmRoot_SouthernCalradia}Southern Calradia" />
+  <Realm id="calradian_empire" nativeName="{=AIh1Ik4A}Calradian Empire" root="{=BC_RealmRoot_Calradia}Calradia" />
   <Realm id="nord2" nativeName="Kingdom of Rhodok" root="Rhodok" />
 </RealmNames>
