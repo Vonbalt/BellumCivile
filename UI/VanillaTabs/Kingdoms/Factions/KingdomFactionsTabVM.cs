@@ -19,7 +19,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
         [DataSourceProperty] public bool IsCrownSelected
         {
             get => _isCrownSelected;
-            private set { _isCrownSelected = value; OnPropertyChangedWithValue(value, nameof(IsCrownSelected)); OnPropertyChanged(nameof(ShowFactionActionButtons)); }
+            private set { _isCrownSelected = value; OnPropertyChangedWithValue(value, nameof(IsCrownSelected)); }
         }
         public void ExecuteSelectCrown()
         {
@@ -66,6 +66,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
         }
 
         protected override bool ShouldKeepFactionSelectionEmpty => IsCrownSelected || IsPrivyCouncilSelected || HasSelectedFeud;
+        protected override bool IsCrownMembershipSelected => IsCrownSelected;
 
         public override void OnFinalize()
         {
@@ -451,7 +452,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Factions
         [DataSourceProperty] public string ListHeaderText => HeaderText;
         [DataSourceProperty] public string PrivyCouncilText => CourtInstitutionDisplayHelper.GetPrivyCouncilName(_kingdom).ToString();
         [DataSourceProperty] public bool HasPrivyCouncil => _kingdom != null && !_kingdom.IsEliminated && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(_kingdom);
-        [DataSourceProperty] public bool ShowFactionActionButtons => !IsPrivyCouncilSelected && !IsCrownSelected;
+        [DataSourceProperty] public bool ShowFactionActionButtons => !IsPrivyCouncilSelected;
         [DataSourceProperty]
         public string CourtFactionsText
         {

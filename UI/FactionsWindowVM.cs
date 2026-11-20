@@ -189,6 +189,8 @@ namespace BellumCivile.UI
             bool isRuler = playerKingdom != null && playerKingdom.RulingClan == Clan.PlayerClan;
             List<FactionObject> activeFactions = GetVisibleFactions(factionManager, politicalKingdom);
             bool playerHasThroneClaim = RoyalistClaimHelper.TryGetThroneClaimStrength(Clan.PlayerClan, politicalKingdom, factionManager, out _);
+            TextObject houseBlock = GetFoundingHouseBlock(isMercenary, factionManager);
+            TextObject influenceBlock = GetFoundingInfluenceBlock(PoliticalActionVM.FoundInfluenceCost);
 
             FactionObject currentIdeology = factionManager?.GetIdeologicalFaction(Clan.PlayerClan);
 
@@ -202,45 +204,30 @@ namespace BellumCivile.UI
                 if (isIdeology && (politicalKingdom == null || activeFactions.Any(f => f.Type == type)))
                     continue;
 
-                bool isEnabled = true;
-                string disabledReason = "";
-                var grace = !isIdeology ? factionManager?.CivilWarGraceBlock(politicalKingdom) : null;
-                if (grace != null) { isEnabled = false; disabledReason = grace.ToString(); }
-
-                if (isMercenary)
+                TextObject block = houseBlock;
+                if (block == null && isRuler)
                 {
-                    isEnabled = false;
-                    disabledReason = new TextObject("{=BC_UI_Err_Mercenary}Mercenaries cannot found political factions.").ToString();
+                    block = isIdeology ? CourtMembershipEligibility.RulerReason
+                        : new TextObject("{=BC_UI_Err_RulerSelf}You cannot plot a rebellion against yourself.");
                 }
-                else if (type == FactionType.InstallRuler && !playerHasThroneClaim)
-                {
-                    isEnabled = false;
-                    disabledReason = new TextObject("{=BC_UI_Err_ThroneClaim}You need a weak or strong claim to the kingdom title before you can press your right to the throne.").ToString();
-                }
-
-                if (isRuler)
-                {
-                    isEnabled = false;
-                    disabledReason = isIdeology ? CourtMembershipEligibility.RulerReason.ToString()
-                        : new TextObject("{=BC_UI_Err_RulerSelf}You cannot plot a rebellion against yourself.").ToString();
-                }
-
-                if (isIdeology && currentIdeology != null)
-                {
-                    isEnabled = false;
-                    disabledReason = new TextObject("{=BC_UI_Err_AlreadyCourtFaction}You already belong to a court faction. Leave it before founding another party.").ToString();
-                }
+                else if (block == null && type == FactionType.InstallRuler && !playerHasThroneClaim)
+                    block = new TextObject("{=BC_UI_Err_ThroneClaim}You need a weak or strong claim to the kingdom title before you can press your right to the throne.");
+                else if (block == null && isIdeology && currentIdeology != null)
+                    block = new TextObject("{=BC_UI_Err_AlreadyCourtFaction}You already belong to a court faction. Leave it before founding another party.");
+                else if (block == null && !isIdeology)
+                    block = factionManager?.CivilWarGraceBlock(politicalKingdom);
+                block = block ?? influenceBlock;
 
                 AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(
                     type,
                     GetPrettyCreationName(type),
                     OnFactionTypeSelected,
-                    isEnabled,
-                    BuildFactionTypeHint(type, disabledReason),
-                    100));
+                    block == null,
+                    BuildFactionTypeHint(type, block?.ToString()),
+                    PoliticalActionVM.FoundInfluenceCost));
             }
 
-            AppendClaimFeudActions(isMercenary, isRuler, playerRebelFaction: factionManager?.GetRebelFaction(Clan.PlayerClan));
+            AppendClaimFeudActions(isRuler, houseBlock, influenceBlock);
 
             if (SelectedFactionType != null)
             {
@@ -249,7 +236,7 @@ namespace BellumCivile.UI
                     && f.FactionType == SelectedFactionType.FactionType
                     && f.TargetTitleId == SelectedFactionType.TargetTitleId
                     && f.TargetHolderClanId == SelectedFactionType.TargetHolderClanId);
-                if (refreshedSelection != null)
+                if (refreshedSelection?.IsEnabled == true)
                 {
                     SelectedFactionType = refreshedSelection;
                     SelectedFactionType.IsSelected = true;
@@ -263,7 +250,24 @@ namespace BellumCivile.UI
             RefreshSelectedActionCost();
         }
 
-        private void AppendClaimFeudActions(bool isMercenary, bool isRuler, FactionObject playerRebelFaction)
+        private static TextObject GetFoundingHouseBlock(bool isMercenary, FactionManagerBehavior factionManager)
+        {
+            if (isMercenary)
+                return new TextObject("{=BC_UI_Err_Mercenary}Mercenaries cannot found political factions.");
+            if (Clan.PlayerClan?.Kingdom == null)
+                return new TextObject("{=BC_UI_Err_FoundNoKingdom}Your house must belong to a realm to found a faction.");
+            return factionManager?.GetRebelFaction(Clan.PlayerClan) != null
+                ? new TextObject("{=BC_UI_Err_AlreadyRebel}You are already participating in a rebellion.") : null;
+        }
+
+        private static TextObject GetFoundingInfluenceBlock(int cost)
+        {
+            return Clan.PlayerClan?.Influence >= cost ? null
+                : new TextObject("{=BC_UI_Err_NeedActionInfluence}You need {COST} influence to perform this action.")
+                    .SetTextVariable("COST", cost);
+        }
+
+        private void AppendClaimFeudActions(bool isRuler, TextObject houseBlock, TextObject influenceBlock)
         {
             ClaimFeudBehavior feudBehavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudBehavior>();
             IReadOnlyList<ClaimFeudActionPreview> previews = feudBehavior?.GetPressableFeudPreviews(Clan.PlayerClan) ?? Array.Empty<ClaimFeudActionPreview>();
@@ -271,20 +275,20 @@ namespace BellumCivile.UI
             {
                 bool isEnabled = preview.IsEnabled;
                 string disabledReason = preview.DisabledReason ?? string.Empty;
-                if (isMercenary)
+                if (houseBlock != null)
                 {
                     isEnabled = false;
-                    disabledReason = new TextObject("{=BC_UI_Err_Mercenary}Mercenaries cannot found political factions.").ToString();
+                    disabledReason = houseBlock.ToString();
                 }
                 else if (isRuler)
                 {
                     isEnabled = false;
                     disabledReason = new TextObject("{=BC_UI_Err_RulerFeud}Rulers settle title disputes through judgment and decree, not private house feuds.").ToString();
                 }
-                else if (playerRebelFaction != null)
+                else if (isEnabled && influenceBlock != null)
                 {
                     isEnabled = false;
-                    disabledReason = new TextObject("{=BC_UI_Err_AlreadyRebel}You are already participating in a rebellion.").ToString();
+                    disabledReason = influenceBlock.ToString();
                 }
 
                 TextObject name = new TextObject("{=BC_Menu_StartClaimFeud}Start feud over {TITLE_NAME}");
@@ -403,8 +407,8 @@ namespace BellumCivile.UI
             if (SelectedFaction != null) SelectedFaction.IsSelected = true;
 
             HasSelectedFaction = SelectedFaction != null;
-            RefreshButtonStates();
             OnRegularFactionSelected();
+            RefreshButtonStates();
         }
 
         protected virtual void OnRegularFactionSelected()
@@ -446,6 +450,8 @@ namespace BellumCivile.UI
         {
             return null;
         }
+
+        protected virtual bool IsCrownMembershipSelected => false;
 
         protected virtual void OnClaimFeudActionCompleted()
         {
@@ -624,6 +630,14 @@ namespace BellumCivile.UI
                 IsJoinLeaveEnabled = false;
                 JoinLeaveHint = new HintViewModel(joinGrace);
             }
+            if (IsCrownMembershipSelected)
+            {
+                JoinLeaveText = isRuler
+                    ? new TextObject("{=BC_UI_Leave}Leave").ToString()
+                    : new TextObject("{=BC_UI_Join}Join").ToString();
+                IsJoinLeaveEnabled = false;
+                JoinLeaveHint = new HintViewModel(new TextObject("{=BC_UI_Hint_CrownMembership}Only the ruling house belongs to the Crown."));
+            }
             FactionObject playerRebelFaction = factionManager?.GetRebelFaction(Clan.PlayerClan);
 
             ClaimFeudRecord selectedClaimFeud = GetSelectedClaimFeudRecord();
@@ -677,41 +691,9 @@ namespace BellumCivile.UI
                 CreateDestroyText = new TextObject("{=BC_UI_Found}Found").ToString();
                 _isDisbandMode = false;
                 _isSurrenderMode = false;
-
-                if (isMercenary)
-                {
-                    IsCreateDestroyEnabled = false;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Err_MercFound}Mercenaries cannot found political factions."));
-                    IsFoundCostVisible = false;
-                }
-                else if (playerRebelFaction != null)
-                {
-                    IsCreateDestroyEnabled = false;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Err_AlreadyRebel}You are already participating in a rebellion."));
-                    IsFoundCostVisible = true;
-                }
-                else if (AvailableFactionTypes.Count == 0 || AvailableFactionTypes.All(f => !f.IsEnabled))
-                {
-                    IsCreateDestroyEnabled = false;
-                    var grace = !isRuler && AvailableFactionTypes.Any(f =>
-                        f.ActionKind == PoliticalActionKind.FoundFaction && !IsIdeologyType(f.FactionType))
-                        ? factionManager?.CivilWarGraceBlock(GetPlayerPoliticalKingdom(factionManager)) : null;
-                    CreateDestroyHint = new HintViewModel(grace
-                        ?? new TextObject("{=BC_UI_Err_NoValidFactions}There are no valid factions for you to found right now."));
-                    IsFoundCostVisible = false;
-                }
-                else if (!AvailableFactionTypes.Any(CanAffordAction))
-                {
-                    IsCreateDestroyEnabled = false;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Err_NeedInfluence}You need more influence to perform any available political action."));
-                    IsFoundCostVisible = ShouldShowMainFoundCost();
-                }
-                else
-                {
-                    IsCreateDestroyEnabled = true;
-                    CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Hint_Found}Found a new faction or press a political claim."));
-                    IsFoundCostVisible = ShouldShowMainFoundCost();
-                }
+                IsCreateDestroyEnabled = true;
+                CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Hint_Found}Found a new faction or press a political claim."));
+                IsFoundCostVisible = ShouldShowMainFoundCost();
             }
 
             if (selectedBackendFaction != null && selectedBackendFaction.ParentKingdom != null)
@@ -1089,6 +1071,9 @@ namespace BellumCivile.UI
 
         public void ExecuteJoin()
         {
+            if (IsCrownMembershipSelected)
+                return;
+
             var feud = GetSelectedClaimFeudRecord();
             if (feud != null)
             {
@@ -1191,6 +1176,9 @@ namespace BellumCivile.UI
 
         public void ExecuteCreate()
         {
+            if (!IsCreateDestroyEnabled)
+                return;
+
             if (_isClaimFeudAbandonMode || _isClaimFeudSurrenderMode)
             {
                 ClaimFeudRecord record = GetSelectedClaimFeudRecord();
@@ -1301,6 +1289,8 @@ namespace BellumCivile.UI
             }
             else
             {
+                RefreshAvailableFactionTypes();
+                IsFoundCostVisible = ShouldShowMainFoundCost();
                 OpenCreationSelector();
             }
         }
@@ -1344,6 +1334,14 @@ namespace BellumCivile.UI
 
                 var factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
                 bool isIdeology = IsIdeologyType(SelectedFactionType.FactionType);
+                var houseBlock = GetFoundingHouseBlock(Clan.PlayerClan?.IsUnderMercenaryService == true, factionManager);
+                if (houseBlock != null)
+                {
+                    BellumCivileNotifications.ShowPersonal(houseBlock, BellumNotificationColors.Warning);
+                    RefreshAvailableFactionTypes();
+                    RefreshButtonStates();
+                    return;
+                }
                 var grace = !isIdeology ? factionManager?.CivilWarGraceBlock(Clan.PlayerClan.Kingdom) : null;
                 if (grace != null)
                 {

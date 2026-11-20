@@ -989,6 +989,8 @@
     <string id="BC_UI_Msg_FeudAbandoned" text="You have cooled the feud for now." />
     <string id="BC_UI_Msg_FeudSurrendered" text="You have surrendered the feud. The dispute is settled in favor of the current holder." />
     <string id="BC_UI_Hint_Found" text="Found a new faction or press a political claim." />
+    <string id="BC_UI_Hint_CrownMembership" text="Only the ruling house belongs to the Crown." />
+    <string id="BC_UI_Err_FoundNoKingdom" text="Your house must belong to a realm to found a faction." />
     <string id="BC_ClaimStrength_Strong" text="strong" />
     <string id="BC_ClaimStrength_Weak" text="weak" />
     <string id="BC_UI_Opposing_Realm" text="The Realm" />

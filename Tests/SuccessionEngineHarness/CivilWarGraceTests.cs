@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using BellumCivile;
 using BellumCivile.Behaviors;
 using BellumCivile.UI;
+using BellumCivile.UI.VanillaTabs.Kingdoms.Factions;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Election;
@@ -52,6 +53,7 @@ internal static class CivilWarGraceTests
     private static Clan _ruler;
     private static Hero _head;
     private static bool _mercenary;
+    private static float _influence = 1000;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool Campaign(ref Campaign __result) { __result = _campaign; return false; }
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days((float)_day); return false; }
@@ -70,7 +72,7 @@ internal static class CivilWarGraceTests
     private static bool All(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(Realms); return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool Two(ref int __result) { __result = 2; return false; }
-    private static bool Influence(ref float __result) { __result = 1000; return false; }
+    private static bool Influence(ref float __result) { __result = _influence; return false; }
     private static bool Name(ref TextObject __result) { __result = new TextObject("Test Realm"); return false; }
     private static bool NoPolicy(ref PolicyObject __result) { __result = null; return false; }
     private static bool Capture(MultiSelectionInquiryData __0) { _inquiry = __0; return false; }
@@ -313,47 +315,84 @@ internal static class CivilWarGraceTests
                     Call(behavior, "ApplyInitialCivilWarGrace", new object[] { null });
                 }
                 else { Queue(Faction(_parent, fought: true), shell); Gone.Add(shell); Maintain(); }
-                var window = Blank<FactionsWindowVM>();
+                var window = Blank<KingdomFactionsTabVM>();
+                window.Factions = new MBBindingList<FactionItemVM>();
+                window.CourtFactions = new MBBindingList<FactionItemVM>();
+                window.RebelFactions = new MBBindingList<FactionItemVM>();
+                window.FeudFactions = new MBBindingList<ClaimFeudItemVM>();
                 window.AvailableFactionTypes = new MBBindingList<PoliticalActionVM>();
                 window.AgendaListLeft = new MBBindingList<AgendaItemVM>();
                 window.AgendaListRight = new MBBindingList<AgendaItemVM>();
                 window.FactionLikesList = new MBBindingList<AgendaItemVM>();
                 window.FactionDislikesList = new MBBindingList<AgendaItemVM>();
-                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Abdication, "Abdication", null, false, "", 100));
-                string FoundHint()
+                string Hint(object tooltip) => ((TextObject)AccessTools.Field(tooltip.GetType(), "HintText").GetValue(tooltip)).ToString();
+                PoliticalActionVM Choice(FactionType type) => window.AvailableFactionTypes.Single(row => row.FactionType == type);
+                PoliticalActionVM OpenFound()
                 {
+                    window.ExecuteCancelCreate();
                     Call(window, "RefreshButtonStates");
-                    object tooltip = AccessTools.Property(window.GetType(), "CreateDestroyHint").GetValue(window);
-                    return ((TextObject)AccessTools.Field(tooltip.GetType(), "HintText").GetValue(tooltip)).ToString();
+                    window.ExecuteCreate();
+                    return Choice(FactionType.Abdication);
                 }
+                Field(window, "_isCrownSelected", true);
+                Call(window, "RefreshButtonStates");
+                check(window.ShowFactionActionButtons && !window.IsJoinLeaveEnabled && window.JoinLeaveText == "Join"
+                    && Hint(window.JoinLeaveHint).Contains("Only the ruling house"), "Crown shows the disabled Join with its membership explanation");
+                _ruler = _clan;
+                Call(window, "RefreshButtonStates");
+                check(window.ShowFactionActionButtons && !window.IsJoinLeaveEnabled && window.JoinLeaveText == "Leave"
+                    && Hint(window.JoinLeaveHint).Contains("Only the ruling house"), "Crown shows disabled Leave to the ruler");
+                _ruler = Blank<Clan>();
+                Call(window, "OnFactionSelected", new object[] { null });
+                check(!window.IsCrownSelected && !Hint(window.JoinLeaveHint).Contains("Only the ruling house"),
+                    "Selecting another row clears the Crown-specific tooltip before refreshing actions");
+                window.IsPrivyCouncilSelected = true;
+                check(!window.ShowFactionActionButtons, "The Privy Council still uses its own action row");
+                window.IsPrivyCouncilSelected = false;
+                Field(window, "_isCrownSelected", true);
                 string pacified = Call(behavior, "CivilWarGraceBlock", _parent).ToString();
-                check(FoundHint() == pacified && !window.IsCreateDestroyEnabled && !window.IsFoundCostVisible,
-                    "Found displays the shared countdown when rebellion choices are disabled by " + (startup ? "startup" : "postwar") + " grace");
-                _day += 1;
-                check(FoundHint() == Call(behavior, "CivilWarGraceBlock", _parent).ToString() && FoundHint() != pacified,
-                    "Found refreshes the remaining pacification days rather than keeping a stale reason");
-                window.AvailableFactionTypes.Add(PoliticalActionVM.ForClaimFeud(new ClaimFeudActionPreview { IsEnabled = true }, null, "Private feud", ""));
-                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
-                    "An available private feud keeps Found enabled during pacification");
-                window.AvailableFactionTypes.RemoveAt(1);
-                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Nobility, "Nobility", null, true, "", 100));
-                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
-                    "An available court faction keeps Found enabled during pacification");
-                window.AvailableFactionTypes.RemoveAt(1);
+                var rebellion = OpenFound();
+                check(window.IsCreatingFaction && window.IsCreateDestroyEnabled && !rebellion.IsEnabled
+                    && Hint(rebellion.Hint).Contains(pacified),
+                    "Found opens from Crown and the rebellion row explains " + (startup ? "startup" : "postwar") + " grace");
+                check(Choice(FactionType.Nobility).IsEnabled, "Eligible court factions can still be founded during pacification");
+                _day++;
+                rebellion = OpenFound();
+                check(!Hint(rebellion.Hint).Contains(pacified)
+                    && Hint(rebellion.Hint).Contains(Call(behavior, "CivilWarGraceBlock", _parent).ToString()),
+                    "Reopening Found refreshes the rebellion row's pacification countdown");
                 _mercenary = true;
-                check(FoundHint().Contains("Mercenaries cannot found"), "Mercenary restrictions retain their own Found explanation");
+                OpenFound();
+                check(window.IsCreatingFaction && window.AvailableFactionTypes.All(row => !row.IsEnabled
+                    && Hint(row.Hint).Contains("Mercenaries cannot found")) && !window.IsCreationChoiceSelected,
+                    "Mercenaries can inspect Found but cannot select or confirm any row");
                 _mercenary = false; _ruler = _clan;
-                check(FoundHint().Contains("There are no valid factions"), "A ruler is not misleadingly told that waiting out grace permits rebellion against themselves");
-                _ruler = Blank<Clan>(); window.AvailableFactionTypes.Clear();
-                window.AvailableFactionTypes.Add(PoliticalActionVM.ForClaimFeud(new ClaimFeudActionPreview { IsEnabled = false }, null, "Private feud", ""));
-                check(FoundHint().Contains("There are no valid factions"), "Disabled private feuds alone are not misattributed to crown pacification");
-                window.AvailableFactionTypes.Clear();
-                window.AvailableFactionTypes.Add(PoliticalActionVM.ForFaction(FactionType.Abdication, "Abdication", null, false, "", 100));
-                _day += 2 * year;
-                check(FoundHint().Contains("There are no valid factions"), "Expired grace cannot leave a stale pacification message on Found");
-                window.AvailableFactionTypes[0].IsEnabled = true;
-                check(FoundHint().Contains("Found a new faction") && window.IsCreateDestroyEnabled,
-                    "Found becomes available once grace expires and a rebellion choice is eligible again");
+                rebellion = OpenFound();
+                check(window.IsCreatingFaction && !rebellion.IsEnabled && Hint(rebellion.Hint).Contains("yourself"),
+                    "A ruler can inspect why founding a rebellion is blocked");
+                _ruler = Blank<Clan>(); _day += 2 * year; _influence = 0;
+                rebellion = OpenFound();
+                rebellion.ExecuteSelect();
+                check(window.IsCreatingFaction && !rebellion.IsEnabled && Hint(rebellion.Hint).Contains("100 influence")
+                    && !window.IsCreationChoiceSelected, "Low influence disables the row and explains the cost, not the menu");
+                _influence = 1000;
+                var membership = Faction(_parent);
+                Field(membership, "_leader", Blank<Clan>());
+                active.Add(membership);
+                OpenFound();
+                check(window.IsCreatingFaction && window.AvailableFactionTypes.All(row => !row.IsEnabled
+                    && Hint(row.Hint).Contains("already participating in a rebellion")),
+                    "An existing rebel member can inspect the menu but cannot found another faction");
+                Field(membership, "_leader", _clan);
+                window.ExecuteCancelCreate();
+                Call(window, "RefreshButtonStates");
+                window.ExecuteCreate();
+                check(window.CreateDestroyText == "Disband" && !window.IsCreateDestroyEnabled && !window.IsCreatingFaction,
+                    "The Disband replacement is still blocked away from the player's rebellion");
+                active.Remove(membership);
+                rebellion = OpenFound();
+                check(rebellion.IsEnabled && !Hint(rebellion.Hint).Contains("pacified"),
+                    "Once eligible again, reopening Found enables the rebellion choice");
             }
 
             Setup(); war = Faction(_parent, fought: true); Queue(war, shell); Gone.Add(shell); Maintain();

@@ -8,6 +8,7 @@ namespace BellumCivile.UI
 {
     public class PoliticalActionVM : ViewModel
     {
+        internal const int FoundInfluenceCost = 100;
         private readonly Action<PoliticalActionVM> _onSelection;
         private string _name;
         private bool _isSelected;
@@ -81,7 +82,7 @@ namespace BellumCivile.UI
                 onSelection,
                 preview?.IsEnabled == true,
                 hintText,
-                100,
+                FoundInfluenceCost,
                 preview?.HolderClanId,
                 preview?.HolderName,
                 preview?.TitleName);
