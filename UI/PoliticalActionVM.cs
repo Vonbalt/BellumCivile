@@ -1,5 +1,6 @@
 using System;
 using BellumCivile.Behaviors;
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
@@ -87,6 +88,11 @@ namespace BellumCivile.UI
                 preview?.HolderName,
                 preview?.TitleName);
         }
+
+        internal static PoliticalActionVM ForCrownTitleClaim(FeudalTitleRecord title, Clan crown,
+            string name, Action<PoliticalActionVM> onSelection, TextObject block, string hint)
+            => new PoliticalActionVM(PoliticalActionKind.FoundCrownTitleClaim, FactionType.CrownTitleClaim,
+                title?.TitleId, name, onSelection, block == null, hint, FoundInfluenceCost, crown?.StringId);
 
         public void ExecuteSelect()
         {

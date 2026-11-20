@@ -1587,6 +1587,12 @@ namespace BellumCivile.Behaviors
                 return true;
             }
 
+            bool crownTitleClaim = faction.Type == FactionType.CrownTitleClaim;
+            if (crownTitleClaim && _applyingCrownClaimTerms.Contains(faction)) return false;
+            if (crownTitleClaim && faction.PendingCrownClaimSettlement != CrownTitleClaimSettlement.None
+                && faction.PendingCrownClaimSettlement != CrownTitleClaimSettlement.LoyalistVictory) return false;
+            if (crownTitleClaim) faction.PendingCrownClaimSettlement = CrownTitleClaimSettlement.LoyalistVictory;
+
             int parentStrongholds = CountStrongholds(faction.ParentKingdom);
             int rebelStrongholds = CountStrongholds(rebelKingdom);
             if (parentStrongholds == 0)
@@ -1625,6 +1631,22 @@ namespace BellumCivile.Behaviors
             if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryLiegeVictory, allowEliminatedRebelShell,
                 additionalMercenaries: returnedMercenaries)) return false;
 
+            if (crownTitleClaim)
+            {
+                if (!FactionManagerBehavior.SuccessionOpportunityReady(faction.ParentKingdom)
+                    || !RestoreCrownClaimOccupations(faction, rebelKingdom)) return false;
+                var title = faction.CrownClaimTitle;
+                if (title?.IsActive != true || title.DeFactoHolderClanId != faction.ParentKingdom.RulingClan?.StringId
+                    || faction.CrownClaimOriginalHolder != faction.ParentKingdom.RulingClan)
+                {
+                    faction.PendingCrownClaimSettlement = CrownTitleClaimSettlement.WhitePeace;
+                    ResolveWhitePeace(faction, rebelKingdom, cause: CrownClaimEndedReason());
+                    return false;
+                }
+                Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()
+                    ?.RejectCrownTitleClaim(faction.Leader, faction.ParentKingdom.RulingClan, title);
+            }
+
             if (SuccessionChallengeBehavior.Instance?.PrepareWarOutcome(faction, SuccessionChallengeOutcome.Defeat, faction.ParentKingdom) == false) return false;
 
             CivilWarConflictBehavior.Instance?.GetRewardHistory(faction)?.RecordCrownDefeat(losingClans);
@@ -1658,7 +1680,8 @@ namespace BellumCivile.Behaviors
             SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(faction, faction.ParentKingdom);
             if (SuccessionChallengeBehavior.Instance?.GetWarRecord(faction) is SuccessionChallengeRecord pendingDefeat && !pendingDefeat.ResolutionReturned) return false;
             CaptureOutcomeTribunal(resultNotice, faction.ParentKingdom);
-            ConflictOutcomeBehavior.Current?.Publish(resultNotice, "loyalist", ConflictOutcomeBehavior.ContinuingWars(faction.ParentKingdom));
+            ConflictOutcomeBehavior.Current?.Publish(resultNotice, crownTitleClaim ? "crown_title_loyalist" : "loyalist",
+                ConflictOutcomeBehavior.ContinuingWars(faction.ParentKingdom));
             return true;
         }
 
@@ -1711,6 +1734,12 @@ namespace BellumCivile.Behaviors
             if (faction == null || rebelKingdom == null || faction.ParentKingdom == null)
             {
                 CleanupExternallyResolvedFaction(faction);
+                return;
+            }
+
+            if (faction.Type == FactionType.CrownTitleClaim)
+            {
+                ResolveCrownClaimRebelVictory(faction, rebelKingdom);
                 return;
             }
 
@@ -1992,6 +2021,39 @@ namespace BellumCivile.Behaviors
                 activeRebellions,
                 decisiveCivilWarVictor);
 
+            var titleClaimWars = activeRebellions.Where(pair => pair.Key.Type == FactionType.CrownTitleClaim).ToList();
+            if (decisiveCivilWarVictor == null && !parentAlreadyDestroyed)
+                decisiveCivilWarVictor = titleClaimWars.FirstOrDefault(pair => pair.Key.HasDecisiveCrownClaimOccupation(pair.Value)).Key;
+            foreach (var claim in titleClaimWars)
+            {
+                if (!parentAlreadyDestroyed && !collapsedParent.IsEliminated)
+                {
+                    if (decisiveCivilWarVictor == claim.Key)
+                    {
+                        ConflictOutcomeBehavior.RecordCivilEnding(claim.Key, claim.Value,
+                            new TextObject("{=BC_Result_InternalCrownLandless}The Crown lost its last stronghold and could no longer resist the rebels' demands."));
+                        if (!ResolveCrownClaimRebelVictory(claim.Key, claim.Value))
+                            return;
+                        decisiveCivilWarVictor = null;
+                    }
+                    else
+                    {
+                        ResolveWhitePeace(claim.Key, claim.Value, cause: CrownClaimEndedReason());
+                        if (claim.Key.HasTrackedRebelKingdom) return;
+                    }
+                }
+                else if (!activeRebellions.Keys.Any(f => f.Type != FactionType.CrownTitleClaim))
+                {
+                    if (!EndCrownTitleClaimWithoutParent(claim.Key, claim.Value)) return;
+                }
+                else
+                    continue; // They may reunite under the surviving realm, but cannot inherit it as claimant victors.
+                activeRebellions.Remove(claim.Key);
+            }
+
+            if (titleClaimWars.Count > 0 && decisiveCivilWarVictor == null && !parentAlreadyDestroyed && CountStrongholds(collapsedParent) > 0)
+                return;
+
             // A civil war which itself stripped the parent of its last stronghold must settle
             // its declared demand. The generic successor-state path is reserved for a parent
             // realm destroyed by an outside power while its civil war remains unresolved.
@@ -2015,7 +2077,7 @@ namespace BellumCivile.Behaviors
             }
 
             List<KeyValuePair<FactionObject, Kingdom>> successionFactions = activeRebellions
-                .Where(kvp => kvp.Key.Type != FactionType.Independence)
+                .Where(kvp => kvp.Key.Type != FactionType.Independence && kvp.Key.Type != FactionType.CrownTitleClaim)
                 .OrderByDescending(kvp => kvp.Key == restoration?.Owner)
                 .ThenByDescending(kvp => kvp.Key == decisiveCivilWarVictor)
                 .ThenByDescending(kvp => kvp.Key.CalculateFactionPower())
@@ -2023,6 +2085,8 @@ namespace BellumCivile.Behaviors
 
             if (successionFactions.Count == 0)
             {
+                foreach (var remaining in activeRebellions.Where(pair => pair.Key.Type == FactionType.CrownTitleClaim))
+                    if (!EndCrownTitleClaimWithoutParent(remaining.Key, remaining.Value)) return;
                 if (!parentAlreadyDestroyed)
                 {
                     CollapseLandlessParentWithoutSuccessor(collapsedParent);
@@ -2095,6 +2159,16 @@ namespace BellumCivile.Behaviors
                 factionManager.RemoveFaction(rivalFaction.Key);
                 SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(rivalFaction.Key, restoredSuccessorKingdom);
                 absorbedRebels.Add(rivalFaction.Key.GetDisplayName().ToString());
+            }
+
+            foreach (var claim in activeRebellions.Where(pair => pair.Key.Type == FactionType.CrownTitleClaim))
+            {
+                var notice = ConflictOutcomeBehavior.Current?.BeginCivil(claim.Key, claim.Value);
+                ConflictOutcomeBehavior.Capture(notice, "CAUSE", CrownClaimEndedReason());
+                CompleteCivilWarTracker(claim.Key, claim.Value, "Crown title claim ended in parent realm collapse", restoredSuccessorKingdom);
+                factionManager.RemoveFaction(claim.Key);
+                DrainAndDestroyRebelKingdom(claim.Value, restoredSuccessorKingdom);
+                ConflictOutcomeBehavior.Current?.Publish(notice, "ended");
             }
 
             foreach (FactionObject leftover in factionManager.GetFactionsInKingdom(collapsedParent).Where(f => !f.IsIdeology).ToList())
@@ -3350,11 +3424,26 @@ namespace BellumCivile.Behaviors
                 $"demand_satisfied={demandSatisfied}; cause={cause}");
             if (CivilWarConflictBehavior.IsFactionTransferPending(faction)) return;
             if (faction?.ParentKingdom == null || rebelKingdom == null) return;
+            bool crownTitleClaim = faction.Type == FactionType.CrownTitleClaim;
+            if (crownTitleClaim)
+            {
+                if (_applyingCrownClaimTerms.Contains(faction) || faction.ParentKingdom.IsEliminated) return;
+                if (faction.PendingCrownClaimSettlement != CrownTitleClaimSettlement.None
+                    && faction.PendingCrownClaimSettlement != CrownTitleClaimSettlement.WhitePeace) return;
+                faction.PendingCrownClaimSettlement = CrownTitleClaimSettlement.WhitePeace;
+                demandSatisfied |= faction.CrownClaimState(rebelKingdom) == CrownTitleClaimState.Fulfilled;
+            }
             var resultNotice = ConflictOutcomeBehavior.Current?.BeginCivil(faction, rebelKingdom);
             if (!PrepareMercenarySettlement(faction, rebelKingdom, MercenaryWhitePeace,
                 demandSatisfied: demandSatisfied, cause: cause)) return;
+            if (crownTitleClaim && !RestoreCrownClaimOccupations(faction, rebelKingdom,
+                demandSatisfied && faction.CrownClaimTitle?.TitleType == FeudalTitleType.Barony
+                    ? faction.CrownClaimTitle.CapitalSettlementId : null)) return;
             if (resultNotice != null) resultNotice.Names["RESULT_KIND"] = demandSatisfied ? "satisfied" : cause != null ? "ended" : "peace";
-            ConflictOutcomeBehavior.Capture(resultNotice, "DEMAND_RESULT", faction.Type == FactionType.Abdication
+            ConflictOutcomeBehavior.Capture(resultNotice, "DEMAND_RESULT", crownTitleClaim
+                ? new TextObject("{=BC_CrownTitleClaim_Fulfilled}{TITLE} delivered to {LEADER}").SetTextVariable("TITLE", faction.CrownClaimTitleName())
+                    .SetTextVariable("LEADER", faction.Leader?.Leader?.Name ?? faction.Leader?.Name)
+                : faction.Type == FactionType.Abdication
                 ? new TextObject("{=BC_Result_DepositionFulfilled}the former ruler removed from the throne")
                 : new TextObject("{=BC_Result_CrownFulfilled}{LEADER} holding the crown").SetTextVariable("LEADER", faction.ParentKingdom.Leader?.Name));
             ConflictOutcomeBehavior.Capture(resultNotice, "CAUSE", cause);
@@ -3380,7 +3469,8 @@ namespace BellumCivile.Behaviors
             SuccessionChallengeBehavior.Instance?.CompleteWarOutcome(faction, faction.ParentKingdom);
 
             if (SuccessionChallengeBehavior.Instance?.GetWarRecord(faction) is SuccessionChallengeRecord pendingPeace && !pendingPeace.ResolutionReturned) return;
-            ConflictOutcomeBehavior.Current?.Publish(resultNotice, demandSatisfied ? "satisfied" : cause != null ? "ended" : "peace",
+            ConflictOutcomeBehavior.Current?.Publish(resultNotice, demandSatisfied ? "satisfied" : cause != null ? "ended"
+                : crownTitleClaim ? "crown_title_peace" : "peace",
                 ConflictOutcomeBehavior.ContinuingWars(faction.ParentKingdom));
         }
 

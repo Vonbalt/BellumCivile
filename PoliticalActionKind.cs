@@ -3,6 +3,7 @@ namespace BellumCivile
     public enum PoliticalActionKind
     {
         FoundFaction = 0,
-        StartClaimFeud = 1
+        StartClaimFeud = 1,
+        FoundCrownTitleClaim = 2
     }
 }

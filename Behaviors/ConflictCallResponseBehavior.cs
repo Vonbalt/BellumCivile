@@ -261,6 +261,9 @@ namespace BellumCivile.Behaviors
                     TextObject claim = new TextObject("{=BC_CallResponse_Cause_Throne}{LEADER_NAME}'s rightful claim to the throne");
                     claim.SetTextVariable("LEADER_NAME", faction.Leader?.Leader?.Name ?? faction.Leader?.Name ?? new TextObject("?"));
                     return claim;
+                case FactionType.CrownTitleClaim:
+                    return new TextObject("{=BC_CrownTitleClaim_Call}your claim to {TITLE} against the Crown")
+                        .SetTextVariable("TITLE", faction.CrownClaimTitleName());
                 case FactionType.Abdication:
                     TextObject abdication = new TextObject("{=BC_CallResponse_Cause_Abdication}your demand for {RULER_NAME}'s abdication");
                     abdication.SetTextVariable("RULER_NAME", faction.ParentKingdom?.RulingClan?.Leader?.Name ?? new TextObject("?"));

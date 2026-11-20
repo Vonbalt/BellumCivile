@@ -196,7 +196,7 @@ namespace BellumCivile.UI
 
             foreach (FactionType type in Enum.GetValues(typeof(FactionType)))
             {
-                if (type == FactionType.Royalists)
+                if (type == FactionType.Royalists || type == FactionType.CrownTitleClaim)
                     continue;
 
                 bool isIdeology = IsIdeologyType(type);
@@ -228,6 +228,23 @@ namespace BellumCivile.UI
             }
 
             AppendClaimFeudActions(isRuler, houseBlock, influenceBlock);
+            var crownClaims = FactionManagerBehavior.GetCrownClaimTargets(Clan.PlayerClan);
+            Clan crown = playerKingdom?.RulingClan;
+            if (crownClaims.Count == 0)
+            {
+                TextObject block = houseBlock ?? new TextObject("{=BC_CrownTitleClaim_Unavailable}You need a claim to a subordinate title in the Crown's possession.");
+                AvailableFactionTypes.Add(PoliticalActionVM.ForCrownTitleClaim(null, crown,
+                    GetPrettyCreationName(FactionType.CrownTitleClaim), OnFactionTypeSelected, block,
+                    BuildFactionTypeHint(FactionType.CrownTitleClaim, block.ToString())));
+            }
+            foreach (var title in crownClaims.OrderByDescending(t => t.TitleType).ThenBy(t => t.Name))
+            {
+                TextObject block = houseBlock ?? factionManager?.GetCrownClaimBlock(Clan.PlayerClan, title, crown?.StringId) ?? influenceBlock;
+                var label = new TextObject("{=BC_CrownTitleClaim_Press}Press Claim to {TITLE}")
+                    .SetTextVariable("TITLE", FeudalTitleDisplayHelper.FormatTitleName(title)).ToString();
+                AvailableFactionTypes.Add(PoliticalActionVM.ForCrownTitleClaim(title, crown, label, OnFactionTypeSelected, block,
+                    BuildFactionTypeHint(FactionType.CrownTitleClaim, block?.ToString())));
+            }
 
             if (SelectedFactionType != null)
             {
@@ -350,6 +367,7 @@ namespace BellumCivile.UI
                 case FactionType.Independence: return new TextObject("{=BC_Menu_Indep}Independence Movement").ToString();
                 case FactionType.Abdication: return new TextObject("{=BC_Menu_Abdic}Overthrow Ruler").ToString();
                 case FactionType.InstallRuler: return new TextObject("{=BC_Menu_Install}Claim the Throne").ToString();
+                case FactionType.CrownTitleClaim: return new TextObject("{=BC_CrownTitleClaim_Menu}Press a Claim Against the Crown").ToString();
                 case FactionType.Royalists:
                 case FactionType.Glory:
                 case FactionType.Nobility:
@@ -373,6 +391,8 @@ namespace BellumCivile.UI
                     return new TextObject("{=BC_UI_Hint_FactionType_Abdic}Force the current ruler to abdicate and let the realm crown a new leader.").ToString();
                 case FactionType.InstallRuler:
                     return new TextObject("{=BC_UI_Hint_FactionType_Install}Depose the current ruler and press a weak or strong claim to the kingdom title by force. Dynastic inheritance or claim fabrication can provide the legal pretext.").ToString();
+                case FactionType.CrownTitleClaim:
+                    return new TextObject("{=BC_CrownTitleClaim_MenuHint}Rally other houses to demand one title from the Crown. The ruler keeps the throne even if your claim prevails.").ToString();
                 case FactionType.Royalists:
                     return new TextObject("{=BC_UI_Hint_FactionType_Royalists}Defends lawful succession, established tradition, and crown authority. Like other court factions, it can demand the ruler's abdication when deeply discontented.").ToString();
                 case FactionType.Glory:
@@ -1334,6 +1354,30 @@ namespace BellumCivile.UI
                 }
 
                 var factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
+                if (SelectedFactionType.ActionKind == PoliticalActionKind.FoundCrownTitleClaim)
+                {
+                    var choice = SelectedFactionType;
+                    var player = Clan.PlayerClan;
+                    var title = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>()?.GetTitle(choice.TargetTitleId);
+                    TextObject block = null;
+                    var faction = factionManager?.TryFoundCrownClaim(player, title, choice.TargetHolderClanId, out block);
+                    if (faction == null)
+                    {
+                        BellumCivileNotifications.ShowPersonal(block ?? new TextObject("{=BC_UI_Err_ActionUnavailable}This political action is not available right now."), BellumNotificationColors.Warning);
+                        RefreshAvailableFactionTypes();
+                        RefreshButtonStates();
+                        return;
+                    }
+                    ChangeClanInfluenceAction.Apply(player, -choice.InfluenceCost);
+                    var item = new FactionItemVM(GetDynamicFactionName(faction), faction, OnFactionSelected);
+                    Factions.Add(item);
+                    OnFactionSelected(item);
+                    BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_UI_Msg_Formed}You formed the {FACTION_NAME}!")
+                        .SetTextVariable("FACTION_NAME", faction.GetDisplayName()), BellumNotificationColors.Success);
+                    RefreshAvailableFactionTypes();
+                    IsCreatingFaction = false;
+                    return;
+                }
                 bool isIdeology = IsIdeologyType(SelectedFactionType.FactionType);
                 var houseBlock = GetFoundingHouseBlock(Clan.PlayerClan?.IsUnderMercenaryService == true, factionManager);
                 if (houseBlock != null)

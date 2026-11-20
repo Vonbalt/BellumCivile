@@ -59,6 +59,7 @@ namespace BellumCivile.Behaviors
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, OnClanChangedKingdom);
             CampaignEvents.OnClanDestroyedEvent.AddNonSerializedListener(this, OnClanDestroyed);
+            CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, ObserveCrownClaimFiefChange);
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, OnRulingClanChanged);
             CampaignEvents.MakePeace.AddNonSerializedListener(this, OnMakePeace);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, OnHeroKilled);

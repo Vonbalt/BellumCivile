@@ -13,6 +13,8 @@ using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Election;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -77,6 +79,11 @@ internal static class ClaimFeudCooldownTests
     private static bool _allowSpend, _allowStart, _unsafeUltimatum, _playerWasInLaunch, _extraPlayerCall;
     private static Action _acceptUltimatum, _refuseUltimatum;
     private static FactionObject _launched;
+    private static FeudalTitleRecord _sovereign, _barony;
+    private static readonly Dictionary<Clan, Kingdom> RealmOverrides = new Dictionary<Clan, Kingdom>();
+    private static readonly Dictionary<Settlement, Clan> Owners = new Dictionary<Settlement, Clan>();
+    private static int _titleSettlementTransfers, _civilTrackers, _tribunals;
+    private static bool _forceTitleCollapse;
     private static InquiryData _inquiry;
     private static float _playerInfluenceSpent;
     private static bool CaptureInquiry(InquiryData data) { _inquiry = data; return false; }
@@ -93,7 +100,8 @@ internal static class ClaimFeudCooldownTests
     private static bool Current(ref Campaign __result) { __result = _campaign; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool Head(Clan __instance, ref Hero __result) { Heads.TryGetValue(__instance, out __result); return false; }
-    private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
+    private static bool Realm(Clan __instance, ref Kingdom __result)
+    { __result = RealmOverrides.TryGetValue(__instance, out Kingdom realm) ? realm : _realm; return false; }
     private static bool Ruler(ref Clan __result) { __result = _crown; return false; }
     private static bool AllClans(ref MBReadOnlyList<Clan> __result) { __result = new MBReadOnlyList<Clan>(Houses); return false; }
     private static bool AllRealms(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(new[] { _realm }.Concat(WarEnemies).ToList()); return false; }
@@ -109,6 +117,8 @@ internal static class ClaimFeudCooldownTests
     private static bool Spend(ref bool __result) { _spends++; __result = _allowSpend; return false; }
     private static bool Refund() { _refunds++; return false; }
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Zero; return false; }
+    private static bool Roster(Kingdom __instance, ref MBReadOnlyList<Clan> __result)
+    { __result = new MBReadOnlyList<Clan>(Houses.Where(c => c.Kingdom == __instance).ToList()); return false; }
     private static bool Decisions(ref MBReadOnlyList<KingdomDecision> __result)
     { __result = new MBReadOnlyList<KingdomDecision>(new List<KingdomDecision>()); return false; }
     private static bool RulingHead(ref Hero __result) { __result = Heads[_crown]; return false; }
@@ -128,6 +138,28 @@ internal static class ClaimFeudCooldownTests
         __result = UltimatumResolution.DemandsAccepted;
         return false;
     }
+    private static bool Yes(ref bool __result) { __result = true; return false; }
+    private static bool Sovereign(ref FeudalTitleRecord __result) { __result = _sovereign; return false; }
+    private static bool ResolveHolding(string id, ref Settlement __result)
+    { __result = Owners.Keys.FirstOrDefault(s => s.StringId == id); return false; }
+    private static bool Owner(Settlement __instance, ref Clan __result) { Owners.TryGetValue(__instance, out __result); return false; }
+    private static bool Holds(Kingdom __instance, ref MBReadOnlyList<Settlement> __result)
+    { __result = new MBReadOnlyList<Settlement>(Owners.Where(p => p.Value.Kingdom == __instance).Select(p => p.Key).ToList()); return false; }
+    private static bool Strongholds(Kingdom kingdom, ref int __result)
+    { __result = _forceTitleCollapse && kingdom == _realm && _claimant.Kingdom != _realm ? 0 : 1; return false; }
+    private static bool TransferPossession(Clan source, Clan recipient, Settlement holding, ref bool __result)
+    {
+        _titleSettlementTransfers++;
+        Owners[holding] = recipient;
+        if (_barony?.CapitalSettlementId == holding.StringId) _barony.SetDeFactoHolder(recipient.StringId);
+        __result = true; return false;
+    }
+    private static bool LiveShell(FactionObject faction, Kingdom preferredKingdom, ref Kingdom __result)
+    { __result = preferredKingdom ?? (Kingdom)Call(faction, "GetTrackedRebelKingdomIncludingEliminated"); return false; }
+    private static bool TransferHouse(Clan clan, Kingdom targetKingdom, ref bool __result)
+    { RealmOverrides[clan] = targetKingdom; __result = true; return false; }
+    private static bool CountTracker() { _civilTrackers++; return false; }
+    private static bool CountTribunal() { _tribunals++; return false; }
 
     private static Clan House(string id)
     {
@@ -234,7 +266,7 @@ internal static class ClaimFeudCooldownTests
             Getter(typeof(CampaignTime), "Now", nameof(Now));
             Getter(typeof(Kingdom), "UnresolvedDecisions", nameof(Decisions));
             Getter(typeof(Kingdom), "Leader", nameof(RulingHead));
-            Getter(typeof(Kingdom), "Clans", nameof(AllClans));
+            Getter(typeof(Kingdom), "Clans", nameof(Roster));
             Patch(AccessTools.Method(typeof(CrownAccessionBehavior), "IsHereditaryRealm"), nameof(No));
             Patch(AccessTools.Method(typeof(FactionObject), "ShouldDelayUltimatumForUnsafeLeaderLocation"), nameof(UnsafeUltimatum));
             Patch(AccessTools.Method(typeof(FactionObject), "StartOpenRebellion"), nameof(LaunchResistance));
@@ -247,8 +279,27 @@ internal static class ClaimFeudCooldownTests
             Patch(AccessTools.Method(typeof(FeudalTitlePlayerActionService), "ApplyRevocationRelationPenalty"), nameof(Skip));
             Patch(AccessTools.Method(mod.GetType("BellumCivile.NpcInfluenceBudgetService"), "Refund"), nameof(Refund));
             RunRevocationResistanceCases(check);
+            Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "GetRealmSovereignTitle", new[] { typeof(Kingdom), typeof(FeudalHierarchyMode) }), nameof(Sovereign));
+            Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "GetKingdomPoliticalTitle"), nameof(Sovereign));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.BellumKingdomVisibilityHelper"), "IsTemporaryBellumKingdom"), nameof(No));
+            Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "FindCrownClaimSettlement"), nameof(ResolveHolding));
+            Patch(AccessTools.Method(typeof(FeudalTitleBehavior), "TransferChallengePossession"), nameof(TransferPossession));
+            Getter(typeof(Settlement), "OwnerClan", nameof(Owner));
+            Getter(typeof(Kingdom), "Settlements", nameof(Holds));
+            var resolver = typeof(CivilWarResolutionBehavior);
+            Patch(AccessTools.Method(resolver, "CountStrongholds"), nameof(Strongholds));
+            Patch(AccessTools.Method(resolver, "ResolveTrackedRebelKingdom"), nameof(LiveShell));
+            Patch(AccessTools.Method(resolver, "PrepareMercenarySettlement"), nameof(Yes));
+            Patch(AccessTools.Method(resolver, "TransferCivilWarClan"), nameof(TransferHouse));
+            Patch(AccessTools.Method(resolver, "DrainAndDestroyRebelKingdom"), nameof(Yes));
+            foreach (string method in new[] { "CaptureCurrentCivilWarFiefSnapshot", "ApplyCivilWarPeaceIfNeeded", "ApplyCivilWarVictoryInfluenceRewards", "PacifyIdeologies" })
+                Patch(AccessTools.Method(resolver, method), nameof(Skip));
+            Patch(AccessTools.Method(resolver, "CompleteCivilWarTracker"), nameof(CountTracker));
+            Patch(AccessTools.Method(resolver, "QueuePlayerTribunal"), nameof(CountTribunal));
+            Patch(AccessTools.Method(resolver, "ApplyPostWarConsequences"), nameof(CountTribunal));
+            RunCrownTitleClaimCases(check);
         }
-        finally { h.UnpatchAll(h.Id); _campaign = null; _allowSpend = false; }
+        finally { h.UnpatchAll(h.Id); _campaign = null; _allowSpend = false; RealmOverrides.Clear(); Owners.Clear(); }
     }
 
     private static void RunRevocationResistanceCases(Action<bool, string> check)
@@ -346,6 +397,129 @@ internal static class ClaimFeudCooldownTests
         check(Consequence().Contains("private war") && Execute(out defied, out _) && defied && _starts == 0
             && Records.Single().State == ClaimFeudState.DefiedPendingWar && HoldsTitle(),
             "Revocation between two non-ruling houses keeps the existing private-war path");
+    }
+
+    private static void RunCrownTitleClaimCases(Action<bool, string> check)
+    {
+        var singleton = AccessTools.PropertySetter(typeof(FeudalTitleBehavior), "Instance");
+        var previous = FeudalTitleBehavior.Instance;
+        FactionManagerBehavior Setup(bool claimantOwnsLegally, bool barony)
+        {
+            Reset();
+            RealmOverrides.Clear(); Owners.Clear(); _barony = null;
+            _titleSettlementTransfers = _civilTrackers = _tribunals = 0;
+            _forceTitleCollapse = false;
+            singleton.Invoke(null, new object[] { _titles });
+            var manager = new FactionManagerBehavior();
+            _manager.Items.Add(manager);
+            _sovereign = new FeudalTitleRecord("sovereign", "Kingdom", FeudalTitleType.Kingdom,
+                _crown.StringId, _crown.StringId, "", "", _realm.StringId, 0, 0);
+            var registry = Field<Dictionary<string, FeudalTitleRecord>>(_titles, "_titlesById");
+            if (barony)
+            {
+                _barony = _title = new FeudalTitleRecord("barony", "Calioc", FeudalTitleType.Barony, _crown.StringId,
+                    _crown.StringId, "", "calioc", _realm.StringId, 0, 0);
+                registry.Add(_title.TitleId, _title);
+                var holding = Blank<Settlement>(); holding.StringId = _title.CapitalSettlementId;
+                Owners[holding] = _crown;
+            }
+            _title.SetDeJureHolder(claimantOwnsLegally ? _claimant.StringId : _crown.StringId);
+            _title.SetDeFactoHolder(_crown.StringId);
+            Call(_titles, "RebuildRuntimeIndexes", true, true);
+            if (barony && !claimantOwnsLegally) _titles.RegisterClaim(_claimant, _title, FeudalClaimStrength.Weak, "fixture");
+            return manager;
+        }
+        FactionObject Found(FactionManagerBehavior manager, string crownId = null)
+            => (FactionObject)Call(manager, "TryFoundCrownClaim", _claimant, _title, crownId ?? _crown.StringId, null);
+        string State(FactionObject faction, Kingdom rebel = null)
+            => Call(faction, "CrownClaimState", new object[] { rebel }).ToString();
+        bool Accepted(FactionObject faction) => (bool)Call(faction, "TrySettleAcceptedCrownClaim");
+        try
+        {
+            var manager = Setup(claimantOwnsLegally: false, barony: false);
+            var faction = Found(manager);
+            check(faction != null && faction.Type == FactionType.CrownTitleClaim && State(faction) == "Valid",
+                "An active claim to a subordinate title held by the Crown can found one distinct faction");
+            check(Found(manager) == null && manager.GetRebelFaction(_claimant) == faction,
+                "Founding revalidates the faction and does not duplicate it");
+            check(Accepted(faction) && _title.DeJureHolderClanId == _claimant.StringId && _title.DeFactoHolderClanId == _claimant.StringId
+                && _realm.RulingClan == _crown && _titles.GetStrongestActiveClaim(_crown, _title)?.Strength == FeudalClaimStrength.Weak,
+                "Crown concession awards both rights without changing the ruler or inventing other awards");
+
+            manager = Setup(claimantOwnsLegally: true, barony: true);
+            faction = Found(manager);
+            check(faction != null && _titles.GetStrongestActiveClaim(_claimant, _title) == null && Accepted(faction)
+                && _titleSettlementTransfers == 1 && Owners.Single().Value == _claimant
+                && _title.DeJureHolderClanId == _claimant.StringId && _titles.GetStrongestActiveClaim(_crown, _title) == null,
+                "For an occupied barony, legal tenure alone suffices and a concession restores possession without rewriting law");
+
+            manager = Setup(claimantOwnsLegally: false, barony: false);
+            _title.SetDeJureHolder(_other.StringId);
+            check(Found(manager) == null, "A Crown occupation cannot be used to take a third house's legal title");
+            _title.SetDeJureHolder(_crown.StringId);
+            check(Found(manager, "displaced") == null, "A founding choice recorded under an earlier Crown is rejected");
+            var original = _title; _title = _sovereign;
+            _titles.RegisterClaim(_claimant, _title, FeudalClaimStrength.Strong, "fixture");
+            check(Found(manager) == null, "The realm's sovereign title is reserved for throne claimant factions");
+            _title = original;
+            faction = Found(manager);
+            faction.Members.Add(_other);
+            faction.RemoveMember(_claimant);
+            check(faction.Leader == _claimant && State(faction) == "Invalid",
+                "The saved claimant cannot be replaced by a supporter inheriting the demand");
+
+            manager = Setup(claimantOwnsLegally: true, barony: true);
+            faction = Found(manager);
+            var resolver = new CivilWarResolutionBehavior();
+            _manager.Items.Add(resolver);
+            var rebel = Blank<Kingdom>(); rebel.StringId = "realm_rebels_claimant";
+            faction.SetRebelKingdom(rebel);
+            RealmOverrides[_claimant] = rebel;
+            var holding = Owners.Single().Key;
+            var otherHolding = Blank<Settlement>(); otherHolding.StringId = "internal_occupation"; Owners[otherHolding] = _other;
+            var foreignHolding = Blank<Settlement>(); foreignHolding.StringId = "foreign_occupation"; Owners[foreignHolding] = _crown;
+            AccessTools.Field(typeof(FactionObject), "_crownClaimStartingFiefs").SetValue(faction,
+                Owners.Select(pair => new WarScoreFiefSnapshotRecord(pair.Key.StringId, _realm.StringId, pair.Value.StringId, true, false)).ToList());
+            RealmOverrides[_holder] = Blank<Kingdom>();
+            Call(faction, "ObserveCrownClaimOccupation", foreignHolding, _crown, _holder,
+                ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.BySiege, rebel);
+            Owners[foreignHolding] = _holder;
+            foreach (var captured in new[] { holding, otherHolding })
+            {
+                Clan former = Owners[captured];
+                Owners[captured] = _claimant;
+                Call(faction, "ObserveCrownClaimOccupation", captured, former, _claimant,
+                    ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.BySiege, rebel);
+            }
+            _title.SetDeFactoHolder(_claimant.StringId);
+            check(State(faction, rebel) == "Valid", "Occupation by the lawful claimant is not itself a Crown concession");
+            _forceTitleCollapse = true;
+            resolver.HandleCollapsedParentKingdom(_realm);
+            check(_civilTrackers == 1 && _tribunals == 0 && _realm.RulingClan == _crown && _claimant.Kingdom == _realm
+                && Owners[holding] == _claimant && Owners[otherHolding] == _other && Owners[foreignHolding] == _holder,
+                "The claimant taking the last loyalist stronghold awards only the contested barony and preserves the realm and its Crown");
+            check(manager.GetRebelFaction(_claimant) == null && _title.DeJureHolderClanId == _claimant.StringId,
+                "A successful title war reunifies and removes the rebellion without a Crown transfer");
+
+            manager = Setup(claimantOwnsLegally: false, barony: false);
+            faction = Found(manager);
+            faction.SetRebelKingdom(rebel);
+            RealmOverrides[_claimant] = rebel;
+            resolver.ResolveLiegeVictory(faction, rebel);
+            check(_tribunals == 1 && _civilTrackers == 1 && _title.DeFactoHolderClanId == _crown.StringId
+                && _titles.GetStrongestActiveClaim(_claimant, _title)?.Strength == FeudalClaimStrength.Weak,
+                "A victorious Crown retains the titled estate, can judge the rebellion and weakens a strong claim");
+
+            manager = Setup(claimantOwnsLegally: true, barony: true);
+            faction = Found(manager);
+            faction.SetRebelKingdom(rebel);
+            RealmOverrides[_claimant] = rebel;
+            Call(resolver, "ResolveWhitePeace", faction, rebel, false, null);
+            check(_tribunals == 0 && _civilTrackers == 1 && _title.DeFactoHolderClanId == _crown.StringId
+                && _title.DeJureHolderClanId == _claimant.StringId && _claimant.Kingdom == _realm,
+                "White peace reunites the houses without settling the claim or transferring legal rights");
+        }
+        finally { singleton.Invoke(null, new object[] { previous }); RealmOverrides.Clear(); Owners.Clear(); }
     }
 
     private static void RunPendingWarCases(Action<bool, string> check)

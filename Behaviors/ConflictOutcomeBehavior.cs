@@ -59,6 +59,8 @@ namespace BellumCivile.Behaviors
             Capture(notice, "RULER", faction.ParentKingdom?.Leader?.Name);
             Capture(notice, "REALM", faction.ParentKingdom?.Name);
             Capture(notice, "FACTION", faction.GetDisplayName());
+            if (faction.Type == FactionType.CrownTitleClaim)
+                Capture(notice, "TITLE", faction.CrownClaimTitleName());
             return notice;
         }
         internal static void RecordCivilEnding(FactionObject faction, Kingdom rebel, TextObject ending, string id = null, Kingdom third = null)
@@ -85,7 +87,8 @@ namespace BellumCivile.Behaviors
             notice.Body = notice.Chat + "\n\n" + Render(notice, copy[2]);
             if (kind != "ended" && kind != "satisfied" && notice.Names.TryGetValue("ENDING", out var ending))
                 notice.Body += "\n\n" + ending;
-            else if (notice.Names.TryGetValue("EXHAUSTION", out var exhaustion) && (kind == "claimant" || kind == "loyalist" || kind == "abdication" || kind == "independence"))
+            else if (notice.Names.TryGetValue("EXHAUSTION", out var exhaustion) && (kind == "claimant" || kind == "loyalist" || kind == "abdication"
+                || kind == "independence" || kind == "crown_title_victory" || kind == "crown_title_loyalist"))
                 notice.Body += "\n\n" + exhaustion;
             if (!string.IsNullOrEmpty(addition)) notice.Body += "\n\n" + addition;
             if (notice.Names.TryGetValue("SEPARATE_REALMS", out var realms)) notice.Body += "\n\n" + realms;

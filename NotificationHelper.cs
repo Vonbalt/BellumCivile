@@ -103,6 +103,7 @@ namespace BellumCivile
                     demand = new TextObject("{=BC_Demand_InstallRuler}surrender the crown to {LEADER_NAME}");
                     demand.SetTextVariable("LEADER_NAME", faction.Leader?.Leader?.Name ?? new TextObject("{=BC_Notification_Unknown}Unknown"));
                     break;
+                case FactionType.CrownTitleClaim: demand = faction.CrownClaimDemand(); break;
                 case FactionType.Royalists: demand = new TextObject("{=BC_Demand_Royalist}centralize power to the crown"); break;
                 case FactionType.Glory: demand = new TextObject("{=BC_Demand_Militarist}prioritize military campaigns and conquest"); break;
                 case FactionType.Nobility: demand = new TextObject("{=BC_Demand_Aristocrat}protect the rights of the nobility"); break;

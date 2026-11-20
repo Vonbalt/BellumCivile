@@ -16,7 +16,7 @@ using O = BellumCivile.BellumCivileOptions;
 
 namespace BellumCivile
 {
-    public enum FactionType { Independence = 0, Abdication = 1, InstallRuler = 2, Royalists = 4, Glory = 5, Nobility = 6, Liberty = 7 }
+    public enum FactionType { Independence = 0, Abdication = 1, InstallRuler = 2, Royalists = 4, Glory = 5, Nobility = 6, Liberty = 7, CrownTitleClaim = 8 }
 
     public enum UltimatumResolution
     {
@@ -30,7 +30,7 @@ namespace BellumCivile
     /// Why did I do this file?
     /// To serve as the fundamental data structure of the mod, representing both armed rebellions and permanent ideological parties. It handles rosters, power calculations, and the execution of demands.
     /// </summary>
-    public class FactionObject
+    public partial class FactionObject
     {
         private const int AcceptedUltimatumPacifiedDays = 30;
 
@@ -204,6 +204,8 @@ namespace BellumCivile
                 case FactionType.InstallRuler:
                     name = new TextObject("{=BC_FacName_Install}{CLAN_NAME} Claimants");
                     break;
+                case FactionType.CrownTitleClaim:
+                    return new TextObject("{=BC_CrownTitleClaim_Name}{TITLE} Claimants").SetTextVariable("TITLE", CrownClaimTitleName());
                 case FactionType.Royalists:
                     return GetIdeologyDisplayName(FactionType.Royalists, ParentKingdom);
                 case FactionType.Glory:
@@ -622,7 +624,7 @@ namespace BellumCivile
                 Members.Remove(clan);
                 InvalidatePowerProjection();
                 Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.InvalidateFactionLookupCache();
-                if (clan == Leader && Members.Count > 0)
+                if (clan == Leader && Members.Count > 0 && Type != FactionType.CrownTitleClaim)
                     Leader = Members.Where(c => !c.IsEliminated).OrderByDescending(c => c.Influence).FirstOrDefault()
                              ?? Members.First();
             }
@@ -678,6 +680,7 @@ namespace BellumCivile
                 case FactionType.Independence: return new TextObject("{=BC_DemandDesc_Indep}Independence from the realm").ToString();
                 case FactionType.Abdication: TextObject abd = new TextObject("{=BC_DemandDesc_Abdic}The abdication of {RULER_NAME}"); abd.SetTextVariable("RULER_NAME", ParentKingdom.RulingClan?.Leader?.Name ?? new TextObject("?")); return abd.ToString();
                 case FactionType.InstallRuler: TextObject inst = new TextObject("{=BC_DemandDesc_Install}Crown {LEADER_NAME} as ruler"); inst.SetTextVariable("LEADER_NAME", Leader?.Leader?.Name ?? new TextObject("?")); return inst.ToString();
+                case FactionType.CrownTitleClaim: return CrownClaimDemand().ToString();
                 case FactionType.Royalists: return new TextObject("{=BC_DemandDesc_Roy}Centralize power to the crown").ToString();
                 case FactionType.Glory: return new TextObject("{=BC_DemandDesc_Mil}Prioritize military campaigns and conquest").ToString();
                 case FactionType.Nobility: return new TextObject("{=BC_DemandDesc_Ari}Protect the rights of the nobility").ToString();
@@ -695,6 +698,11 @@ namespace BellumCivile
 
             if (IsCivilWarActive() || IsUltimatumPending || HasTrackedRebelKingdom)
                 return;
+            if (Type == FactionType.CrownTitleClaim && CrownClaimState() != CrownTitleClaimState.Valid)
+            {
+                Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.RemoveFaction(this);
+                return;
+            }
             if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.IsCivilWarGraceBlocked(this) == true) return;
 
             RebellionPowerProjection projection = CalculatePowerProjection(forceRefresh: true);
@@ -831,6 +839,8 @@ namespace BellumCivile
             if (!TryGetRebellionCrown(out _, out string crownFailure)) return crownFailure;
             if (!FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom)) return "the crown transition is still pending";
             if (Leader.Kingdom != ParentKingdom) return "the faction leader no longer belongs to the parent kingdom";
+            if (Type == FactionType.CrownTitleClaim && CrownClaimState() != CrownTitleClaimState.Valid)
+                return "the claim against the Crown is no longer enforceable";
             if (unsafeSettlement != null) return $"the faction leader is in settlement {unsafeSettlement.StringId}, which would become hostile upon rebellion";
             return "an unknown preflight condition failed";
         }
@@ -853,6 +863,8 @@ namespace BellumCivile
 
             if (!KingdomCreationSafetyHelper.IsValidFounder(Leader) || !TryGetRebellionCrown(out _, out _)
                 || Leader.Kingdom != ParentKingdom || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
+                return false;
+            if (Type == FactionType.CrownTitleClaim && CrownClaimState() != CrownTitleClaimState.Valid)
                 return false;
 
             return !ShouldDelayUltimatumForUnsafeLeaderLocation(out unsafeSettlement);
@@ -1003,6 +1015,15 @@ namespace BellumCivile
                     acceptedDemandDetail.SetTextVariable("CLAN_NAME", Leader?.Name ?? new TextObject(""));
                     break;
 
+                case FactionType.CrownTitleClaim:
+                    if (!TrySettleAcceptedCrownClaim())
+                    {
+                        _ultimatumResolved = false;
+                        return UltimatumResolution.Failed;
+                    }
+                    acceptedDemandDetail = CrownClaimDemand();
+                    break;
+
                 case FactionType.Royalists:
                 case FactionType.Glory:
                 case FactionType.Nobility:
@@ -1055,6 +1076,11 @@ namespace BellumCivile
         private UltimatumResolution RefuseDemandsAndRebel(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice,
             Clan committedRevocationDefier = null)
         {
+            if (Type == FactionType.CrownTitleClaim && CrownClaimState() != CrownTitleClaimState.Valid)
+            {
+                _ultimatumPending = false;
+                return UltimatumResolution.Failed;
+            }
             if (!TryGetRebellionCrown(out _, out _) || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
                 return UltimatumResolution.Failed;
             if (!TryResolveUltimatum("refused"))
@@ -1200,6 +1226,7 @@ namespace BellumCivile
                 {
                     case FactionType.Independence: rebelName = new TextObject("{=BC_FacName_Indep}{CLAN_NAME} Secessionists"); break;
                     case FactionType.InstallRuler: rebelName = new TextObject("{=BC_FacName_Install}{CLAN_NAME} Claimants"); break;
+                    case FactionType.CrownTitleClaim: rebelName = GetDisplayName(); break;
                     case FactionType.Abdication:
                     default: rebelName = new TextObject("{=BC_FacName_Abdic}{CLAN_NAME} Coalition"); break;
                 }
@@ -1241,6 +1268,7 @@ namespace BellumCivile
             KingdomVisualHelper.ApplyKingdomPalette(rebelKingdom, rebelVisuals);
             RebelPolicyHelper.ApplyIndependencePolicyProfile(this, rebelKingdom);
             SetRebelKingdom(rebelKingdom);
+            CaptureCrownClaimStartingFiefs();
             CaptureCivilWarStartFiefCounts(ParentKingdom.Clans);
             CaptureCivilWarStartFiefCounts(Members);
             CaptureCivilWarStartInfluence(ParentKingdom.Clans);

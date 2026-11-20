@@ -61,6 +61,7 @@ namespace BellumCivile.Behaviors
         private static readonly FactionType[] RebelCausePriorityOrder =
         {
             FactionType.InstallRuler,
+            FactionType.CrownTitleClaim,
             FactionType.Independence,
             FactionType.Abdication
         };
@@ -1588,6 +1589,21 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
+            factionToJoin = FindBestPreparationFaction(clan, kingdom, kingdomFactions, FactionType.CrownTitleClaim, manager, summary);
+            if (TryJoinPreparationFaction(clan, factionToJoin, summary))
+                return;
+
+            var titles = FeudalTitleBehavior.Instance;
+            foreach (var title in FactionManagerBehavior.GetCrownClaimTargets(clan)
+                .OrderByDescending(t => FactionManagerBehavior.GetCrownClaimStrength(titles, clan, t))
+                .ThenByDescending(t => t.TitleType).ThenBy(t => t.TitleId))
+            {
+                FactionObject claimant = manager.TryFoundCrownClaim(clan, title, kingdom.RulingClan?.StringId, out _);
+                if (claimant == null) continue;
+                NotificationHelper.ShowFactionFormed(claimant);
+                return;
+            }
+
             if (HasIndependenceStake(clan, kingdom))
             {
                 factionToJoin = FindBestPreparationFaction(
@@ -1775,6 +1791,19 @@ namespace BellumCivile.Behaviors
                     score = relationComparison
                         + socialPull
                         + (independenceStake ? CalculateIndependenceStakeScore(clan, kingdom) : 0f);
+                    break;
+
+                case FactionType.CrownTitleClaim:
+                    var titles = FeudalTitleBehavior.Instance;
+                    var disputed = faction.CrownClaimTitle;
+                    if (titles == null || disputed == null
+                        || faction.CrownClaimState(faction.GetRebelKingdom()) != CrownTitleClaimState.Valid
+                        || (!hasSocialTie && relationWithLeader <= relationWithRuler)
+                        || FactionManagerBehavior.GetCrownClaimStrength(titles, clan, disputed) != null)
+                        return false;
+                    score = relationComparison + socialPull
+                        + (FactionManagerBehavior.GetCrownClaimStrength(titles, factionLeader, disputed) == FeudalClaimStrength.Strong
+                            ? C.RebelInstallRulerStrongClaimJoinBonus : C.RebelInstallRulerWeakClaimJoinBonus);
                     break;
 
                 case FactionType.Abdication:

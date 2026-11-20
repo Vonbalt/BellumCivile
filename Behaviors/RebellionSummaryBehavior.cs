@@ -407,6 +407,8 @@ namespace BellumCivile.Behaviors
                         return "abdication";
                     case FactionType.InstallRuler:
                         return "install_ruler";
+                    case FactionType.CrownTitleClaim:
+                        return "crown_title_claim";
                     default:
                         return type.ToString().ToLowerInvariant();
                 }

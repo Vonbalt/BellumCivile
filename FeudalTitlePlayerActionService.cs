@@ -28,6 +28,8 @@ namespace BellumCivile
                 && FactionManagerBehavior.Instance?.GetFactionsInKingdom(realm)
                     .Any(f => f.Type == FactionType.InstallRuler && f.Leader == clan) == true);
             if (feud || rebellion
+                || FactionManagerBehavior.Instance?.GetCrownTitleClaimFactions()
+                    .Any(f => f.Leader == clan && f.CrownClaimTitleId == title.TitleId) == true
                 || SuccessionChallengeBehavior.Instance?.IsPressingTitleClaim(clan, title, titles) == true
                 || ElectiveContestBehavior.Instance?.IsPressingTitleClaim(clan, title, titles) == true)
                 return new TextObject("{=BC_Renounce_Conflict}Settle or abandon the feud or claimant rebellion pressing this claim before renouncing it.");

@@ -1560,6 +1560,33 @@
     <string id="BC_ClaimFeud_PlayerRuling_AgainstPlayerHolder" text="&quot;After reviewing {CLAIMANT_NAME}'s claim, I have come to the following conclusion: {CLAIMANT_POSSESSIVE} claim is justified. I demand that you surrender the {TITLE_NAME} fully into {CLAIMANT_POSSESSIVE} hands.&quot;" />
     <string id="BC_ClaimFeud_PlayerRuling_Suppress" text="&quot;This dispute has gone far enough. By my authority, I command both houses to cease their feud over the {TITLE_NAME}.&quot;" />
     <string id="BC_ClaimFeud_PlayerRuling_Abstain" text="&quot;I will not pass judgment on this matter. If your houses cannot settle the dispute over the {TITLE_NAME} by law, then the crown will not shield either side from the consequences.&quot;" />
+    <string id="BC_CrownTitleClaim_Call" text="your claim to {TITLE} against the Crown" />
+    <string id="BC_CrownTitleClaim_Demand" text="surrender {TITLE} to {HOUSE}, without yielding the throne" />
+    <string id="BC_CrownTitleClaim_Duplicate" text="A rebel faction is already pressing a claim to this title." />
+    <string id="BC_CrownTitleClaim_EndedReason" text="The claim against the Crown can no longer be enforced. The fighting ends without an award or post-war judgment." />
+    <string id="BC_CrownTitleClaim_Fulfilled" text="{TITLE} delivered to {LEADER}" />
+    <string id="BC_CrownTitleClaim_LoyalistBody" text="The title remains in the Crown's possession. The defeated houses must answer for raising their banners." />
+    <string id="BC_CrownTitleClaim_LoyalistChat" text="The Crown has put down {LEADER}'s rebellion over {TITLE}." />
+    <string id="BC_CrownTitleClaim_LoyalistTerm" text="Leave {TITLE} in the Crown's possession. The rebel houses shall answer for their defiance." />
+    <string id="BC_CrownTitleClaim_LoyalistTitle" text="The Crown Withstands the Claim" />
+    <string id="BC_CrownTitleClaim_Menu" text="Press a Claim Against the Crown" />
+    <string id="BC_CrownTitleClaim_MenuHint" text="Rally other houses to demand one title from the Crown. The ruler keeps the throne even if your claim prevails." />
+    <string id="BC_CrownTitleClaim_Name" text="{TITLE} Claimants" />
+    <string id="BC_CrownTitleClaim_NoClaim" text="Your house must hold this title de jure or have an active weak or strong claim to it." />
+    <string id="BC_CrownTitleClaim_PeaceBody" text="The rebel houses return to {REALM}. Neither the throne nor the claim is decided by this peace." />
+    <string id="BC_CrownTitleClaim_PeaceChat" text="{FACTION} and the Crown have set aside their quarrel over {TITLE}." />
+    <string id="BC_CrownTitleClaim_PeaceTerm" text="Lay down arms and return to the realm without deciding the claim to {TITLE}." />
+    <string id="BC_CrownTitleClaim_PeaceTitle" text="An Uneasy Reconciliation" />
+    <string id="BC_CrownTitleClaim_Press" text="Press Claim to {TITLE}" />
+    <string id="BC_CrownTitleClaim_RealmGone" text="The realm itself has fallen. The rebels' claim to {TITLE} brought no right to found a successor realm." />
+    <string id="BC_CrownTitleClaim_ThirdParty" text="Another house holds this title by law. Its rights cannot be settled by this demand." />
+    <string id="BC_CrownTitleClaim_TermUnavailable" text="The claim to {TITLE} can no longer be enforced." />
+    <string id="BC_CrownTitleClaim_Unavailable" text="You need a claim to a subordinate title in the Crown's possession." />
+    <string id="BC_CrownTitleClaim_Unknown" text="the disputed title" />
+    <string id="BC_CrownTitleClaim_VictoryBody" text="The rebel houses return to {REALM}. The ruler remains on the throne, and neither side is called to judgment." />
+    <string id="BC_CrownTitleClaim_VictoryChat" text="{LEADER} has prevailed against the Crown and secured {TITLE}." />
+    <string id="BC_CrownTitleClaim_VictoryTerm" text="Recognize the claim to {TITLE} and restore other internal occupations. The rebel houses shall return to the realm without a change of ruler or a tribunal." />
+    <string id="BC_CrownTitleClaim_VictoryTitle" text="A Claim Against the Crown Enforced" />
     <string id="BC_RevocationResistance_Stale" text="The Crown's demand is no longer valid." />
     <string id="BC_RevocationResistance_Blocked" text="The house cannot rally its faction against the Crown at present." />
     <string id="BC_RevocationResistance_Withdrawn" text="The confrontation could not proceed. The demand has lapsed and its influence cost has been refunded." />

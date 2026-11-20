@@ -91,6 +91,17 @@ namespace BellumCivile.Behaviors
                 || CivilWarConflictBehavior.IsRealmTransferPending(first) || CivilWarConflictBehavior.IsRealmTransferPending(second)
                 || rival && string.IsNullOrEmpty(winner)
                 || !string.IsNullOrEmpty(winner) && winner != first.StringId && winner != second.StringId) return false;
+            if (!rival && !string.IsNullOrEmpty(winner))
+            {
+                Kingdom winningRealm = winner == first.StringId ? first : second;
+                var claimant = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.GetFactionByRebelKingdom(winningRealm);
+                if (claimant?.Type == FactionType.CrownTitleClaim && claimant.CrownClaimState(winningRealm) != CrownTitleClaimState.Valid)
+                {
+                    reason = new TextObject("{=BC_CrownTitleClaim_TermUnavailable}The claim to {TITLE} can no longer be enforced.")
+                        .SetTextVariable("TITLE", claimant.CrownClaimTitleName());
+                    return false;
+                }
+            }
             if (Clan.PlayerClan != null && second.RulingClan == Clan.PlayerClan) return true;
             if (winner == second.StringId) return true;
             var scores = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>();
@@ -123,6 +134,17 @@ namespace BellumCivile.Behaviors
                         ? "{=BC_InternalPeace_FeudAward}Recognize the claimant's right to {TITLE}. The other wartime occupations shall be restored."
                         : "{=BC_InternalPeace_FeudRetain}Leave {TITLE} with its holder. The defeated claim may be weakened or struck down.";
                 return new TextObject(text).SetTextVariable("TITLE", FeudalTitleDisplayHelper.FormatTitleName(title));
+            }
+            var factions = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
+            var titleClaim = factions?.GetFactionByRebelKingdom(first) ?? factions?.GetFactionByRebelKingdom(second);
+            if (!rival && titleClaim?.Type == FactionType.CrownTitleClaim)
+            {
+                string term = string.IsNullOrEmpty(winner)
+                    ? "{=BC_CrownTitleClaim_PeaceTerm}Lay down arms and return to the realm without deciding the claim to {TITLE}."
+                    : winner == titleClaim.ParentKingdom.StringId
+                        ? "{=BC_CrownTitleClaim_LoyalistTerm}Leave {TITLE} in the Crown's possession. The rebel houses shall answer for their defiance."
+                        : "{=BC_CrownTitleClaim_VictoryTerm}Recognize the claim to {TITLE} and restore other internal occupations. The rebel houses shall return to the realm without a change of ruler or a tribunal.";
+                return new TextObject(term).SetTextVariable("TITLE", titleClaim.CrownClaimTitleName());
             }
             if (string.IsNullOrEmpty(winner)) return InternalPeaceVoteText.Terms();
             var victor = winner == first.StringId ? first : second;

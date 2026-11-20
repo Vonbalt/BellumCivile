@@ -492,8 +492,9 @@ internal static class CivilWarGraceTests
             var ids = typeof(FactionObject).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Select(f => f.GetCustomAttributesData().FirstOrDefault(a => a.AttributeType.Name == "SaveableFieldAttribute"))
                 .Where(a => a != null).Select(a => Convert.ToInt32(a.ConstructorArguments[0].Value)).ToArray();
-            check(ids.Length == 38 && ids.Distinct().Count() == 38 && ids.Max() == 38,
-                "Judgment and committed-crisis markers append unique save fields without renumbering existing data");
+            check(ids.Distinct().Count() == ids.Length
+                && ids.Where(id => id <= 38).OrderBy(id => id).SequenceEqual(Enumerable.Range(1, 38)),
+                "Judgment and committed-crisis marker IDs survive later additions to the faction save record");
         }
         finally
         {

@@ -58,6 +58,18 @@ namespace BellumCivile
                     "{=BC_Result_LoyalistTitle}The Crown Prevails",
                     "{=BC_Result_LoyalistChat}The Crown has defeated {LEADER}'s rebellion in {REALM}.",
                     "{=BC_Result_LoyalistBody}The rebels have failed to enforce their demands. {RULER} retains the throne." };
+                case "crown_title_victory": return new[] {
+                    "{=BC_CrownTitleClaim_VictoryTitle}A Claim Against the Crown Enforced",
+                    "{=BC_CrownTitleClaim_VictoryChat}{LEADER} has prevailed against the Crown and secured {TITLE}.",
+                    "{=BC_CrownTitleClaim_VictoryBody}The rebel houses return to {REALM}. The ruler remains on the throne, and neither side is called to judgment." };
+                case "crown_title_loyalist": return new[] {
+                    "{=BC_CrownTitleClaim_LoyalistTitle}The Crown Withstands the Claim",
+                    "{=BC_CrownTitleClaim_LoyalistChat}The Crown has put down {LEADER}'s rebellion over {TITLE}.",
+                    "{=BC_CrownTitleClaim_LoyalistBody}The title remains in the Crown's possession. The defeated houses must answer for raising their banners." };
+                case "crown_title_peace": return new[] {
+                    "{=BC_CrownTitleClaim_PeaceTitle}An Uneasy Reconciliation",
+                    "{=BC_CrownTitleClaim_PeaceChat}{FACTION} and the Crown have set aside their quarrel over {TITLE}.",
+                    "{=BC_CrownTitleClaim_PeaceBody}The rebel houses return to {REALM}. Neither the throne nor the claim is decided by this peace." };
                 case "abdication": return new[] {
                     "{=BC_Result_AbdicationTitle}A Ruler Deposed",
                     "{=BC_Result_AbdicationChat}The victorious rebels have forced {RULER} to relinquish the throne of {REALM}.",

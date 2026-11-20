@@ -9,7 +9,8 @@ namespace BellumCivile.Behaviors
         internal void ReconcileSatisfiedCivilWarDemands(IEnumerable<FactionObject> factions)
         {
             foreach (var faction in factions.Where(f => !f.IsIdeology && f.HasTrackedRebelKingdom).ToList())
-                TrySettleSatisfiedCivilWarDemand(faction);
+                if (!ReconcileCrownTitleClaim(faction))
+                    TrySettleSatisfiedCivilWarDemand(faction);
         }
 
         private bool TrySettleSatisfiedCivilWarDemand(FactionObject faction)
