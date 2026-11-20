@@ -223,7 +223,7 @@ internal static class TitleAcquisitionTests
 
     private static void CheckHooks(Action<bool, string> check)
     {
-        foreach (var method in new[] { "TryFormTitle", "LegalizePartitionInheritance", "LegalizeTitleInheritance", "CompleteCourtTitleGrant",
+        foreach (var method in new[] { "TryFormTitleWithDetails", "LegalizePartitionInheritance", "LegalizeTitleInheritance", "CompleteCourtTitleGrant",
             "TryGrantTitleByRuler", "TryResolveClaimFeudForClaimant", "TryResolveClaimFeudForHolder", "TrySetKingdomTitleRuler" })
         {
             bool hooked = typeof(FeudalTitleBehavior).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)

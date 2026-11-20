@@ -756,6 +756,11 @@
     <string id="BC_Hierarchy_ActionReasonNoSubordinates" text="the title has no active subordinate titles from which a lawful majority can be established" />
     <string id="BC_Hierarchy_ActionReasonGold" text="your clan leader lacks the required gold" />
     <string id="BC_Hierarchy_ActionReasonInfluence" text="your clan lacks the required influence" />
+    <string id="BC_Hierarchy_ActionReasonTitlesUnavailable" text="the title system is currently unavailable" />
+    <string id="BC_Hierarchy_ActionReasonMissingSeat" text="the selected seat is no longer available" />
+    <string id="BC_Hierarchy_ActionReasonNameEmpty" text="the title name cannot be empty" />
+    <string id="BC_Hierarchy_ActionReasonNameTooLong" text="the title name is too long" />
+    <string id="BC_Hierarchy_ActionReasonNameInvalid" text="the title name contains invalid characters" />
     <string id="BC_Hierarchy_ActionReasonAlreadyBound" text="the title already belongs to an active title of that rank" />
     <string id="BC_Hierarchy_ActionReasonNoCluster" text="there are not enough eligible contiguous titles around this seat" />
     <string id="BC_Hierarchy_ActionReasonTooFewSelected" text="too few subordinate titles were selected" />
@@ -819,8 +824,46 @@
     <string id="BC_Hierarchy_FormReorganizationWarning" text="&#xA;&#xA;This reorganizes the existing hierarchy: {MOVED_TITLES}. Current vassal holders retain their titles and service beneath the new parent." />
     <string id="BC_Hierarchy_FormSuccessionWarning" text="&#xA;&#xA;Warning: this creates another sovereign title of equal rank. Without a higher crown, succession may divide these realms among different heirs." />
     <string id="BC_Hierarchy_FormHintAssessment" text="{STATUS}&#xA;&#xA;Eligible contiguous {CHILD_TIER} titles: {AVAILABLE}/{REQUIRED}&#xA;Cost: {GOLD_COST} denars&#xA;Reward: {INFLUENCE_REWARD} influence{OBSTACLES}" />
+    <string id="BC_Hierarchy_FormHintDetails" text="{STATUS}&#xA;&#xA;Contiguous {CHILD_TIER} titles that qualify: {AVAILABLE}/{REQUIRED}{TITLES}{TERMS}{OBSTACLES}" />
+    <string id="BC_Hierarchy_FormSearchLimited" text="&#xA;This cluster is large. Not all combinations could be checked from this seat." />
+    <string id="BC_Hierarchy_FormTerms" text="&#xA;Cost: {GOLD_COST} denars&#xA;Reward: {INFLUENCE_REWARD} influence" />
+    <string id="BC_Hierarchy_FormEligibleList" text="&#xA;{TITLES}" />
+    <string id="BC_Hierarchy_FormEligibleListMore" text="&#xA;{TITLES} and {COUNT} more" />
+    <string id="BC_Hierarchy_FormNeedsFullTenure" text="{TITLE} must be held by your house both de jure and de facto.&#xA;De jure: {LEGAL_HOLDER}&#xA;De facto: {ACTUAL_HOLDER}" />
+    <string id="BC_Hierarchy_FormModeBoth" text="either hierarchy" />
+    <string id="BC_Hierarchy_FormModeDeJure" text="the de jure hierarchy" />
+    <string id="BC_Hierarchy_FormModeDeFacto" text="the de facto hierarchy" />
+    <string id="BC_Hierarchy_FormNamedEmptyParent" text="Moving titles such as {CHILD} would leave {PARENT} without any subordinate titles in {HIERARCHY}." />
+    <string id="BC_Hierarchy_FormNamedConflictingParents" text="{CHILD} answers to two different titles of the proposed rank: {LEGAL} de jure and {ACTUAL} de facto." />
+    <string id="BC_Hierarchy_FormNamedAuthority" text="You lack authority to detach {CHILD} from {PARENT}." />
+    <string id="BC_Hierarchy_FormNamedParentFeud" text="An active claim feud concerns {PARENT}." />
+    <string id="BC_Hierarchy_FormNamedSplitEstate" text="{HOUSE} also holds lands or titles outside the proposed sovereign title." />
+    <string id="BC_Hierarchy_FormNamedObstacle" text="{TITLE}: {REASON}" />
+    <string id="BC_Hierarchy_FormObstacleSplitTenure" text="not held by your house both de jure and de facto" />
+    <string id="BC_Hierarchy_FormReviewTitle" text="Cannot Form Title" />
+    <string id="BC_Hierarchy_FormReviewSelection" text="Review Selection" />
+    <string id="BC_Hierarchy_ActualLiegeTitle" text="De facto liege" />
+    <string id="BC_Hierarchy_UsurpHintWithControl" text="Usurp the {TITLE_NAME}. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence.{CONTROL}" />
+    <string id="BC_Hierarchy_UsurpHintBlockedWithControl" text="You cannot usurp the {TITLE_NAME}: {REASON}.{CONTROL}{COST}" />
+    <string id="BC_Hierarchy_AssumeHintWithControl" text="Assume the vacant {TITLE_NAME}. Your lawful ownership replaces the claim requirement. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence.{CONTROL}" />
+    <string id="BC_Hierarchy_AssumeHintBlockedWithControl" text="You cannot assume the vacant {TITLE_NAME}: {REASON}.{CONTROL}{COST}" />
+    <string id="BC_Hierarchy_UsurpCostLine" text="&#xA;Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence." />
+    <string id="BC_Hierarchy_UsurpBranchCount" text="&#xA;De jure branches controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}." />
+    <string id="BC_Hierarchy_ActionReasonContestCrown" text="the realm's sovereign title must be contested through succession or rebellion" />
+    <string id="BC_Hierarchy_ActionReasonActiveFeud" text="an active claim feud already concerns this title" />
+    <string id="BC_Hierarchy_ActionReasonArmedFeud" text="one of the houses is already committed to a private war" />
+    <string id="BC_Hierarchy_ActionReasonNoLivingLeader" text="your house needs a living leader" />
+    <string id="BC_Hierarchy_FormChildTenure" text="{TITLE_NAME}&#xA;De facto holder: {HOLDER_NAME}&#xA;De jure liege: {PARENT_NAME}{ACTUAL_LIEGE}&#xA;&#xA;A vassal retains possession when the title is reorganized." />
+    <string id="BC_Hierarchy_FormChildActualLiege" text="&#xA;De facto liege: {LIEGE}" />
+    <string id="BC_Hierarchy_GrantHintTenure" text="Grant the {TITLE_NAME} to a settled vassal. Cost: {INFLUENCE_COST} influence.&#xA;&#xA;Only the rights your house holds transfer. A barony's settlement changes hands only if your house holds it de facto. Higher titles require the recipient to hold an immediate subordinate title." />
+    <string id="BC_Hierarchy_RevokeConfirmPendingDesc" text="Demand the {TITLE_NAME} from the {HOLDER_CLAN} by right of claim? This will cost {INFLUENCE_COST} influence and damage relations. They are likely to refuse. {CONSEQUENCE}" />
+    <string id="BC_Hierarchy_RevokeHintPending" text="Demand revocation of the {TITLE_NAME} from the {HOLDER_CLAN}. Cost: {INFLUENCE_COST} influence.&#xA;&#xA;{CONSEQUENCE}&#xA;Likely response: {RESPONSE}" />
+    <string id="BC_Hierarchy_RevokeResponseRefusal" text="refusal" />
+    <string id="BC_Hierarchy_RevokeWaitForeignWar" text="If the vassal refuses, private war will wait until the realm is at peace abroad." />
+    <string id="BC_Hierarchy_RevokeQueuesWar" text="If the vassal refuses, the feud will escalate to private war when both houses are free to fight." />
     <string id="BC_Hierarchy_FormStatusEnabled" text="Available: form the {TITLE_NAME} from {CHILD_COUNT} contiguous titles.{MULTIPLE}" />
     <string id="BC_Hierarchy_FormStatusMultiple" text=" {COUNT} valid formations are available." />
+    <string id="BC_Hierarchy_FormStatusAvailableFromSeat" text="You can form a {TIER} from this seat." />
     <string id="BC_Hierarchy_FormStatusHighestTier" text="The {SEAT_TITLE} is already of the highest title tier." />
     <string id="BC_Hierarchy_FormStatusMissingLeader" text="Your clan needs a living leader to form a higher title." />
     <string id="BC_Hierarchy_FormStatusSeatNotHeld" text="The {SEAT_TITLE} must be held by your clan both de jure and de facto before it can serve as the new title's seat." />
@@ -854,6 +897,14 @@
     <string id="BC_Hierarchy_DissolveCompleted" text="The {TITLE_NAME} has been dissolved and its subordinate titles have returned to the higher hierarchy." />
     <string id="BC_Hierarchy_DissolveHintEnabled" text="Dissolve the {TITLE_NAME}. Cost: {INFLUENCE_COST} influence. Its immediate subordinate titles will return to the next active liege in each hierarchy." />
     <string id="BC_Hierarchy_DissolveHintDisabled" text="You cannot dissolve the {TITLE_NAME}: {REASON}&#xA;&#xA;Only a non-sovereign upper title held both de jure and de facto by your clan may be dissolved, and no active claim feud may concern its estate." />
+    <string id="BC_Hierarchy_DissolveConfirmDestinations" text="Dissolve the {TITLE_NAME} for {INFLUENCE_COST} influence? This cannot be undone.{DESTINATIONS}" />
+    <string id="BC_Hierarchy_DissolveHintDestinations" text="Dissolve the {TITLE_NAME}. Cost: {INFLUENCE_COST} influence.{DESTINATIONS}" />
+    <string id="BC_Hierarchy_DissolvedTitle" text="The {TITLE_NAME} has been dissolved." />
+    <string id="BC_Hierarchy_DissolveNoLiege" text="No liege" />
+    <string id="BC_Hierarchy_DissolveNoSubordinates" text="&#xA;&#xA;No direct subordinate titles to move." />
+    <string id="BC_Hierarchy_DissolveDeJureDestination" text="&#xA;De jure subordinates ({COUNT}): {LIEGE}" />
+    <string id="BC_Hierarchy_DissolveDeFactoDestination" text="&#xA;De facto subordinates ({COUNT}): {LIEGE}" />
+    <string id="BC_Hierarchy_DissolveDestinationLines" text="&#xA;{LEGAL}{ACTUAL}" />
     <string id="BC_Hierarchy_RenameTitle" text="Rename Title" />
     <string id="BC_Hierarchy_RenameDesc" text="Choose a new name for the {TITLE_NAME}." />
     <string id="BC_Hierarchy_RenameCompleted" text="The {OLD_TITLE_NAME} is now known as the {NEW_TITLE_NAME}." />

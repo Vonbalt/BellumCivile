@@ -363,11 +363,13 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             }
 
             TextObject description = preview.HolderLikelyDefies
-                ? new TextObject("{=BC_Hierarchy_RevokeConfirmDefyDesc}Demand the {TITLE_NAME} from the {HOLDER_CLAN} by right of claim? This will cost {INFLUENCE_COST} influence and damage relations. They are likely to refuse, immediately turning the dispute into a private feud war.")
+                ? new TextObject("{=BC_Hierarchy_RevokeConfirmPendingDesc}Demand the {TITLE_NAME} from the {HOLDER_CLAN} by right of claim? This will cost {INFLUENCE_COST} influence and damage relations. They are likely to refuse. {CONSEQUENCE}")
                 : new TextObject("{=BC_Hierarchy_RevokeConfirmDesc}Demand the {TITLE_NAME} from the {HOLDER_CLAN} by right of claim? This will cost {INFLUENCE_COST} influence and damage relations. They are expected to accept the revocation.");
             description.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             description.SetTextVariable("HOLDER_CLAN", preview.HolderClan?.Name ?? new TextObject("?"));
             description.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost));
+            if (preview.HolderLikelyDefies)
+                description.SetTextVariable("CONSEQUENCE", GetRevocationWarConsequence());
 
             InformationManager.ShowInquiry(new InquiryData(
                 new TextObject("{=BC_Hierarchy_RevokeConfirmTitle}Revoke Claimed Title").ToString(),
@@ -431,11 +433,12 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 return;
             }
 
-            TextObject description = new TextObject("{=BC_Hierarchy_DissolveConfirmDesc}Dissolve the {TITLE_NAME} for {INFLUENCE_COST} influence? Its immediate subordinate titles will return to the dissolved title's liege. This cannot be undone.");
+            TextObject description = new TextObject("{=BC_Hierarchy_DissolveConfirmDestinations}Dissolve the {TITLE_NAME} for {INFLUENCE_COST} influence? This cannot be undone.{DESTINATIONS}");
             string resentmentWarning = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>()
                 ?.ReorganizationWarning(Clan.PlayerClan, new[] { Title.TitleId }) ?? string.Empty;
             description.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             description.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost));
+            description.SetTextVariable("DESTINATIONS", BuildDissolutionDestinationText(preview));
             InformationManager.ShowInquiry(new InquiryData(
                 new TextObject("{=BC_Hierarchy_DissolveConfirmTitle}Dissolve Title").ToString(),
                 description.ToString() + resentmentWarning,
@@ -443,7 +446,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 true,
                 new TextObject("{=BC_Hierarchy_ActionDissolve}Dissolve").ToString(),
                 new TextObject("{=BC_UI_Cancel}Cancel").ToString(),
-                CompletePlayerDissolution,
+                () => CompletePlayerDissolution(preview),
                 null), true);
         }
 
@@ -767,7 +770,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             }
 
             string defaultName = behavior.GetDefaultFormationTitleRoot(Title, targetType);
-            if (!behavior.TryBuildFormationCandidate(
+            if (!behavior.TryBuildFormationCandidateWithDetails(
                 Clan.PlayerClan,
                 targetType,
                 childTitleIds,
@@ -775,9 +778,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 defaultName,
                 allowReorganization: true,
                 out _,
-                out string reason))
+                out string reason,
+                out FeudalTitleFormationObstacle obstacle))
             {
-                ShowActionFailure(reason);
+                ShowFormationSelectionFailure(reason, obstacle);
                 return;
             }
 
@@ -798,7 +802,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 new TextObject("{=BC_UI_Cancel}Cancel").ToString(),
                 enteredName =>
                 {
-                    if (!behavior.TryBuildFormationCandidate(
+                    if (!behavior.TryBuildFormationCandidateWithDetails(
                         Clan.PlayerClan,
                         targetType,
                         childTitleIds,
@@ -806,9 +810,10 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                         enteredName,
                         allowReorganization: true,
                         out FeudalTitleFormationCandidate candidate,
-                        out string buildReason))
+                        out string buildReason,
+                        out FeudalTitleFormationObstacle buildObstacle))
                     {
-                        ShowActionFailure(buildReason);
+                        ShowFormationSelectionFailure(buildReason, buildObstacle);
                         return;
                     }
 
@@ -961,17 +966,19 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             FeudalTitleBehavior behavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
             string reason = behavior == null ? "title behavior unavailable" : null;
             FeudalTitleRecord formedTitle = null;
+            FeudalTitleFormationObstacle obstacle = null;
             if (behavior == null
-                || !behavior.TryFormTitle(
+                || !behavior.TryFormTitleWithDetails(
                     Clan.PlayerClan,
                     candidate,
                     true,
                     elevationChoice,
                     out formedTitle,
                     out _,
-                    out reason))
+                    out reason,
+                    out obstacle))
             {
-                ShowActionFailure(reason);
+                ShowFormationSelectionFailure(reason, obstacle);
                 RefreshPlayerActions();
                 return;
             }
@@ -979,11 +986,20 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             _onHierarchyChanged?.Invoke(formedTitle?.TitleId);
         }
 
-        private void CompletePlayerDissolution()
+        private void ShowFormationSelectionFailure(string reason, FeudalTitleFormationObstacle obstacle)
         {
-            string parentTitleId = !string.IsNullOrWhiteSpace(Title?.DeFactoParentTitleId)
-                ? Title.DeFactoParentTitleId
-                : Title?.ParentTitleId;
+            TextObject description = DescribeFormationObstacle(obstacle) ?? GetActionReason(reason);
+            bool canReview = FeudalTitlePlayerActionService.GetFormationPreview(Clan.PlayerClan, Title).CanForm;
+            InformationManager.ShowInquiry(new InquiryData(
+                new TextObject("{=BC_Hierarchy_FormReviewTitle}Cannot Form Title").ToString(),
+                description.ToString(), true, canReview,
+                (canReview ? new TextObject("{=BC_Hierarchy_FormReviewSelection}Review Selection") : GameTexts.FindText("str_ok")).ToString(),
+                new TextObject("{=BC_UI_Cancel}Cancel").ToString(), canReview ? (Action)ExecuteForm : null, null), true);
+        }
+
+        private void CompletePlayerDissolution(FeudalDissolutionPreview preview)
+        {
+            string parentTitleId = preview.DeFactoDestination?.TitleId ?? preview.DeJureDestination?.TitleId;
             string dissolvedTitleName = FormatTitleName(Title);
             if (!FeudalTitlePlayerActionService.TryExecuteDissolution(Clan.PlayerClan, Title, out string reason))
             {
@@ -992,7 +1008,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 return;
             }
 
-            TextObject message = new TextObject("{=BC_Hierarchy_DissolveCompleted}The {TITLE_NAME} has been dissolved and its subordinate titles have returned to the higher hierarchy.");
+            TextObject message = new TextObject("{=BC_Hierarchy_DissolvedTitle}The {TITLE_NAME} has been dissolved.");
             message.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + dissolvedTitleName));
             InformationManager.DisplayMessage(new InformationMessage(message.ToString(), Colors.Green));
             _onHierarchyChanged?.Invoke(parentTitleId);
@@ -1196,18 +1212,25 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
         private TextObject BuildUsurpHint(FeudalUsurpationPreview preview)
         {
             TextObject text = preview.CanUsurp
-                ? new TextObject("{=BC_Hierarchy_UsurpHintEnabled}Usurp the {TITLE_NAME}. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled subordinate titles: {CONTROLLED}/{TOTAL}.")
-                : new TextObject("{=BC_Hierarchy_UsurpHintDisabled}You cannot usurp the {TITLE_NAME}: {REASON}\n\nYou need a weak or strong claim and de facto control. Baronies must be held directly; higher titles require control of more than half of their actual immediate subordinate titles, including those governed by your de facto vassals. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence.");
+                ? new TextObject("{=BC_Hierarchy_UsurpHintWithControl}Usurp the {TITLE_NAME}. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence.{CONTROL}")
+                : new TextObject("{=BC_Hierarchy_UsurpHintBlockedWithControl}You cannot usurp the {TITLE_NAME}: {REASON}.{CONTROL}{COST}");
             if (preview.IsLawfulAssumption)
                 text = preview.CanUsurp
-                    ? new TextObject("{=BC_Hierarchy_AssumeHintEnabled}Assume the vacant {TITLE_NAME}. Your lawful ownership replaces the claim requirement. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled subordinate titles: {CONTROLLED}/{TOTAL}.")
-                    : new TextObject("{=BC_Hierarchy_AssumeHintDisabled}You cannot assume the vacant {TITLE_NAME}: {REASON}\n\nYour house already owns the lawful title. You must control more than half of its immediate subordinate titles and pay {GOLD_COST} denars and {INFLUENCE_COST} influence. Controlled: {CONTROLLED}/{TOTAL}.");
+                    ? new TextObject("{=BC_Hierarchy_AssumeHintWithControl}Assume the vacant {TITLE_NAME}. Your lawful ownership replaces the claim requirement. Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence.{CONTROL}")
+                    : new TextObject("{=BC_Hierarchy_AssumeHintBlockedWithControl}You cannot assume the vacant {TITLE_NAME}: {REASON}.{CONTROL}{COST}");
             text.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             text.SetTextVariable("GOLD_COST", preview.GoldCost);
             text.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost));
-            text.SetTextVariable("CONTROLLED", preview.ControlledTitles);
-            text.SetTextVariable("TOTAL", preview.TotalTitles);
-            text.SetTextVariable("REASON", GetActionReason(preview.Reason));
+            text.SetTextVariable("CONTROL", Title?.TitleType > FeudalTitleType.Barony && preview.TotalTitles > 0
+                ? new TextObject("{=BC_Hierarchy_UsurpBranchCount}\nDe jure branches controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}.")
+                    .SetTextVariable("CONTROLLED", preview.ControlledTitles)
+                    .SetTextVariable("REQUIRED", preview.RequiredTitles).SetTextVariable("TOTAL", preview.TotalTitles)
+                : new TextObject(""));
+            text.SetTextVariable("COST", preview.Reason == "insufficient gold" || preview.Reason == "insufficient influence"
+                ? new TextObject("{=BC_Hierarchy_UsurpCostLine}\nCost: {GOLD_COST} denars and {INFLUENCE_COST} influence.")
+                    .SetTextVariable("GOLD_COST", preview.GoldCost).SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost))
+                : new TextObject(""));
+            text.SetTextVariable("REASON", preview.RestrictionReason ?? GetActionReason(preview.Reason));
             return text;
         }
 
@@ -1217,16 +1240,25 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 return preview.RestrictionReason;
 
             TextObject text = preview != null && preview.CanRevoke
-                ? new TextObject("{=BC_Hierarchy_RevokeHintEnabled}Demand revocation of the {TITLE_NAME} from the {HOLDER_CLAN}. Cost: {INFLUENCE_COST} influence.\n\nRequires direct de facto liege authority and a weak or strong claim. If the vassal refuses, the dispute immediately becomes a private feud war.\n\nLikely response: {RESPONSE}")
+                ? new TextObject("{=BC_Hierarchy_RevokeHintPending}Demand revocation of the {TITLE_NAME} from the {HOLDER_CLAN}. Cost: {INFLUENCE_COST} influence.\n\n{CONSEQUENCE}\nLikely response: {RESPONSE}")
                 : new TextObject("{=BC_Hierarchy_RevokeHintDisabled}You cannot revoke the {TITLE_NAME}: {REASON}\n\nOnly a direct de facto liege with a weak or strong claim can demand revocation from an immediate vassal.");
             text.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             text.SetTextVariable("HOLDER_CLAN", preview?.HolderClan?.Name ?? new TextObject("?"));
             text.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview?.InfluenceCost ?? FeudalTitlePlayerActionService.RevocationInfluenceCost));
             text.SetTextVariable("REASON", GetActionReason(preview?.Reason));
             text.SetTextVariable("RESPONSE", preview?.HolderLikelyDefies == true
-                ? new TextObject("{=BC_Hierarchy_RevokeResponseDefy}refusal and private war")
+                ? new TextObject("{=BC_Hierarchy_RevokeResponseRefusal}refusal")
                 : new TextObject("{=BC_Hierarchy_RevokeResponseAccept}begrudging acceptance"));
+            if (preview?.CanRevoke == true)
+                text.SetTextVariable("CONSEQUENCE", GetRevocationWarConsequence());
             return text;
+        }
+
+        private static TextObject GetRevocationWarConsequence()
+        {
+            return ClaimFeudWarBehavior.HasForeignWar(Clan.PlayerClan?.Kingdom)
+                ? new TextObject("{=BC_Hierarchy_RevokeWaitForeignWar}If the vassal refuses, private war will wait until the realm is at peace abroad.")
+                : new TextObject("{=BC_Hierarchy_RevokeQueuesWar}If the vassal refuses, the feud will escalate to private war when both houses are free to fight.");
         }
 
         private TextObject BuildFormationHint(FeudalFormationPreview preview)
@@ -1239,35 +1271,103 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 : preview.TargetType > FeudalTitleType.Barony
                     ? (FeudalTitleType)((int)preview.TargetType - 1)
                     : FeudalTitleType.Barony;
-            TextObject hint = new TextObject("{=BC_Hierarchy_FormHintAssessment}{STATUS}\n\nEligible contiguous {CHILD_TIER} titles: {AVAILABLE}/{REQUIRED}\nCost: {GOLD_COST} denars\nReward: {INFLUENCE_REWARD} influence{OBSTACLES}");
-            hint.SetTextVariable("STATUS", BuildFormationStatus(preview, childType));
+            TextObject status = BuildFormationStatus(preview, childType);
+            if (preview.BlockReason == FeudalTitleFormationBlockReason.SeatNotFullyHeld && Title != null)
+                return BuildFormationTenureBlock(Title);
+            if (!preview.IsVisible || preview.BlockReason == FeudalTitleFormationBlockReason.MissingLeader
+                || preview.BlockReason == FeudalTitleFormationBlockReason.SeatDisputed)
+                return status;
+
+            TextObject hint = new TextObject("{=BC_Hierarchy_FormHintDetails}{STATUS}\n\nContiguous {CHILD_TIER} titles that qualify: {AVAILABLE}/{REQUIRED}{TITLES}{TERMS}{OBSTACLES}");
+            hint.SetTextVariable("STATUS", status);
             hint.SetTextVariable("CHILD_TIER", new TextObject("{=!}" + GetTierName(childType).ToLowerInvariant()));
             hint.SetTextVariable("AVAILABLE", preview.ContiguousEligibleTitles);
             hint.SetTextVariable("REQUIRED", preview.RequiredTitles);
-            hint.SetTextVariable("GOLD_COST", preview.GoldCost);
-            hint.SetTextVariable("INFLUENCE_REWARD", (int)Math.Round(preview.InfluenceReward));
+            hint.SetTextVariable("TITLES", BuildEligibleFormationTitleList(preview));
+            hint.SetTextVariable("TERMS", preview.CanForm || preview.BlockReason == FeudalTitleFormationBlockReason.InsufficientGold
+                ? new TextObject("{=BC_Hierarchy_FormTerms}\nCost: {GOLD_COST} denars\nReward: {INFLUENCE_REWARD} influence")
+                    .SetTextVariable("GOLD_COST", preview.GoldCost)
+                    .SetTextVariable("INFLUENCE_REWARD", (int)Math.Round(preview.InfluenceReward))
+                : new TextObject(""));
             hint.SetTextVariable("OBSTACLES", BuildFormationObstacleText(preview));
             return hint;
         }
 
+        private static TextObject BuildEligibleFormationTitleList(FeudalFormationPreview preview)
+        {
+            const int visibleLimit = 3;
+            if (preview.EligibleTitles.Count == 0)
+                return new TextObject("");
+
+            string titles = string.Join(", ", preview.EligibleTitles.Take(visibleLimit).Select(title => FormatTitleName(title)));
+            int remaining = preview.EligibleTitles.Count - visibleLimit;
+            return remaining > 0
+                ? new TextObject("{=BC_Hierarchy_FormEligibleListMore}\n{TITLES} and {COUNT} more")
+                    .SetTextVariable("TITLES", new TextObject("{=!}" + titles)).SetTextVariable("COUNT", remaining)
+                : new TextObject("{=BC_Hierarchy_FormEligibleList}\n{TITLES}")
+                    .SetTextVariable("TITLES", new TextObject("{=!}" + titles));
+        }
+
+        private static TextObject BuildFormationTenureBlock(FeudalTitleRecord title)
+        {
+            var vacant = new TextObject("{=BC_Hierarchy_Vacant}Vacant");
+            return new TextObject("{=BC_Hierarchy_FormNeedsFullTenure}{TITLE} must be held by your house both de jure and de facto.\nDe jure: {LEGAL_HOLDER}\nDe facto: {ACTUAL_HOLDER}")
+                .SetTextVariable("TITLE", new TextObject("{=!}" + FormatTitleName(title)))
+                .SetTextVariable("LEGAL_HOLDER", ResolveClan(title.DeJureHolderClanId)?.Name ?? vacant)
+                .SetTextVariable("ACTUAL_HOLDER", ResolveClan(title.DeFactoHolderClanId)?.Name ?? vacant);
+        }
+
+        private static TextObject DescribeFormationObstacle(FeudalTitleFormationObstacle obstacle)
+        {
+            if (obstacle == null)
+                return null;
+
+            TextObject Name(FeudalTitleRecord title) => new TextObject("{=!}" + FormatTitleName(title));
+            switch (obstacle.Reason)
+            {
+                case FeudalTitleFormationBlockReason.WouldEmptyParent:
+                    TextObject hierarchy = obstacle.EmptiesDeJure && obstacle.EmptiesDeFacto
+                        ? new TextObject("{=BC_Hierarchy_FormModeBoth}either hierarchy")
+                        : obstacle.EmptiesDeJure
+                            ? new TextObject("{=BC_Hierarchy_FormModeDeJure}the de jure hierarchy")
+                            : new TextObject("{=BC_Hierarchy_FormModeDeFacto}the de facto hierarchy");
+                    return new TextObject("{=BC_Hierarchy_FormNamedEmptyParent}Moving titles such as {CHILD} would leave {PARENT} without any subordinate titles in {HIERARCHY}.")
+                        .SetTextVariable("CHILD", Name(obstacle.Title)).SetTextVariable("PARENT", Name(obstacle.ParentTitle))
+                        .SetTextVariable("HIERARCHY", hierarchy);
+                case FeudalTitleFormationBlockReason.ConflictingParents:
+                    return new TextObject("{=BC_Hierarchy_FormNamedConflictingParents}{CHILD} answers to two different titles of the proposed rank: {LEGAL} de jure and {ACTUAL} de facto.")
+                        .SetTextVariable("CHILD", Name(obstacle.Title)).SetTextVariable("LEGAL", Name(obstacle.ParentTitle))
+                        .SetTextVariable("ACTUAL", Name(obstacle.OtherParentTitle));
+                case FeudalTitleFormationBlockReason.NoReorganizationAuthority when obstacle.ParentTitle != null:
+                case FeudalTitleFormationBlockReason.ParentNotControlled when obstacle.ParentTitle != null:
+                    return new TextObject("{=BC_Hierarchy_FormNamedAuthority}You lack authority to detach {CHILD} from {PARENT}.")
+                        .SetTextVariable("CHILD", Name(obstacle.Title)).SetTextVariable("PARENT", Name(obstacle.ParentTitle));
+                case FeudalTitleFormationBlockReason.ParentDisputed:
+                    return new TextObject("{=BC_Hierarchy_FormNamedParentFeud}An active claim feud concerns {PARENT}.")
+                        .SetTextVariable("PARENT", Name(obstacle.ParentTitle));
+                case FeudalTitleFormationBlockReason.SplitVassalEstate when obstacle.Holder != null:
+                    return new TextObject("{=BC_Hierarchy_FormNamedSplitEstate}{HOUSE} also holds lands or titles outside the proposed sovereign title.")
+                        .SetTextVariable("HOUSE", obstacle.Holder.Name ?? new TextObject("{=!}" + obstacle.Holder.StringId));
+                case FeudalTitleFormationBlockReason.ChildNotFullyHeld:
+                    return BuildFormationTenureBlock(obstacle.Title);
+                default:
+                    return obstacle.Title != null
+                        ? new TextObject("{=BC_Hierarchy_FormNamedObstacle}{TITLE}: {REASON}")
+                            .SetTextVariable("TITLE", Name(obstacle.Title))
+                            .SetTextVariable("REASON", GetFormationObstacleReason(obstacle.Reason))
+                        : null;
+            }
+        }
+
         private TextObject BuildFormationStatus(FeudalFormationPreview preview, FeudalTitleType childType)
         {
-            FeudalTitleFormationCandidate candidate = preview.Candidates.FirstOrDefault();
-            if (preview.CanForm && candidate != null)
-            {
-                TextObject enabled = new TextObject("{=BC_Hierarchy_FormStatusEnabled}Available: form the {TITLE_NAME} from {CHILD_COUNT} contiguous titles.{MULTIPLE}");
-                enabled.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatCandidateTitleName(candidate)));
-                enabled.SetTextVariable("CHILD_COUNT", candidate.ChildTitleIds.Count);
-                TextObject multiple = new TextObject(string.Empty);
-                if (preview.Candidates.Count > 1)
-                {
-                    multiple = new TextObject("{=BC_Hierarchy_FormStatusMultiple} {COUNT} valid formations are available.");
-                    multiple.SetTextVariable("COUNT", preview.Candidates.Count);
-                }
-                enabled.SetTextVariable("MULTIPLE", multiple);
-                return enabled;
-            }
+            if (preview.CanForm)
+                return new TextObject("{=BC_Hierarchy_FormStatusAvailableFromSeat}You can form a {TIER} from this seat.")
+                    .SetTextVariable("TIER", new TextObject("{=!}" + GetTierName(preview.TargetType).ToLowerInvariant()));
 
+            TextObject obstacle = DescribeFormationObstacle(preview.StructuralObstacle);
+            if (obstacle != null)
+                return obstacle;
             string seatName = FormatTitleName(Title, Clan.PlayerClan);
             string childTier = GetTierName(childType).ToLowerInvariant();
             TextObject status;
@@ -1337,6 +1437,9 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private TextObject BuildFormationObstacleText(FeudalFormationPreview preview)
         {
+            if (preview.SearchLimited && !preview.CanForm && preview.Candidates.Count == 0)
+                return new TextObject("{=BC_Hierarchy_FormSearchLimited}\nThis cluster is large. Not all combinations could be checked from this seat.");
+
             if (preview.BlockReason != FeudalTitleFormationBlockReason.NeighboringTitlesIneligible
                 && preview.BlockReason != FeudalTitleFormationBlockReason.InsufficientContiguousTitles)
             {
@@ -1382,6 +1485,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                     return new TextObject("{=BC_Hierarchy_FormObstacleVassal}not fully held by an eligible direct vassal of your realm");
                 case FeudalTitleFormationBlockReason.ParentNotControlled:
                     return new TextObject("{=BC_Hierarchy_FormObstacleParent}its immediate higher title is not fully under your authority");
+                case FeudalTitleFormationBlockReason.ChildNotFullyHeld:
+                    return new TextObject("{=BC_Hierarchy_FormObstacleSplitTenure}not held by your house both de jure and de facto");
                 case FeudalTitleFormationBlockReason.ExistingHigherTitle:
                     return new TextObject("{=BC_Hierarchy_FormObstacleExistingParent}already governed by an active title of the proposed rank");
                 default:
@@ -1410,14 +1515,17 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 return string.Empty;
 
             Clan holder = ResolveClan(title.DeFactoHolderClanId);
-            FeudalTitleRecord parent = titleBehavior?.GetTitle(title.ParentTitleId)
-                ?? titleBehavior?.GetTitle(title.DeFactoParentTitleId);
-            TextObject hint = new TextObject("{=BC_Hierarchy_FormChildHint}{TITLE_NAME}\nDe facto holder: {HOLDER_NAME}\nCurrent parent: {PARENT_NAME}\n\nSelect only titles connected to the chosen seat and to one another. A vassal retains possession when the title is reorganized.");
+            FeudalTitleRecord parent = titleBehavior?.GetParentTitle(title, FeudalHierarchyMode.DeJure);
+            FeudalTitleRecord actualParent = titleBehavior?.GetParentTitle(title, FeudalHierarchyMode.DeFacto);
+            TextObject ParentName(FeudalTitleRecord liege) => liege != null
+                ? new TextObject("{=!}" + FormatTitleName(liege)) : new TextObject("{=BC_Hierarchy_None}None");
+            TextObject hint = new TextObject("{=BC_Hierarchy_FormChildTenure}{TITLE_NAME}\nDe facto holder: {HOLDER_NAME}\nDe jure liege: {PARENT_NAME}{ACTUAL_LIEGE}\n\nA vassal retains possession when the title is reorganized.");
             hint.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(title, Clan.PlayerClan)));
             hint.SetTextVariable("HOLDER_NAME", holder?.Name ?? new TextObject("{=BC_Hierarchy_Vacant}Vacant"));
-            hint.SetTextVariable("PARENT_NAME", parent != null
-                ? new TextObject("{=!}" + FormatTitleName(parent))
-                : new TextObject("{=BC_Hierarchy_None}None"));
+            hint.SetTextVariable("PARENT_NAME", ParentName(parent));
+            hint.SetTextVariable("ACTUAL_LIEGE", parent?.TitleId != actualParent?.TitleId
+                ? new TextObject("{=BC_Hierarchy_FormChildActualLiege}\nDe facto liege: {LIEGE}").SetTextVariable("LIEGE", ParentName(actualParent))
+                : new TextObject(""));
             return hint.ToString();
         }
 
@@ -1464,23 +1572,42 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
         private TextObject BuildGrantHint(FeudalGrantPreview preview)
         {
             TextObject text = preview != null && preview.CanOpen
-                ? new TextObject("{=BC_Hierarchy_GrantHintEnabled}Grant the {TITLE_NAME} directly to one of your settled vassals. Cost: {INFLUENCE_COST} influence.\n\nBaronies transfer their settlement. Higher titles require the recipient to hold at least one immediate child title.")
+                ? new TextObject("{=BC_Hierarchy_GrantHintTenure}Grant the {TITLE_NAME} to a settled vassal. Cost: {INFLUENCE_COST} influence.\n\nOnly the rights your house holds transfer. A barony's settlement changes hands only if your house holds it de facto. Higher titles require the recipient to hold an immediate subordinate title.")
                 : new TextObject("{=BC_Hierarchy_GrantHintDisabled}You cannot grant the {TITLE_NAME}: {REASON}\n\nOnly titles held directly by your ruling clan can be granted to settled vassals.");
             text.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             text.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview?.InfluenceCost ?? FeudalTitlePlayerActionService.GrantInfluenceCost));
-            text.SetTextVariable("REASON", GetActionReason(preview?.Reason));
+            text.SetTextVariable("REASON", preview?.RestrictionReason ?? GetActionReason(preview?.Reason));
             return text;
         }
 
         private TextObject BuildDissolutionHint(FeudalDissolutionPreview preview)
         {
             TextObject text = preview != null && preview.CanDissolve
-                ? new TextObject("{=BC_Hierarchy_DissolveHintEnabled}Dissolve the {TITLE_NAME}. Cost: {INFLUENCE_COST} influence. Its immediate subordinate titles will return to the next active liege in each hierarchy.")
+                ? new TextObject("{=BC_Hierarchy_DissolveHintDestinations}Dissolve the {TITLE_NAME}. Cost: {INFLUENCE_COST} influence.{DESTINATIONS}")
                 : new TextObject("{=BC_Hierarchy_DissolveHintDisabled}You cannot dissolve the {TITLE_NAME}: {REASON}\n\nOnly a non-sovereign upper title held both de jure and de facto by your clan may be dissolved, and no active claim feud may concern its estate.");
             text.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             text.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview?.InfluenceCost ?? 0f));
             text.SetTextVariable("REASON", GetActionReason(preview?.Reason));
+            if (preview?.CanDissolve == true)
+                text.SetTextVariable("DESTINATIONS", BuildDissolutionDestinationText(preview));
             return text;
+        }
+
+        private static TextObject BuildDissolutionDestinationText(FeudalDissolutionPreview preview)
+        {
+            TextObject Name(FeudalTitleRecord destination) => destination != null
+                ? new TextObject("{=!}" + FormatTitleName(destination)) : new TextObject("{=BC_Hierarchy_DissolveNoLiege}No liege");
+            if (preview.DeJureChildren == 0 && preview.DeFactoChildren == 0)
+                return new TextObject("{=BC_Hierarchy_DissolveNoSubordinates}\n\nNo direct subordinate titles to move.");
+
+            TextObject deJure = preview.DeJureChildren == 0 ? new TextObject(string.Empty)
+                : new TextObject("{=BC_Hierarchy_DissolveDeJureDestination}\nDe jure subordinates ({COUNT}): {LIEGE}")
+                    .SetTextVariable("COUNT", preview.DeJureChildren).SetTextVariable("LIEGE", Name(preview.DeJureDestination));
+            TextObject deFacto = preview.DeFactoChildren == 0 ? new TextObject(string.Empty)
+                : new TextObject("{=BC_Hierarchy_DissolveDeFactoDestination}\nDe facto subordinates ({COUNT}): {LIEGE}")
+                    .SetTextVariable("COUNT", preview.DeFactoChildren).SetTextVariable("LIEGE", Name(preview.DeFactoDestination));
+            return new TextObject("{=BC_Hierarchy_DissolveDestinationLines}\n{LEGAL}{ACTUAL}")
+                .SetTextVariable("LEGAL", deJure).SetTextVariable("ACTUAL", deFacto);
         }
 
         private TextObject BuildRenameHint(FeudalRenamePreview preview)
@@ -1544,6 +1671,11 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 case "title has no active subordinate titles": return new TextObject("{=BC_Hierarchy_ActionReasonNoSubordinates}the title has no active subordinate titles from which a lawful majority can be established");
                 case "insufficient gold": return new TextObject("{=BC_Hierarchy_ActionReasonGold}your clan leader lacks the required gold");
                 case "insufficient influence": return new TextObject("{=BC_Hierarchy_ActionReasonInfluence}your clan lacks the required influence");
+                case "title behavior unavailable": return new TextObject("{=BC_Hierarchy_ActionReasonTitlesUnavailable}the title system is currently unavailable");
+                case "the selected seed title is missing": return new TextObject("{=BC_Hierarchy_ActionReasonMissingSeat}the selected seat is no longer available");
+                case "title name cannot be empty": return new TextObject("{=BC_Hierarchy_ActionReasonNameEmpty}the title name cannot be empty");
+                case "title name is too long": return new TextObject("{=BC_Hierarchy_ActionReasonNameTooLong}the title name is too long");
+                case "title name contains invalid characters": return new TextObject("{=BC_Hierarchy_ActionReasonNameInvalid}the title name contains invalid characters");
                 case "selected title already belongs to the immediate higher tier": return new TextObject("{=BC_Hierarchy_ActionReasonAlreadyBound}the title already belongs to an active title of that rank");
                 case "no valid contiguous title cluster": return new TextObject("{=BC_Hierarchy_ActionReasonNoCluster}there are not enough eligible contiguous titles around this seat");
                 case "too few subordinate titles selected": return new TextObject("{=BC_Hierarchy_ActionReasonTooFewSelected}too few subordinate titles were selected");
@@ -1583,6 +1715,14 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 case "one side is already occupied by a claim feud": return new TextObject("{=BC_Hierarchy_ActionReasonFeudOccupied}one of the involved clans is already occupied by a claim feud");
                 case "recipient holds no immediate child title": return new TextObject("{=BC_Hierarchy_ActionReasonGrantNoChild}higher titles can only be granted to vassals who hold at least one immediate child title under them");
                 case "title is not a spare peer title": return new TextObject("{=BC_Hierarchy_ActionReasonGrantPrimaryTitle}you cannot grant away your own sovereign title");
+                case "the sovereign title of the realm cannot be granted": return new TextObject("{=BC_Hierarchy_ActionReasonGrantPrimaryTitle}you cannot grant away your own sovereign title");
+                case "the realm's sovereign title must be contested through succession or rebellion": return new TextObject("{=BC_Hierarchy_ActionReasonContestCrown}the realm's sovereign title must be contested through succession or rebellion");
+                case "the title is already disputed by an active claim feud": return new TextObject("{=BC_Hierarchy_ActionReasonActiveFeud}an active claim feud already concerns this title");
+                case "one side is already committed to an armed claim feud": return new TextObject("{=BC_Hierarchy_ActionReasonArmedFeud}one of the houses is already committed to a private war");
+                case "clan has no living leader":
+                case "claimant clan has no living leader":
+                case "fabricating clan has no living leader":
+                case "forming clan has no leader": return new TextObject("{=BC_Hierarchy_ActionReasonNoLivingLeader}your house needs a living leader");
                 case "no settled vassals": return new TextObject("{=BC_Hierarchy_ActionReasonGrantNoVassals}there are no settled vassals to receive this title");
                 case "no eligible vassals": return new TextObject("{=BC_Hierarchy_ActionReasonGrantNoEligible}no vassal currently meets the requirements to receive this title");
                 case "independent realm could not be created": return new TextObject("{=BC_Hierarchy_ActionReasonGrantIndependentFailed}the independent realm could not be created");
@@ -1636,9 +1776,13 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
             properties.Add(new TooltipProperty(string.Empty, string.Empty, 0, false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator));
 
-            FeudalTitleRecord parent = titleBehavior?.GetTitle(title?.ParentTitleId);
+            FeudalTitleRecord parent = titleBehavior?.GetParentTitle(title, FeudalHierarchyMode.DeJure);
+            FeudalTitleRecord actualParent = titleBehavior?.GetParentTitle(title, FeudalHierarchyMode.DeFacto);
             if (parent != null)
                 properties.Add(new TooltipProperty(new TextObject("{=BC_Hierarchy_LiegeTitle}De jure liege").ToString(), FormatTitleName(parent), 0));
+            if (parent?.TitleId != actualParent?.TitleId)
+                properties.Add(new TooltipProperty(new TextObject("{=BC_Hierarchy_ActualLiegeTitle}De facto liege").ToString(),
+                    actualParent != null ? FormatTitleName(actualParent) : new TextObject("{=BC_Hierarchy_None}None").ToString(), 0));
             AddServiceTooltip(properties, titleBehavior, title);
 
             string allegiance = deFactoHolder == null

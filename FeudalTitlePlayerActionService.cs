@@ -62,6 +62,7 @@ namespace BellumCivile
             {
                 CanUsurp = assessment.CanUsurp,
                 Reason = assessment.Reason,
+                RestrictionReason = assessment.RestrictionReason,
                 HasClaim = assessment.HasClaim,
                 IsLawfulAssumption = assessment.IsLawfulAssumption,
                 GoldCost = assessment.GoldCost,
@@ -111,6 +112,12 @@ namespace BellumCivile
             preview.DeFactoChildren = titleBehavior.GetChildTitles(title, FeudalHierarchyMode.DeFacto).Count;
             preview.CanDissolve = titleBehavior.CanDissolveTitle(clan, title, out string reason);
             preview.Reason = reason ?? string.Empty;
+            if (preview.CanDissolve)
+            {
+                var destinations = titleBehavior.GetDissolutionDestinations(title);
+                preview.DeJureDestination = destinations.DeJure;
+                preview.DeFactoDestination = destinations.DeFacto;
+            }
             return preview;
         }
 
@@ -246,6 +253,7 @@ namespace BellumCivile
             if (titleBehavior.IsRealmSovereignTitle(kingdom, selectedTitle))
             {
                 preview.Reason = "the sovereign title of the realm cannot be granted";
+                preview.RestrictionReason = new TextObject("{=BC_Hierarchy_ActionReasonGrantPrimaryTitle}you cannot grant away your own sovereign title");
                 return preview;
             }
 
@@ -277,6 +285,7 @@ namespace BellumCivile
             if (!preview.Recipients.Any(recipient => recipient.CanReceive))
             {
                 preview.Reason = "no eligible vassals";
+                preview.RestrictionReason = new TextObject("{=BC_Hierarchy_ActionReasonGrantNoChild}higher titles can only be granted to vassals who hold at least one immediate child title under them");
                 return preview;
             }
 
@@ -365,6 +374,7 @@ namespace BellumCivile
             if (feudBehavior.HasActiveDisputeForTitle(selectedTitle.TitleId))
             {
                 preview.Reason = "the title is already disputed by an active claim feud";
+                preview.RestrictionReason = new TextObject("{=BC_Hierarchy_ActionReasonActiveFeud}an active claim feud already concerns this title");
                 return preview;
             }
 
@@ -372,6 +382,7 @@ namespace BellumCivile
                 || feudBehavior.IsClanCommittedToArmedClaimFeud(holder))
             {
                 preview.Reason = "one side is already committed to an armed claim feud";
+                preview.RestrictionReason = new TextObject("{=BC_Hierarchy_ActionReasonArmedFeud}one of the houses is already committed to a private war");
                 return preview;
             }
 

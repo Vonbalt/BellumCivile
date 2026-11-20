@@ -37,6 +37,7 @@ namespace BellumCivile
         public bool IsLawfulAssumption { get; set; }
         public bool CanUsurp { get; set; }
         public string Reason { get; set; }
+        public TextObject RestrictionReason { get; set; }
         public float ControlShare { get; set; }
         public int ControlledTitles { get; set; }
         public int RequiredTitles { get; set; }
@@ -68,13 +69,19 @@ namespace BellumCivile
         SplitVassalEstate = 16,
         ExistingHigherTitle = 17,
         InsufficientGold = 18,
-        ParentNotControlled = 19
+        ParentNotControlled = 19,
+        ChildNotFullyHeld = 20
     }
 
     public sealed class FeudalTitleFormationObstacle
     {
         public FeudalTitleRecord Title { get; set; }
         public FeudalTitleFormationBlockReason Reason { get; set; }
+        public FeudalTitleRecord ParentTitle { get; set; }
+        public FeudalTitleRecord OtherParentTitle { get; set; }
+        public Clan Holder { get; set; }
+        public bool EmptiesDeJure { get; set; }
+        public bool EmptiesDeFacto { get; set; }
     }
 
     /// <summary>
@@ -84,6 +91,7 @@ namespace BellumCivile
     {
         public bool IsVisible { get; set; }
         public bool CanForm { get; set; }
+        public bool SearchLimited { get; set; }
         public FeudalTitleFormationBlockReason BlockReason { get; set; }
         public string Reason { get; set; }
         public FeudalTitleType TargetType { get; set; }
@@ -94,6 +102,9 @@ namespace BellumCivile
         public int GoldCost { get; set; }
         public int CurrentGold { get; set; }
         public float InfluenceReward { get; set; }
+        public FeudalTitleFormationObstacle StructuralObstacle { get; set; }
+        public System.Collections.Generic.List<FeudalTitleRecord> EligibleTitles { get; }
+            = new System.Collections.Generic.List<FeudalTitleRecord>();
         public System.Collections.Generic.List<FeudalTitleFormationCandidate> Candidates { get; }
             = new System.Collections.Generic.List<FeudalTitleFormationCandidate>();
         public System.Collections.Generic.List<FeudalTitleRecord> SelectableTitles { get; }
@@ -110,6 +121,8 @@ namespace BellumCivile
         public float InfluenceCost { get; set; }
         public int DeJureChildren { get; set; }
         public int DeFactoChildren { get; set; }
+        public FeudalTitleRecord DeJureDestination { get; set; }
+        public FeudalTitleRecord DeFactoDestination { get; set; }
     }
 
     public sealed class FeudalRenamePreview
@@ -122,6 +135,7 @@ namespace BellumCivile
     {
         public bool CanOpen { get; set; }
         public string Reason { get; set; }
+        public TextObject RestrictionReason { get; set; }
         public float InfluenceCost { get; set; }
         public System.Collections.Generic.List<FeudalGrantRecipientPreview> Recipients { get; }
             = new System.Collections.Generic.List<FeudalGrantRecipientPreview>();

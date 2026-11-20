@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 namespace BellumCivile
 {
@@ -10,6 +11,7 @@ namespace BellumCivile
     {
         public bool CanUsurp { get; set; }
         public string Reason { get; set; } = string.Empty;
+        public TextObject RestrictionReason { get; set; }
         public bool HasClaim { get; set; }
         public bool IsLawfulAssumption { get; set; }
         public float ControlShare { get; set; }
@@ -57,6 +59,7 @@ namespace BellumCivile
             if (titleBehavior.IsCurrentRealmSovereignTitle(claimant, title))
             {
                 result.Reason = "the realm's sovereign title must be contested through succession or rebellion";
+                result.RestrictionReason = new TextObject("{=BC_Hierarchy_ActionReasonContestCrown}the realm's sovereign title must be contested through succession or rebellion");
                 return result;
             }
 

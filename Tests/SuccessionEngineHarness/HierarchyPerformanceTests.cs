@@ -119,7 +119,7 @@ internal static class HierarchyPerformanceTests
             Patch(AccessTools.Method(type, "HasStructuralFeud"), nameof(No));
             Patch(AccessTools.Method(type, "GetMinimumChildrenForFormation"), nameof(Minimum));
             Patch(AccessTools.Method(type, "AreTitlesAdjacent"), nameof(Adjacent));
-            Patch(AccessTools.Method(type, "TryBuildCandidateFromCluster"), nameof(Candidate));
+            Patch(AccessTools.Method(type, "TryBuildCandidateFromEligibleCluster"), nameof(Candidate));
             var display = mod.GetType("BellumCivile.FeudalTitleDisplayHelper");
             Patch(AccessTools.Method(display, "FormatTitleName", new[] { typeof(FeudalTitleRecord), typeof(Clan) }), nameof(Format));
             Patch(AccessTools.Method(display, "FormatTitleName", new[] { typeof(FeudalTitleType), typeof(string), typeof(Clan), typeof(Kingdom), typeof(string) }), nameof(CandidateName));

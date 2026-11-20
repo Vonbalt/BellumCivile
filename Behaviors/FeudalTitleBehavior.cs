@@ -886,28 +886,18 @@ namespace BellumCivile.Behaviors
 
             foreach (FeudalTitleRecord neighboringTitle in neighboringTitles.Where(title => !eligibleTitleIds.Contains(title.TitleId)))
             {
-                assessment.Obstacles.Add(new FeudalTitleFormationObstacle
-                {
-                    Title = neighboringTitle,
-                    Reason = GetFormationChildBlockReason(neighboringTitle, clan, childType, allowReorganization)
-                });
+                assessment.Obstacles.Add(DescribeFormationChildBlock(neighboringTitle, clan, childType, allowReorganization));
             }
 
             List<FeudalTitleRecord> component = BuildConnectedComponents(eligibleChildren)
                 .FirstOrDefault(group => group.Any(title => title.TitleId == selectedTitle.TitleId))
                 ?? new List<FeudalTitleRecord>();
             assessment.ContiguousEligibleTitles = component.Count;
-
-            List<FeudalTitleFormationBlockReason> diagnosticFailures = new List<FeudalTitleFormationBlockReason>();
+            assessment.EligibleTitles.AddRange(component.OrderByDescending(title => title == selectedTitle).ThenBy(title => title.Name));
+            var diagnosticFailures = new Dictionary<FeudalTitleFormationBlockReason, FeudalTitleFormationObstacle>();
             List<FeudalTitleFormationCandidate> candidates = BuildFormationCandidates(
-                    clan,
-                    assessment.TargetType,
-                    component,
-                    allowReorganization,
-                    selectedTitle.TitleId,
-                    diagnosticFailures)
-                .Where(candidate => candidate.ChildTitleIds.Contains(selectedTitle.TitleId))
-                .ToList();
+                clan, assessment.TargetType, component, allowReorganization, selectedTitle.TitleId, diagnosticFailures,
+                () => assessment.SearchLimited = true);
             assessment.Candidates.AddRange(candidates);
 
             HashSet<string> selectableTitleIds = new HashSet<string>(
@@ -943,7 +933,9 @@ namespace BellumCivile.Behaviors
                 }
                 else
                 {
-                    assessment.BlockReason = SelectFormationBlockReason(diagnosticFailures);
+                    assessment.BlockReason = SelectFormationBlockReason(diagnosticFailures.Keys);
+                    diagnosticFailures.TryGetValue(assessment.BlockReason, out FeudalTitleFormationObstacle obstacle);
+                    assessment.StructuralObstacle = obstacle;
                     assessment.Reason = GetFormationTechnicalReason(assessment.BlockReason);
                 }
 
@@ -1028,8 +1020,18 @@ namespace BellumCivile.Behaviors
             out FeudalTitleFormationCandidate candidate,
             out string reason)
         {
+            return TryBuildFormationCandidateWithDetails(clan, targetType, childTitleIds, seedTitleId, requestedName,
+                allowReorganization, out candidate, out reason, out _);
+        }
+
+        internal bool TryBuildFormationCandidateWithDetails(
+            Clan clan, FeudalTitleType targetType, IEnumerable<string> childTitleIds, string seedTitleId,
+            string requestedName, bool allowReorganization, out FeudalTitleFormationCandidate candidate,
+            out string reason, out FeudalTitleFormationObstacle obstacle)
+        {
             candidate = null;
             reason = null;
+            obstacle = null;
             EnsureCollectionsInitialized();
 
             if (clan == null || !IsValidFormationTarget(targetType))
@@ -1050,9 +1052,11 @@ namespace BellumCivile.Behaviors
 
             FeudalTitleType childType = GetChildTypeForFormation(targetType);
             List<FeudalTitleRecord> children = distinctIds.Select(GetTitle).Where(title => title != null).ToList();
-            if (children.Count != distinctIds.Count
-                || children.Any(title => !IsEligibleFormationChild(title, clan, childType, allowReorganization)))
+            FeudalTitleRecord ineligible = children.FirstOrDefault(title => !IsEligibleFormationChild(title, clan, childType, allowReorganization));
+            if (children.Count != distinctIds.Count || ineligible != null)
             {
+                if (ineligible != null)
+                    obstacle = DescribeFormationChildBlock(ineligible, clan, childType, allowReorganization);
                 reason = "one or more selected titles are no longer eligible";
                 return false;
             }
@@ -1082,14 +1086,15 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (!TryBuildCandidateFromCluster(
+            if (!TryBuildCandidateFromEligibleCluster(
                 clan,
                 targetType,
                 children,
                 allowReorganization,
                 out candidate,
                 out _,
-                out reason))
+                out reason,
+                out obstacle))
             {
                 reason = reason ?? "the selected title cluster is not eligible";
                 return false;
@@ -1264,9 +1269,19 @@ namespace BellumCivile.Behaviors
             out Kingdom independentKingdom,
             out string reason)
         {
+            return TryFormTitleWithDetails(clan, requestedCandidate, chargeCost, elevationChoice,
+                out title, out independentKingdom, out reason, out _);
+        }
+
+        internal bool TryFormTitleWithDetails(
+            Clan clan, FeudalTitleFormationCandidate requestedCandidate, bool chargeCost,
+            FeudalSovereignElevationChoice elevationChoice, out FeudalTitleRecord title, out Kingdom independentKingdom,
+            out string reason, out FeudalTitleFormationObstacle obstacle)
+        {
             title = null;
             independentKingdom = null;
             reason = null;
+            obstacle = null;
             EnsureCollectionsInitialized();
 
             if (clan == null || requestedCandidate == null)
@@ -1275,7 +1290,7 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (!TryBuildFormationCandidate(
+            if (!TryBuildFormationCandidateWithDetails(
                 clan,
                 requestedCandidate.TargetType,
                 requestedCandidate.ChildTitleIds,
@@ -1285,7 +1300,8 @@ namespace BellumCivile.Behaviors
                 requestedCandidate.Name,
                 allowReorganization: requestedCandidate.Mode != FeudalTitleFormationMode.Consolidation,
                 out FeudalTitleFormationCandidate candidate,
-                out reason))
+                out reason,
+                out obstacle))
             {
                 return false;
             }
@@ -1329,7 +1345,7 @@ namespace BellumCivile.Behaviors
             var historicOrigins = candidate.ChildTitleIds.Select(GetTitle).Where(t => t != null)
                 .ToDictionary(t => t.TitleId, GetDriftOriginKingdomId);
             string titleId = BuildUniqueHigherTitleId(candidate.TargetType, candidate.CapitalSettlementId, clan.StringId);
-            string parentTitleId = ResolveParentForNewTitle(clan, candidate.TargetType, candidate.ChildTitleIds);
+            string parentTitleId = ResolveParentForNewTitle(clan, candidate.TargetType, candidate.ChildTitleIds.Select(GetTitle));
             string kingdomId = clan?.Kingdom?.StringId ?? string.Empty;
 
             title = new FeudalTitleRecord(
@@ -1346,7 +1362,7 @@ namespace BellumCivile.Behaviors
 
             _titlesById[titleId] = title;
 
-            bool promotesIndependentShell = ShouldPromoteIndependentRealmShell(clan?.Kingdom, title, candidate.ChildTitleIds);
+            bool promotesIndependentShell = ShouldPromoteIndependentRealmShell(clan?.Kingdom, candidate.TargetType, candidate.ChildTitleIds);
             if (promotesIndependentShell)
                 title.SetDeFactoParentTitle(string.Empty);
 
@@ -1528,6 +1544,22 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
+        internal (FeudalTitleRecord DeJure, FeudalTitleRecord DeFacto) GetDissolutionDestinations(FeudalTitleRecord title)
+        {
+            if (title == null)
+                return (null, null);
+
+            FeudalTitleRecord ActiveHigherParent(string id)
+            {
+                FeudalTitleRecord parent = GetTitle(id);
+                return parent?.IsActive == true && !parent.IsDeliberatelyDissolved && parent.TitleType > title.TitleType
+                    ? parent : null;
+            }
+
+            FeudalTitleRecord deJure = ActiveHigherParent(title.ParentTitleId);
+            return (deJure, ActiveHigherParent(title.DeFactoParentTitleId) ?? deJure);
+        }
+
         private bool DissolveTitleInternal(FeudalTitleRecord title, bool deliberatelyDissolved, string reason, out string failureReason)
         {
             failureReason = null;
@@ -1537,14 +1569,9 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            FeudalTitleRecord deJureParent = GetTitle(title.ParentTitleId);
-            FeudalTitleRecord deFactoParent = GetTitle(title.DeFactoParentTitleId);
-            string deJureParentId = deJureParent != null && deJureParent.IsActive && deJureParent.TitleType > title.TitleType
-                ? deJureParent.TitleId
-                : string.Empty;
-            string deFactoParentId = deFactoParent != null && deFactoParent.IsActive && deFactoParent.TitleType > title.TitleType
-                ? deFactoParent.TitleId
-                : deJureParentId;
+            var destinations = GetDissolutionDestinations(title);
+            string deJureParentId = destinations.DeJure?.TitleId ?? string.Empty;
+            string deFactoParentId = destinations.DeFacto?.TitleId ?? string.Empty;
 
             List<FeudalTitleRecord> deJureChildren = _titlesById.Values
                 .Where(child => child != null && child.IsActive && child.ParentTitleId == title.TitleId)
@@ -5696,14 +5723,13 @@ namespace BellumCivile.Behaviors
             bool hasImmediateParent = IsActiveFormationParent(deJureParent, targetType)
                 || IsActiveFormationParent(deFactoParent, targetType);
 
-            if (!allowReorganization)
-            {
-                return string.Equals(title.DeFactoHolderClanId, clan.StringId, StringComparison.Ordinal)
-                    && !hasImmediateParent;
-            }
-
             if (HasStructuralFeud(title))
                 return false;
+
+            if (!allowReorganization)
+            {
+                return IsFullyHeldByClan(title, clan) && !hasImmediateParent;
+            }
 
             if (IsFullyHeldByClan(title, clan))
                 return true;
@@ -5740,17 +5766,21 @@ namespace BellumCivile.Behaviors
             if (HasStructuralFeud(title))
                 return FeudalTitleFormationBlockReason.SeatDisputed;
 
-            if (IsFullyHeldByClan(title, clan))
-                return FeudalTitleFormationBlockReason.None;
-
             FeudalTitleType targetType = GetParentTypeForChild(childType);
             List<FeudalTitleRecord> immediateParents = GetImmediateFormationParents(title, targetType);
+            bool fullyHeld = IsFullyHeldByClan(title, clan);
+            if (!fullyHeld && (title.DeFactoHolderClanId == clan.StringId || title.DeJureHolderClanId == clan.StringId))
+                return FeudalTitleFormationBlockReason.ChildNotFullyHeld;
+
             if (!allowReorganization)
             {
                 return immediateParents.Count > 0
                     ? FeudalTitleFormationBlockReason.ExistingHigherTitle
                     : FeudalTitleFormationBlockReason.UnauthorizedHolder;
             }
+
+            if (fullyHeld)
+                return FeudalTitleFormationBlockReason.None;
 
             if (!HasSovereignReorganizationAuthority(clan, out _))
                 return FeudalTitleFormationBlockReason.NoReorganizationAuthority;
@@ -5771,6 +5801,17 @@ namespace BellumCivile.Behaviors
                 || immediateParents.Any(parent => !IsFullyHeldByClan(parent, clan))
                 ? FeudalTitleFormationBlockReason.ParentNotControlled
                 : FeudalTitleFormationBlockReason.InvalidCluster;
+        }
+
+        private FeudalTitleFormationObstacle DescribeFormationChildBlock(
+            FeudalTitleRecord title, Clan clan, FeudalTitleType childType, bool allowReorganization)
+        {
+            return new FeudalTitleFormationObstacle
+            {
+                Title = title,
+                Reason = GetFormationChildBlockReason(title, clan, childType, allowReorganization),
+                ParentTitle = GetImmediateFormationParents(title, GetParentTypeForChild(childType)).FirstOrDefault()
+            };
         }
 
         private static FeudalTitleFormationBlockReason SelectFormationBlockReason(
@@ -5861,14 +5902,9 @@ namespace BellumCivile.Behaviors
             if (parent == null || !parent.IsActive)
                 return true;
 
-            return _titlesById.Values.Any(title =>
-                title != null
-                && title.IsActive
-                && !selectedTitleIds.Contains(title.TitleId)
-                && string.Equals(
-                    mode == FeudalHierarchyMode.DeFacto ? title.DeFactoParentTitleId : title.ParentTitleId,
-                    parent.TitleId,
-                    StringComparison.Ordinal));
+            var index = mode == FeudalHierarchyMode.DeFacto ? _childrenByDeFactoParentTitleId : _childrenByParentTitleId;
+            return index.TryGetValue(parent.TitleId, out List<string> children)
+                && children.Any(id => !selectedTitleIds.Contains(id) && GetTitle(id)?.IsActive == true);
         }
 
         private bool IsFormationClusterExclusiveToClan(
@@ -5911,57 +5947,60 @@ namespace BellumCivile.Behaviors
             FeudalTitleType targetType,
             List<FeudalTitleRecord> eligibleChildren,
             bool allowReorganization = false,
-            string diagnosticTitleId = null,
-            List<FeudalTitleFormationBlockReason> diagnosticFailures = null)
+            string seatTitleId = null,
+            Dictionary<FeudalTitleFormationBlockReason, FeudalTitleFormationObstacle> diagnosticFailures = null,
+            Action onSearchLimited = null)
         {
             int minimumChildren = GetMinimumChildrenForFormation();
             if (clan == null || eligibleChildren == null || eligibleChildren.Count < minimumChildren)
                 return new List<FeudalTitleFormationCandidate>();
 
             List<FeudalTitleFormationCandidate> candidates = new List<FeudalTitleFormationCandidate>();
-            foreach (List<FeudalTitleRecord> component in BuildConnectedComponents(eligibleChildren))
+            // The seat preview has already isolated its own connected component.
+            IEnumerable<List<FeudalTitleRecord>> components = seatTitleId != null
+                ? new[] { eligibleChildren }.AsEnumerable()
+                : BuildConnectedComponents(eligibleChildren);
+            foreach (List<FeudalTitleRecord> component in components)
             {
                 if (component.Count < minimumChildren)
                     continue;
 
-                if (TryBuildCandidateFromCluster(
+                if (TryBuildCandidateFromEligibleCluster(
                     clan,
                     targetType,
                     component,
                     allowReorganization,
                     out FeudalTitleFormationCandidate fullClusterCandidate,
                     out FeudalTitleFormationBlockReason fullClusterFailure,
-                    out _))
+                    out _,
+                    out FeudalTitleFormationObstacle fullClusterObstacle))
                 {
                     candidates.Add(fullClusterCandidate);
                     continue;
                 }
 
-                if (diagnosticFailures != null
-                    && (string.IsNullOrWhiteSpace(diagnosticTitleId)
-                        || component.Any(title => title.TitleId == diagnosticTitleId)))
+                if (diagnosticFailures != null && !diagnosticFailures.ContainsKey(fullClusterFailure))
                 {
-                    diagnosticFailures.Add(fullClusterFailure);
+                    diagnosticFailures.Add(fullClusterFailure, fullClusterObstacle);
                 }
 
-                foreach (List<FeudalTitleRecord> subset in FindValidFormationSubsets(clan, targetType, component))
+                foreach (List<FeudalTitleRecord> subset in FindValidFormationSubsets(clan, component, seatTitleId, onSearchLimited))
                 {
-                    if (TryBuildCandidateFromCluster(
+                    if (TryBuildCandidateFromEligibleCluster(
                         clan,
                         targetType,
                         subset,
                         allowReorganization,
                         out FeudalTitleFormationCandidate subsetCandidate,
                         out FeudalTitleFormationBlockReason subsetFailure,
-                        out _))
+                        out _,
+                        out FeudalTitleFormationObstacle subsetObstacle))
                     {
                         candidates.Add(subsetCandidate);
                     }
-                    else if (diagnosticFailures != null
-                        && (string.IsNullOrWhiteSpace(diagnosticTitleId)
-                            || subset.Any(title => title.TitleId == diagnosticTitleId)))
+                    else if (diagnosticFailures != null && !diagnosticFailures.ContainsKey(subsetFailure))
                     {
-                        diagnosticFailures.Add(subsetFailure);
+                        diagnosticFailures.Add(subsetFailure, subsetObstacle);
                     }
                 }
             }
@@ -6016,7 +6055,8 @@ namespace BellumCivile.Behaviors
             return components;
         }
 
-        private IEnumerable<List<FeudalTitleRecord>> FindValidFormationSubsets(Clan clan, FeudalTitleType targetType, List<FeudalTitleRecord> component)
+        private IEnumerable<List<FeudalTitleRecord>> FindValidFormationSubsets(
+            Clan clan, List<FeudalTitleRecord> component, string seatTitleId, Action onSearchLimited)
         {
             List<FeudalTitleRecord> ordered = component
                 .OrderByDescending(title => IsFullyHeldByClan(title, clan))
@@ -6027,9 +6067,11 @@ namespace BellumCivile.Behaviors
             if (ordered.Count <= 12)
             {
                 int maxMask = 1 << ordered.Count;
-                for (int mask = 1; mask < maxMask; mask++)
+                int seatIndex = seatTitleId == null ? -1 : ordered.FindIndex(title => title.TitleId == seatTitleId);
+                int seatMask = seatIndex < 0 ? 0 : 1 << seatIndex;
+                for (int mask = 1; mask < maxMask - 1; mask++)
                 {
-                    if (CountBits(mask) < GetMinimumChildrenForFormation())
+                    if ((mask & seatMask) != seatMask || CountBits(mask) < GetMinimumChildrenForFormation())
                         continue;
 
                     List<FeudalTitleRecord> subset = new List<FeudalTitleRecord>();
@@ -6043,6 +6085,13 @@ namespace BellumCivile.Behaviors
                         yield return subset;
                 }
 
+                yield break;
+            }
+
+            if (seatTitleId != null)
+            {
+                foreach (List<FeudalTitleRecord> subset in FindBoundedSeatFormationSubsets(ordered, seatTitleId, onSearchLimited))
+                    yield return subset;
                 yield break;
             }
 
@@ -6072,18 +6121,92 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private bool TryBuildCandidateFromCluster(
+        private IEnumerable<List<FeudalTitleRecord>> FindBoundedSeatFormationSubsets(
+            List<FeudalTitleRecord> ordered, string seatTitleId, Action onSearchLimited)
+        {
+            const int stateBudget = 768;
+            const int maxStatesPerSize = 64;
+            int seat = ordered.FindIndex(title => title.TitleId == seatTitleId);
+            if (seat < 0)
+                yield break;
+
+            int minimum = GetMinimumChildrenForFormation();
+            var neighbors = new List<int>[ordered.Count];
+            for (int i = 0; i < ordered.Count; i++)
+                neighbors[i] = new List<int>();
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                for (int j = i + 1; j < ordered.Count; j++)
+                {
+                    if (AreTitlesAdjacent(ordered[i], ordered[j]))
+                    {
+                        neighbors[i].Add(j);
+                        neighbors[j].Add(i);
+                    }
+                }
+            }
+
+            // Keep different paths at each size so an invalid high-prosperity neighbor cannot monopolize the search.
+            var level = new List<int[]> { new[] { seat } };
+            int visited = 1;
+            bool truncated = false;
+            for (int size = 1; size < ordered.Count && level.Count > 0; size++)
+            {
+                if (size >= minimum)
+                {
+                    foreach (int[] subset in level)
+                        yield return subset.Select(index => ordered[index]).ToList();
+                }
+
+                if (size + 1 == ordered.Count)
+                    break; // The full cluster was already checked.
+
+                var nextLevel = new List<int[]>();
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+                bool atLimit = false;
+                foreach (int[] subset in level)
+                {
+                    foreach (int index in subset.SelectMany(member => neighbors[member]).Distinct().OrderBy(index => index))
+                    {
+                        if (Array.BinarySearch(subset, index) >= 0)
+                            continue;
+                        int[] next = subset.Append(index).OrderBy(member => member).ToArray();
+                        if (!seen.Add(string.Join(",", next)))
+                            continue;
+                        if (nextLevel.Count >= maxStatesPerSize || visited >= stateBudget)
+                        {
+                            atLimit = true;
+                            break;
+                        }
+                        nextLevel.Add(next);
+                        visited++;
+                    }
+                    if (atLimit)
+                        break;
+                }
+                truncated |= atLimit;
+                level = nextLevel;
+            }
+
+            if (truncated)
+                onSearchLimited?.Invoke();
+        }
+
+        // Callers supply a connected cluster whose individual titles have already passed eligibility checks.
+        private bool TryBuildCandidateFromEligibleCluster(
             Clan clan,
             FeudalTitleType targetType,
             List<FeudalTitleRecord> cluster,
             bool allowReorganization,
             out FeudalTitleFormationCandidate candidate,
             out FeudalTitleFormationBlockReason blockReason,
-            out string reason)
+            out string reason,
+            out FeudalTitleFormationObstacle obstacle)
         {
             candidate = null;
             blockReason = FeudalTitleFormationBlockReason.None;
             reason = null;
+            obstacle = null;
             if (clan == null || cluster == null || cluster.Count < GetMinimumChildrenForFormation())
             {
                 blockReason = FeudalTitleFormationBlockReason.InsufficientContiguousTitles;
@@ -6091,18 +6214,10 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (!IsConnectedSubset(cluster) || !HasLawfulFormationSeed(clan, cluster))
+            if (!HasLawfulFormationSeed(clan, cluster))
             {
                 blockReason = FeudalTitleFormationBlockReason.InvalidCluster;
-                reason = "selected titles are not contiguous or contain no lawful seed";
-                return false;
-            }
-
-            FeudalTitleType childType = GetChildTypeForFormation(targetType);
-            if (cluster.Any(title => !IsEligibleFormationChild(title, clan, childType, allowReorganization)))
-            {
-                blockReason = FeudalTitleFormationBlockReason.InvalidCluster;
-                reason = "one or more selected titles are no longer eligible";
+                reason = "selected titles contain no lawful seed";
                 return false;
             }
 
@@ -6119,6 +6234,8 @@ namespace BellumCivile.Behaviors
                 if (immediateParents.Count > 1)
                 {
                     blockReason = FeudalTitleFormationBlockReason.ConflictingParents;
+                    obstacle = new FeudalTitleFormationObstacle { Reason = blockReason, Title = child,
+                        ParentTitle = GetTitle(child.ParentTitleId), OtherParentTitle = GetTitle(child.DeFactoParentTitleId) };
                     reason = "a selected title has conflicting immediate parents";
                     return false;
                 }
@@ -6164,6 +6281,7 @@ namespace BellumCivile.Behaviors
                     if (!parentsPersonallyHeld && !hasSovereignAuthority)
                     {
                         blockReason = FeudalTitleFormationBlockReason.NoReorganizationAuthority;
+                        obstacle = new FeudalTitleFormationObstacle { Reason = blockReason, Title = child, ParentTitle = immediateParents[0] };
                         reason = "you lack authority to detach a selected title from its current parent";
                         return false;
                     }
@@ -6188,26 +6306,21 @@ namespace BellumCivile.Behaviors
                 });
             }
 
-            if (affectedParents.Values.Any(IsFeudTarget))
+            FeudalTitleRecord disputedParent = affectedParents.Values.FirstOrDefault(IsFeudTarget);
+            if (disputedParent != null)
             {
                 blockReason = FeudalTitleFormationBlockReason.ParentDisputed;
+                obstacle = new FeudalTitleFormationObstacle { Reason = blockReason, ParentTitle = disputedParent };
                 reason = "a source parent title is involved in an active claim or dispute";
                 return false;
             }
 
-            foreach (FeudalTitleRecord parent in affectedParents.Values)
+            obstacle = GetFormationEmptyParentObstacle(clan, targetType, cluster, moves, selectedTitleIds);
+            if (obstacle != null)
             {
-                bool losesDeJureChildren = cluster.Any(child =>
-                    string.Equals(child.ParentTitleId, parent.TitleId, StringComparison.Ordinal));
-                bool losesDeFactoChildren = cluster.Any(child =>
-                    string.Equals(child.DeFactoParentTitleId, parent.TitleId, StringComparison.Ordinal));
-                if ((losesDeJureChildren && !IsFormationParentRetained(parent, selectedTitleIds, FeudalHierarchyMode.DeJure))
-                    || (losesDeFactoChildren && !IsFormationParentRetained(parent, selectedTitleIds, FeudalHierarchyMode.DeFacto)))
-                {
-                    blockReason = FeudalTitleFormationBlockReason.WouldEmptyParent;
-                    reason = "formation would leave an existing parent title without subordinate titles";
-                    return false;
-                }
+                blockReason = obstacle.Reason;
+                reason = "formation would leave an existing parent title without subordinate titles";
+                return false;
             }
 
             bool createsCoequalSovereignTitle = hasSovereignAuthority
@@ -6225,6 +6338,7 @@ namespace BellumCivile.Behaviors
                     if (!IsFormationClusterExclusiveToClan(vassal, vassalRoots))
                     {
                         blockReason = FeudalTitleFormationBlockReason.SplitVassalEstate;
+                        obstacle = new FeudalTitleFormationObstacle { Reason = blockReason, Holder = vassal, Title = vassalRoots.FirstOrDefault() };
                         reason = "a selected vassal holds lands or titles outside the proposed sovereign title";
                         return false;
                     }
@@ -6275,6 +6389,91 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
+        private FeudalTitleFormationObstacle GetFormationEmptyParentObstacle(
+            Clan clan, FeudalTitleType targetType, List<FeudalTitleRecord> cluster,
+            List<FeudalTitleFormationMove> moves, HashSet<string> selectedTitleIds)
+        {
+            var sourceParents = new Dictionary<string, (string LegalChildId, string ActualChildId)>(StringComparer.Ordinal);
+            foreach (FeudalTitleFormationMove move in moves)
+            {
+                if (move.ReparentDeJure && !string.IsNullOrEmpty(move.OldDeJureParentTitleId))
+                {
+                    sourceParents.TryGetValue(move.OldDeJureParentTitleId, out var source);
+                    sourceParents[move.OldDeJureParentTitleId] = (source.LegalChildId ?? move.ChildTitleId, source.ActualChildId);
+                }
+                if (move.ReparentDeFacto && !string.IsNullOrEmpty(move.OldDeFactoParentTitleId))
+                {
+                    sourceParents.TryGetValue(move.OldDeFactoParentTitleId, out var source);
+                    sourceParents[move.OldDeFactoParentTitleId] = (source.LegalChildId, source.ActualChildId ?? move.ChildTitleId);
+                }
+            }
+
+            string newLegalParent = null;
+            string newActualParent = null;
+            foreach (var source in sourceParents)
+            {
+                FeudalTitleRecord parent = GetTitle(source.Key);
+                if (parent?.IsActive != true || parent.IsDeliberatelyDissolved || parent.TitleType < targetType)
+                    continue;
+
+                bool emptiesDeJure = source.Value.LegalChildId != null
+                    && !IsFormationParentRetained(parent, selectedTitleIds, FeudalHierarchyMode.DeJure);
+                bool emptiesDeFacto = source.Value.ActualChildId != null
+                    && !IsFormationParentRetained(parent, selectedTitleIds, FeudalHierarchyMode.DeFacto);
+
+                if (parent.TitleType > targetType && (emptiesDeJure || emptiesDeFacto))
+                {
+                    // A new intermediate title can replace the moved branches, but only under the liege it will actually join.
+                    newLegalParent = newLegalParent ?? ResolveParentForNewTitle(clan, targetType, cluster);
+                    if (emptiesDeJure && parent.TitleId == newLegalParent)
+                        emptiesDeJure = false;
+                    if (emptiesDeFacto)
+                    {
+                        newActualParent = newActualParent ?? ProjectFormationDeFactoParent(
+                            clan, targetType, newLegalParent, selectedTitleIds);
+                        if (parent.TitleId == newActualParent)
+                            emptiesDeFacto = false;
+                    }
+                }
+
+                if (emptiesDeJure || emptiesDeFacto)
+                {
+                    return new FeudalTitleFormationObstacle
+                    {
+                        Reason = FeudalTitleFormationBlockReason.WouldEmptyParent,
+                        ParentTitle = parent,
+                        Title = GetTitle(emptiesDeJure ? source.Value.LegalChildId : source.Value.ActualChildId),
+                        EmptiesDeJure = emptiesDeJure,
+                        EmptiesDeFacto = emptiesDeFacto
+                    };
+                }
+            }
+
+            return null;
+        }
+
+        private string ProjectFormationDeFactoParent(
+            Clan clan, FeudalTitleType targetType, string legalParentId, HashSet<string> childTitleIds)
+        {
+            Kingdom kingdom = clan.Kingdom;
+            if (ShouldPromoteIndependentRealmShell(kingdom, targetType, childTitleIds))
+                return string.Empty;
+            if (!IsValidPermanentKingdom(kingdom) || IsTemporaryRebelKingdom(kingdom))
+                return legalParentId;
+
+            if (kingdom.RulingClan != clan)
+            {
+                FeudalTitleRecord sovereign = GetRealmSovereignTitle(kingdom, FeudalHierarchyMode.DeFacto)
+                    ?? GetKingdomPoliticalTitle(kingdom);
+                if (sovereign != null && targetType >= sovereign.TitleType)
+                    return string.Empty;
+            }
+
+            var prospectiveTitle = new FeudalTitleRecord(string.Empty, string.Empty, targetType, clan.StringId,
+                clan.StringId, legalParentId, string.Empty, kingdom.StringId, 0, 0);
+            return ResolveBestDeFactoParent(prospectiveTitle, kingdom)?.TitleId ?? string.Empty;
+        }
+
         private static bool HasLawfulFormationSeed(Clan clan, List<FeudalTitleRecord> cluster)
         {
             if (clan == null || cluster == null || cluster.Count < GetMinimumChildrenForFormation())
@@ -6291,13 +6490,12 @@ namespace BellumCivile.Behaviors
                 && string.Equals(title.DeFactoHolderClanId, clan.StringId, StringComparison.Ordinal);
         }
 
-        private bool ShouldPromoteIndependentRealmShell(Kingdom kingdom, FeudalTitleRecord newTitle, List<string> childTitleIds)
+        private bool ShouldPromoteIndependentRealmShell(Kingdom kingdom, FeudalTitleType targetType, ICollection<string> childTitleIds)
         {
             FeudalTitleRecord currentShell = IsIndependentRealmShell(kingdom)
                 ? GetRealmSovereignTitle(kingdom, FeudalHierarchyMode.DeFacto) : null;
             return currentShell != null
-                && newTitle != null
-                && newTitle.TitleType > currentShell.TitleType
+                && targetType > currentShell.TitleType
                 && childTitleIds != null
                 && childTitleIds.Contains(currentShell.TitleId);
         }
@@ -6471,14 +6669,10 @@ namespace BellumCivile.Behaviors
                 .FirstOrDefault() ?? string.Empty;
         }
 
-        private string ResolveParentForNewTitle(Clan clan, FeudalTitleType targetType, List<string> childTitleIds)
+        private string ResolveParentForNewTitle(Clan clan, FeudalTitleType targetType, IEnumerable<FeudalTitleRecord> childTitles)
         {
-            List<FeudalTitleRecord> childTitles = childTitleIds?
-                .Select(GetTitle)
-                .Where(title => title != null)
-                .ToList() ?? new List<FeudalTitleRecord>();
-
             FeudalTitleRecord parent = childTitles
+                .Where(title => title != null)
                 .Select(child => ResolveNearestFormationAncestor(child, clan, targetType))
                 .Where(existingParent => existingParent != null)
                 .GroupBy(existingParent => existingParent.TitleId)
