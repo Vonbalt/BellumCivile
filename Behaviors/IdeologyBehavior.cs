@@ -2619,8 +2619,8 @@ namespace BellumCivile.Behaviors
                 .FirstOrDefault(f => !f.IsIdeology && f.Leader == targetClan);
             if (existingFaction != null) return existingFaction;
 
-            string factionName = $"{targetClan.Name} Secessionists";
-            FactionObject rebelFaction = new FactionObject(factionName, originalKingdom, targetClan, FactionType.Independence);
+            string factionName = $"{targetClan.Name} Coalition";
+            FactionObject rebelFaction = new FactionObject(factionName, originalKingdom, targetClan, FactionType.Abdication);
             rebelFaction.MarkJudgmentResistance();
             factionManager.RegisterNewFaction(rebelFaction);
             return rebelFaction;

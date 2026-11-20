@@ -285,6 +285,24 @@ internal static class CrownRebellionSafetyTests
             check(_scans == 0, "Court tick revalidates after mandate callback makes the realm leaderless");
             Rulers[realm] = newHouse; _onMandate = k => Rulers[k] = oldHouse;
             Call(court, "Tick"); check(_scans == 0, "Court tick does not process a newly changed ruler using its old snapshot");
+
+            Rulers[realm] = newHouse;
+            Realms[founder] = realm;
+            Factions().Clear();
+            Set(realm, "_rulingClan", newHouse);
+            Set(newHouse, "_leader", Heads[newHouse]);
+            var resistance = (FactionObject)Call(ideology, "CreateExpelledLordRebelFaction", founder, realm, manager);
+            check(resistance != null && resistance.Type == FactionType.Abdication,
+                "New treason resistance demands abdication rather than independence");
+            check(resistance.AbdicationMonarch == Heads[newHouse],
+                "Treason resistance targets the incumbent ruler");
+            check(resistance != null && resistance.Leader == founder && Factions().Contains(resistance)
+                && (bool)AccessTools.PropertyGetter(typeof(FactionObject), "IsJudgmentResistance").Invoke(resistance, null),
+                "Treason resistance is registered under the accused clan and keeps judgment resistance rules");
+            var separatists = Faction(oldHouse, FactionType.Independence);
+            check(ReferenceEquals(Call(ideology, "CreateExpelledLordRebelFaction", oldHouse, realm, manager), separatists)
+                && separatists.Type == FactionType.Independence && Factions().Count == 2,
+                "An already-led rebellion keeps its demands instead of creating a second faction");
         }
         finally
         {
