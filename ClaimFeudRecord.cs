@@ -56,6 +56,7 @@ namespace BellumCivile
         public string TargetTitleId => _targetTitleId;
         public FeudalClaimStrength ClaimStrength => _claimStrength;
         public ClaimFeudState State => _state;
+        internal ClaimFeudState EffectiveState => State == ClaimFeudState.Paused ? ResumeState : State;
         public float Pressure => _pressure;
         public float StartedDay => _startedDay;
         public float LastTickDay => _lastTickDay;

@@ -61,6 +61,7 @@ internal static class ClaimFeudCooldownTests
 
     private static readonly Dictionary<Clan, Hero> Heads = new Dictionary<Clan, Hero>();
     private static readonly List<Clan> Houses = new List<Clan>();
+    private static readonly HashSet<Kingdom> WarEnemies = new HashSet<Kingdom>();
     private static Campaign _campaign;
     private static Manager _manager;
     private static Kingdom _realm;
@@ -90,7 +91,9 @@ internal static class ClaimFeudCooldownTests
     private static bool Realm(ref Kingdom __result) { __result = _realm; return false; }
     private static bool Ruler(ref Clan __result) { __result = _crown; return false; }
     private static bool AllClans(ref MBReadOnlyList<Clan> __result) { __result = new MBReadOnlyList<Clan>(Houses); return false; }
-    private static bool AllRealms(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(new[] { _realm }); return false; }
+    private static bool AllRealms(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(new[] { _realm }.Concat(WarEnemies).ToList()); return false; }
+    private static bool AtWar(Kingdom __instance, IFaction __0, ref bool __result)
+    { __result = __instance == _realm && __0 is Kingdom other && WarEnemies.Contains(other); return false; }
     private static bool Name(ref TextObject __result) { __result = new TextObject("Test realm"); return false; }
     private static bool Day(ref float __result) { __result = _day; return false; }
     private static bool Year(ref int __result) { __result = 84; return false; }
@@ -108,7 +111,7 @@ internal static class ClaimFeudCooldownTests
     }
     private static void Reset(FeudalClaimStrength strength = FeudalClaimStrength.Strong)
     {
-        Houses.Clear(); Heads.Clear(); _manager.Items.Clear(); _day = 20; _influence = 1000; _spends = 0;
+        Houses.Clear(); Heads.Clear(); WarEnemies.Clear(); _manager.Items.Clear(); _day = 20; _influence = 1000; _spends = 0;
         _realm = Blank<Kingdom>(); _realm.StringId = "realm";
         _crown = House("crown"); _player = _claimant = House("claimant");
         _holder = House("holder"); _other = House("other");
@@ -173,6 +176,7 @@ internal static class ClaimFeudCooldownTests
             Getter(typeof(Kingdom), "RulingClan", nameof(Ruler));
             Getter(typeof(Kingdom), "All", nameof(AllRealms));
             Getter(typeof(Kingdom), "Name", nameof(Name));
+            Patch(AccessTools.Method(typeof(Kingdom), "IsAtWarWith"), nameof(AtWar));
             foreach (var type in new[] { typeof(ClaimFeudBehavior), typeof(FeudalTitleBehavior), typeof(RealmPeaceEnforcementBehavior) })
                 Getter(type, "CurrentDay", nameof(Day));
             Patch(AccessTools.Method(typeof(ClaimFeudBehavior), "ApplyRulingRelations"), nameof(Skip));
@@ -184,6 +188,7 @@ internal static class ClaimFeudCooldownTests
                 new[] { typeof(FeudalTitleRecord), typeof(Clan) }), nameof(TitleName));
             Patch(AccessTools.Method(mod.GetType("BellumCivile.NpcInfluenceBudgetService"), "TrySpend"), nameof(Spend));
             RunCases(check);
+            RunPendingWarCases(check);
             Patch(AccessTools.Method(mod.GetType("BellumCivile.ClanFiefDesireHelper"), "CalculateRebelliousFiefDesirePressure"), nameof(ZeroFloat));
             Patch(AccessTools.Method(mod.GetType("BellumCivile.ClanFiefDesireHelper"), "CalculateFiefDesirePressure"), nameof(ZeroFloat));
             Patch(AccessTools.Method(typeof(ClaimFeudBehavior), "CalculatePowerAdvantageScore"), nameof(ZeroFloat));
@@ -202,6 +207,81 @@ internal static class ClaimFeudCooldownTests
             RunSelectionCases(check);
         }
         finally { h.UnpatchAll(h.Id); _campaign = null; }
+    }
+
+    private static void RunPendingWarCases(Action<bool, string> check)
+    {
+        Reset();
+        var first = Blank<Kingdom>(); first.StringId = "foreign_a";
+        var last = Blank<Kingdom>(); last.StringId = "foreign_b";
+        var feudRealm = Blank<Kingdom>(); feudRealm.StringId = "bc_feud_other_holder";
+        WarEnemies.UnionWith(new[] { first, last, feudRealm });
+        var record = Record();
+        record.SetState(ClaimFeudState.PetitionReady);
+        record.SetPressure(82f);
+
+        var vm = Blank<ClaimFeudItemVM>();
+        AccessTools.Field(typeof(ClaimFeudItemVM), "_record").SetValue(vm, record);
+        void Refresh() => Call(vm, "RefreshPetitionState", _claimant);
+        string HintText(object hint) => Field<TextObject>(hint, "HintText").ToString();
+        bool PausedByConflict()
+        {
+            object[] args = { record, _claimant, _holder, null };
+            return (bool)AccessTools.Method(typeof(ClaimFeudBehavior), "TryGetTemporaryPauseReason").Invoke(_feuds, args);
+        }
+        Refresh();
+        check(vm.CanPetition && !vm.HasPendingWarStatus && !PausedByConflict()
+            && HintText(vm.PetitionHint).Contains("The ruler can hear this petition"),
+            "Foreign war still allows a court petition and explains the consequence of defiance");
+
+        Rule(record, ClaimFeudJudgment.UpholdHolder, ClaimFeudResponse.Defy);
+        Refresh();
+        check(!vm.CanPetition && vm.PendingWarStatusText.Contains("the realm is at war abroad") && record.Pressure == 82f
+            && HintText(vm.PendingWarStatusHint).Contains("automatically"),
+            "Pending defiance below full intensity shows the foreign-war delay");
+        var war = new ClaimFeudWarBehavior();
+        check(!(bool)Call(war, "TryStartFeudWar", record) && record.State == ClaimFeudState.Paused
+            && record.ResumeState == ClaimFeudState.DefiedPendingWar && !war.HasActiveWarForFeud(record.RecordId),
+            "The war launcher still pauses pending defiance without creating a feud war");
+        check(!_feuds.TryPetitionFeud(record.RecordId, _claimant, out string petitionReport)
+            && petitionReport.Contains("awaiting private war") && record.State == ClaimFeudState.Paused,
+            "A stale petition cannot reopen a ruling while pending defiance is paused");
+
+        var notifications = typeof(ClaimFeudBehavior).Assembly.GetType("BellumCivile.NotificationHelper");
+        var response = AccessTools.Method(notifications, "GetClaimFeudResponseText");
+        string RulingText(ClaimFeudResponse claimantResponse, ClaimFeudResponse holderResponse) =>
+            response.Invoke(null, new object[] { _realm, ClaimFeudJudgment.UpholdHolder, null, null, claimantResponse, holderResponse }).ToString();
+        check(RulingText(ClaimFeudResponse.Defy, ClaimFeudResponse.Accept).Contains("Private banners cannot be raised")
+            && RulingText(ClaimFeudResponse.Defy, ClaimFeudResponse.Defy).Contains("Both houses delivered letters")
+            && !RulingText(ClaimFeudResponse.Accept, ClaimFeudResponse.Accept).Contains("banners"),
+            "Ruling messages distinguish one or both defiant houses from peaceful acceptance during foreign war");
+
+        WarEnemies.Remove(first);
+        Refresh();
+        check(PausedByConflict() && vm.PendingWarStatusText.Contains("at war abroad"),
+            "Ending only one of multiple foreign wars does not lift the delay");
+        WarEnemies.Remove(last);
+        Refresh();
+        check(!PausedByConflict() && vm.PendingWarStatusText == "Private war pending"
+            && !RulingText(ClaimFeudResponse.Defy, ClaimFeudResponse.Accept).Contains("cannot be raised"),
+            "Ending the last foreign war clears that blocker even if an internal feud realm is still hostile");
+        record.SetState(ClaimFeudState.WarActive);
+        Refresh();
+        check(!vm.HasPendingWarStatus && !vm.CanPetition, "The pending banner disappears once a private war is active");
+
+        record.Pause(ClaimFeudState.PetitionReady, "fixture", _day);
+        var window = Blank<FactionsWindowVM>();
+        Call(window, "TryApplySelectedClaimFeudButtonState", record);
+        check(window.CreateDestroyText == "Abandon" && !window.IsCreateDestroyEnabled,
+            "An ordinary paused feud does not offer an unusable Abandon action");
+        WarEnemies.Add(last);
+        record.Pause(ClaimFeudState.DefiedPendingWar, "foreign war", _day);
+        Call(window, "TryApplySelectedClaimFeudButtonState", record);
+        check(window.CreateDestroyText == "Surrender" && window.IsCreateDestroyEnabled,
+            "The claimant can choose Surrender while pending defiance is paused");
+        check(_feuds.TrySurrenderPlayerFeud(record.RecordId, _claimant, out _) && record.State == ClaimFeudState.Settled
+            && record.CooldownUntilDay > _day && _title.DeJureHolderClanId == _holder.StringId,
+            "Surrender during the delay upholds the holder and starts the existing cooldown before any banners are raised");
     }
 
     private static void RunSelectionCases(Action<bool, string> check)

@@ -1489,6 +1489,9 @@
     <string id="BC_ClaimFeud_Response_Accepted" text="Reports say both parties accepted the ruling begrudgingly, and the matter is settled." />
     <string id="BC_ClaimFeud_Response_Suppressed" text="Reports say both parties accepted the decree begrudgingly, and the matter is quiet for now." />
     <string id="BC_ClaimFeud_Response_Defied" text="Reports say {PARTY} stormed out of court and delivered a formal Letter of Defiance, declaring private war to solve the dispute." />
+    <string id="BC_ClaimFeud_Response_BothVowWar" text="Both houses delivered letters of defiance and vowed to settle the dispute by arms." />
+    <string id="BC_ClaimFeud_Response_VowWar" text="{PARTY} delivered a letter of defiance and vowed to settle the dispute by arms." />
+    <string id="BC_ClaimFeud_Response_WaitForeignWar" text="{RESPONSE} Private banners cannot be raised until the realm is at peace abroad." />
     <string id="BC_ClaimFeud_Response_BothDefy" text="Reports say both parties stormed out of court after delivering a formal Letter of Deffiance, declaring private war to solve their dispute." />
     <string id="BC_Notification_ClaimFeudWarStarted" text="The feud over the {TITLE_NAME} has broken into open violence. The {CLAIMANT_CLAN} and the {HOLDER_CLAN} have raised their banners against one another, and the realm watches uneasily as blood answers law." />
     <string id="BC_Notification_ClaimFeudWarClaimantVictory" text="The {CLAIMANT_CLAN} has prevailed in the feud over the {TITLE_NAME}. By feat of arms, {CLAIMANT_NAME}'s claim is now recognized, though the defeated {HOLDER_CLAN} will not soon forget the loss." />
@@ -1553,6 +1556,10 @@
     <string id="BC_ClaimFeud_Founded" text="Founded: {DATE}" />
     <string id="BC_ClaimFeud_Demands" text="Demands: {CLAIMANT_CLAN} claim to {TITLE_NAME}" />
     <string id="BC_ClaimFeud_Intensity" text="Feud Intensity: {INTENSITY}%" />
+    <string id="BC_ClaimFeud_Status_WaitForeignWar" text="Private war pending: the realm is at war abroad" />
+    <string id="BC_ClaimFeud_Status_WarPending" text="Private war pending" />
+    <string id="BC_ClaimFeud_Hint_WaitForeignWar" text="Private war will begin automatically once the realm is at peace abroad and both houses are free to fight." />
+    <string id="BC_ClaimFeud_Hint_WarPending" text="The banners have not yet been raised. Fighting will begin automatically when both houses are free to take up arms." />
     <string id="BC_ClaimFeud_Supporters" text="Supporters" />
     <string id="BC_ClaimFeud_Petition" text="Petition" />
     <string id="BC_ClaimFeud_PetitionFailed" text="The petition could not be sent: {REASON}" />
@@ -1564,6 +1571,8 @@
     <string id="BC_ClaimFeud_PauseReason_Generic" text="other conflicts require the parties' attention" />
     <string id="BC_ClaimFeud_PetitionHint_LowIntensity" text="Feud intensity must reach 80% before you can petition the ruler." />
     <string id="BC_ClaimFeud_PetitionHint_Ready" text="Bring this dispute before the ruler for legal judgment." />
+    <string id="BC_ClaimFeud_PetitionHint_ForeignWar" text="The ruler can hear this petition, but if either house defies the judgment, private war must wait until the realm is at peace abroad." />
+    <string id="BC_UI_Hint_AbandonPausedFeud" text="This feud cannot be abandoned while it is paused." />
     <string id="BC_Fabrication_Result_Completed_Title" text="A Claim Forged" />
     <string id="BC_Fabrication_Result_Completed_Desc" text="Your agents have completed their work concerning the {TITLE_NAME}. A collection of disputed charters and legal precedents now supports your house's claim to the title.&#xA;&#xA;The {CLAN_NAME} has gained a weak claim to the {TITLE_NAME}." />
     <string id="BC_Fabrication_Result_Exposed_Title" text="Forgery Exposed" />
@@ -2670,6 +2679,7 @@
     <string id="BC_ClaimFeud_ReportInactive" text="The feud is no longer active." />
     <string id="BC_ClaimFeud_ReportClaimantOnly" text="Only the claimant side can petition the ruler." />
     <string id="BC_ClaimFeud_ReportOpenWar" text="The feud has already become an open war and can no longer be petitioned through the ordinary court process." />
+    <string id="BC_ClaimFeud_ReportWarPending" text="The feud is awaiting private war and cannot be petitioned again." />
     <string id="BC_ClaimFeud_ReportPetitionPending" text="The dispute is already awaiting judgment or a response." />
     <string id="BC_ClaimFeud_ReportLowIntensity" text="Feud intensity is not high enough to petition the ruler." />
     <string id="BC_ClaimFeud_ReportInvalid" text="The feud is no longer legally valid." />

@@ -334,7 +334,7 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (CountExternalWars(parent) > 0)
+            if (HasForeignWar(parent))
             {
                 feudBehavior?.PauseFeudForConflict(feud, "the realm is at foreign war, so private banners cannot yet be raised");
                 return false;
@@ -1183,12 +1183,12 @@ namespace BellumCivile.Behaviors
                     .Any(faction => faction != null && !faction.IsIdeology && faction.IsCivilWarActive()) == true;
         }
 
-        private static int CountExternalWars(Kingdom kingdom)
+        internal static bool HasForeignWar(Kingdom kingdom)
         {
             if (kingdom == null)
-                return 0;
+                return false;
 
-            return Kingdom.All.Count(other => other != null
+            return Kingdom.All.Any(other => other != null
                 && other != kingdom
                 && !other.IsEliminated
                 && !other.IsMinorFaction

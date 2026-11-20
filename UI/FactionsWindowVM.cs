@@ -481,18 +481,19 @@ namespace BellumCivile.UI
             _isDisbandMode = false;
             _isSurrenderMode = false;
 
-            if (record.State == ClaimFeudState.Agitating
-                || record.State == ClaimFeudState.PetitionReady
-                || record.State == ClaimFeudState.Paused)
+            ClaimFeudState effectiveState = record.EffectiveState;
+            if (effectiveState == ClaimFeudState.Agitating || effectiveState == ClaimFeudState.PetitionReady)
             {
                 _isClaimFeudAbandonMode = true;
                 CreateDestroyText = new TextObject("{=BC_UI_AbandonFeud}Abandon").ToString();
-                IsCreateDestroyEnabled = true;
-                CreateDestroyHint = new HintViewModel(new TextObject("{=BC_UI_Hint_AbandonFeud}Cool this feud before it escalates. Your claim remains, but this dispute enters a cooldown."));
+                IsCreateDestroyEnabled = record.State != ClaimFeudState.Paused;
+                CreateDestroyHint = new HintViewModel(IsCreateDestroyEnabled
+                    ? new TextObject("{=BC_UI_Hint_AbandonFeud}Cool this feud before it escalates. Your claim remains, but this dispute enters a cooldown.")
+                    : new TextObject("{=BC_UI_Hint_AbandonPausedFeud}This feud cannot be abandoned while it is paused."));
                 return true;
             }
 
-            if (record.State == ClaimFeudState.DefiedPendingWar || record.State == ClaimFeudState.WarActive)
+            if (effectiveState == ClaimFeudState.DefiedPendingWar || record.State == ClaimFeudState.WarActive)
             {
                 _isClaimFeudSurrenderMode = true;
                 CreateDestroyText = new TextObject("{=BC_UI_Surrender}Surrender").ToString();
@@ -501,7 +502,7 @@ namespace BellumCivile.UI
                 return true;
             }
 
-            if (record.State == ClaimFeudState.AwaitingPlayerResponse)
+            if (effectiveState == ClaimFeudState.AwaitingPlayerResponse)
             {
                 CreateDestroyText = new TextObject("{=BC_ClaimFeud_PlayerRuling_Accept}Accept Judgment").ToString();
                 IsCreateDestroyEnabled = false;

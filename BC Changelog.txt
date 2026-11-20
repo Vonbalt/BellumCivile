@@ -867,3 +867,4 @@ Fixed tooltips not showing on active succession laws and available options of th
 Fixed companion promotions so eligible spouses, children, and other relatives follow the companion into their new vassal house.
 Improved civil-war and private-feud result notices to explain why the fighting ended.
 Fixed Advanced Starting Options so Default keeps the handcrafted hierarchy, alternate scenarios generate titles from the starting map, and United Empire starts with a single Empire-tier crown.
+Improved feud private war tooltips to explain better that a feud will only erupt into open war when the realm finishes any ongoing foreign wars.

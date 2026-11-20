@@ -23,6 +23,8 @@ namespace BellumCivile.UI
         private string _claimantLabel;
         private string _holderLabel;
         private string _feudIntensityText;
+        private string _pendingWarStatusText;
+        private HintViewModel _pendingWarStatusHint;
         private string _balanceOfPowerText;
         private Color _balanceOfPowerColor;
         private bool _isSelected;
@@ -133,12 +135,33 @@ namespace BellumCivile.UI
             bool isPetitionableState = _record.State == ClaimFeudState.PetitionReady
                 || (_record.State == ClaimFeudState.Agitating
                     && _record.Pressure >= BellumCivileOptions.DiscontentTrigger * 0.8f);
-            CanPetition = claimant == Clan.PlayerClan
-                && isPetitionableState;
+            bool isPlayerClaimant = claimant != null && claimant == Clan.PlayerClan;
+            CanPetition = isPlayerClaimant && isPetitionableState;
+
+            bool privateWarPending = _record.EffectiveState == ClaimFeudState.DefiedPendingWar;
+            bool foreignWar = (CanPetition || privateWarPending)
+                && ClaimFeudWarBehavior.HasForeignWar(RealmPeaceEnforcementBehavior.ResolveKingdomForFeud(_record));
+            TextObject pendingHint = null;
+            if (privateWarPending)
+            {
+                PendingWarStatusText = (foreignWar
+                    ? new TextObject("{=BC_ClaimFeud_Status_WaitForeignWar}Private war pending: the realm is at war abroad")
+                    : new TextObject("{=BC_ClaimFeud_Status_WarPending}Private war pending")).ToString();
+                pendingHint = foreignWar
+                    ? new TextObject("{=BC_ClaimFeud_Hint_WaitForeignWar}Private war will begin automatically once the realm is at peace abroad and both houses are free to fight.")
+                    : new TextObject("{=BC_ClaimFeud_Hint_WarPending}The banners have not yet been raised. Fighting will begin automatically when both houses are free to take up arms.");
+            }
+            else
+            {
+                PendingWarStatusText = string.Empty;
+            }
+            PendingWarStatusHint = pendingHint == null ? null : new HintViewModel(pendingHint);
 
             TextObject hint;
-            if (claimant != Clan.PlayerClan)
+            if (!isPlayerClaimant)
                 hint = new TextObject("{=BC_ClaimFeud_PetitionHint_NotClaimant}Only the claimant side can petition the ruler in this feud.");
+            else if (privateWarPending)
+                hint = pendingHint;
             else if (_record.State == ClaimFeudState.Paused)
             {
                 hint = new TextObject("{=BC_ClaimFeud_PetitionHint_Paused}This dispute is paused while {REASON}.");
@@ -146,14 +169,16 @@ namespace BellumCivile.UI
                     ? new TextObject("{=BC_ClaimFeud_PauseReason_Generic}other conflicts require the parties' attention")
                     : new TextObject("{=!}" + _record.PauseReason));
             }
-            else if (_record.State == ClaimFeudState.WarActive || _record.State == ClaimFeudState.DefiedPendingWar)
+            else if (_record.State == ClaimFeudState.WarActive)
                 hint = new TextObject("{=BC_ClaimFeud_PetitionHint_OpenWar}Once banners have been raised, the dispute must be settled by arms, surrender, or an imposed peace.");
             else if (_record.State != ClaimFeudState.PetitionReady && _record.Pressure < BellumCivileOptions.DiscontentTrigger * 0.8f)
                 hint = new TextObject("{=BC_ClaimFeud_PetitionHint_LowIntensity}Feud intensity must reach 80% before you can petition the ruler.");
             else if (!isPetitionableState)
                 hint = new TextObject("{=BC_ClaimFeud_PetitionHint_Pending}The dispute is already awaiting judgment or a response from one of the parties.");
             else
-                hint = new TextObject("{=BC_ClaimFeud_PetitionHint_Ready}Bring this dispute before the ruler for legal judgment.");
+                hint = foreignWar
+                    ? new TextObject("{=BC_ClaimFeud_PetitionHint_ForeignWar}The ruler can hear this petition, but if either house defies the judgment, private war must wait until the realm is at peace abroad.")
+                    : new TextObject("{=BC_ClaimFeud_PetitionHint_Ready}Bring this dispute before the ruler for legal judgment.");
 
             PetitionHint = new HintViewModel(hint);
         }
@@ -214,6 +239,20 @@ namespace BellumCivile.UI
         [DataSourceProperty] public string ClaimantLabel { get => _claimantLabel; set { if (value != _claimantLabel) { _claimantLabel = value; OnPropertyChangedWithValue(value, nameof(ClaimantLabel)); } } }
         [DataSourceProperty] public string HolderLabel { get => _holderLabel; set { if (value != _holderLabel) { _holderLabel = value; OnPropertyChangedWithValue(value, nameof(HolderLabel)); } } }
         [DataSourceProperty] public string FeudIntensityText { get => _feudIntensityText; set { if (value != _feudIntensityText) { _feudIntensityText = value; OnPropertyChangedWithValue(value, nameof(FeudIntensityText)); } } }
+        [DataSourceProperty] public bool HasPendingWarStatus => !string.IsNullOrEmpty(PendingWarStatusText);
+        [DataSourceProperty]
+        public string PendingWarStatusText
+        {
+            get => _pendingWarStatusText;
+            private set
+            {
+                if (value == _pendingWarStatusText) return;
+                _pendingWarStatusText = value;
+                OnPropertyChangedWithValue(value, nameof(PendingWarStatusText));
+                OnPropertyChangedWithValue(HasPendingWarStatus, nameof(HasPendingWarStatus));
+            }
+        }
+        [DataSourceProperty] public HintViewModel PendingWarStatusHint { get => _pendingWarStatusHint; private set { if (value != _pendingWarStatusHint) { _pendingWarStatusHint = value; OnPropertyChangedWithValue(value, nameof(PendingWarStatusHint)); } } }
         [DataSourceProperty] public string BalanceOfPowerText { get => _balanceOfPowerText; set { if (value != _balanceOfPowerText) { _balanceOfPowerText = value; OnPropertyChangedWithValue(value, nameof(BalanceOfPowerText)); } } }
         [DataSourceProperty] public Color BalanceOfPowerColor { get => _balanceOfPowerColor; set { if (value != _balanceOfPowerColor) { _balanceOfPowerColor = value; OnPropertyChangedWithValue(value, nameof(BalanceOfPowerColor)); } } }
         [DataSourceProperty] public bool IsSelected { get => _isSelected; set { if (value != _isSelected) { _isSelected = value; OnPropertyChangedWithValue(value, nameof(IsSelected)); } } }

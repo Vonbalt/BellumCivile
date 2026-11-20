@@ -820,6 +820,12 @@
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" Sprite="SPKingdom\Diplomacy\divider_left" MarginTop="15" MarginBottom="15" AlphaFactor="0.5" />
 
                                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" HorizontalAlignment="Center" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="26" Text="@FeudIntensityText"/>
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" IsVisible="@HasPendingWarStatus">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Kingdom.PoliciesCollapserTitle.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Text="@PendingWarStatusText" />
+                                    <HintWidget DataSource="{PendingWarStatusHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" />
+                                  </Children>
+                                </Widget>
 
                                 <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" MarginTop="10">
                                   <Children>

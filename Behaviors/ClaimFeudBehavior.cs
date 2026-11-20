@@ -173,9 +173,14 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (record.State == ClaimFeudState.WarActive || record.State == ClaimFeudState.DefiedPendingWar)
+            if (record.State == ClaimFeudState.WarActive)
             {
                 report = new TextObject("{=BC_ClaimFeud_ReportOpenWar}The feud has already become an open war and can no longer be petitioned through the ordinary court process.").ToString();
+                return false;
+            }
+            if (record.EffectiveState == ClaimFeudState.DefiedPendingWar)
+            {
+                report = new TextObject("{=BC_ClaimFeud_ReportWarPending}The feud is awaiting private war and cannot be petitioned again.").ToString();
                 return false;
             }
 
@@ -334,9 +339,7 @@ namespace BellumCivile.Behaviors
             if (record == null || record.State == ClaimFeudState.WarActive || !IsActiveFeudState(record.State))
                 return;
 
-            ClaimFeudState resumeState = record.State == ClaimFeudState.Paused
-                ? record.ResumeState
-                : record.State;
+            ClaimFeudState resumeState = record.EffectiveState;
             string normalizedReason = string.IsNullOrWhiteSpace(reason) ? "another conflict requires the parties' attention" : reason;
             bool newlyPaused = record.State != ClaimFeudState.Paused;
             record.Pause(resumeState, normalizedReason, CurrentDay);
@@ -874,7 +877,7 @@ namespace BellumCivile.Behaviors
             ClaimFeudWarBehavior warBehavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudWarBehavior>();
             bool hasActiveWar = warBehavior?.HasActiveWarForFeud(record.RecordId) == true;
             if (!hasActiveWar
-                && record.State != ClaimFeudState.DefiedPendingWar
+                && record.EffectiveState != ClaimFeudState.DefiedPendingWar
                 && record.State != ClaimFeudState.WarActive)
             {
                 report = "This feud has not escalated into open defiance.";
@@ -3021,10 +3024,7 @@ namespace BellumCivile.Behaviors
                 return true;
             }
 
-            ClaimFeudState effectiveState = record.State == ClaimFeudState.Paused
-                ? record.ResumeState
-                : record.State;
-            if (effectiveState == ClaimFeudState.DefiedPendingWar && CountExternalWars(parent) > 0)
+            if (record.EffectiveState == ClaimFeudState.DefiedPendingWar && ClaimFeudWarBehavior.HasForeignWar(parent))
             {
                 reason = "the realm is at foreign war, so private banners cannot yet be raised";
                 return true;
@@ -3812,19 +3812,6 @@ namespace BellumCivile.Behaviors
             Clan claimant = ResolveClan(record.ClaimantClanId);
             Clan holder = ResolveClan(record.HolderClanId);
             return claimant?.Kingdom == kingdom || holder?.Kingdom == kingdom;
-        }
-
-        private static int CountExternalWars(Kingdom kingdom)
-        {
-            if (kingdom == null)
-                return 0;
-
-            return Kingdom.All.Count(other => other != null
-                && other != kingdom
-                && !other.IsEliminated
-                && !other.IsMinorFaction
-                && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(other)
-                && kingdom.IsAtWarWith(other));
         }
 
         private static bool AreCloseDynasticKin(Clan first, Clan second)

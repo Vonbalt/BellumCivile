@@ -522,7 +522,7 @@ namespace BellumCivile
             text.SetTextVariable("TITLE_NAME", FormatFeudalTitleText(title));
             text.SetTextVariable("LEGAL_STATUS", GetClaimFeudLegalStatus(title, holderClan));
             text.SetTextVariable("RULING_TEXT", GetClaimFeudRulingText(judgment, claimantClan, holderClan));
-            text.SetTextVariable("RESPONSE_TEXT", GetClaimFeudResponseText(judgment, claimantClan, holderClan, claimantResponse, holderResponse));
+            text.SetTextVariable("RESPONSE_TEXT", GetClaimFeudResponseText(kingdom, judgment, claimantClan, holderClan, claimantResponse, holderResponse));
 
             BellumCivileNotifications.Show(
                 text,
@@ -656,6 +656,7 @@ namespace BellumCivile
         }
 
         private static TextObject GetClaimFeudResponseText(
+            Kingdom kingdom,
             ClaimFeudJudgment judgment,
             Clan claimantClan,
             Clan holderClan,
@@ -671,13 +672,15 @@ namespace BellumCivile
                     : new TextObject("{=BC_ClaimFeud_Response_Accepted}Reports say both parties accepted the ruling begrudgingly, and the matter is settled.");
             }
 
-            if (claimantDefied && holderDefied)
-                return new TextObject("{=BC_ClaimFeud_Response_BothDefy}Reports say both parties stormed out of court after delivering a formal Letter of Deffiance, declaring private war to solve their dispute.");
-
             Clan defiantClan = claimantDefied ? claimantClan : holderClan;
-            TextObject text = new TextObject("{=BC_ClaimFeud_Response_Defied}Reports say {PARTY} stormed out of court and delivered a formal Letter of Defiance, declaring private war to solve the dispute.");
-            text.SetTextVariable("PARTY", defiantClan?.Leader?.Name ?? defiantClan?.Name ?? new TextObject("?"));
-            return text;
+            TextObject response = claimantDefied && holderDefied
+                ? new TextObject("{=BC_ClaimFeud_Response_BothVowWar}Both houses delivered letters of defiance and vowed to settle the dispute by arms.")
+                : new TextObject("{=BC_ClaimFeud_Response_VowWar}{PARTY} delivered a letter of defiance and vowed to settle the dispute by arms.")
+                    .SetTextVariable("PARTY", defiantClan?.Leader?.Name ?? defiantClan?.Name ?? new TextObject("?"));
+            return ClaimFeudWarBehavior.HasForeignWar(kingdom)
+                ? new TextObject("{=BC_ClaimFeud_Response_WaitForeignWar}{RESPONSE} Private banners cannot be raised until the realm is at peace abroad.")
+                    .SetTextVariable("RESPONSE", response)
+                : response;
         }
 
         public static void ShowFiefRevocationProposed(FactionObject faction, Settlement settlement, Kingdom kingdom, Clan claimant)
