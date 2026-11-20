@@ -33,6 +33,15 @@ namespace BellumCivile
             public string KingdomRef;
             public string CultureRef;
             public List<string> ChildRefs = new List<string>();
+
+            internal ConfiguredTitle WithHierarchyReferences(string kingdom, string parent, List<string> children)
+            {
+                var copy = (ConfiguredTitle)MemberwiseClone();
+                copy.KingdomRef = kingdom;
+                copy.ParentRef = parent;
+                copy.ChildRefs = children;
+                return copy;
+            }
         }
 
         public sealed class TitleStyle

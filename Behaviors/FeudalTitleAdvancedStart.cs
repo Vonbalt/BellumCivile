@@ -10,29 +10,55 @@ namespace BellumCivile.Behaviors
 {
     public partial class FeudalTitleBehavior
     {
-        private const string UnitedEmpireKingdomId = "calradian_empire";
         private const string AdvancedStartTitleReason = "advanced player start";
 
         // A missing saved value preserves the hierarchy policy of pre-feature saves.
         private string _generatedHierarchyScenarioId = string.Empty;
+        private bool _useUnitedEmpireHierarchy;
+        private bool _checkUnitedEmpireOnLaunch;
+        private UnitedEmpireTitleHierarchy _unitedEmpireHierarchy;
         private bool _advancedTitleStartPending;
         private HashSet<Settlement> _preStartPlayerFiefs;
         private Dictionary<Kingdom, FeudalTitleRecord> _preStartCrowns;
 
         private IReadOnlyList<FeudalTitleConfig.ConfiguredTitle> ConfiguredHierarchyTitles =>
-            string.IsNullOrEmpty(_generatedHierarchyScenarioId) ? FeudalTitleConfig.Instance.Titles : null;
+            _useUnitedEmpireHierarchy ? GetUnitedEmpireHierarchy().Titles
+                : string.IsNullOrEmpty(_generatedHierarchyScenarioId) ? FeudalTitleConfig.Instance.Titles : null;
+
+        private UnitedEmpireTitleHierarchy GetUnitedEmpireHierarchy() =>
+            _unitedEmpireHierarchy ?? (_unitedEmpireHierarchy = UnitedEmpireTitleHierarchy.From(
+                FeudalTitleConfig.Instance.Titles, reference => ResolveKingdomReference(reference)?.StringId));
 
         private void SelectStartingHierarchy(CampaignGameStarter starter)
         {
             var options = Campaign.Current?.AdvancedStartData;
             _generatedHierarchyScenarioId = GetGeneratedHierarchyScenarioId(options?.GetScenario());
+            _useUnitedEmpireHierarchy = false;
+            _checkUnitedEmpireOnLaunch = _generatedHierarchyScenarioId == DefaultAdvancedStartOptions.ScenarioUnitedEmpireId;
             string startType = options?.GetStartType();
             _advancedTitleStartPending = startType == DefaultAdvancedStartOptions.StartTypeKingId
                 || startType == DefaultAdvancedStartOptions.StartTypeVassalId
                 || startType == DefaultAdvancedStartOptions.StartTypeFleetAdmiralId;
-            BellumCivileLogger.Log(string.IsNullOrEmpty(_generatedHierarchyScenarioId)
-                ? "Feudal starting hierarchy: default scenario, configured titles allowed."
-                : $"Feudal starting hierarchy: scenario={_generatedHierarchyScenarioId}, generated titles only.");
+
+            if (!_checkUnitedEmpireOnLaunch)
+            {
+                BellumCivileLogger.Log(string.IsNullOrEmpty(_generatedHierarchyScenarioId)
+                    ? "Feudal starting hierarchy: default scenario, configured titles allowed."
+                    : $"Feudal starting hierarchy: scenario={_generatedHierarchyScenarioId}, generated titles only.");
+            }
+        }
+
+        private void PrepareUnitedEmpireHierarchy()
+        {
+            if (!_checkUnitedEmpireOnLaunch)
+                return;
+
+            _checkUnitedEmpireOnLaunch = false;
+            _useUnitedEmpireHierarchy = Kingdom.All.Any(kingdom => IsValidPermanentKingdom(kingdom)
+                && kingdom.StringId == UnitedEmpireTitleHierarchy.KingdomId && kingdom.RulingClan?.Kingdom == kingdom);
+            BellumCivileLogger.Log(_useUnitedEmpireHierarchy
+                ? "Feudal starting hierarchy: using the configured hierarchy with a single United Empire crown."
+                : "Feudal starting hierarchy: native United Empire is missing or invalid; keeping generated titles.");
         }
 
         private static string GetGeneratedHierarchyScenarioId(string scenarioId)
@@ -44,7 +70,7 @@ namespace BellumCivile.Behaviors
         private FeudalTitleType ResolveStartingCrownRank(string kingdomId)
         {
             return _generatedHierarchyScenarioId == DefaultAdvancedStartOptions.ScenarioUnitedEmpireId
-                && kingdomId == UnitedEmpireKingdomId
+                && kingdomId == UnitedEmpireTitleHierarchy.KingdomId
                 ? FeudalTitleType.Empire : FeudalTitleType.Kingdom;
         }
 

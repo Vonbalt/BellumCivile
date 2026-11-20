@@ -109,6 +109,7 @@ namespace BellumCivile.Behaviors
             dataStore.SyncData("BellumCivile_SubinfeudationParents", ref _subinfeudationParentByTitleId);
             dataStore.SyncData("BellumCivile_FeudalHierarchySchemaVersion", ref _hierarchySchemaVersion);
             dataStore.SyncData("BellumCivile_GeneratedHierarchyScenarioId", ref _generatedHierarchyScenarioId);
+            dataStore.SyncData("BellumCivile_UseUnitedEmpireHierarchy", ref _useUnitedEmpireHierarchy);
             EnsureCollectionsInitialized();
             if (dataStore.IsLoading)
                 MigrateDeFactoHierarchyIfNeeded();
@@ -3249,6 +3250,7 @@ namespace BellumCivile.Behaviors
         {
             Instance = this;
             EnsureCollectionsInitialized();
+            PrepareUnitedEmpireHierarchy();
             RecoverRestoredRealmTitleStyles();
             bool initializeConfiguredHierarchy = !_titlesById.Values.Any(title => title != null && title.IsActive);
             MigrateDeFactoHierarchyIfNeeded();
@@ -4125,6 +4127,10 @@ namespace BellumCivile.Behaviors
 
                 foreach (FeudalTitleConfig.ConfiguredTitle configured in configuredTitles)
                     changed += ApplyConfiguredTitleChildren(configured);
+
+                if (_useUnitedEmpireHierarchy)
+                    changed += AttachConfiguredTitleChildren(
+                        UnitedEmpireTitleHierarchy.CrownTitleId, GetUnitedEmpireHierarchy().CrownChildren);
             }
 
             if (changed > 0)
@@ -4435,11 +4441,17 @@ namespace BellumCivile.Behaviors
                 parentId = configured.Type == FeudalTitleType.Barony && !string.IsNullOrWhiteSpace(configured.SettlementRef)
                     ? ResolveTitleIdReference(configured.SettlementRef)
                     : ResolveTitleIdReference(configured.Id);
-            if (string.IsNullOrWhiteSpace(parentId) || !_titlesById.ContainsKey(parentId))
+
+            return AttachConfiguredTitleChildren(parentId, configured.ChildRefs);
+        }
+
+        private int AttachConfiguredTitleChildren(string parentId, IReadOnlyList<string> childRefs)
+        {
+            if (string.IsNullOrWhiteSpace(parentId) || !_titlesById.TryGetValue(parentId, out FeudalTitleRecord parentTitle))
                 return 0;
 
             int changed = 0;
-            foreach (string childRef in configured.ChildRefs)
+            foreach (string childRef in childRefs)
             {
                 string childId = ResolveTitleIdReference(childRef);
                 if (string.IsNullOrWhiteSpace(childId) || !_titlesById.TryGetValue(childId, out FeudalTitleRecord childTitle))
@@ -4465,13 +4477,10 @@ namespace BellumCivile.Behaviors
                     childTitle.SetDeFactoParentTitle(parentId);
                     childChanged = true;
                 }
-                if (_titlesById.TryGetValue(parentId, out FeudalTitleRecord parentTitle))
+                if (!string.Equals(childTitle.AssociatedKingdomId, parentTitle.AssociatedKingdomId, StringComparison.Ordinal))
                 {
-                    if (!string.Equals(childTitle.AssociatedKingdomId, parentTitle.AssociatedKingdomId, StringComparison.Ordinal))
-                    {
-                        childTitle.SetAssociatedKingdom(parentTitle.AssociatedKingdomId);
-                        childChanged = true;
-                    }
+                    childTitle.SetAssociatedKingdom(parentTitle.AssociatedKingdomId);
+                    childChanged = true;
                 }
 
                 if (childChanged)
