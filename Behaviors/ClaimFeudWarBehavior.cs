@@ -320,6 +320,12 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (parent.RulingClan == claimant || parent.RulingClan == holder)
+            {
+                feud.SetDebugReason($"{feud.DebugReason}; the Crown cannot be party to a private claim feud");
+                return false;
+            }
+
             ClaimFeudBehavior feudBehavior = Campaign.Current?.GetCampaignBehavior<ClaimFeudBehavior>();
             TextObject peaceBlock = Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(parent);
             if (peaceBlock != null)

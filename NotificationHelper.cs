@@ -311,12 +311,17 @@ namespace BellumCivile
         }
 
         public static void ShowFeudalTitleRevocationDefied(Clan revokerClan, Clan holderClan, FeudalTitleRecord title)
+            => ShowFeudalTitleRevocationDefied(revokerClan, holderClan, title, crownDemand: false);
+
+        internal static void ShowFeudalTitleRevocationDefied(Clan revokerClan, Clan holderClan, FeudalTitleRecord title, bool crownDemand)
         {
             if (revokerClan == null || holderClan == null || title == null)
                 return;
             if (!BellumCivileNotifications.ShouldPrepare(primaryKingdom: revokerClan.Kingdom ?? holderClan.Kingdom, primaryClan: revokerClan, secondaryClan: holderClan)) return;
 
-            TextObject text = new TextObject("{=BC_Notification_TitleRevocationDefied}{REVOKER_NAME} of the {REVOKER_CLAN} has demanded the {TITLE_NAME} by right of claim, but {HOLDER_NAME} of the {HOLDER_CLAN} has refused the writ. The dispute now threatens to erupt into private war.");
+            TextObject text = crownDemand
+                ? new TextObject("{=BC_RevocationResistance_Notification}{HOLDER_NAME} of the {HOLDER_CLAN} has refused the Crown's demand to surrender the {TITLE_NAME}.")
+                : new TextObject("{=BC_Notification_TitleRevocationDefied}{REVOKER_NAME} of the {REVOKER_CLAN} has demanded the {TITLE_NAME} by right of claim, but {HOLDER_NAME} of the {HOLDER_CLAN} has refused the writ. The dispute now threatens to erupt into private war.");
             text.SetTextVariable("REVOKER_NAME", revokerClan.Leader?.Name ?? revokerClan.Name ?? new TextObject("?"));
             text.SetTextVariable("REVOKER_CLAN", revokerClan.Name ?? new TextObject("?"));
             text.SetTextVariable("HOLDER_NAME", holderClan.Leader?.Name ?? holderClan.Name ?? new TextObject("?"));

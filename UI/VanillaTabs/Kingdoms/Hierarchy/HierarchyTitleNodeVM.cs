@@ -369,7 +369,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             description.SetTextVariable("HOLDER_CLAN", preview.HolderClan?.Name ?? new TextObject("?"));
             description.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost));
             if (preview.HolderLikelyDefies)
-                description.SetTextVariable("CONSEQUENCE", GetRevocationWarConsequence());
+                description.SetTextVariable("CONSEQUENCE", FeudalTitlePlayerActionService.GetRevocationWarConsequence(Clan.PlayerClan, preview.HolderClan));
 
             InformationManager.ShowInquiry(new InquiryData(
                 new TextObject("{=BC_Hierarchy_RevokeConfirmTitle}Revoke Claimed Title").ToString(),
@@ -741,6 +741,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
 
         private void CompletePlayerRevocation()
         {
+            bool crownDemand = FeudalTitlePlayerActionService.IsCrownRevocation(Clan.PlayerClan);
             FeudalRevocationPreview preview = FeudalTitlePlayerActionService.GetRevocationPreview(Clan.PlayerClan, Title);
             if (!FeudalTitlePlayerActionService.TryExecuteRevocation(Clan.PlayerClan, Title, out bool holderDefied, out string reason))
             {
@@ -753,7 +754,9 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             }
 
             TextObject message = holderDefied
-                ? new TextObject("{=BC_Hierarchy_RevokeDefied}The {HOLDER_CLAN} has refused your demand over the {TITLE_NAME}. The dispute is turning into open feud.")
+                ? crownDemand
+                    ? new TextObject("{=BC_RevocationResistance_Refused}The {HOLDER_CLAN} has refused your demand over the {TITLE_NAME}. The title has not been surrendered.")
+                    : new TextObject("{=BC_Hierarchy_RevokeDefied}The {HOLDER_CLAN} has refused your demand over the {TITLE_NAME}. The dispute is turning into open feud.")
                 : new TextObject("{=BC_Hierarchy_RevokeCompleted}The {TITLE_NAME} has been revoked into your hands.");
             message.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FormatTitleName(Title)));
             message.SetTextVariable("HOLDER_CLAN", preview?.HolderClan?.Name ?? new TextObject("?"));
@@ -1250,15 +1253,8 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 ? new TextObject("{=BC_Hierarchy_RevokeResponseRefusal}refusal")
                 : new TextObject("{=BC_Hierarchy_RevokeResponseAccept}begrudging acceptance"));
             if (preview?.CanRevoke == true)
-                text.SetTextVariable("CONSEQUENCE", GetRevocationWarConsequence());
+                text.SetTextVariable("CONSEQUENCE", FeudalTitlePlayerActionService.GetRevocationWarConsequence(Clan.PlayerClan, preview.HolderClan));
             return text;
-        }
-
-        private static TextObject GetRevocationWarConsequence()
-        {
-            return ClaimFeudWarBehavior.HasForeignWar(Clan.PlayerClan?.Kingdom)
-                ? new TextObject("{=BC_Hierarchy_RevokeWaitForeignWar}If the vassal refuses, private war will wait until the realm is at peace abroad.")
-                : new TextObject("{=BC_Hierarchy_RevokeQueuesWar}If the vassal refuses, the feud will escalate to private war when both houses are free to fight.");
         }
 
         private TextObject BuildFormationHint(FeudalFormationPreview preview)

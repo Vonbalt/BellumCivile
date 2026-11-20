@@ -612,6 +612,30 @@ namespace BellumCivile
             return TryExecuteRevocationInternal(revokerClan, title, preview, holderDefies, out holderDefied, out reason);
         }
 
+        internal static bool IsCrownRevocation(Clan revoker)
+            => revoker != null && revoker.Kingdom?.RulingClan == revoker;
+
+        internal static FactionObject GetCrownRevocationResistanceFaction(Clan revoker, Clan holder)
+            => IsCrownRevocation(revoker) && holder != null
+                ? Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.FindRevocationResistanceFaction(revoker.Kingdom, holder)
+                : null;
+
+        internal static TextObject GetRevocationWarConsequence(Clan revoker, Clan holder)
+        {
+            if (IsCrownRevocation(revoker))
+            {
+                FactionObject faction = GetCrownRevocationResistanceFaction(revoker, holder);
+                return faction != null
+                    ? new TextObject("{=BC_RevocationResistance_Existing}Refusal brings forward the ultimatum of the {FACTION}. Civil war follows only if the Crown rejects their demands.")
+                        .SetTextVariable("FACTION", faction.GetDisplayName())
+                    : new TextObject("{=BC_RevocationResistance_Abdication}Refusal raises the vassal's banners in a civil war to force the ruler's abdication.");
+            }
+
+            return ClaimFeudWarBehavior.HasForeignWar(revoker?.Kingdom)
+                ? new TextObject("{=BC_Hierarchy_RevokeWaitForeignWar}If the vassal refuses, private war will wait until the realm is at peace abroad.")
+                : new TextObject("{=BC_Hierarchy_RevokeQueuesWar}If the vassal refuses, the feud will escalate to private war when both houses are free to fight.");
+        }
+
         private static bool TryExecuteRevocationInternal(Clan revokerClan, FeudalTitleRecord title, FeudalRevocationPreview preview, bool holderDefies, out bool holderDefied, out string reason)
         {
             holderDefied = false;
@@ -660,6 +684,44 @@ namespace BellumCivile
 
             if (holderDefies)
             {
+                if (IsCrownRevocation(revokerClan))
+                {
+                    FactionManagerBehavior factions = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
+                    if (factions == null)
+                        reason = new TextObject("{=BC_RevocationResistance_Blocked}The house cannot rally its faction against the Crown at present.").ToString();
+                    Kingdom realm = revokerClan.Kingdom;
+                    bool DemandStillCurrent() => title?.IsActive == true && !title.IsDeliberatelyDissolved
+                        && title.DeFactoHolderClanId == holder.StringId
+                        && titleBehavior.GetParentTitle(title, FeudalHierarchyMode.DeFacto)?.DeFactoHolderClanId == revokerClan.StringId
+                        && TryGetActiveClaimStrength(titleBehavior, revokerClan, title, out _)
+                        && Campaign.Current?.GetCampaignBehavior<RealmPeaceEnforcementBehavior>()?.GetRoyalPeaceBlockReason(realm) == null
+                        && feudBehavior.GetDisputeCooldownBlockReason(revokerClan, holder, title) == null;
+                    void RefundResistance()
+                    {
+                        NpcInfluenceBudgetService.Refund(revokerClan, preview.InfluenceCost,
+                            NpcInfluenceExpenseKind.Discretionary, "claimed_title_revocation");
+                    }
+
+                    if (factions == null || !factions.TryResistCrownRevocation(revokerClan, holder, DemandStillCurrent,
+                        completed =>
+                        {
+                            if (completed) return;
+                            RefundResistance();
+                            if (revokerClan == Clan.PlayerClan)
+                                TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(
+                                    new TextObject("{=BC_RevocationResistance_Withdrawn}The confrontation could not proceed. The demand has lapsed and its influence cost has been refunded.").ToString()));
+                        }, out reason))
+                    {
+                        RefundResistance();
+                        return false;
+                    }
+
+                    ApplyRevocationRelationPenalty(revokerClan, holder, preview.ClaimStrength);
+                    holderDefied = true;
+                    NotificationHelper.ShowFeudalTitleRevocationDefied(revokerClan, holder, title, crownDemand: true);
+                    return true;
+                }
+
                 if (!feudBehavior.TryStartImmediateRevocationWar(
                     titleBehavior,
                     revokerClan,

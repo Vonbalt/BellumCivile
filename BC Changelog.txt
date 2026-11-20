@@ -868,3 +868,4 @@ Fixed companion promotions so eligible spouses, children, and other relatives fo
 Improved civil-war and private-feud result notices to explain why the fighting ended.
 Fixed Advanced Starting Options so Default keeps the handcrafted hierarchy, alternate scenarios generate titles from the starting map, and United Empire starts with a single Empire-tier crown.
 Improved feud private war tooltips to explain better that a feud will only erupt into open war when the realm finishes any ongoing foreign wars.
+Fixed ruling clan revocation of titles from it's vassals failing to start a proper "force abdication" rebellion type if the vassal refuses and rises up against the perceived tyranny of it's ruler.

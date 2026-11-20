@@ -746,7 +746,9 @@ namespace BellumCivile
         internal UltimatumResolution TriggerUltimatumDetailed(
             CivilWarPlayerCallContext playerCallContext,
             bool suppressAutomaticPlayerChoice,
-            Action<UltimatumResolution> deferredCompletion = null)
+            Action<UltimatumResolution> deferredCompletion = null,
+            Clan committedRevocationDefier = null,
+            Func<bool> revocationStillCurrent = null)
         {
             if (!CanTriggerUltimatum(out Settlement unsafeSettlement))
             {
@@ -772,9 +774,14 @@ namespace BellumCivile
             {
                 NotificationHelper.ShowUltimatumToPlayer(
                     this,
-                    () => CompleteDeferredUltimatum(AcceptDemands(), deferredCompletion),
                     () => CompleteDeferredUltimatum(
-                        RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice),
+                        revocationStillCurrent == null || revocationStillCurrent()
+                            ? AcceptDemands() : UltimatumResolution.Failed,
+                        deferredCompletion),
+                    () => CompleteDeferredUltimatum(
+                        revocationStillCurrent == null || revocationStillCurrent()
+                            ? RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier)
+                            : UltimatumResolution.Failed,
                         deferredCompletion));
                 return UltimatumResolution.PendingPlayerChoice;
             }
@@ -782,14 +789,14 @@ namespace BellumCivile
             {
                 Hero ruler = ParentKingdom.RulingClan?.Leader;
                 if (ruler == null)
-                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice);
+                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
 
                 RebellionPowerProjection projection = CalculatePowerProjection(forceRefresh: true);
                 float factionStrength = projection.FactionPower;
                 float liegeStrength = projection.LoyalistPower;
 
                 if (factionStrength < liegeStrength)
-                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice);
+                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
 
                 double acceptanceChance = UltimatumAcceptanceRules.Calculate(factionStrength, liegeStrength,
                     Kingdom.All.Any(k => k != ParentKingdom && k.IsAtWarWith(ParentKingdom)),
@@ -799,7 +806,7 @@ namespace BellumCivile
                 if (MBRandom.RandomFloat < acceptanceChance)
                     return AcceptDemands();
 
-                return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice);
+                return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
             }
         }
 
@@ -1016,7 +1023,37 @@ namespace BellumCivile
             return UltimatumResolution.DemandsAccepted;
         }
 
-        private UltimatumResolution RefuseDemandsAndRebel(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice)
+        internal bool TryPrepareRevocationResistance(out bool wasJudgmentResistance, out string failure)
+        {
+            wasJudgmentResistance = _judgmentResistance;
+            MarkJudgmentResistance();
+            if (CanTriggerUltimatum(out Settlement unsafeSettlement))
+            {
+                failure = null;
+                return true;
+            }
+
+            _judgmentResistance = wasJudgmentResistance;
+            failure = GetUltimatumPreflightFailure(unsafeSettlement);
+            return false;
+        }
+
+        internal void CancelRevocationResistance(bool wasJudgmentResistance)
+        {
+            _judgmentResistance = wasJudgmentResistance;
+            _ultimatumPending = false;
+        }
+
+        internal UltimatumResolution StartImmediateRevocationResistance(Clan holder)
+        {
+            if (Type != FactionType.Abdication || Leader != holder || !CanTriggerUltimatum(out _))
+                return UltimatumResolution.Failed;
+
+            return RefuseDemandsAndRebel(null, suppressAutomaticPlayerChoice: false, committedRevocationDefier: holder);
+        }
+
+        private UltimatumResolution RefuseDemandsAndRebel(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice,
+            Clan committedRevocationDefier = null)
         {
             if (!TryGetRebellionCrown(out _, out _) || !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
                 return UltimatumResolution.Failed;
@@ -1025,12 +1062,14 @@ namespace BellumCivile
 
             bool playerWasRebelFactionMember = Clan.PlayerClan != null
                 && Clan.PlayerClan != Leader
+                && Clan.PlayerClan != committedRevocationDefier
                 && Members.Contains(Clan.PlayerClan);
             if (playerWasRebelFactionMember)
                 RemoveMember(Clan.PlayerClan);
 
             RallyAiSupportersOnce();
             CivilWarPlayerCallContext playerCall = suppressAutomaticPlayerChoice
+                || (committedRevocationDefier != null && Clan.PlayerClan == committedRevocationDefier)
                 ? null
                 : CivilWarSolidarityHelper.BuildPlayerCallContext(this, playerWasRebelFactionMember, explicitPlayerCall);
 

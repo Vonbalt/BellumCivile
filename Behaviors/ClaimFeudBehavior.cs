@@ -767,6 +767,12 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            if (IsRulingClanInvolvedInFeud(revoker, holder))
+            {
+                report = "ruling clan cannot be party to a private claim feud";
+                return false;
+            }
+
             string recordId = BuildRecordId(revoker, holder, title);
             ClaimFeudRecord existing = _feuds.FirstOrDefault(feud => feud != null
                 && feud.RecordId == recordId
@@ -2072,6 +2078,9 @@ namespace BellumCivile.Behaviors
             desc.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FeudalTitleDisplayHelper.FormatTitleName(title, holder)));
             desc.SetTextVariable("newline", "\n");
 
+            TextObject defyLabel = FeudalTitlePlayerActionService.GetCrownRevocationResistanceFaction(revoker, holder) != null
+                ? new TextObject("{=BC_RevocationResistance_SendUltimatum}Refuse & Send Ultimatum")
+                : new TextObject("{=BC_ClaimFeud_PlayerRevocationDemand_Defy}Refuse & Fight");
             List<InquiryElement> choices = new List<InquiryElement>
             {
                 new InquiryElement(
@@ -2079,13 +2088,13 @@ namespace BellumCivile.Behaviors
                     new TextObject("{=BC_ClaimFeud_PlayerRevocationDemand_Submit}Submit").ToString(),
                     null,
                     true,
-                    BuildPlayerRevocationDemandTooltip(title, revoker, holder, preview, defy: false)),
+                    BuildPlayerRevocationDemandTooltip(title, revoker, holder, defy: false)),
                 new InquiryElement(
                     PlayerRevocationChoiceDefy,
-                    new TextObject("{=BC_ClaimFeud_PlayerRevocationDemand_Defy}Refuse & Fight").ToString(),
+                    defyLabel.ToString(),
                     null,
                     true,
-                    BuildPlayerRevocationDemandTooltip(title, revoker, holder, preview, defy: true))
+                    BuildPlayerRevocationDemandTooltip(title, revoker, holder, defy: true))
             };
 
             MultiSelectionInquiryData inquiry = new MultiSelectionInquiryData(
@@ -2108,15 +2117,17 @@ namespace BellumCivile.Behaviors
                 requestInGameDisplay: true);
         }
 
-        private static string BuildPlayerRevocationDemandTooltip(FeudalTitleRecord title, Clan revoker, Clan holder, FeudalRevocationPreview preview, bool defy)
+        private static string BuildPlayerRevocationDemandTooltip(FeudalTitleRecord title, Clan revoker, Clan holder, bool defy)
         {
             TextObject text = defy
-                ? new TextObject("{=BC_ClaimFeud_PlayerRevocationDemand_DefyHint}<a style=\"Tooltip.Value.Text\"><b>Effect</b></a>{newline}Refuse the demand and keep the {TITLE_NAME} for now.{newline}{newline}<a style=\"Tooltip.Value.Text\"><b>Consequence</b></a>{newline}The dispute immediately becomes a private feud war against the {LIEGE_CLAN}.")
+                ? new TextObject("{=BC_RevocationResistance_DefyHint}<a style=\"Tooltip.Value.Text\"><b>Effect</b></a>{newline}Refuse the demand and keep the {TITLE_NAME} for now.{newline}{newline}<a style=\"Tooltip.Value.Text\"><b>Consequence</b></a>{newline}{CONSEQUENCE}")
                 : new TextObject("{=BC_ClaimFeud_PlayerRevocationDemand_SubmitHint}<a style=\"Tooltip.Value.Text\"><b>Effect</b></a>{newline}Surrender the {TITLE_NAME} to the {LIEGE_CLAN}.{newline}{newline}<a style=\"Tooltip.Value.Text\"><b>Consequence</b></a>{newline}No war begins. Your house keeps a weak claim, preserving its grievance.");
 
             text.SetTextVariable("TITLE_NAME", new TextObject("{=!}" + FeudalTitleDisplayHelper.FormatTitleName(title, holder ?? revoker)));
             text.SetTextVariable("LIEGE_CLAN", revoker?.Name);
             text.SetTextVariable("newline", "\n");
+            if (defy)
+                text.SetTextVariable("CONSEQUENCE", FeudalTitlePlayerActionService.GetRevocationWarConsequence(revoker, holder));
             return text.ToString();
         }
 
@@ -2137,7 +2148,7 @@ namespace BellumCivile.Behaviors
             if (revoker != null && title != null)
                 _shownPlayerRevocationDemandInquiries.Remove(BuildPlayerRevocationDemandKey(revoker, title));
 
-            if (revoker == null || title == null)
+            if (revoker == null || title == null || Clan.PlayerClan?.StringId != title.DeFactoHolderClanId)
                 return;
 
             if (!FeudalTitlePlayerActionService.TryExecuteRevocationWithResponse(revoker, title, defy, out bool holderDefied, out string reason))

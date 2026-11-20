@@ -12,6 +12,7 @@ using BellumCivile.Behaviors;
 using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -72,6 +73,10 @@ internal static class ClaimFeudCooldownTests
     private static FeudalTitleRecord _title;
     private static float _day, _influence;
     private static int _spends;
+    private static int _refunds, _starts, _accepted;
+    private static bool _allowSpend, _allowStart, _unsafeUltimatum, _playerWasInLaunch, _extraPlayerCall;
+    private static Action _acceptUltimatum, _refuseUltimatum;
+    private static FactionObject _launched;
     private static InquiryData _inquiry;
     private static float _playerInfluenceSpent;
     private static bool CaptureInquiry(InquiryData data) { _inquiry = data; return false; }
@@ -101,7 +106,28 @@ internal static class ClaimFeudCooldownTests
     private static bool TitleName(ref string __result) { __result = "Test county"; return false; }
     private static bool Defiance(ref float __5, ref float __6, ref bool __result)
     { __5 = __6 = 100; __result = false; return false; }
-    private static bool Spend(ref bool __result) { _spends++; __result = false; return false; }
+    private static bool Spend(ref bool __result) { _spends++; __result = _allowSpend; return false; }
+    private static bool Refund() { _refunds++; return false; }
+    private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Zero; return false; }
+    private static bool Decisions(ref MBReadOnlyList<KingdomDecision> __result)
+    { __result = new MBReadOnlyList<KingdomDecision>(new List<KingdomDecision>()); return false; }
+    private static bool RulingHead(ref Hero __result) { __result = Heads[_crown]; return false; }
+    private static bool UnsafeUltimatum(ref bool __result) { __result = _unsafeUltimatum; return false; }
+    private static bool ShowUltimatum(Action onAccept, Action onRefuse)
+    { _acceptUltimatum = onAccept; _refuseUltimatum = onRefuse; return false; }
+    private static bool LaunchResistance(FactionObject __instance, object __0, ref bool __result)
+    {
+        _starts++; _launched = __instance; _playerWasInLaunch = __instance.Members.Contains(_player);
+        _extraPlayerCall = __0 != null; __result = _allowStart; return false;
+    }
+    private static bool AcceptUltimatum(FactionObject __instance, ref UltimatumResolution __result)
+    {
+        _accepted++;
+        var manager = _manager.GetBehavior<FactionManagerBehavior>();
+        manager.RemoveFaction(__instance);
+        __result = UltimatumResolution.DemandsAccepted;
+        return false;
+    }
 
     private static Clan House(string id)
     {
@@ -205,8 +231,121 @@ internal static class ClaimFeudCooldownTests
             Patch(AccessTools.Method(typeof(FactionsWindowVM), "RefreshFactionList"), nameof(Skip));
             Patch(AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.ChangeClanInfluenceAction), "Apply"), nameof(CapturePlayerInfluence));
             RunSelectionCases(check);
+            Getter(typeof(CampaignTime), "Now", nameof(Now));
+            Getter(typeof(Kingdom), "UnresolvedDecisions", nameof(Decisions));
+            Getter(typeof(Kingdom), "Leader", nameof(RulingHead));
+            Getter(typeof(Kingdom), "Clans", nameof(AllClans));
+            Patch(AccessTools.Method(typeof(CrownAccessionBehavior), "IsHereditaryRealm"), nameof(No));
+            Patch(AccessTools.Method(typeof(FactionObject), "ShouldDelayUltimatumForUnsafeLeaderLocation"), nameof(UnsafeUltimatum));
+            Patch(AccessTools.Method(typeof(FactionObject), "StartOpenRebellion"), nameof(LaunchResistance));
+            Patch(AccessTools.Method(typeof(FactionObject), "AcceptDemands"), nameof(AcceptUltimatum));
+            Patch(AccessTools.Method(typeof(NotificationHelper), "ShowUltimatumToPlayer"), nameof(ShowUltimatum));
+            Patch(AccessTools.Method(typeof(NotificationHelper), "ShowFeudalTitleRevocationDefied",
+                new[] { typeof(Clan), typeof(Clan), typeof(FeudalTitleRecord), typeof(bool) }), nameof(Skip));
+            Patch(AccessTools.Method(typeof(NotificationHelper), "ShowFeudalTitleRevoked"), nameof(Skip));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.RebellionPowerHelper"), "CalculateClanPower"), nameof(ZeroFloat));
+            Patch(AccessTools.Method(typeof(FeudalTitlePlayerActionService), "ApplyRevocationRelationPenalty"), nameof(Skip));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.NpcInfluenceBudgetService"), "Refund"), nameof(Refund));
+            RunRevocationResistanceCases(check);
         }
-        finally { h.UnpatchAll(h.Id); _campaign = null; }
+        finally { h.UnpatchAll(h.Id); _campaign = null; _allowSpend = false; }
+    }
+
+    private static void RunRevocationResistanceCases(Action<bool, string> check)
+    {
+        FactionManagerBehavior Setup(bool asCrown = true)
+        {
+            Reset();
+            _allowSpend = _allowStart = true; _unsafeUltimatum = false;
+            _starts = _refunds = _accepted = 0; _launched = null;
+            _acceptUltimatum = _refuseUltimatum = null;
+            if (asCrown) _crown = _claimant;
+            var manager = new FactionManagerBehavior();
+            _manager.Items.Add(manager);
+            return manager;
+        }
+        bool Execute(out bool defied, out string reason) =>
+            FeudalTitlePlayerActionService.TryExecuteRevocationWithResponse(_claimant, _title, true, out defied, out reason);
+        bool HoldsTitle() => _title.DeFactoHolderClanId == _holder.StringId && _title.DeJureHolderClanId == _holder.StringId;
+        string Consequence() => ((TextObject)AccessTools.Method(typeof(FeudalTitlePlayerActionService), "GetRevocationWarConsequence")
+            .Invoke(null, new object[] { _claimant, _holder })).ToString();
+        FactionObject Existing(FactionManagerBehavior manager)
+        {
+            var faction = new FactionObject("Test faction", _realm, _other, FactionType.Independence);
+            faction.Members.Add(_holder);
+            manager.RegisterNewFaction(faction);
+            return faction;
+        }
+
+        var factions = Setup();
+        check(!ImmediateWar(out string reason) && reason.Contains("ruling clan") && Records.Count == 0,
+            "The private-war entry point cannot register a defied Crown revocation");
+        check(Consequence().Contains("abdication") && Execute(out bool defied, out _) && defied
+            && _starts == 1 && _launched.Type == FactionType.Abdication && _launched.Leader == _holder
+            && _acceptUltimatum == null && HoldsTitle() && Records.Count == 0 && _spends == 1 && _refunds == 0,
+            "Without an existing faction, refusal starts an abdication war directly and keeps the title");
+
+        factions = Setup();
+        Field<Dictionary<Kingdom, CampaignTime>>(factions, "_initialCivilWarGrace")[_realm] = CampaignTime.Days(30);
+        check(Execute(out _, out _) && _starts == 1 && Field<bool>(_launched, "_judgmentResistance"),
+            "Refusing a Crown decree uses the existing judgment-resistance exception to civil-war grace");
+        factions = Setup();
+        PeaceTimers[_realm.StringId] = _day + 20;
+        check(!Execute(out _, out _) && _spends == 0 && _starts == 0 && HoldsTitle(),
+            "Royal Peace still prevents claimed revocation from being issued or starting resistance");
+
+        factions = Setup();
+        var existing = Existing(factions);
+        check(Consequence().Contains("ultimatum") && Execute(out defied, out _) && defied
+            && existing.IsUltimatumPending && _starts == 0 && _refuseUltimatum != null,
+            "A holder who is only a member triggers their existing faction's ultimatum");
+        _refuseUltimatum();
+        check(_starts == 1 && _launched == existing && existing.Type == FactionType.Independence
+            && existing.Members.Contains(_holder) && HoldsTitle() && Records.Count == 0 && _refunds == 0,
+            "Refusing that ultimatum launches the original rebellion rather than a second abdication faction");
+
+        factions = Setup();
+        existing = Existing(factions);
+        check(Execute(out _, out _) && existing.IsUltimatumPending, "The Crown can choose to accept the faction's ultimatum");
+        _acceptUltimatum();
+        check(_accepted == 1 && _starts == 0 && _refunds == 0 && HoldsTitle() && Records.Count == 0,
+            "Accepting the existing demands avoids war without taking the refused title");
+
+        factions = Setup();
+        existing = Existing(factions);
+        check(Execute(out _, out _) && !Execute(out _, out _) && _refunds == 1 && existing.IsUltimatumPending,
+            "A second demand does not replace or bypass an already pending ultimatum");
+        _title.SetActive(false);
+        _refuseUltimatum();
+        check(_starts == 0 && !existing.IsUltimatumPending && _refunds == 2 && Records.Count == 0,
+            "A stale demand clears the deferred ultimatum and refunds its original cost");
+        check(!Field<bool>(existing, "_judgmentResistance") && factions.GetRebelFaction(_holder) == existing,
+            "A cancelled confrontation returns the existing faction to its original state");
+
+        factions = Setup(); _unsafeUltimatum = true;
+        check(!Execute(out defied, out _) && !defied && _starts == 0 && _refunds == 1
+            && factions.GetRebelFaction(_holder) == null && HoldsTitle() && Records.Count == 0,
+            "An unsafe fallback is refunded and leaves no stray faction or private dispute");
+        factions = Setup(); _allowStart = false;
+        check(!Execute(out _, out _) && _starts == 1 && _refunds == 1
+            && factions.GetRebelFaction(_holder) == null && HoldsTitle() && Records.Count == 0,
+            "A clean failure to create the fallback war leaves the title and removes the new faction");
+
+        factions = Setup(); existing = Existing(factions); _player = _holder;
+        var result = (UltimatumResolution)Call(existing, "RefuseDemandsAndRebel", null, false, _holder);
+        check(result == UltimatumResolution.RebellionStarted && _playerWasInLaunch && !_extraPlayerCall && existing.Members.Contains(_holder),
+            "A player who has chosen to defy as a member stays with the faction without a second side-choice prompt");
+
+        factions = Setup();
+        check(FeudalTitlePlayerActionService.TryExecuteRevocationWithResponse(_claimant, _title, false, out defied, out _)
+            && !defied && _starts == 0 && factions.GetRebelFaction(_holder) == null && Records.Count == 0
+            && _title.DeFactoHolderClanId == _claimant.StringId && _title.DeJureHolderClanId == _claimant.StringId,
+            "A vassal who submits still surrenders their title without any civil war");
+
+        Setup(asCrown: false);
+        check(Consequence().Contains("private war") && Execute(out defied, out _) && defied && _starts == 0
+            && Records.Single().State == ClaimFeudState.DefiedPendingWar && HoldsTitle(),
+            "Revocation between two non-ruling houses keeps the existing private-war path");
     }
 
     private static void RunPendingWarCases(Action<bool, string> check)
