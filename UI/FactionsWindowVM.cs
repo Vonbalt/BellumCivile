@@ -1564,20 +1564,18 @@ namespace BellumCivile.UI
                     {
                         AddTooltipRow(
                             properties,
-                            new TextObject("{=BC_UI_ExpectedSupporters}  Expected supporters"),
+                            new TextObject("{=BC_UI_ExpectedSupport}  Expected support"),
                             projectedSupportPower.ToString("N0"));
 
                         foreach (ProjectedRebellionSupport support in clanSupporters)
                         {
-                            {
-                                string value = string.Format(
-                                    "+{0:N0} / {1:N0} ({2:0}%, {3})",
-                                    support.CreditedPower,
-                                    support.FullPower,
-                                    support.JoinChance * 100f,
-                                    GetSolidarityReasonText(support.Reason));
-                                AddTooltipRow(properties, "    " + support.Clan.Name.ToString(), value);
-                            }
+                            string value = string.Format(
+                                "+{0:N0} / {1:N0} ({2:0}%, {3})",
+                                support.CreditedPower,
+                                support.FullPower,
+                                support.JoinChance * 100f,
+                                GetSolidarityReasonText(support.Reason, support.Sponsor?.Name));
+                            AddTooltipRow(properties, "    " + support.Clan.Name.ToString(), value);
                         }
                     }
 
@@ -1590,6 +1588,8 @@ namespace BellumCivile.UI
                     properties,
                     new TextObject("{=BC_UI_ProjectedTotalPower}Projected total"),
                     (projection?.FactionPower ?? 0f).ToString("N0"));
+                if (supporters.Count > 0)
+                    AddTooltipMessage(properties, new TextObject("{=BC_UI_ExpectedSupportHint}Expected support is not pledged. These houses may rally if war breaks out."));
 
                 return properties;
             });
@@ -1660,23 +1660,40 @@ namespace BellumCivile.UI
             });
         }
 
-        private static string GetSolidarityReasonText(CivilWarSolidarityReason reason)
+        private static string GetSolidarityReasonText(CivilWarSolidarityReason reason, TextObject sponsorName)
         {
+            TextObject text;
             switch (reason)
             {
                 case CivilWarSolidarityReason.CrownLoyalty:
                     return new TextObject("{=BC_UI_SolidarityReasonCrown}crown loyalty").ToString();
                 case CivilWarSolidarityReason.DirectVassal:
-                    return new TextObject("{=BC_UI_SolidarityReasonVassal}vassal").ToString();
+                    text = sponsorName != null
+                        ? new TextObject("{=BC_UI_SolidarityReasonVassalOf}vassal of {SPONSOR}")
+                        : new TextObject("{=BC_UI_SolidarityReasonVassal}vassal");
+                    break;
                 case CivilWarSolidarityReason.MarriageAlliance:
-                    return new TextObject("{=BC_UI_SolidarityReasonMarriage}marriage alliance").ToString();
+                    text = sponsorName != null
+                        ? new TextObject("{=BC_UI_SolidarityReasonMarriageWith}marriage alliance with {SPONSOR}")
+                        : new TextObject("{=BC_UI_SolidarityReasonMarriage}marriage alliance");
+                    break;
                 case CivilWarSolidarityReason.DynasticKin:
-                    return new TextObject("{=BC_UI_SolidarityReasonKin}blood kinship").ToString();
+                    text = sponsorName != null
+                        ? new TextObject("{=BC_UI_SolidarityReasonKinOf}blood kin of {SPONSOR}")
+                        : new TextObject("{=BC_UI_SolidarityReasonKin}blood kinship");
+                    break;
                 case CivilWarSolidarityReason.Friendship:
-                    return new TextObject("{=BC_UI_SolidarityReasonFriendship}friendship").ToString();
+                    text = sponsorName != null
+                        ? new TextObject("{=BC_UI_SolidarityReasonFriendshipWith}friendship with {SPONSOR}")
+                        : new TextObject("{=BC_UI_SolidarityReasonFriendship}friendship");
+                    break;
                 default:
                     return new TextObject("{=BC_UI_SolidarityReasonIntent}rebellious intent").ToString();
             }
+
+            if (sponsorName != null)
+                text.SetTextVariable("SPONSOR", sponsorName);
+            return text.ToString();
         }
 
         private static string GetRealmOppositionContributionText(float creditedPower, float fullPower)

@@ -870,4 +870,4 @@ Fixed Advanced Starting Options so Default keeps the handcrafted hierarchy, alte
 Improved feud private war tooltips to explain better that a feud will only erupt into open war when the realm finishes any ongoing foreign wars.
 Fixed ruling clan revocation of titles from it's vassals failing to start a proper "force abdication" rebellion type if the vassal refuses and rises up against the perceived tyranny of it's ruler.
 Added new rebellion type "Press a Claim Against the Crown" where vassals who hold claims to titles held by the rulling clan, but aren't his sovereign tier title, may plot to take it by force instead.
-Adjusted indictments of treason defiance so that a vassal accused of treason will rise up in a "force abdication" type rebellion instead of independence when he defies his ruler.
+Improvement to balance of power tooltips of rebel factions.

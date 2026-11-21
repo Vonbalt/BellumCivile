@@ -1920,7 +1920,8 @@
     <string id="BC_UI_OwnPower" text="  Own power" />
     <string id="BC_UI_MilitaryStrength" text="    Military strength" />
     <string id="BC_UI_InfluencePower" text="    Influence" />
-    <string id="BC_UI_ExpectedSupporters" text="  Expected supporters" />
+    <string id="BC_UI_ExpectedSupport" text="  Expected support" />
+    <string id="BC_UI_ExpectedSupportHint" text="Expected support is not pledged. These houses may rally if war breaks out." />
     <string id="BC_UI_ProjectedRebelPull" text="  Projected rebel pull" />
     <string id="BC_UI_BaselineCrownCommitment" text="      Baseline crown commitment" />
     <string id="BC_UI_CrownCommitmentValue" text="+{POWER} / {TOTAL} ({PERCENT}%, {STATE})" />
@@ -1933,6 +1934,10 @@
     <string id="BC_UI_SolidarityReasonMarriage" text="marriage alliance" />
     <string id="BC_UI_SolidarityReasonKin" text="blood kinship" />
     <string id="BC_UI_SolidarityReasonFriendship" text="friendship" />
+    <string id="BC_UI_SolidarityReasonVassalOf" text="vassal of {SPONSOR}" />
+    <string id="BC_UI_SolidarityReasonMarriageWith" text="marriage alliance with {SPONSOR}" />
+    <string id="BC_UI_SolidarityReasonKinOf" text="blood kin of {SPONSOR}" />
+    <string id="BC_UI_SolidarityReasonFriendshipWith" text="friendship with {SPONSOR}" />
     <string id="BC_UI_SolidarityReasonIntent" text="rebellious intent" />
     <string id="BC_UI_SolidarityReasonCrown" text="crown loyalty" />
     <string id="BC_Mod_RealmPlayer" text="(100% Player discretion)" />

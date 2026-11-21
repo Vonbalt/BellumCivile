@@ -1,17 +1,21 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using BellumCivile;
 using BellumCivile.Behaviors;
+using BellumCivile.UI;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 
 internal static class CrownRebellionSafetyTests
 {
@@ -303,6 +307,28 @@ internal static class CrownRebellionSafetyTests
             check(ReferenceEquals(Call(ideology, "CreateExpelledLordRebelFaction", oldHouse, realm, manager), separatists)
                 && separatists.Type == FactionType.Independence && Factions().Count == 2,
                 "An already-led rebellion keeps its demands instead of creating a second faction");
+
+            Set(founder, "<Name>k__BackingField", new TextObject("Founding House"));
+            Set(founder, "<CurrentTotalStrength>k__BackingField", 300f);
+            Set(oldHouse, "<Name>k__BackingField", new TextObject("Supporting House"));
+            Set(next, "<Name>k__BackingField", new TextObject("Friendly House"));
+            var supportType = mod.GetType("BellumCivile.ProjectedRebellionSupport");
+            var reasonType = mod.GetType("BellumCivile.CivilWarSolidarityReason");
+            var supporters = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(supportType));
+            supporters.Add(Activator.CreateInstance(supportType, oldHouse, founder, founder, 100f, 1f, 100f, 75f,
+                Enum.Parse(reasonType, "DirectVassal"), 0f, 0f));
+            supporters.Add(Activator.CreateInstance(supportType, next, oldHouse, founder, 100f, 1f, 100f, 75f,
+                Enum.Parse(reasonType, "Friendship"), 0f, 0f));
+            var projection = Activator.CreateInstance(mod.GetType("BellumCivile.RebellionPowerProjection"),
+                realm, new List<Clan> { founder }, supporters, null, 500f, 0f);
+            var tooltip = AccessTools.Method(typeof(FactionsWindowVM), "BuildProjectedFactionPowerTooltip")
+                .Invoke(null, new[] { projection, manager });
+            var rows = ((Func<List<TooltipProperty>>)AccessTools.Field(tooltip.GetType(), "_tooltipProperties").GetValue(tooltip))();
+            check(rows.Any(row => row.DefinitionLabel.Trim() == "Expected support")
+                && rows.Any(row => row.ValueLabel.Contains("not pledged")), "The power tooltip distinguishes expected from pledged support");
+            check(rows.Any(row => row.DefinitionLabel.Trim() == "Friendly House" && row.ValueLabel.Contains("100%, friendship with Supporting House"))
+                && rows.Any(row => row.DefinitionLabel.Trim() == "Supporting House" && row.ValueLabel.Contains("100%, vassal of Founding House")),
+                "Projected support rows name the actual sponsor, even when it is another projected supporter");
         }
         finally
         {
