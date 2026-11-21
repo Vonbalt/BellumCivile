@@ -47,6 +47,8 @@ namespace BellumCivile.Patches
     [HarmonyPatch(typeof(DefaultClanFinanceModel), "AddIncomeFromParty")]
     internal static class LordshipSurplusPatch
     {
+        // RBM deducts the skim inside its prefix, before a postfix could change the result.
+        [HarmonyBefore("com.rbmcampaign")]
         private static bool Prefix(MobileParty party, Clan clan, ref int __result)
         {
             if (LordshipBehavior.Instance?.Ready != true || party?.IsLordParty != true || party.LeaderHero == null || party.LeaderHero == clan?.Leader

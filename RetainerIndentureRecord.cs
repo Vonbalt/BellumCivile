@@ -13,7 +13,7 @@ namespace BellumCivile
 
         internal bool HasEmployer => Employer != null && !Employer.IsEliminated && Holder?.IsAlive == true
             && Holder.Clan == Employer;
-        internal bool ActiveAt(double day) => HasEmployer && Employer == Clan.PlayerClan && EndDay > day
+        internal bool ActiveAt(double day) => HasEmployer && EndDay > day
             && !double.IsNaN(EndDay) && !double.IsInfinity(EndDay);
     }
 }

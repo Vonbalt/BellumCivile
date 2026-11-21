@@ -10,6 +10,7 @@ namespace BellumCivile
     internal static class LordshipEligibility
     {
         [ThreadStatic] internal static Clan SelectingClan;
+        [ThreadStatic] internal static bool SelectingCommander;
         [ThreadStatic] internal static bool ListingCandidates;
         [ThreadStatic] internal static bool CheckingClanCommand;
 
@@ -22,6 +23,8 @@ namespace BellumCivile
             if (governor && registry.HasLegacyAppointment(hero, town: destination ?? hero.GovernorOf)) return true;
             if (!governor && hero.PartyBelongedTo?.LeaderHero == hero && registry.HasLegacyAppointment(hero, party: hero.PartyBelongedTo)) return true;
             if (SelectingClan != hero.Clan || SelectingClan == Clan.PlayerClan) return false;
+            if (SelectingCommander)
+                return registry.GetNpcCommanderPreference(hero) != LordshipBehavior.CommanderPreference.Unavailable;
             var village = registry.FindVacancy(hero.Clan);
             return village != null && registry.CanGrant(hero.Clan, village, hero, out _);
         }

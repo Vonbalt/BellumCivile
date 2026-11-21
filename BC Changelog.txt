@@ -872,3 +872,5 @@ Fixed ruling clan revocation of titles from it's vassals failing to start a prop
 Added new rebellion type "Press a Claim Against the Crown" where vassals who hold claims to titles held by the rulling clan, but aren't his sovereign tier title, may plot to take it by force instead.
 Improvement to balance of power tooltips of rebel factions.
 Improved court agenda chat notifications.
+Fixed RBM Campaign compatibility so lordship holders and indentured retainers keep their party surplus.
+Enabled NPC clans to pay for an indentured retainer as a last resort when they lack other valid commanders for their parties.

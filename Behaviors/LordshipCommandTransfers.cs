@@ -29,7 +29,7 @@ namespace BellumCivile.Behaviors
             finally { _retirementDisbandParty = previous; }
         }
 
-        private bool CanReplaceCommander(Hero hero, MobileParty party, bool arriving = false)
+        private bool CanReplaceCommander(Hero hero, MobileParty party, bool arriving = false, bool allowNpcSupport = false)
         {
             if (hero == null || party?.ActualClan == null || hero.Clan != party.ActualClan || hero == Hero.MainHero || hero == party.LeaderHero
                 || !hero.IsAlive || (!hero.IsActive && !(arriving && hero.IsTraveling))
@@ -38,7 +38,8 @@ namespace BellumCivile.Behaviors
                 || hero.PartyBelongedToAsPrisoner != null || hero.GovernorOf != null
                 || hero.CurrentSettlement?.IsUnderSiege == true || hero.CurrentSettlement?.IsUnderRaid == true
                 || !hero.CanLeadParty() || !hero.CanBeGovernorOrHavePartyRole()
-                || (!HouseholdMembership.IsFamily(hero) && !HasServiceSupport(hero))
+                || (!HouseholdMembership.IsFamily(hero) && !HasServiceSupport(hero)
+                    && (!allowNpcSupport || GetNpcCommanderPreference(hero) == CommanderPreference.Unavailable))
                 || Campaign.Current.GetCampaignBehavior<HostagePactBehavior>()?.IsReserved(hero) == true
                 || Campaign.Current.GetCampaignBehavior<ExiledClanRecoveryBehavior>()?.IsAwaitingAsylum(hero) == true)
                 return false;
@@ -56,8 +57,10 @@ namespace BellumCivile.Behaviors
         {
             if (party?.ActualClan == null || party.MemberRoster.TotalManCount <= (party.LeaderHero == null ? 0 : 1))
                 return Enumerable.Empty<Hero>();
-            return HouseholdMembership.Members(party.ActualClan).Where(h => CanReplaceCommander(h, party))
-                .OrderByDescending(h => h.PartyBelongedTo == party)
+            bool npc = party.ActualClan != Clan.PlayerClan;
+            return HouseholdMembership.Members(party.ActualClan).Where(h => CanReplaceCommander(h, party, allowNpcSupport: npc))
+                .OrderByDescending(h => npc ? GetNpcCommanderPreference(h) : CommanderPreference.Unavailable)
+                .ThenByDescending(h => h.PartyBelongedTo == party)
                 .ThenByDescending(h => 3 * h.GetSkillValue(DefaultSkills.Tactics) + 2 * h.GetSkillValue(DefaultSkills.Leadership)
                     + h.GetSkillValue(DefaultSkills.Scouting) + h.GetSkillValue(DefaultSkills.Steward));
         }
@@ -65,8 +68,10 @@ namespace BellumCivile.Behaviors
         private bool BeginCommandTransfer(Hero formerLeader, MobileParty party, Hero replacement,
             LordshipCommandTransferRecord transfer = null)
         {
-            if (!CanRetireParty(party) || !CanReplaceCommander(replacement, party)
-                || party.LeaderHero != null && party.LeaderHero != formerLeader) return false;
+            bool npc = party.ActualClan != Clan.PlayerClan;
+            if (!CanRetireParty(party) || !CanReplaceCommander(replacement, party, allowNpcSupport: npc)
+                || party.LeaderHero != null && party.LeaderHero != formerLeader
+                || npc && !EnsureNpcCommandSupport(replacement)) return false;
             if (transfer == null)
             {
                 transfer = new LordshipCommandTransferRecord { Party = party, Clan = party.ActualClan, FormerLeader = formerLeader };

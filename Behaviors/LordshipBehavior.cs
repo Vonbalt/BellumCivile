@@ -298,6 +298,21 @@ namespace BellumCivile.Behaviors
             return village != null && TryGrant(hero.Clan, village, hero, out _);
         }
 
+        internal enum CommanderPreference { Unavailable, NewIndenture, ActiveIndenture, Lordship, Family }
+
+        internal CommanderPreference GetNpcCommanderPreference(Hero hero)
+        {
+            if (!HouseholdMembership.IsRetainer(hero)) return CommanderPreference.Family;
+            if (GetGrant(hero) != null) return CommanderPreference.Lordship;
+            if (GetIndenture(hero) != null) return CommanderPreference.ActiveIndenture;
+            var village = FindVacancy(hero.Clan);
+            if (village != null && CanGrant(hero.Clan, village, hero, out _)) return CommanderPreference.Lordship;
+            return CanHireNpcCommander(hero) ? CommanderPreference.NewIndenture : CommanderPreference.Unavailable;
+        }
+
+        internal bool EnsureNpcCommandSupport(Hero hero) => !HouseholdMembership.IsRetainer(hero) || HasServiceSupport(hero)
+            || EnsureAppointmentGrant(hero) || TryHireNpcCommander(hero);
+
         internal bool HasLegacyAppointment(Hero hero, MobileParty party = null, Town town = null) => _appointments.Any(a =>
             a != null && (party != null || town != null) && a.Hero == hero && a.IsCurrent && !a.Retirement && (!a.PlayerTransition || a.Deadline < 0 || Now < a.Deadline)
             && (party != null ? a.Party == party : town != null ? a.Town == town : true));
@@ -319,7 +334,12 @@ namespace BellumCivile.Behaviors
                 if (party != null)
                 {
                     if (!CanRetireParty(party)) continue;
+                    bool npc = record.OwningClan != Clan.PlayerClan;
                     var replacement = ReplacementCandidates(party).FirstOrDefault();
+                    // Avoid paying a new captain if the current commander can keep a party that has no supported replacement.
+                    if (npc && (replacement == null || GetNpcCommanderPreference(replacement) == CommanderPreference.NewIndenture)
+                        && !IsRetiringParty(party, Campaign.Current?.GetCampaignBehavior<IDisbandPartyCampaignBehavior>())
+                        && EnsureNpcCommandSupport(record.Hero)) continue;
                     if (replacement != null)
                     {
                         if (record.OwningClan == Clan.PlayerClan) { _replacementPromptPending = true; continue; }

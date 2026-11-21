@@ -36,9 +36,11 @@ namespace BellumCivile.Behaviors
                     _indenturesByHero.Add(contract.Holder, contract);
         }
 
-        private bool CanDiscussIndenture(Hero hero) => Ready && Clan.PlayerClan?.Leader == Hero.MainHero
-            && hero?.Clan == Clan.PlayerClan && HouseholdMembership.IsRetainer(hero) && !hero.IsChild
+        private static bool CanServeUnderIndenture(Hero hero) => HouseholdMembership.IsRetainer(hero) && !hero.IsChild
             && !hero.IsDisabled && !hero.IsPrisoner && !hero.IsNotable && !hero.IsSpecial && !hero.IsTemplate && hero.IsAlive;
+
+        private bool CanDiscussIndenture(Hero hero) => Ready && Clan.PlayerClan?.Leader == Hero.MainHero
+            && hero?.Clan == Clan.PlayerClan && CanServeUnderIndenture(hero);
 
         internal bool CanSignIndenture(Hero hero, int years, out TextObject reason)
         {
@@ -65,8 +67,27 @@ namespace BellumCivile.Behaviors
                 reason = Text("BC_Indenture_Unavailable", "This indenture can no longer be agreed. We must speak of it another time.");
                 return false;
             }
+            SignIndenture(Hero.MainHero, hero, years, existing);
+            return true;
+        }
+
+        private bool CanHireNpcCommander(Hero hero) => Ready && hero?.Clan != Clan.PlayerClan
+            && hero?.IsActive == true && !hero.IsNoncombatant && CanServeUnderIndenture(hero)
+            && hero.DeathMark == KillCharacterAction.KillCharacterActionDetail.None
+            && hero.Clan.Leader.Gold >= IndentureFee(1) && hero.Gold <= int.MaxValue - IndentureFee(1)
+            && CampaignTime.DaysInYear > 0;
+
+        private bool TryHireNpcCommander(Hero hero)
+        {
+            if (!CanHireNpcCommander(hero) || HasServiceSupport(hero)) return false;
+            SignIndenture(hero.Clan.Leader, hero, 1, null);
+            return true;
+        }
+
+        private void SignIndenture(Hero employer, Hero hero, int years, RetainerIndentureRecord existing)
+        {
             double end = (existing?.EndDay ?? CampaignTime.Now.ToDays) + years * (double)CampaignTime.DaysInYear;
-            GiveGoldAction.ApplyBetweenCharacters(Hero.MainHero, hero, IndentureFee(years));
+            GiveGoldAction.ApplyBetweenCharacters(employer, hero, IndentureFee(years));
             if (existing == null)
             {
                 if (_indenturesByHero.TryGetValue(hero, out var old)) _indentures.Remove(old);
@@ -79,7 +100,6 @@ namespace BellumCivile.Behaviors
             _appointments.RemoveAll(a => a?.Hero == hero && a.OwningClan == hero.Clan);
             Changed();
             BellumCivileLogger.Log($"Agreed retainer indenture; hero={hero.StringId}; clan={hero.Clan.StringId}; years={years}; fee={IndentureFee(years)}; endDay={end}.");
-            return true;
         }
 
         private void MaintainIndentures()
@@ -91,7 +111,8 @@ namespace BellumCivile.Behaviors
                 if (contract?.Holder != null && contract.ActiveAt(CampaignTime.Now.ToDays) && seen.Add(contract.Holder))
                 {
                     _indenturesByHero[contract.Holder] = contract;
-                    if (!contract.RenewalNotified && contract.EndDay - CampaignTime.Now.ToDays <= IndentureRenewalDays)
+                    if (contract.Employer == Clan.PlayerClan && !contract.RenewalNotified
+                        && contract.EndDay - CampaignTime.Now.ToDays <= IndentureRenewalDays)
                         _indentureRenewalPending = true;
                     continue;
                 }
@@ -102,11 +123,12 @@ namespace BellumCivile.Behaviors
                 if (seen.Contains(contract.Holder)) continue;
                 Changed();
                 // Expiry removes authority, not the retainer. Existing appointment retirement supplies the safe handover.
-                if (contract.HasEmployer && contract.Employer == Clan.PlayerClan)
+                if (contract.HasEmployer)
                 {
                     CheckAppointment(contract.Holder);
-                    InformationManager.DisplayMessage(new InformationMessage(Text("BC_Indenture_Expired", "{HERO}'s indenture has expired.")
-                        .SetTextVariable("HERO", contract.Holder.Name).ToString()));
+                    if (contract.Employer == Clan.PlayerClan)
+                        InformationManager.DisplayMessage(new InformationMessage(Text("BC_Indenture_Expired", "{HERO}'s indenture has expired.")
+                            .SetTextVariable("HERO", contract.Holder.Name).ToString()));
                 }
             }
         }

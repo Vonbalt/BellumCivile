@@ -91,6 +91,14 @@ internal static class LordshipAppointmentTests
     private static bool Delay(ref ExplainedNumber __result) { __result = new ExplainedNumber(1); return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool Skill(ref int __result) { __result = 100; return false; }
+    private static bool AdultAge(ref float __result) { __result = 30f; return false; }
+    private static bool LordOccupation(ref Occupation __result) { __result = Occupation.Lord; return false; }
+    private static bool CommanderScore(Hero hero, ref float __result)
+    {
+        __result = hero.StringId == "npc_rank_family" ? 200f : hero.StringId == "npc_rank_landed" ? 400f
+            : hero.StringId == "npc_rank_paid" ? 700f : 1000f;
+        return false;
+    }
     private static bool SkillReference(ref SkillObject __result) { __result = null; return false; }
     private static bool PlayerAvailability(Hero hero, ref bool __result, ref TextObject explanation)
     { __result = true; explanation = TextObject.GetEmpty(); return false; }
@@ -156,6 +164,9 @@ internal static class LordshipAppointmentTests
         var oldCampaign = Campaign.Current; var oldRegistry = LordshipBehavior.Instance;
         var ticks = AccessTools.Field(typeof(CampaignTime), "TimeTicksPerDay"); var oldTicks = ticks.GetValue(null);
         var hours = AccessTools.Field(typeof(CampaignTime), "TimeTicksPerHour"); var oldHours = hours.GetValue(null);
+        var calendar = new[] { nameof(CampaignTime.DaysInWeek), nameof(CampaignTime.WeeksInSeason), nameof(CampaignTime.SeasonsInYear) }
+            .Select(name => AccessTools.Field(typeof(CampaignTime), name)).ToArray();
+        var oldCalendar = calendar.Select(field => field.GetValue(null)).ToArray();
         void Patch(Type type, string name, string handler, bool getter = true) => h.Patch(
             getter ? AccessTools.PropertyGetter(type, name) : AccessTools.Method(type, name), prefix: new HarmonyMethod(typeof(LordshipAppointmentTests), handler));
         Hero Person(Clan clan, string id)
@@ -187,6 +198,7 @@ internal static class LordshipAppointmentTests
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { new CampaignEventReceiver[] { new Receiver() } }, null);
             Set(campaign, "CampaignEventDispatcher", dispatcher); Set(campaign, "CampaignObjectManager", Blank<CampaignObjectManager>());
             ticks.SetValue(null, 24000L); hours.SetValue(null, 1000L); _day = 10;
+            calendar[0].SetValue(null, 7); calendar[1].SetValue(null, 3); calendar[2].SetValue(null, 4);
             Patch(typeof(CampaignTime), "Now", nameof(Now));
             Patch(typeof(CampaignTime), "DaysFromNow", nameof(DaysFromNow), false);
             Patch(typeof(Clan), "PlayerClan", nameof(Player)); Patch(typeof(MobileParty), "MainParty", nameof(MainParty));
@@ -778,15 +790,89 @@ internal static class LordshipAppointmentTests
             governorContract.EndDay = _day; Call(typeof(LordshipBehavior), "Maintain", registry);
             check(town.Governor == null && _retainer.GovernorOf == null,
                 "An unsupported governor is removed through the native governor action when the indenture expires");
+
+            Set(models, "AgeModel", new DefaultAgeModel());
+            Patch(typeof(Hero), "Age", nameof(AdultAge));
+            Patch(typeof(CharacterObject), "Occupation", nameof(LordOccupation));
+            Patch(typeof(HeroSpawnCampaignBehavior), "GetHeroPartyCommandScore", nameof(CommanderScore), false);
+            var selector = AccessTools.Method(typeof(HeroSpawnCampaignBehavior), "GetBestAvailableCommander");
+            h.Patch(selector, prefix: new HarmonyMethod(PatchType, "EnterCommanderSelection"),
+                transpiler: new HarmonyMethod(PatchType, "CommanderCode"), finalizer: new HarmonyMethod(PatchType, "ExitCommanderSelection"));
+            var spawn = new HeroSpawnCampaignBehavior();
+            var employers = Blank<Clan>(); employers.StringId = "npc_ranks"; Members[employers] = new MBReadOnlyList<Hero>();
+            var employer = Person(employers, "npc_rank_employer"); Set(employers, "_leader", employer);
+            Set(employer, "_partyBelongedTo", Party(employer));
+            var relative = Person(employers, "npc_rank_family"); relative.Father = employer;
+            var knight = Person(employers, "npc_rank_landed");
+            var captain = Person(employers, "npc_rank_paid");
+            var applicant = Person(employers, "npc_rank_unsigned");
+            Hero SelectCommander() => (Hero)selector.Invoke(spawn, new object[] { employers });
+            RetainerIndentureRecord GetIndenture(Hero hero) => (RetainerIndentureRecord)Call(typeof(LordshipBehavior), "GetIndenture", registry, hero);
+            var spawnArgs = new object[] { applicant, null };
+            bool PrepareSpawn() => (bool)Call(PatchType, "BeforeSpawn", null, spawnArgs);
+            _day = 30; employer.Gold = 18000; _fundingCalls = 0;
+            indentures.Add(new RetainerIndentureRecord { Holder = captain, Employer = employers, EndDay = 114 });
+            Call(typeof(LordshipBehavior), "ReindexIndentures", registry);
+            _endowed = knight;
+            check(SelectCommander() == relative, "The native NPC selector ranks family ahead of higher-skilled retainers");
+            Set(relative, "_heroState", Hero.CharacterStates.Disabled);
+            check(SelectCommander() == knight, "A landed retainer outranks a higher-skilled captain under indenture");
+            Set(knight, "_heroState", Hero.CharacterStates.Disabled); _endowed = null;
+            check(SelectCommander() == captain, "An active indenture outranks hiring a new commander");
+            Set(captain, "_heroState", Hero.CharacterStates.Disabled);
+            check(SelectCommander() == applicant && employer.Gold == 18000 && GetIndenture(applicant) == null && _fundingCalls == 0,
+                "Selecting an affordable commander neither signs a contract nor spends gold");
+            employer.Gold = 4999;
+            check(SelectCommander() == null && !PrepareSpawn() && _fundingCalls == 0,
+                "A clan below the fee cannot select or pay for a new indenture");
+            employer.Gold = 5000;
+            check(!(bool)Call(PatchType, "BeforeGovernor", null, town, applicant) && _fundingCalls == 0,
+                "A governorship by itself does not spend money on a new indenture");
+            check(PrepareSpawn() && PrepareSpawn() && employer.Gold == 0 && applicant.Gold == 5000 && _fundingCalls == 1
+                && GetIndenture(applicant)?.EndDay == 114,
+                "Confirmed NPC spawning pays the retainer exactly once for one campaign year");
+
+            _party = Party(applicant); Set(applicant, "_partyBelongedTo", _party);
+            employer.Gold = 5000;
+            _day = 112; Call(typeof(LordshipBehavior), "MaintainIndentures", registry);
+            check(!(bool)AccessTools.Field(typeof(LordshipBehavior), "_indentureRenewalPending").GetValue(registry),
+                "NPC indentures do not open a player renewal reminder");
+            _day = 114;
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(_party.LeaderHero == applicant && GetIndenture(applicant)?.EndDay == 198 && _fundingCalls == 2,
+                "An NPC commander renews at expiry when no supported replacement is available");
+
+            employer.Gold = 5000;
+            Set(relative, "_heroState", Hero.CharacterStates.Active);
+            _day = 198; _teleport = new TeleportationCampaignBehavior(); _starts = 0;
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(relative.IsTraveling && GetIndenture(applicant) == null && employer.Gold == 5000 && _fundingCalls == 2,
+                "An available family member replaces an expired NPC captain before another fee is paid");
+            Arrive();
+            check(_party.LeaderHero == relative && _starts == 0, "The NPC captain's expiry does not disband a party with a valid successor");
+
+            Set(knight, "_heroState", Hero.CharacterStates.Active);
+            Set(captain, "_heroState", Hero.CharacterStates.Active);
+            _party = Party(captain); Set(captain, "_partyBelongedTo", _party);
+            captain.Gold = int.MaxValue;
+            _teleport = new TeleportationCampaignBehavior();
+            appointments.Add(new LordshipAppointmentRecord { Hero = captain, Party = _party, OwningClan = employers, Retirement = true });
+            Call(typeof(LordshipBehavior), "Maintain", registry);
+            check(knight.IsTraveling && GetIndenture(knight) != null && employer.Gold == 0 && _fundingCalls == 3,
+                "An NPC clan can hire a new captain to replace a commander who cannot sign");
+            Arrive();
+            check(_party.LeaderHero == knight && _starts == 0, "A newly indentured NPC captain arrives through the ordinary handover");
         }
         finally
         {
             h.UnpatchAll(h.Id); AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { oldCampaign });
             AccessTools.PropertySetter(typeof(LordshipBehavior), "Instance").Invoke(null, new object[] { oldRegistry });
             AccessTools.Field(Eligibility, "SelectingClan").SetValue(null, null);
+            AccessTools.Field(Eligibility, "SelectingCommander").SetValue(null, false);
             AccessTools.Field(Eligibility, "ListingCandidates").SetValue(null, false);
             AccessTools.Field(Eligibility, "CheckingClanCommand").SetValue(null, false);
             ticks.SetValue(null, oldTicks); hours.SetValue(null, oldHours); Call(Household, "Invalidate", null, new object[] { null });
+            for (int i = 0; i < calendar.Length; i++) calendar[i].SetValue(null, oldCalendar[i]);
             Houses.Clear(); Members.Clear();
             _tooltipVillage = null;
         }

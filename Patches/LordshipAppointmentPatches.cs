@@ -39,7 +39,7 @@ namespace BellumCivile.Patches
             {
                 Patch(typeof(Hero), nameof(Hero.CanLeadParty), postfix: nameof(CanLead));
                 Patch(typeof(DefaultArmyManagementCalculationModel), "CanLordCreateArmy", nameof(EnterCommandCheck), finalizer: nameof(ExitCommandCheck));
-                Patch(typeof(HeroSpawnCampaignBehavior), "GetBestAvailableCommander", nameof(EnterSelection), transpiler: nameof(CommanderCode), finalizer: nameof(ExitSelection));
+                Patch(typeof(HeroSpawnCampaignBehavior), "GetBestAvailableCommander", nameof(EnterCommanderSelection), transpiler: nameof(CommanderCode), finalizer: nameof(ExitCommanderSelection));
                 Patch(typeof(HeroSpawnCampaignBehavior), "SpawnLordParty", nameof(BeforeSpawn));
                 Patch(typeof(ClanVariablesCampaignBehavior), "UpdateGovernorsOfClan", nameof(EnterSelection), transpiler: nameof(GovernorCode), finalizer: nameof(ExitSelection));
                 Patch(typeof(ChangeGovernorAction), "Apply", nameof(BeforeGovernor), nameof(AppointmentsChanged));
@@ -72,6 +72,20 @@ namespace BellumCivile.Patches
 
         private static Exception ExitSelection(Exception __exception, Clan __state)
         { LordshipEligibility.SelectingClan = __state; return __exception; }
+
+        private static void EnterCommanderSelection(Clan clan, out (Clan Clan, bool Commander) __state)
+        {
+            __state = (LordshipEligibility.SelectingClan, LordshipEligibility.SelectingCommander);
+            LordshipEligibility.SelectingClan = clan;
+            LordshipEligibility.SelectingCommander = true;
+        }
+
+        private static Exception ExitCommanderSelection(Exception __exception, (Clan Clan, bool Commander) __state)
+        {
+            LordshipEligibility.SelectingClan = __state.Clan;
+            LordshipEligibility.SelectingCommander = __state.Commander;
+            return __exception;
+        }
 
         private static void CanLead(Hero __instance, ref bool __result)
         {
@@ -148,11 +162,25 @@ namespace BellumCivile.Patches
         private static Occupation CommanderOccupation(CharacterObject character) => LordshipBehavior.Instance?.Ready == true && character.Occupation == Occupation.Wanderer
             && character.HeroObject != null && HouseholdMembership.IsRetainer(character.HeroObject) ? Occupation.Lord : character.Occupation;
 
+        private static bool BetterCommander(float score, float bestScore, Hero candidate, Hero best)
+        {
+            var registry = LordshipBehavior.Instance;
+            if (registry?.Ready != true || LordshipEligibility.SelectingClan == Clan.PlayerClan || best == null)
+                return score > bestScore;
+            if (!(score > 0f)) return false;
+            var rank = registry.GetNpcCommanderPreference(candidate);
+            var bestRank = registry.GetNpcCommanderPreference(best);
+            return rank > bestRank || (rank == bestRank && score > bestScore);
+        }
+
         private static IEnumerable<CodeInstruction> CommanderCode(IEnumerable<CodeInstruction> instructions)
         {
-            int active = 0, pool = 0, occupation = 0;
-            foreach (var instruction in instructions)
+            var code = instructions.ToList();
+            var scoreMethod = AccessTools.Method(typeof(HeroSpawnCampaignBehavior), "GetHeroPartyCommandScore");
+            int active = 0, pool = 0, occupation = 0, comparisons = 0;
+            for (int i = 0; i < code.Count; i++)
             {
+                var instruction = code[i];
                 if (instruction.Calls(AccessTools.PropertyGetter(typeof(Hero), "IsActive")))
                 {
                     instruction.opcode = OpCodes.Call;
@@ -162,9 +190,23 @@ namespace BellumCivile.Patches
                 { instruction.opcode = OpCodes.Call; instruction.operand = AccessTools.Method(typeof(LordshipAppointmentPatches), nameof(Candidates)); pool++; }
                 else if (instruction.Calls(AccessTools.PropertyGetter(typeof(CharacterObject), "Occupation")))
                 { instruction.opcode = OpCodes.Call; instruction.operand = AccessTools.Method(typeof(LordshipAppointmentPatches), nameof(CommanderOccupation)); occupation++; }
+                else if ((instruction.opcode == OpCodes.Ble_Un_S || instruction.opcode == OpCodes.Ble_Un)
+                    && i >= 4 && i + 4 < code.Count && code[i - 4].Calls(scoreMethod)
+                    && code[i - 1].opcode == OpCodes.Ldloc_1 && code[i + 4].opcode == OpCodes.Stloc_0
+                    && code[i + 3].IsLdloc())
+                {
+                    // Compare support tiers before skill, without changing the score used to decide whether to spawn.
+                    yield return new CodeInstruction(code[i + 3].opcode, code[i + 3].operand).WithLabels(instruction.labels);
+                    instruction.labels.Clear();
+                    yield return new CodeInstruction(OpCodes.Ldloc_0);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(LordshipAppointmentPatches), nameof(BetterCommander)));
+                    instruction.opcode = OpCodes.Brfalse;
+                    comparisons++;
+                }
                 yield return instruction;
             }
-            if (active != 2 || pool != 2 || occupation != 2) throw new InvalidOperationException("Lordship commander selection contract changed.");
+            if (active != 2 || pool != 2 || occupation != 2 || comparisons != 2)
+                throw new InvalidOperationException("Lordship commander selection contract changed.");
         }
 
         private static IEnumerable<CodeInstruction> GovernorCode(IEnumerable<CodeInstruction> instructions)
@@ -198,7 +240,7 @@ namespace BellumCivile.Patches
         {
             var registry = LordshipBehavior.Instance;
             if (!LordshipEligibility.Required(hero) || registry.HasServiceSupport(hero)
-                || (hero.Clan != Clan.PlayerClan && registry.EnsureAppointmentGrant(hero))) return true;
+                || (hero.Clan != Clan.PlayerClan && registry.EnsureNpcCommandSupport(hero))) return true;
             __result = null;
             return false;
         }
