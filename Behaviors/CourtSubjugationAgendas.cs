@@ -100,7 +100,7 @@ namespace BellumCivile.Behaviors
             plan.Activated = true;
             agenda.ObjectiveData.Activate();
             agenda.State = CourtAgendaState.PursuingObjective;
-            ReportSubjugation(agenda, new TextObject("{=BC_CourtClientageBegun}The {FACTION} of {REALM} calls for {TARGET} to acknowledge the Crown's overlordship. Its houses pledge their voices to this ambition, expecting submission before the term ends on {DATE}. War and the terms of peace remain matters for the realm to decide."));
+            ReportSubjugation(agenda, new TextObject("{=BC_CourtClientageBegun}The lords of {FACTION} in {REALM} have put their weight behind a demand for {TARGET} to acknowledge the Crown as overlord. They hope to see its ruler submit before {DATE}."));
             BellumCivileLogger.Log($"Court clientage initiative active; realm={agenda.Realm.StringId}; target={plan.Target.StringId}; members={plan.Members.Count}; deadline={agenda.ObjectiveData.DeadlineDay}.");
         }
 

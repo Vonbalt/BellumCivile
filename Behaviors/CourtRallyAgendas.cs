@@ -66,7 +66,7 @@ namespace BellumCivile.Behaviors
             a.ObjectiveData.Activate(); a.State=CourtAgendaState.PursuingObjective;
             if(!_rallies.Contains(a)) _rallies.Add(a);
             _rallyIndex=null;
-            ReportRally(a,new TextObject("{=BC_RallyBegun}The {FACTION} of {REALM} calls upon its houses to stand firm against {TARGET}. Its lords pledge renewed resolve until {BOOST_DATE}, and look to the Crown for a victorious peace before {DATE}."));
+            ReportRally(a,new TextObject("{=BC_RallyBegun}The lords of {FACTION} in {REALM} have pledged to see the war against {TARGET} through. They look to the Crown for victory before {DATE}."));
         }
         internal void BeginRallySettlement(WarScoreRecord war)
         {
@@ -138,7 +138,7 @@ namespace BellumCivile.Behaviors
             if(state.HasValue) text=CourtObjectiveReports.WithMood(text,a.Faction?.GetDisplayName()??TextObject.GetEmpty(),mood,state.Value);
             BellumCivileNotifications.Show(text,CourtObjectiveReports.Color(state),primaryKingdom:a.Realm);
         }
-        private static TextObject RallyStatus(CourtAgendaRecord a) => RallyText(a,new TextObject("{=BC_RallyStatus}Seek victory against {TARGET} by {DATE}. Participating houses and an NPC Crown favoring Glory gain up to +15 enthusiasm for this war until {BOOST_DATE}. Victory brings +10 approval; defeat or inconclusive peace -10; an unfinished campaign -5. Your decisions and forced settlements remain unchanged."));
+        private static TextObject RallyStatus(CourtAgendaRecord a) => RallyText(a,new TextObject("{=BC_RallyStatus}Seek victory against {TARGET} by {DATE}. Participating houses gain up to +15 War Enthusiasm until {BOOST_DATE}. A ruler who favors Glory gains the same bonus, unless you hold the Crown. Victory brings +10 faction mood; defeat or inconclusive peace -10; an unfinished campaign -5."));
         internal TextObject RallyHint(Kingdom realm,FactionObject faction) {var a=GetDisplayedAgenda(realm,faction);return IsRally(a)?RallyStatus(a):null;}
     }
 }

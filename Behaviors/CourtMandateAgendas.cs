@@ -114,7 +114,7 @@ namespace BellumCivile.Behaviors
                 a.Mandate.Decision = d;
                 a.ObjectiveData.Activate();
                 _mandateSettledUntil[a.Realm.StringId] = CampaignTime.Days((float)a.ObjectiveData.DeadlineDay);
-                BellumCivileNotifications.Show(new TextObject("{=BC_MandateDeliberation}The {FACTION} has placed {LAW} before the court of {REALM}. The houses will deliberate until {DATE}; the present ruler's mandate will not be altered.")
+                BellumCivileNotifications.Show(new TextObject("{=BC_MandateDeliberation}The lords of {FACTION} have laid {LAW} before the court of {REALM}. The houses will hear the matter until {DATE}. The present ruler's tenure is not in question.")
                     .SetTextVariable("FACTION", a.Faction.GetDisplayName()).SetTextVariable("LAW", RealmLawRegistry.Instance.Find(a.Mandate.NewLaw).Name)
                     .SetTextVariable("REALM", a.Realm.Name).SetTextVariable("DATE", a.VoteDate.ToString()), BellumNotificationColors.Politics, primaryKingdom: a.Realm);
             }
@@ -148,8 +148,8 @@ namespace BellumCivile.Behaviors
             a.Mandate.Pledges.Clear();
             FinishExecutive(a, enacted ? CourtAgendaState.Passed : CourtAgendaState.Defeated, "mandate_vote_resolved");
             BellumCivileNotifications.Show(new TextObject(enacted
-                ? "{=BC_MandateApproval}The {FACTION} welcomes the court's adoption of {LAW}. Its members applaud this settlement of the realm's future succession. Approval +10."
-                : "{=BC_MandateReprisal}The court has rejected the {FACTION}'s proposal for {LAW}. Its members resent the defeat of their reform. Approval -10.")
+                ? "{=BC_MandateApproval}The lords of {FACTION} welcome the court's adoption of {LAW} and praise the new settlement of the realm's succession."
+                : "{=BC_MandateReprisal}The court has rejected the proposal for {LAW}. The lords of {FACTION} are bitter at the defeat of their reform.")
                 .SetTextVariable("FACTION", a.Faction.GetDisplayName()).SetTextVariable("LAW", RealmLawRegistry.Instance.Find(a.Mandate.NewLaw).Name),
                 BellumNotificationColors.Politics, primaryKingdom: a.Realm);
         }

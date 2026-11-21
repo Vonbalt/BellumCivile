@@ -6,6 +6,7 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
 
 internal static class CourtTermPreparationTests
 {
@@ -44,6 +45,7 @@ internal static class CourtTermPreparationTests
     private static Dictionary<string, CourtTermPreparationRecord> Queue(CourtAgendaBehavior behavior) =>
         (Dictionary<string, CourtTermPreparationRecord>)AccessTools.Field(typeof(CourtAgendaBehavior), "_pendingCourtTerms").GetValue(behavior);
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days((float)_day); return false; }
+    private static bool DateLabel(ref string __result) { __result = "Winter 6, 1085"; return false; }
     private static bool Term(ref float __result) { __result = _term; return false; }
     private static bool Deliberation(ref int __result) { __result = _deliberation; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
@@ -146,6 +148,44 @@ internal static class CourtTermPreparationTests
             check(Queue(legacy).Count == 0, "Old saves without queue data load with an empty preparation queue");
             foreach (var field in typeof(CourtTermPreparationRecord).GetFields())
                 check(field.IsDefined(typeof(TaleWorlds.SaveSystem.SaveableFieldAttribute), false), "Pending term field is saveable: " + field.Name);
+
+            Patch(typeof(CampaignTime), nameof(CampaignTime.ToString), nameof(DateLabel));
+            Kingdom NamedRealm(string name)
+            {
+                var realm = Blank<Kingdom>();
+                AccessTools.PropertySetter(typeof(Kingdom), "Name").Invoke(realm, new object[] { new TextObject(name) });
+                return realm;
+            }
+            var source = NamedRealm("Vlandia");
+            var target = NamedRealm("Sturgia");
+            AccessTools.Field(typeof(FactionObject), "_type").SetValue(faction, FactionType.Glory);
+            AccessTools.Field(typeof(FactionObject), "_parentKingdom").SetValue(faction, source);
+            var rally = new CourtAgendaRecord { Realm = source, Faction = faction, State = CourtAgendaState.AwaitingPlayerDecision,
+                ObjectiveData = new CourtObjectiveRecord { Kind = "court_rally_victory" }, Rally = new CourtRallyRecord { Target = target } };
+            Call(rally.ObjectiveData, "FreezeTerm", 84d, 168d);
+            string News(CourtAgendaRecord record, bool crisisSetAside = false) => Call(restored, "BuildAgendaNotice", record, crisisSetAside)?.ToString();
+            var proposed = News(rally);
+            check(proposed.Contains("urge the Crown to stand firm against Sturgia") && proposed.Contains("Winter 6, 1085")
+                && !proposed.Contains("+15") && !proposed.Contains("Current agenda"), "A proposed rally reports the enemy and deadline without publishing the rules tooltip");
+            rally.State = CourtAgendaState.Blocked;
+            check(News(rally).Contains("set aside this motion: Rally against Sturgia") && !News(rally).Contains("Winter 6"),
+                "A blocked rally reports the withdrawn motion without an active deadline");
+            rally.State = CourtAgendaState.PursuingObjective;
+            check(News(rally) == null, "An active rally leaves its announcement to the dedicated start report");
+            rally.State = CourtAgendaState.AwaitingNomination;
+            check(News(rally) == null, "A nomination mandate relies on its own letter");
+            rally.State = CourtAgendaState.Announced;
+            rally.CrisisInterventionPending = true;
+            check(News(rally).Contains("take a stand against the Crown") && !News(rally).Contains("Sturgia")
+                && News(rally, crisisSetAside: true).Contains("set aside its challenge"), "A crisis notice follows the player's response rather than the ordinary agenda");
+            var appeal = new CourtAgendaRecord { Realm = source, State = CourtAgendaState.PursuingObjective,
+                ObjectiveData = new CourtObjectiveRecord { Kind = "crown_seek_protection" },
+                Protection = new CourtProtectionRecord { Client = source, Protector = target,
+                    Threat = NamedRealm("Battania"), Phase = CourtProtectionPhase.Offered } };
+            check(News(appeal) == "Vlandia has sent an envoy to Sturgia, seeking aid against Battania.",
+                "A protection notice names the parties only after the envoy is sent");
+            appeal.Protection.Phase = CourtProtectionPhase.SenderDecision;
+            check(News(appeal) == null, "A protection offer awaiting the sender's decision is not reported as sent");
         }
         finally { harmony.UnpatchAll(harmony.Id); ticks.SetValue(null, oldTicks); }
     }

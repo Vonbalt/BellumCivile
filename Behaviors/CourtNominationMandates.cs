@@ -49,7 +49,6 @@ namespace BellumCivile.Behaviors
                     _agendas[_agendas.IndexOf(agenda)] = mandate;
                     if (overruledCrisis) ApplyMemberMemory(mandate, BellumCivileConstants.CourtAgendaDeclineRelationPenalty,
                         RelationMemorySources.OverruledMyFaction, 7f);
-                    NotifyAgenda(mandate);
                     BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_NominationGranted}The {FACTION} entrusts you with a mandate: {MOTION}. Your peers expect a proposal before {DATE}.")
                         .SetTextVariable("FACTION", AgendaOwnerName(mandate)).SetTextVariable("MOTION", NominationLabel(kind))
                         .SetTextVariable("DATE", deadline.ToString()), BellumNotificationColors.Politics);
@@ -79,7 +78,7 @@ namespace BellumCivile.Behaviors
                 selected =>
                 {
                     if (selected?.Count == 1 && !FileMandateMotion(mandate, (PlayerMotion)selected[0].Identifier))
-                        BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_NominationNotFiled}The proposal could not be placed before the court. If your mandate remains valid, you may choose another proposal before its deadline."), BellumNotificationColors.Warning);
+                        BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_NominationNotFiled}The court could not hear that motion. If your mandate still stands, you may bring forward another before it expires."), BellumNotificationColors.Warning);
                     refresh?.Invoke();
                 }, _ => refresh?.Invoke()), true);
             return true;

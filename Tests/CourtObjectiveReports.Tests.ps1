@@ -17,7 +17,8 @@ foreach ($kind in @('Peace', 'Campaign', 'Subjugation')) {
 $helper = Read 'CourtObjectiveReports.cs'
 Check ($helper.Contains('CourtSessionEventReports.ForTarget') -and $helper.Contains('CourtSessionEventReports.Change')) 'Objective reports reuse existing named-effect formatting.'
 Check ($helper.Contains('{REPORT}\n{EFFECT}')) 'Narrative and effect remain on separate lines.'
-$ids = @('BC_CourtObjectiveMoodUnchanged','BC_CourtObjectiveMoodUnit','BC_CourtSessionReport',
+Check ($helper.Contains('actualChange == 0f) return narrative')) 'Reports with no mood change keep only their narrative.'
+$ids = @('BC_CourtObjectiveMoodUnit','BC_CourtSessionReport',
     'BC_CourtPeaceSucceeded','BC_CourtPeaceFailed','BC_CourtPeaceCancelled',
     'BC_CourtCampaignSucceeded','BC_CourtCampaignFailed','BC_CourtCampaignCancelled','BC_CourtCampaignAttacked',
     'BC_CourtClientageSucceeded','BC_CourtClientageFailed','BC_CourtClientageCancelled')

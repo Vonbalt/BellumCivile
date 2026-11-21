@@ -140,7 +140,7 @@ namespace BellumCivile.Behaviors
         }
         private static TextObject TradeStatus(CourtAgendaRecord a) => TradeText(a, new TextObject(a.ResultApplied
             ? "{=BC_CourtTradeClosed}This trade initiative has ended."
-            : "{=BC_CourtTradeStatus}Seek an agreement with {TARGET} by {DATE}. Participating houses and an NPC Crown favoring Liberty receive +15 trade support. Normal proposal costs, foreign acceptance and your vote remain unchanged. Signing brings +10 approval in addition to standing trade benefits; expiry brings -10."));
+            : "{=BC_CourtTradeStatus}Seek an agreement with {TARGET} by {DATE}. Participating houses and a ruler who favors Liberty gain +15 trade support; your own stance does not change. Signing brings +10 faction mood; expiry brings -10."));
         internal TextObject TradeHint(Kingdom realm, FactionObject faction)
         {
             var a = GetDisplayedAgenda(realm, faction);

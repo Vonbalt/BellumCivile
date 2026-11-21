@@ -63,7 +63,7 @@ namespace BellumCivile.Behaviors
             plan.Activated = true;
             agenda.ObjectiveData.Activate();
             agenda.State = CourtAgendaState.PursuingObjective;
-            var text = new TextObject("{=BC_CourtCampaignBegun}The {FACTION} of {REALM} has called for a campaign against {TARGET}. Its houses will lend their voices to a lawful declaration, though each will still weigh the risks for itself. They expect the Crown to take up the cause before the court term ends on {DATE}.")
+            var text = new TextObject("{=BC_CourtCampaignBegun}The lords of {FACTION} in {REALM} have pledged their voices to a campaign against {TARGET}. They look to the Crown to take up arms before {DATE}.")
                 .SetTextVariable("FACTION", agenda.Faction.GetDisplayName()).SetTextVariable("REALM", agenda.Realm.Name)
                 .SetTextVariable("TARGET", plan.Target.Name).SetTextVariable("DATE", CampaignTime.Days((float)agenda.ObjectiveData.DeadlineDay).ToString());
             BellumCivileNotifications.Show(text, BellumNotificationColors.Politics, primaryKingdom: agenda.Realm);
@@ -134,7 +134,7 @@ namespace BellumCivile.Behaviors
         }
 
         private static TextObject CampaignStatus(CourtAgendaRecord agenda) => new TextObject(agenda.IsOngoingObjective
-            ? "{=BC_CourtCampaignStatus}Participating houses weigh a lawful declaration more favorably (+15 war support) until {DATE}. Other interests still govern their votes; your own vote remains yours. Existing proposal and front restrictions remain in force."
+            ? "{=BC_CourtCampaignStatus}Participating houses are more willing to vote for a declaration of war (+15 support) until {DATE}."
             : agenda.State == CourtAgendaState.Announced
                 ? "{=BC_CourtCampaignScheduled}The faction will begin pressing for a campaign on {SESSION}, pursuing a declaration until {DATE}."
                 : agenda.ObjectiveData.State == CourtObjectiveState.Expired ? "{=BC_CourtCampaignExpired}The term ended without the proposed offensive."

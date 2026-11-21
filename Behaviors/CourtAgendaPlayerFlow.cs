@@ -130,7 +130,7 @@ namespace BellumCivile.Behaviors
                 agenda.CrisisInterventionPending = false;
                 agenda.State = agenda.IsPolicy && Policy(agenda) == null ? CourtAgendaState.NotProposed : CourtAgendaState.Announced;
                 agenda.PlayerSelectionConfirmed = true;
-                NotifyAgenda(agenda);
+                NotifyAgenda(agenda, crisisSetAside: true);
                 return;
             }
             if (choice == 1)
@@ -152,7 +152,7 @@ namespace BellumCivile.Behaviors
             }
             else agenda.State = agenda.IsPolicy && Policy(agenda) == null ? CourtAgendaState.NotProposed : CourtAgendaState.Announced;
             agenda.PlayerSelectionConfirmed = true;
-            NotifyAgenda(agenda);
+            NotifyAgenda(agenda, crisisSetAside: choice == 1 && crisis);
         }
 
         private bool UpdatePlayerAgenda(CourtAgendaRecord agenda)
@@ -183,10 +183,9 @@ namespace BellumCivile.Behaviors
             {
                 agenda.State = CourtAgendaState.NominationExpired;
                 ApplyMemberMemory(agenda, C.CourtAgendaBrokenPromiseRelationPenalty, RelationMemorySources.UnfulfilledFactionAgenda, C.CourtAgendaBrokenPromiseMemoryYears);
-                var message = new TextObject("{=BC_CourtMandateExpired}The houses of the {FACTION} in {REALM} waited in vain for the proposal you promised. Your mandate has expired, and they resent your unfulfilled pledge ({RELATION} relation).");
+                var message = new TextObject("{=BC_CourtMandateExpired}The lords of {FACTION} in {REALM} waited in vain for the motion you promised. Their patience is spent, and they will remember the broken pledge.");
                 message.SetTextVariable("FACTION", AgendaOwnerName(agenda));
                 message.SetTextVariable("REALM", agenda.Realm.Name);
-                message.SetTextVariable("RELATION", C.CourtAgendaBrokenPromiseRelationPenalty);
                 BellumCivileNotifications.Show(message, BellumNotificationColors.Danger, primaryKingdom: agenda.Realm, isPersonal: true);
                 return false;
             }
@@ -216,15 +215,6 @@ namespace BellumCivile.Behaviors
             foreach (Clan clan in agenda.Faction.Members.Where(c => c != Clan.PlayerClan && Eligible(c, agenda.Realm)).Distinct().ToList())
                 RelationMemoryService.ApplyChange(clan.Leader, Hero.MainHero, amount, false, source, years,
                     RelationMemoryScope.House, agenda.Faction.GetDisplayName().ToString());
-        }
-
-        private void NotifyAgenda(CourtAgendaRecord agenda)
-        {
-            BellumCivileLogger.Log($"Player court agenda updated; realm={agenda.Realm.StringId}; faction={agenda.Faction?.Type.ToString() ?? "Crown"}; state={agenda.State}; policy={agenda.PolicyId}; session={agenda.SessionDate.ToDays}; nominationDeadline={agenda.NominationDeadline.ToDays}; crisisRestrained={agenda.OrdinaryCrisisRestrained}.");
-            var message = new TextObject("{=BC_CourtAgendaUpdated}Court of {REALM}:\n{AGENDA}");
-            message.SetTextVariable("REALM", agenda.Realm.Name);
-            message.SetTextVariable("AGENDA", DescribeAgenda(agenda.Realm, agenda.Faction));
-            BellumCivileNotifications.Show(message, BellumNotificationColors.Politics, primaryKingdom: agenda.Realm);
         }
     }
 }

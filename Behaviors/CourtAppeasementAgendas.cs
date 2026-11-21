@@ -43,9 +43,9 @@ namespace BellumCivile.Behaviors
             plan.Applied = true;
             StartCrownActionCooldown(agenda);
             FinishAppeasement(agenda, true, "accommodation_granted");
-            var text = new TextObject("{=BC_CrownReconcileReport}{RULER} has spent the Crown's political influence to reach an accommodation with the {FACTION}. For now, its houses have softened their opposition, though their grievances remain.\n{COST} influence; +20 faction mood until {DATE}. An issued ultimatum or rebellion remains in force.")
+            var text = new TextObject("{=BC_CrownReconcileReport}{RULER} has made an accommodation with the lords of {FACTION}. They have agreed to temper their opposition until {DATE}, though their grievances remain.")
                 .SetTextVariable("RULER", plan.Ruler.Name).SetTextVariable("FACTION", plan.Target.GetDisplayName())
-                .SetTextVariable("COST", plan.QuotedCost).SetTextVariable("DATE", plan.Until.ToString());
+                .SetTextVariable("DATE", plan.Until.ToString());
             BellumCivileNotifications.Show(text, BellumNotificationColors.Politics, primaryKingdom: agenda.Realm);
         }
 

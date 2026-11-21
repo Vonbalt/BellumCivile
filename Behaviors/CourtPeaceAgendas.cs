@@ -74,7 +74,7 @@ namespace BellumCivile.Behaviors
             plan.Activated = true;
             agenda.ObjectiveData.Activate();
             agenda.State = CourtAgendaState.PursuingObjective;
-            var text = new TextObject("{=BC_CourtPeaceBegun}The {FACTION} of {REALM} has called for an end to the war with {TARGET}. Its houses will lend greater weight to a settlement, though each will still judge the terms for itself. The court will reckon the outcome at the end of this term, on {DATE}.")
+            var text = new TextObject("{=BC_CourtPeaceBegun}The lords of {FACTION} in {REALM} have agreed to press for peace with {TARGET}. They hope to see a treaty sealed before {DATE}.")
                 .SetTextVariable("FACTION", agenda.Faction.GetDisplayName()).SetTextVariable("REALM", agenda.Realm.Name)
                 .SetTextVariable("TARGET", plan.Target.Name).SetTextVariable("DATE", CampaignTime.Days((float)agenda.ObjectiveData.DeadlineDay).ToString());
             BellumCivileNotifications.Show(text, BellumNotificationColors.Politics, primaryKingdom: agenda.Realm);
@@ -133,7 +133,7 @@ namespace BellumCivile.Behaviors
         }
 
         private static TextObject PeaceStatus(CourtAgendaRecord agenda) => new TextObject(agenda.IsOngoingObjective
-            ? "{=BC_CourtPeaceStatus}The faction's participating houses weigh peace more favorably (+15 acceptance) until {DATE}. Other interests and treaty terms still govern their votes; your own vote remains yours."
+            ? "{=BC_CourtPeaceStatus}Participating houses are more willing to accept peace (+15 support) until {DATE}. They still judge the terms for themselves."
             : agenda.State == CourtAgendaState.Announced
                 ? "{=BC_CourtPeaceScheduled}The faction will begin pressing for peace on {SESSION}, pursuing a settlement until {DATE}."
                 : agenda.ObjectiveData.State == CourtObjectiveState.Expired ? "{=BC_CourtPeaceExpired}The term ended without a peace settlement."

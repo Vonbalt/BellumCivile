@@ -57,7 +57,7 @@ namespace BellumCivile.Behaviors
             _activePlayerInquiry = null;
             if (!ValidPlayerTitleOffer(a, p))
             {
-                BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_TitleGrantOfferUnavailable}The Crown's offer is no longer available. No response has been delivered."), BellumNotificationColors.Warning);
+                BellumCivileNotifications.ShowPersonal(new TextObject("{=BC_TitleGrantOfferUnavailable}The Crown's offer is no longer before you. No reply was sent."), BellumNotificationColors.Warning);
                 MaintainTitleGrants();
                 return;
             }

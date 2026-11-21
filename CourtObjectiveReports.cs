@@ -7,10 +7,10 @@ namespace BellumCivile
     {
         internal static TextObject WithMood(TextObject narrative, TextObject faction, float actualChange, CourtObjectiveState result)
         {
-            string effect = result == CourtObjectiveState.Cancelled
-                ? new TextObject("{=BC_CourtObjectiveMoodUnchanged}Faction mood unchanged.").ToString()
-                : CourtSessionEventReports.ForTarget(faction, CourtSessionEventReports.Change(0, actualChange,
-                    new TextObject("{=BC_CourtObjectiveMoodUnit}mood")));
+            if (result == CourtObjectiveState.Cancelled || actualChange == 0f) return narrative;
+
+            string effect = CourtSessionEventReports.ForTarget(faction, CourtSessionEventReports.Change(0, actualChange,
+                new TextObject("{=BC_CourtObjectiveMoodUnit}mood")));
             return new TextObject("{=BC_CourtSessionReport}{REPORT}\n{EFFECT}")
                 .SetTextVariable("REPORT", narrative).SetTextVariable("EFFECT", effect);
         }

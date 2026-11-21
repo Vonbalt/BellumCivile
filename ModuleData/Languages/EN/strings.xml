@@ -2594,7 +2594,7 @@
     <string id="BC_PolicyCrownTrust" text="Further royal authority must rest upon our confidence in the Crown. At mood {LOW} or below we oppose it; above {LOW} we withhold opposition; at {HIGH} or above we lend our support. Current mood: {MOOD}.&#10;&#10;This political stance does not change the law's lasting effects on our interests or the burden of centralization." />
     <string id="BC_PolicyLastingInterest" text="This law's lasting effects on the faction's interests determine its contribution to mood. Willingness to grant further royal authority may change with confidence in the Crown; consult the policy card for the current political stance." />
     <string id="BC_CourtPolicyStanceWithdrawn" text="The {FACTION} of {REALM} no longer stands behind its motion concerning {POLICY}. Its members withdraw the proposal without reproach to their leader." />
-    <string id="BC_CourtPolicyStanceResolved" text="The vote concerning {POLICY} in {REALM} has concluded. The {OWNER} no longer stands behind its former motion and attaches neither praise nor reproach to its leader's result." />
+    <string id="BC_CourtPolicyStanceResolved" text="The vote on {POLICY} in {REALM} has ended. The {OWNER} had already withdrawn its backing and lays neither credit nor blame at its leader's door." />
     <string id="BC_Parley_Reason_HighEnthusiasm" text="I am still eager to carry on the fight." />
     <string id="BC_Parley_Reason_UnrealizedWarAdvantage" text="We have earned harsher terms than these." />
     <string id="BC_Parley_Reason_ConcessionsReceived" text="Their concessions make this peace worthwhile." />
@@ -4359,7 +4359,21 @@
     <string id="BC_CourtConfirmAgenda" text="Confirm" />
     <string id="BC_CourtNominationExpired" text="The {FACTION} of {REALM} will present no agenda this term: you did not nominate a motion before the promised deadline. Its member houses resent the unfulfilled promise ({RELATION} relation)." />
     <string id="BC_CourtNominationReminder" text="The {FACTION} of {REALM} is awaiting your policy nomination. The deadline is {DATE}." />
-    <string id="BC_CourtAgendaUpdated" text="Court of {REALM}:&#xA;{AGENDA}" />
+    <string id="BC_CourtNewsCrisisSetAside" text="The {OWNER} of {REALM} has set aside its challenge to the Crown for now." />
+    <string id="BC_CourtNewsCrisisPending" text="The {OWNER} of {REALM} calls upon its leader to take a stand against the Crown." />
+    <string id="BC_CourtNewsCrisis" text="The {OWNER} of {REALM} will meet on {DATE} to decide whether to challenge the Crown." />
+    <string id="BC_CourtNewsNotProposed" text="The {OWNER} of {REALM} has brought no motion before the court." />
+    <string id="BC_CourtNewsSetAside" text="The {OWNER} of {REALM} has set aside this motion: {MOTION}." />
+    <string id="BC_CourtNewsFiled" text="The {OWNER} of {REALM} has brought a motion before the court: {MOTION}." />
+    <string id="BC_CourtNewsProtectionSent" text="{CLIENT} has sent an envoy to {PROTECTOR}, seeking aid against {THREAT}." />
+    <string id="BC_CourtNewsRally" text="The lords of {OWNER} in {REALM} urge the Crown to stand firm against {TARGET}. They seek victory before {DATE}." />
+    <string id="BC_CourtNewsClaim" text="The lords of {OWNER} in {REALM} ask the Crown to honor {HOUSE}'s claim to {FIEF}." />
+    <string id="BC_CourtNewsTrade" text="The lords of {OWNER} in {REALM} urge the Crown to seek a trade accord with {TARGET}." />
+    <string id="BC_CourtNewsPeace" text="The lords of {OWNER} in {REALM} call upon the Crown to seek peace with {TARGET}." />
+    <string id="BC_CourtNewsCampaign" text="The lords of {OWNER} in {REALM} urge the Crown to take up arms against {TARGET}." />
+    <string id="BC_CourtNewsMarriage" text="The lords of {OWNER} in {REALM} put forward a match between {FIRST} and {SECOND}, hoping to draw the two houses closer." />
+    <string id="BC_CourtNewsClientage" text="The lords of {OWNER} in {REALM} call upon the Crown to demand {TARGET}'s submission." />
+    <string id="BC_CourtNewsProposed" text="The {OWNER} of {REALM} has proposed new business for the court: {MOTION}." />
     <string id="BC_CourtNominatePolicy" text="Nominate" />
     <string id="BC_CourtNominationExplanation" text="Nominate this motion for your faction's session on {DATE}. No influence is spent now; filing is paid when deliberations begin." />
     <string id="BC_RelationMemory_UnfulfilledFactionAgenda" text="Failed to deliver the faction's promised agenda" />
@@ -4368,7 +4382,8 @@
     <string id="BC_CrownImpartial" text="Impartial" />
     <string id="BC_CrownFavorInquiry" text="The court of {REALM} opens a new term. Which bloc will receive your favor until {DATE}? Favor adds +10 to its mood baseline and -5 to each other bloc, and guides your house's policy preferences alongside its own Crown interests. You may instead remain impartial." />
     <string id="BC_CrownFavorTitle" text="Crown Favoritism" />
-    <string id="BC_CrownFavorAnnouncement" text="Court of {REALM}: {FAVOR}" />
+    <string id="BC_CrownFavorProclaimed" text="The Crown of {REALM} has lent its favor to the lords of {FACTION} for this term." />
+    <string id="BC_CrownFavorImpartialProclaimed" text="The Crown of {REALM} has chosen to show no favor at court this term." />
     <string id="BC_CrownMembershipBlocked" text="As ruler, your house represents the Crown and cannot belong to a court faction." />
     <string id="BC_CrownOwnPower" text="Ruling house power: {POWER} (military strength and influence)" />
     <string id="BC_CrownProjectedPower" text="Against {BLOC}: projected Crown backing {CROWN} / challenger {CHALLENGER}" />
@@ -4405,8 +4420,8 @@
     <string id="BC_CourtAgendaDecisionPending" text="Awaiting your approval, substitution or veto." />
     <string id="BC_CourtNominationDates" text="Nomination closes {DEADLINE}. Deliberations begin {DATE}." />
     <string id="BC_CourtSessionDate" text="Deliberation session begins {DATE}." />
-    <string id="BC_CourtTermOpened" text="The court of {REALM} has declared its agendas for the new term." />
-    <string id="BC_CourtAgendaCrisis" text="The {FACTION} of {REALM} has abandoned its legislative agenda to confront what it regards as abuses of {RULER}'s authority. Its leaders will convene on {DATE} to decide whether to demand their removal." />
+    <string id="BC_CourtTermOpened" text="The houses of {REALM} have gathered for a new term at court." />
+    <string id="BC_CourtAgendaCrisis" text="The lords of {FACTION} in {REALM} have set aside their other business. They will meet on {DATE} to decide whether to demand that {RULER} step down." />
     <string id="BC_CourtAgendaPassed" text="The {OWNER} of {REALM} has carried its motion concerning {POLICY}." />
     <string id="BC_CourtAgendaDefeated" text="The {OWNER} of {REALM} has failed to carry its motion concerning {POLICY}." />
     <string id="BC_CrownReignNew" text="Reigning for less than a month" />
@@ -4850,7 +4865,7 @@
     <string id="BC_CourtPickerActivityDetail" text="This undertaking requires no ballot. Its recipients will be chosen when the agenda is confirmed; changed mood, ruler or circumstances may prevent its fulfillment." />
     <string id="BC_CourtPickerVoteDetail" text="The motion will enter the existing deliberation and voting process. Approval of this agenda does not guarantee its passage." />
     <string id="BC_CrownReconcileObjective" text="Reconcile with the {FACTION}" />
-    <string id="BC_CrownReconcileReport" text="{RULER} has spent the Crown's political influence to reach an accommodation with the {FACTION}. For now, its houses have softened their opposition, though their grievances remain.&#xA;{COST} influence; +20 faction mood until {DATE}. An issued ultimatum or rebellion remains in force." />
+    <string id="BC_CrownReconcileReport" text="{RULER} has made an accommodation with the lords of {FACTION}. They have agreed to temper their opposition until {DATE}, though their grievances remain." />
     <string id="BC_CourtPickerAccommodation" text="Court reconciliation" />
     <string id="BC_CrownReconcileDetail" text="At the appointed session, the Crown will spend {PRICE} influence to grant the faction +20 mood for {DAYS} days. No ballot is required. This accommodation cannot stack or be renewed while active; ruler replacement ends it. Membership or circumstances changing before the session withdraws the offer without a new price. Scheduled tyranny debates still require mood of at least -20 to withdraw; issued ultimata and rebellions cannot be bought off." />
     <string id="BC_CrownUnderlyingMood" text="Underlying mood" />
@@ -4858,13 +4873,12 @@
     <string id="BC_CrownAccommodationUntil" text="The Crown's accommodation lasts until {DATE}, or until the ruler is replaced. Underlying mood continues to drift toward its baseline; this temporary allowance is added separately." />
     <string id="BC_CourtSeekPeace" text="Seek peace with {REALM}" />
     <string id="BC_CourtPeaceHint" text="{STATUS} Success brings +10 faction mood; an unfulfilled term brings -10." />
-    <string id="BC_CourtPeaceBegun" text="The {FACTION} of {REALM} has called for an end to the war with {TARGET}. Its houses will lend greater weight to a settlement, though each will still judge the terms for itself. The court will reckon the outcome at the end of this term, on {DATE}." />
+    <string id="BC_CourtPeaceBegun" text="The lords of {FACTION} in {REALM} have agreed to press for peace with {TARGET}. They hope to see a treaty sealed before {DATE}." />
     <string id="BC_CourtPeaceSucceeded" text="Peace has been concluded between {REALM} and {TARGET}. The lords of the {FACTION} welcome the settlement, praising the Crown for bringing the fighting to an end." />
     <string id="BC_CourtPeaceFailed" text="The court term ends with {REALM} and {TARGET} still at war. The lords of the {FACTION} reproach the Crown for failing to secure the peace they sought." />
     <string id="BC_CourtPeaceCancelled" text="Changed circumstances have overtaken the {FACTION}'s initiative for peace with {TARGET}. The undertaking has been set aside without blame." />
-    <string id="BC_CourtObjectiveMoodUnchanged" text="Faction mood unchanged." />
     <string id="BC_CourtObjectiveMoodUnit" text="mood" />
-    <string id="BC_CourtPeaceStatus" text="The faction's participating houses weigh peace more favorably (+15 acceptance) until {DATE}. Other interests and treaty terms still govern their votes; your own vote remains yours." />
+    <string id="BC_CourtPeaceStatus" text="Participating houses are more willing to accept peace (+15 support) until {DATE}. They still judge the terms for themselves." />
     <string id="BC_CourtPeaceScheduled" text="The faction will begin pressing for peace on {SESSION}, pursuing a settlement until {DATE}." />
     <string id="BC_CourtPeaceExpired" text="The term ended without a peace settlement." />
     <string id="BC_CourtPeaceComplete" text="Peace was concluded within the term." />
@@ -4876,7 +4890,7 @@
     <string id="BC_Parley_Reason_CourtPeaceInitiative" text="Our faction has called for an end to this war." />
     <string id="BC_Parley_Reason_CrownPeaceInitiative" text="I have lent my support to those calling for an end to this war." />
     <string id="BC_CourtSeekClientage" text="Seek the submission of {REALM}" />
-    <string id="BC_CourtClientageBegun" text="The {FACTION} of {REALM} calls for {TARGET} to acknowledge the Crown's overlordship. Its houses pledge their voices to this ambition, expecting submission before the term ends on {DATE}. War and the terms of peace remain matters for the realm to decide." />
+    <string id="BC_CourtClientageBegun" text="The lords of {FACTION} in {REALM} have put their weight behind a demand for {TARGET} to acknowledge the Crown as overlord. They hope to see its ruler submit before {DATE}." />
     <string id="BC_CourtClientageSucceeded" text="{TARGET} has acknowledged the overlordship of {REALM}. The lords of the {FACTION} praise the Crown for fulfilling their ambition, their confidence in its leadership renewed." />
     <string id="BC_CourtClientageFailed" text="The court term draws to a close, yet {TARGET} has not submitted to {REALM}. The lords of the {FACTION} voice their displeasure at court, reproaching the Crown for leaving their ambition unfulfilled." />
     <string id="BC_CourtClientageCancelled" text="Changed circumstances have overtaken the {FACTION}'s ambition to bring {TARGET} under the Crown's protection. The undertaking is set aside without blame." />
@@ -4891,13 +4905,13 @@
     <string id="BC_Parley_Reason_CrownClientageInitiative" text="These terms would fulfill the ambition to which I have lent the Crown's support." />
     <string id="BC_WarClientageReason" text="{REASON} Court clientage initiative: +{BONUS} war support for this house." />
     <string id="BC_CourtSupportCampaign" text="Support a campaign against {REALM}" />
-    <string id="BC_CourtCampaignBegun" text="The {FACTION} of {REALM} has called for a campaign against {TARGET}. Its houses will lend their voices to a lawful declaration, though each will still weigh the risks for itself. They expect the Crown to take up the cause before the court term ends on {DATE}." />
+    <string id="BC_CourtCampaignBegun" text="The lords of {FACTION} in {REALM} have pledged their voices to a campaign against {TARGET}. They look to the Crown to take up arms before {DATE}." />
     <string id="BC_CourtCampaignSucceeded" text="The banners of {REALM} have been raised against {TARGET}. The lords of the {FACTION} welcome the Crown's decision to take up their cause, lending their approval to the undertaking." />
     <string id="BC_CourtCampaignFailed" text="Another court term has passed without the proposed campaign against {TARGET}. The lords of the {FACTION} in {REALM} condemn the Crown's inaction, their enthusiasm giving way to resentment." />
     <string id="BC_CourtCampaignAttacked" text="{TARGET} has struck first. With {REALM} now called to defend itself, the {FACTION}'s proposed offensive has been overtaken by events and is set aside without blame." />
     <string id="BC_CourtCampaignCancelled" text="Changed circumstances have overtaken the {FACTION}'s proposed campaign against {TARGET}. The undertaking has been set aside without blame." />
     <string id="BC_CourtCampaignHint" text="{STATUS} A lawful offensive declaration brings +10 faction mood; an unfulfilled term brings -10. If the target attacks first, the undertaking ends without penalty." />
-    <string id="BC_CourtCampaignStatus" text="Participating houses weigh a lawful declaration more favorably (+15 war support) until {DATE}. Other interests still govern their votes; your own vote remains yours. Existing proposal and front restrictions remain in force." />
+    <string id="BC_CourtCampaignStatus" text="Participating houses are more willing to vote for a declaration of war (+15 support) until {DATE}." />
     <string id="BC_CourtCampaignScheduled" text="The faction will begin pressing for a campaign on {SESSION}, pursuing a declaration until {DATE}." />
     <string id="BC_CourtCampaignExpired" text="The term ended without the proposed offensive." />
     <string id="BC_CourtCampaignComplete" text="The realm declared its offensive within the term." />
@@ -4976,7 +4990,7 @@
     <string id="BC_CourtTradeLabel" text="Seek a trade agreement with {TARGET}" />
     <string id="BC_CourtTradeOffensive" text="War with {TARGET} has swept aside the promised trade accord. The {FACTION} condemns the abandonment of its appeal." />
     <string id="BC_CourtTradeShortStatus" text="seeking a trade accord" />
-    <string id="BC_CourtTradeStatus" text="Seek an agreement with {TARGET} by {DATE}. Participating houses and an NPC Crown favoring Liberty receive +15 trade support. Normal proposal costs, foreign acceptance and your vote remain unchanged. Signing brings +10 approval in addition to standing trade benefits; expiry brings -10." />
+    <string id="BC_CourtTradeStatus" text="Seek an agreement with {TARGET} by {DATE}. Participating houses and a ruler who favors Liberty gain +15 trade support; your own stance does not change. Signing brings +10 faction mood; expiry brings -10." />
     <string id="BC_CourtTradeSucceeded" text="An agreement has opened the way for closer trade between {REALM} and {TARGET}. The {FACTION} welcomes the accord as a promise fulfilled." />
     <string id="BC_CourtTradeSupportReason" text="{REASON}&#xA;Court trade initiative: +{BONUS} support." />
     <string id="BC_TitleGrantAccept" text="Grant the title" />
@@ -4989,7 +5003,7 @@
     <string id="BC_TitleGrantExpired" text="The term has ended without the grant of {TITLE} to {RECIPIENT}. The nobility reproaches the Crown for leaving its petition unanswered." />
     <string id="BC_TitleGrantInquiry" text="The nobility asks you to bestow {TITLE} upon {RECIPIENT}, recognizing that house's claim. Will you grant their petition?&#xA;&#xA;Rights: {RIGHTS}&#xA;Cost: 100 influence&#xA;Personal goodwill: +{RELATION}&#xA;Recipient faction approval: +{APPROVAL}&#xA;&#xA;The house remains your vassal. No subordinate settlement changes owner. A grant fulfills the petition without a second approval reward. You may reconsider before {DATE}; leaving the petition unfulfilled brings -10 approval." />
     <string id="BC_TitleGrantInquiryTitle" text="A Petition for Royal Favor" />
-    <string id="BC_TitleGrantInterrupted" text="The grant of {TITLE} to {RECIPIENT} could not be fully carried out. Any rights already transferred remain in place; no further transfer will be attempted under this authorization." />
+    <string id="BC_TitleGrantInterrupted" text="The grant of {TITLE} to {RECIPIENT} could not be completed. Any rights already bestowed will stand, but the Crown will go no further with this grant." />
     <string id="BC_TitleGrantLabel" text="Bestow {TITLE} on {RECIPIENT}" />
     <string id="BC_TitleGrantLegalRights" text="Legal rights only" />
     <string id="BC_TitleGrantMemory" text="Granted me a title" />
@@ -5001,7 +5015,7 @@
     <string id="BC_TitleGrantOfferPracticalRights" text="The grant conveys practical authority only; lawful ownership remains unchanged." />
     <string id="BC_TitleGrantOfferAccept" text="Accept the honor" />
     <string id="BC_TitleGrantOfferRefuse" text="Refuse" />
-    <string id="BC_TitleGrantOfferUnavailable" text="The Crown's offer is no longer available. No response has been delivered." />
+    <string id="BC_TitleGrantOfferUnavailable" text="The Crown's offer is no longer before you. No reply was sent." />
     <string id="BC_TitleGrantOfferDeclined" text="You have declined {RULER}'s offer of {TITLE}. The grant has been withdrawn." />
     <string id="BC_TitleGrantOfferRefusalMemory" text="Refused my title grant" />
     <string id="BC_TitleGrantOfferPending" text="The Crown has offered {TITLE} to your household and awaits your answer before {DATE}. No rights or influence change hands until you accept." />
@@ -5013,22 +5027,22 @@
     <string id="BC_TitleGrantReview" text="Review title petition" />
     <string id="BC_TitleGrantShortStatus" text="awaiting a royal grant" />
     <string id="BC_TitleGrantStatus" text="Named grant: {TITLE} to {RECIPIENT}. Deadline: {DATE}. Royal authorization and 100 influence are required. The recipient remains a vassal; subordinate settlements are not granted. An unfulfilled Nobility petition brings -10 approval at term end." />
-    <string id="BC_RallyBegun" text="The {FACTION} of {REALM} calls upon its houses to stand firm against {TARGET}. Its lords pledge renewed resolve until {BOOST_DATE}, and look to the Crown for a victorious peace before {DATE}." />
+    <string id="BC_RallyBegun" text="The lords of {FACTION} in {REALM} have pledged to see the war against {TARGET} through. They look to the Crown for victory before {DATE}." />
     <string id="BC_RallyCancelled" text="Events have overtaken the campaign against {TARGET}. The {FACTION} sets aside its appeal without reproach." />
     <string id="BC_RallyDefeat" text="Defeat in the war with {TARGET} has bitterly disappointed the {FACTION}. Its lords reproach the Crown for failing the campaign they pledged to sustain." />
-    <string id="BC_RallyDetail" text="At the session, participating Glory houses gain up to +15 enthusiasm against this enemy for one season, capped by the term end. An NPC Crown favoring Glory shares their resolve. Victory by {UNTIL} brings +10 approval; defeat or inconclusive peace -10; an unfinished campaign -5. No additional filing cost or ballot; your decisions and forced settlements remain unchanged." />
+    <string id="BC_RallyDetail" text="At the session, participating Glory houses gain up to +15 War Enthusiasm for one season, ending no later than the term. A ruler who favors Glory gains the same bonus, unless you hold the Crown. Victory by {UNTIL} brings +10 faction mood; defeat or inconclusive peace -10; an unfinished campaign -5. No further influence or vote is needed to begin the rally." />
     <string id="BC_RallyDisappointed" text="Peace with {TARGET} has brought no victory to celebrate. The {FACTION} reproaches the Crown for ending the campaign without the advantage its lords had sought." />
     <string id="BC_RallyLabel" text="Rally against {TARGET}" />
     <string id="BC_RallyMotive" text="Renewed resolve against {TARGET}" />
     <string id="BC_RallyMotiveDetail" text="Base enthusiasm: {BASE}. Renewed resolve: +{BONUS} until {DATE}. Effective enthusiasm: {EFFECTIVE}." />
     <string id="BC_RallyShortStatus" text="seeking victory" />
-    <string id="BC_RallyStatus" text="Seek victory against {TARGET} by {DATE}. Participating houses and an NPC Crown favoring Glory gain up to +15 enthusiasm for this war until {BOOST_DATE}. Victory brings +10 approval; defeat or inconclusive peace -10; an unfinished campaign -5. Your decisions and forced settlements remain unchanged." />
+    <string id="BC_RallyStatus" text="Seek victory against {TARGET} by {DATE}. Participating houses gain up to +15 War Enthusiasm until {BOOST_DATE}. A ruler who favors Glory gains the same bonus, unless you hold the Crown. Victory brings +10 faction mood; defeat or inconclusive peace -10; an unfinished campaign -5." />
     <string id="BC_RallyTreatyReason" text="The court's call to victory strengthens my resolve to continue this campaign." />
     <string id="BC_RallyUnfinished" text="The court term ends with the war against {TARGET} still unfinished. The {FACTION} voices its disappointment at a campaign yet to bear the promised fruit." />
     <string id="BC_RallyVictory" text="Peace with {TARGET} has vindicated the campaign urged by the {FACTION}. Its lords acclaim the Crown for bringing honor and advantage to {REALM}." />
     <string id="BC_MandateAdopt" text="Adopt {LAW}" />
     <string id="BC_MandateAgenda" text="Reform elective mandates: {LAW}" />
-    <string id="BC_MandateApproval" text="The {FACTION} welcomes the court's adoption of {LAW}. Its members applaud this settlement of the realm's future succession. Approval +10." />
+    <string id="BC_MandateApproval" text="The lords of {FACTION} welcome the court's adoption of {LAW} and praise the new settlement of the realm's succession." />
     <string id="BC_MandateArgCourage" text="Do not let fear of displeasing other houses decide your vote. Stand for the course you believe is right." />
     <string id="BC_MandateArgHonor" text="Our successors must inherit a lawful settlement, not uncertainty over the Crown. Support this course for the honor of the realm." />
     <string id="BC_MandateArgRealm" text="Think of those who must live beneath the laws we make. Let their welfare guide your judgment on the mandate." />
@@ -5040,7 +5054,7 @@
     <string id="BC_MandateBargainAnswer" text="I am prepared to hear your terms. My word would bind me on this proposal alone." />
     <string id="BC_MandateBarterItem" text="Pledge support in the mandate reform vote" />
     <string id="BC_MandateCategory" text="Elective mandate reforms" />
-    <string id="BC_MandateDeliberation" text="The {FACTION} has placed {LAW} before the court of {REALM}. The houses will deliberate until {DATE}; the present ruler's mandate will not be altered." />
+    <string id="BC_MandateDeliberation" text="The lords of {FACTION} have laid {LAW} before the court of {REALM}. The houses will hear the matter until {DATE}. The present ruler's tenure is not in question." />
     <string id="BC_MandateDetail" text="At the session, the faction files a proposal for the next adjacent mandate length. Deliberation allows you to discuss motives, persuade or bargain for votes. The Crown retains its normal choice in the ballot. Adoption brings +10 approval; rejection -10. The new law also alters the sitting mandate. Fixed terms retain their original start; replacing a lifetime mandate starts the fixed term upon adoption. An overdue mandate leads to an election after deliberation." />
     <string id="BC_MandateEnacted" text="The court has adopted {LAW}, governing the present mandate as well as future elected rulers." />
     <string id="BC_MandateReformOverdue" text="The new law brings {RULER}'s mandate to an end. The nobles of {REALM} will deliberate until {DATE}, when they shall choose their sovereign. The present ruler remains in office until the succession is settled." />
@@ -5064,7 +5078,7 @@
     <string id="BC_MandatePromised" text="My word is already given on this proposal. I shall vote for {BC_MANDATE_OUTCOME}." />
     <string id="BC_MandateQuestion" text="What is your judgment on the proposed change to elective mandates?" />
     <string id="BC_MandateRejected" text="I have heard your case, but my judgment remains unchanged." />
-    <string id="BC_MandateReprisal" text="The court has rejected the {FACTION}'s proposal for {LAW}. Its members resent the defeat of their reform. Approval -10." />
+    <string id="BC_MandateReprisal" text="The court has rejected the proposal for {LAW}. The lords of {FACTION} are bitter at the defeat of their reform." />
     <string id="BC_MandateRetain" text="Retain {LAW}" />
     <string id="BC_MandateRetained" text="The court has retained {LAW}." />
     <string id="BC_MandateTalkStale" text="That proposal is no longer before us. There is nothing to settle here." />
@@ -5426,9 +5440,9 @@
     <string id="BC_CouncilMandateFile" text="Use your council mandate to propose this appointment. Costs {COST} influence and begins a {DAYS}-day deliberation. Your mandate expires {DATE}." />
     <string id="BC_CourtAwaitingCouncilNomination" text="Awaiting your council appointment proposal" />
     <string id="BC_CourtMandateDates" text="Mandate expires {DEADLINE}. Deliberation begins when you file your proposal." />
-    <string id="BC_CourtMandateExpired" text="The houses of the {FACTION} in {REALM} waited in vain for the proposal you promised. Your mandate has expired, and they resent your unfulfilled pledge ({RELATION} relation)." />
+    <string id="BC_CourtMandateExpired" text="The lords of {FACTION} in {REALM} waited in vain for the motion you promised. Their patience is spent, and they will remember the broken pledge." />
     <string id="BC_CourtMandateReminder" text="The {FACTION} of {REALM} reminds you of the business entrusted to you. Bring your proposal before the court by {DATE}, lest their confidence in you be misplaced." />
-    <string id="BC_NominationNotFiled" text="The proposal could not be placed before the court. If your mandate remains valid, you may choose another proposal before its deadline." />
+    <string id="BC_NominationNotFiled" text="The court could not hear that motion. If your mandate still stands, you may bring forward another before it expires." />
     <string id="BC_CourtPickerBack" text="Back" />
     <string id="BC_CourtPickerContinue" text="Continue" />
     <string id="BC_Council_CompetenceRequirements" text="Competence in this office relies equally on {FIRST} and {SECOND} (40% each), supported by {ATTRIBUTE} (20%)." />
@@ -5442,8 +5456,8 @@
     <string id="BC_CrownDirectClientGrant" text="This permanently transfers the holding to the client realm. Its ruler will hold it pending a normal fief distribution vote, which decides the receiving house. Only legal rights you possess accompany the land; higher titles and historical boundaries remain unchanged. The client ruler gains +25 relations for ten years (modified by your memory-duration setting), capped at +50 from active grants." />
     <string id="BC_ClientGrantMemory" text="Enlarged our realm" />
     <string id="BC_ClientGrantStatus" text="A voluntary grant to a client realm, costing 100 influence. The client's council will distribute the holding through a normal fief vote. Only the Crown's own rights accompany the holding; higher titles are not granted." />
-    <string id="BC_ClientGrantDelivered" text="{RULER} has granted {FIEF} to {CLIENT}. Its council will decide which house receives the holding through a normal fief distribution vote. The gift strengthens their realm and gives its ruler cause to remember this generosity." />
-    <string id="BC_ClientGrantCancelled" text="The Crown's intended grant of {FIEF} to {CLIENT} could not be completed. No further transfer will be attempted under this authorization." />
+    <string id="BC_ClientGrantDelivered" text="{RULER} has bestowed {FIEF} upon {CLIENT}. The lords of that realm will vote on which house should hold it." />
+    <string id="BC_ClientGrantCancelled" text="The Crown has set aside the grant of {FIEF} to {CLIENT}." />
     <string id="BC_Treaty_ClientOccupation" text="Recognize {CLIENT}'s possession of {FIEF}" />
     <string id="BC_Treaty_SummaryClientOccupation" text="{FROM_REALM} recognizes {CLIENT}'s possession of {FIEF}" />
     <string id="BC_Parley_ClientGains" text="Our clients should keep the lands they have taken in our common cause." />

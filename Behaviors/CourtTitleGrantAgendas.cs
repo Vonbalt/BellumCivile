@@ -169,7 +169,7 @@ namespace BellumCivile.Behaviors
             if (p.PaymentAttempted && !p.Reported)
             {
                 p.Reported = true;
-                ReportTitle(p, "{=BC_TitleGrantInterrupted}The grant of {TITLE} to {RECIPIENT} could not be fully carried out. Any rights already transferred remain in place; no further transfer will be attempted under this authorization.");
+                ReportTitle(p, "{=BC_TitleGrantInterrupted}The grant of {TITLE} to {RECIPIENT} could not be completed. Any rights already bestowed will stand, but the Crown will go no further with this grant.");
             }
         }
         private void CompleteTitleAgendas(CourtTitleGrantRecord p, string reason)

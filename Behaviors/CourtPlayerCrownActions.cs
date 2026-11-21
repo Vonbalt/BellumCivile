@@ -179,8 +179,11 @@ namespace BellumCivile.Behaviors
             _agendas.Add(agenda);
             Advance(agenda, Campaign.Current.GetCampaignBehavior<IdeologyBehavior>());
             if (IsProtection(agenda) && agenda.Protection?.Phase == CourtProtectionPhase.SenderDecision)
+            {
                 SendProtection(agenda.Protection);
-            NotifyAgenda(agenda);
+                if (agenda.Protection.Phase == CourtProtectionPhase.Offered)
+                    NotifyAgenda(agenda);
+            }
             return agenda.IsFiled || agenda.IsOngoingObjective || agenda.State == CourtAgendaState.Passed || agenda.State == CourtAgendaState.Completed;
         }
 

@@ -486,7 +486,7 @@ namespace BellumCivile.Behaviors
                 if (!agenda.IsPolicy) NotifyAgenda(agenda);
                 BellumCivileLogger.Log($"Court agenda announced; realm={realm.StringId}; owner={owner?.Type.ToString() ?? "Crown"}; policy={agenda.PolicyId}; repeal={agenda.Abolish}; date={agenda.SessionDate.ToDays}; {choice.Evaluation.Reason}.");
             }
-            var message = new TextObject("{=BC_CourtTermOpened}The court of {REALM} has declared its agendas for the new term.");
+            var message = new TextObject("{=BC_CourtTermOpened}The houses of {REALM} have gathered for a new term at court.");
             message.SetTextVariable("REALM", realm.Name);
             BellumCivileNotifications.Show(message, BellumNotificationColors.Politics, primaryKingdom: realm);
         }
@@ -515,7 +515,7 @@ namespace BellumCivile.Behaviors
                         return;
                     }
                     agenda.State = CourtAgendaState.Crisis;
-                    var message = new TextObject("{=BC_CourtAgendaCrisis}The {FACTION} of {REALM} has abandoned its legislative agenda to confront what it regards as abuses of {RULER}'s authority. Its leaders will convene on {DATE} to decide whether to demand their removal.");
+                    var message = new TextObject("{=BC_CourtAgendaCrisis}The lords of {FACTION} in {REALM} have set aside their other business. They will meet on {DATE} to decide whether to demand that {RULER} step down.");
                     message.SetTextVariable("FACTION", agenda.Faction.GetDisplayName());
                     message.SetTextVariable("REALM", agenda.Realm.Name);
                     message.SetTextVariable("RULER", agenda.Realm.RulingClan.Leader.Name);
@@ -672,7 +672,7 @@ namespace BellumCivile.Behaviors
                 RecordResultHistory(agenda, shock);
             }
             var message = new TextObject(obsoleteMandate
-                ? "{=BC_CourtPolicyStanceResolved}The vote concerning {POLICY} in {REALM} has concluded. The {OWNER} no longer stands behind its former motion and attaches neither praise nor reproach to its leader's result."
+                ? "{=BC_CourtPolicyStanceResolved}The vote on {POLICY} in {REALM} has ended. The {OWNER} had already withdrawn its backing and lays neither credit nor blame at its leader's door."
                 : passed ? "{=BC_CourtAgendaPassed}The {OWNER} of {REALM} has carried its motion concerning {POLICY}."
                 : "{=BC_CourtAgendaDefeated}The {OWNER} of {REALM} has failed to carry its motion concerning {POLICY}.");
             message.SetTextVariable("OWNER", agenda.Faction?.GetDisplayName() ?? proposer.Name);

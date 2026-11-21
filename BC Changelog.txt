@@ -871,3 +871,4 @@ Improved feud private war tooltips to explain better that a feud will only erupt
 Fixed ruling clan revocation of titles from it's vassals failing to start a proper "force abdication" rebellion type if the vassal refuses and rises up against the perceived tyranny of it's ruler.
 Added new rebellion type "Press a Claim Against the Crown" where vassals who hold claims to titles held by the rulling clan, but aren't his sovereign tier title, may plot to take it by force instead.
 Improvement to balance of power tooltips of rebel factions.
+Improved court agenda chat notifications.

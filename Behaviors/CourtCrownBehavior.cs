@@ -205,10 +205,17 @@ namespace BellumCivile.Behaviors
 
         private void AnnounceCrownFavor(Kingdom realm)
         {
-            var message = new TextObject("{=BC_CrownFavorAnnouncement}Court of {REALM}: {FAVOR}");
-            message.SetTextVariable("REALM", realm.Name);
-            message.SetTextVariable("FAVOR", DescribeCrownFavor(realm));
-            BellumCivileNotifications.Show(message, BellumNotificationColors.Politics, primaryKingdom: realm);
+            if (BellumCivileNotifications.ShouldPrepare(primaryKingdom: realm))
+            {
+                var favored = GetFavoredBloc(realm);
+                var message = new TextObject(favored.HasValue
+                    ? "{=BC_CrownFavorProclaimed}The Crown of {REALM} has lent its favor to the lords of {FACTION} for this term."
+                    : "{=BC_CrownFavorImpartialProclaimed}The Crown of {REALM} has chosen to show no favor at court this term.")
+                    .SetTextVariable("REALM", realm.Name);
+                if (favored.HasValue)
+                    message.SetTextVariable("FACTION", CourtInstitutionDisplayHelper.GetCourtFactionName(favored.Value, realm));
+                BellumCivileNotifications.Show(message, BellumNotificationColors.Politics, primaryKingdom: realm);
+            }
             BellumCivileLogger.Log($"Crown favor selected; realm={realm.StringId}; ruler={realm.RulingClan.StringId}; favor={_crownFavor[realm.StringId]}; expires={_crownUntil[realm.StringId].ToDays}.");
         }
     }
