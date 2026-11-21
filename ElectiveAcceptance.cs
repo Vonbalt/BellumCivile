@@ -75,7 +75,8 @@ namespace BellumCivile
             var claims = new Dictionary<Hero, int>();
             var relations = new Dictionary<Hero, int>();
             var inputs = new List<object> { record, winner, record.Frozen, record.Completed,
-                (int)CampaignTime.Now.ToDays, record.Law, record.Gender, title?.TitleId };
+                (int)CampaignTime.Now.ToDays, record.Law, record.Gender, title?.TitleId, titles?.RuntimeRevision,
+                Campaign.Current.GetCampaignBehavior<FeudalServiceBehavior>()?.RuntimeRevision };
             foreach (var finalist in record.Finalists)
             {
                 int claim = title != null && titles.HasActiveClaim(finalist.Clan, title, FeudalClaimStrength.Strong) ? 2

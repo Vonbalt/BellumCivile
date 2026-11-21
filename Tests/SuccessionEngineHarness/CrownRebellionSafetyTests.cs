@@ -49,6 +49,8 @@ internal static class CrownRebellionSafetyTests
     private static readonly Dictionary<Clan, Hero> Heads = new Dictionary<Clan, Hero>();
     private static readonly HashSet<Kingdom> Gone = new HashSet<Kingdom>();
     private static readonly List<Clan> Moves = new List<Clan>();
+    private static readonly HashSet<(Hero, Hero)> Friendships = new HashSet<(Hero, Hero)>();
+    private static readonly HashSet<(Clan, Clan)> Marriages = new HashSet<(Clan, Clan)>();
     private static IReadOnlyList<PrivyCouncilOfficeRecord> _offices;
     private static Clan _player, _eventOldHouse;
     private static Hero _dynasticCandidate;
@@ -79,6 +81,11 @@ internal static class CrownRebellionSafetyTests
     private static bool Decisions(ref MBReadOnlyList<KingdomDecision> __result)
     { __result = new MBReadOnlyList<KingdomDecision>(new List<KingdomDecision>()); return false; }
     private static bool Power(ref float __result) { __result = 100; return false; }
+    private static bool StrongIntent(ref float __result) { __result = 100; return false; }
+    private static bool Relation(Hero __instance, Hero __0, ref int __result)
+    { __result = Friendships.Contains((__instance, __0)) ? 80 : 0; return false; }
+    private static bool Marriage(Clan clan, Clan alliedClan, ref bool __result)
+    { __result = Marriages.Contains((clan, alliedClan)); return false; }
     private static bool Trait(ref int __result) { __result = 0; return false; }
     private static bool Opportunity(Action onUltimatum) { _opportunity = onUltimatum; return false; }
     private static bool Ultimatum(ref bool __result) { _ultimata++; __result = true; return false; }
@@ -308,33 +315,170 @@ internal static class CrownRebellionSafetyTests
                 && separatists.Type == FactionType.Independence && Factions().Count == 2,
                 "An already-led rebellion keeps its demands instead of creating a second faction");
 
-            Set(founder, "<Name>k__BackingField", new TextObject("Founding House"));
-            Set(founder, "<CurrentTotalStrength>k__BackingField", 300f);
-            Set(oldHouse, "<Name>k__BackingField", new TextObject("Supporting House"));
-            Set(next, "<Name>k__BackingField", new TextObject("Friendly House"));
-            var supportType = mod.GetType("BellumCivile.ProjectedRebellionSupport");
-            var reasonType = mod.GetType("BellumCivile.CivilWarSolidarityReason");
-            var supporters = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(supportType));
-            supporters.Add(Activator.CreateInstance(supportType, oldHouse, founder, founder, 100f, 1f, 100f, 75f,
-                Enum.Parse(reasonType, "DirectVassal"), 0f, 0f));
-            supporters.Add(Activator.CreateInstance(supportType, next, oldHouse, founder, 100f, 1f, 100f, 75f,
-                Enum.Parse(reasonType, "Friendship"), 0f, 0f));
-            var projection = Activator.CreateInstance(mod.GetType("BellumCivile.RebellionPowerProjection"),
-                realm, new List<Clan> { founder }, supporters, null, 500f, 0f);
-            var tooltip = AccessTools.Method(typeof(FactionsWindowVM), "BuildProjectedFactionPowerTooltip")
-                .Invoke(null, new[] { projection, manager });
-            var rows = ((Func<List<TooltipProperty>>)AccessTools.Field(tooltip.GetType(), "_tooltipProperties").GetValue(tooltip))();
-            check(rows.Any(row => row.DefinitionLabel.Trim() == "Expected support")
-                && rows.Any(row => row.ValueLabel.Contains("not pledged")), "The power tooltip distinguishes expected from pledged support");
-            check(rows.Any(row => row.DefinitionLabel.Trim() == "Friendly House" && row.ValueLabel.Contains("100%, friendship with Supporting House"))
-                && rows.Any(row => row.DefinitionLabel.Trim() == "Supporting House" && row.ValueLabel.Contains("100%, vassal of Founding House")),
-                "Projected support rows name the actual sponsor, even when it is another projected supporter");
+            TestPowerForecast(check, behaviors, Patch, House);
         }
         finally
         {
             h.UnpatchAll(h.Id);
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { previous });
             Kingdoms.Clear(); Rulers.Clear(); Realms.Clear(); Heads.Clear(); Gone.Clear(); Moves.Clear();
+            Friendships.Clear(); Marriages.Clear();
         }
+    }
+
+    private static void TestPowerForecast(Action<bool, string> check, Manager behaviors,
+        Action<MethodBase, string> patch, Func<string, Kingdom, Clan> house)
+    {
+        var mod = typeof(FactionObject).Assembly;
+        patch(AccessTools.PropertyGetter(typeof(Hero), "IsAlive"), nameof(Yes));
+        patch(AccessTools.Method(typeof(Hero), "GetRelation", new[] { typeof(Hero) }), nameof(Relation));
+        patch(AccessTools.Method(mod.GetType("BellumCivile.MarriageAllianceHelper"), "HasMarriageAlliance"), nameof(Marriage));
+        patch(AccessTools.Method(typeof(IdeologyBehavior), "CalculateRebellionScore"), nameof(StrongIntent));
+
+        var realm = Blank<Kingdom>();
+        realm.StringId = "power_test";
+        Clan MakeHouse(string id, string name, float power)
+        {
+            var clan = house(id, realm);
+            Set(clan, "<Name>k__BackingField", new TextObject(name));
+            Set(clan, "<CurrentTotalStrength>k__BackingField", power);
+            return clan;
+        }
+        var crown = Rulers[realm] = MakeHouse("crown", "Crown", 500);
+        var founder = MakeHouse("baron", "Founding House", 300);
+        var vassal = MakeHouse("vassal", "Supporting House", 1000);
+        var friend = MakeHouse("friend", "Friendly House", 800);
+        MakeHouse("spectator", "Restless House", 100);
+        var titles = new FeudalTitleBehavior();
+        var service = new FeudalServiceBehavior();
+        behaviors.Items.Add(titles);
+        behaviors.Items.Add(service);
+        var root = new FeudalTitleRecord("power_root", "Root", FeudalTitleType.County, founder.StringId,
+            founder.StringId, null, null, realm.StringId, 0, 0);
+        var child = new FeudalTitleRecord("power_child", "Child", FeudalTitleType.Barony, vassal.StringId,
+            vassal.StringId, root.TitleId, null, realm.StringId, 0, 0);
+        var titleRecords = new Dictionary<string, FeudalTitleRecord> { [root.TitleId] = root, [child.TitleId] = child };
+        Set(titles, "_titlesById", titleRecords);
+        void Index() => Call(titles, "RebuildRuntimeIndexes", true, false);
+        Index();
+        string key = child.TitleId + "|" + root.TitleId;
+        var contract = new FeudalServiceRecord(key, child.TitleId, root.TitleId, FeudalServiceLevel.CustomaryTenure, 0, null, null);
+        var contracts = new Dictionary<string, FeudalServiceRecord> { [key] = contract };
+        Set(service, "_contractsByTitlePair", contracts);
+        Friendships.Add((Heads[friend], Heads[vassal]));
+
+        var calculate = AccessTools.Method(mod.GetType("BellumCivile.RebellionPowerHelper"), "CalculateProjectedConflictPower");
+        object Forecast(Clan[] members, bool support = true, ISet<Clan> loyal = null) =>
+            calculate.Invoke(null, new object[] { realm, members, founder, null, support, null, loyal });
+        object Get(object owner, string property) => AccessTools.PropertyGetter(owner.GetType(), property).Invoke(owner, null);
+        float Number(object owner, string property) => (float)Get(owner, property);
+        object[] Supporters(object projection) => ((IEnumerable)Get(projection, "ProjectedSupporters")).Cast<object>().ToArray();
+        bool Near(float value, float expected) => Math.Abs(value - expected) < .01f;
+        var baseline = Forecast(new[] { founder, founder, crown });
+        var supporter = Supporters(baseline).Single();
+        check(Get(supporter, "Clan") == (object)vassal && Get(supporter, "Sponsor") == (object)founder,
+            "Forecast is one hop: neither a friend of projected support nor an untied rebellious house is counted");
+        check(Near(Number(baseline, "PledgedPower"), 300) && Near(Number(baseline, "ExpectedSupportPower"), 250)
+            && Near(Number(baseline, "LoyalistPower"), 2150),
+            "The ruler stays loyal, pledges deduplicate, and the Crown loses only the 250 service credit");
+        var uncappedConcession = ((float Faction, float Loyalist))Call(baseline, "GetConcessionPower");
+        check(Near(uncappedConcession.Faction, 550) && Near(uncappedConcession.Loyalist, 2150),
+            "Concession uses the ordinary balance when expected support is below pledged power");
+        check(Supporters(Forecast(new[] { founder }, loyal: new HashSet<Clan> { vassal })).Length == 0,
+            "An explicitly loyal house is excluded from projected support");
+        Marriages.Add((vassal, crown));
+        var dividedVassal = Supporters(Forecast(new[] { founder })).Single();
+        check(Near(Number(dividedVassal, "JoinChance"), .5f) && Near(Number(dividedVassal, "CreditedPower"), 125),
+            "A divided vassal's willingness discounts service power instead of replacing the service cap");
+        Marriages.Remove((vassal, crown));
+
+        Friendships.Add((Heads[vassal], Heads[founder]));
+        foreach (var test in new[] { (FeudalServiceLevel.Exemption, 0f), (FeudalServiceLevel.Lessened, 100f),
+            (FeudalServiceLevel.CustomaryTenure, 250f), (FeudalServiceLevel.Elevated, 400f), (FeudalServiceLevel.Extortion, 500f) })
+        {
+            contract.Update(test.Item1, 0, null, null);
+            check(Near(Number(Forecast(new[] { founder }), "ExpectedSupportPower"), test.Item2),
+                "Direct service uses " + test.Item1 + " without stacking friendship on top");
+        }
+        contract.Update(FeudalServiceLevel.CustomaryTenure, 0, null, null);
+        Friendships.Remove((Heads[vassal], Heads[founder]));
+        child.SetDeFactoParentTitle(null);
+        Index();
+        check(Supporters(Forecast(new[] { founder })).Length == 0, "A de jure relationship alone does not create a service contract");
+        child.SetDeFactoParentTitle(root.TitleId);
+        Index();
+        var secondChild = new FeudalTitleRecord("child_two", "Child Two", FeudalTitleType.Barony, vassal.StringId,
+            vassal.StringId, root.TitleId, null, realm.StringId, 0, 0);
+        titleRecords.Add(secondChild.TitleId, secondChild);
+        var secondKey = secondChild.TitleId + "|" + root.TitleId;
+        contracts[secondKey] = new FeudalServiceRecord(secondKey, secondChild.TitleId, root.TitleId, FeudalServiceLevel.Elevated, 0, null, null);
+        Index();
+        check(Near(Number(Forecast(new[] { founder }), "ExpectedSupportPower"), 325),
+            "Two titles held under the same liege average their service caps instead of stacking");
+        titleRecords.Remove(secondChild.TitleId);
+        Index();
+
+        Marriages.Add((friend, vassal));
+        Friendships.Remove((Heads[friend], Heads[vassal]));
+        var marriageSupport = Supporters(Forecast(new[] { founder, vassal })).Single();
+        check(Near(Number(marriageSupport, "CreditedPower"), 400) && Get(marriageSupport, "Reason").ToString() == "MarriageAlliance",
+            "A marriage alliance with a pledged clan supplies at most half power without needing friendship");
+        Friendships.Add((Heads[friend], Heads[founder]));
+        var direct = Forecast(new[] { founder, vassal });
+        var friendSupport = Supporters(direct).Single();
+        check(Get(friendSupport, "Clan") == (object)friend && Near(Number(friendSupport, "CreditedPower"), 400)
+            && Near(Number(direct, "PledgedPower"), 1300),
+            "A committed supporter provides full power and unlocks its own ties; competing routes do not stack");
+        check(Near(Number(Forecast(new[] { founder, vassal }, support: false), "FactionPower"), 1300),
+            "Active war can use actual pledged power without projected support");
+        Marriages.Add((friend, crown));
+        check(Supporters(Forecast(new[] { founder, vassal })).Length == 0,
+            "High intent does not bypass a marriage tie to the Crown for the personal support forecast");
+        Marriages.Remove((friend, crown));
+
+        var connected = Forecast(new[] { founder });
+        var concession = ((float Faction, float Loyalist))Call(connected, "GetConcessionPower");
+        check(Near(Number(connected, "FactionPower"), 950) && Near(Number(connected, "LoyalistPower"), 1750)
+            && Near(concession.Faction, 600) && Near(concession.Loyalist, 2100),
+            "AI concession alone caps the 650 support at 300 pledged and restores the corresponding Crown power");
+
+        var coalition = Blank<FactionObject>();
+        Set(coalition, "_name", "Power Coalition");
+        Set(coalition, "_parentKingdom", realm);
+        Set(coalition, "_members", new List<Clan> { founder });
+        Set(coalition, "_leader", founder);
+        Set(coalition, "_type", FactionType.Abdication);
+        Set(coalition, "_isGrandCoalition", true);
+        Set(coalition, "_ultimatumPending", true);
+        var manager = behaviors.GetBehavior<FactionManagerBehavior>();
+        ((List<FactionObject>)AccessTools.Field(manager.GetType(), "_activeFactions").GetValue(manager)).Add(coalition);
+        object CachedForecast() => Call(coalition, "CalculatePowerProjection", false);
+        check(Near(Number(CachedForecast(), "FactionPower"), 950), "Grand Coalition uses the new support calculation");
+        contract.Update(FeudalServiceLevel.Exemption, 0, null, null);
+        service.SyncData(new Store());
+        check(Near(Number(CachedForecast(), "FactionPower"), 700), "A service change invalidates the same-day faction forecast");
+        contract.Update(FeudalServiceLevel.CustomaryTenure, 0, null, null);
+        service.SyncData(new Store());
+        var crownView = AccessTools.Method(mod.GetType("BellumCivile.CrownPowerProjection"), "Calculate").Invoke(null, new[] { realm });
+        var totals = Get(crownView, "Total");
+        check(Near((float)(double)Get(totals, "Rebels"), Number(connected, "FactionPower"))
+            && Near((float)(double)Get(totals, "Loyalists"), Number(connected, "LoyalistPower")),
+            "The Crown forecast consumes the same capped credits as the faction forecast");
+
+        for (int i = 0; i < 7; i++)
+        {
+            var ally = MakeHouse("ally_" + i, "Additional House " + i, 50);
+            Friendships.Add((Heads[ally], Heads[founder]));
+        }
+        var tooltip = AccessTools.Method(typeof(FactionsWindowVM), "BuildProjectedFactionPowerTooltip")
+            .Invoke(null, new[] { Forecast(new[] { founder }) });
+        var rows = ((Func<List<TooltipProperty>>)AccessTools.Field(tooltip.GetType(), "_tooltipProperties").GetValue(tooltip))();
+        check(rows.Any(row => row.DefinitionLabel.Trim() == "Pledged power")
+            && rows.Any(row => row.DefinitionLabel.Trim() == "Expected support")
+            && rows.Any(row => row.ValueLabel.Contains("not pledged")), "The power tooltip separates pledged and expected support");
+        check(rows.Any(row => row.DefinitionLabel.Trim() == "Supporting House" && row.ValueLabel.Contains("25% cap, 100% chance"))
+            && rows.Any(row => row.ValueLabel.Contains("vassal of Founding House"))
+            && rows.Any(row => row.DefinitionLabel.Trim() == "Other houses (4)"),
+            "The tooltip shows the cap, willingness, real sponsor and contributor overflow");
     }
 }

@@ -23,8 +23,9 @@ Check ($rules -notmatch 'MBRandom|DeclareWarAction|ChangeKingdomAction|ShowInqui
     $rules -notmatch 'RegisterEvents|DailyTickEvent') 'Forecast owns no scheduler, random roll, save state or conflict action.'
 Check ($power.Contains('projectedSovereign == null ? CalculateClanPower(clan)') -and
     $power.Contains('committed.RemoveAll(clan => clan == rulingClan)')) 'Projected incumbent defeat does not remove the challenger; default power behavior is retained.'
-Check ($power.Contains('projectedLoyalists?.Contains(clan) != true') -and
-    $power.Contains('float effectiveChance = sponsorEntry.Value * assessment.JoinChance;')) 'Declared loyalist power cannot also support the challenger; extra hierarchy probabilities remain conditional.'
+Check ($power.Contains('projectedLoyalists?.Contains(clan) == true') -and $power.Contains('if (!declaredLoyalist') -and
+    $power.Contains('committed.Where(clan => clan.Kingdom == parentKingdom') -and
+    !$power.Contains('CivilWarSolidarityHierarchyPassLimit')) 'Declared loyalists cannot be projected for the challenger; only the forecast seed houses can sponsor support.'
 Check ($power.Contains('clan == Clan.PlayerClan && !declaredLoyalist') -and
     $rules.Contains('new HashSet<Clan>(votes.Where')) 'Player endorsements are counted; abstention remains uncommitted and duplicate houses are deduplicated.'
 Check ($xml.SelectNodes('//*[@DataSource="{AcceptanceHint}"]').Count -eq 0 -and

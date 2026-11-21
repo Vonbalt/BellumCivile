@@ -682,6 +682,7 @@ namespace BellumCivile
         public const float DiscontentDecayPerDay = 1f;
         public const float DiscontentTrigger     = 100f;
         public const float RebellionPowerThresholdBase = 0.80f;
+        public const float RebellionProjectedPersonalSupportCap = 0.50f;
         public const float RebelAbdicationBaseWeight = 10f;
         public const float RebelIndependenceCulturalStakeWeight = 50f;
         public const float RebelIndependenceHonorablePenalty = 20f;

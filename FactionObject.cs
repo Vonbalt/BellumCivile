@@ -108,6 +108,8 @@ namespace BellumCivile
         [System.NonSerialized] private int _cachedPowerProjectionDay = int.MinValue;
         [System.NonSerialized] private int _cachedPowerProjectionKingdomClanCount = -1;
         [System.NonSerialized] private bool _cachedPowerProjectionIncludesSupport;
+        [System.NonSerialized] private int _cachedPowerProjectionHierarchyRevision;
+        [System.NonSerialized] private int _cachedPowerProjectionServiceRevision;
 
         public string Name { get => _name; private set => _name = value; }
         public Kingdom ParentKingdom { get => _parentKingdom; private set => _parentKingdom = value; }
@@ -635,12 +637,18 @@ namespace BellumCivile
             bool includeProjectedSupport = !IsCivilWarActive();
             int currentDay = Campaign.Current != null ? (int)CampaignTime.Now.ToDays : int.MinValue;
             int kingdomClanCount = ParentKingdom?.Clans?.Count ?? 0;
+            int hierarchyRevision = includeProjectedSupport
+                ? Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>()?.RuntimeRevision ?? 0 : 0;
+            int serviceRevision = includeProjectedSupport
+                ? Campaign.Current?.GetCampaignBehavior<FeudalServiceBehavior>()?.RuntimeRevision ?? 0 : 0;
 
             if (!forceRefresh
                 && _cachedPowerProjection != null
                 && _cachedPowerProjectionDay == currentDay
                 && _cachedPowerProjectionKingdomClanCount == kingdomClanCount
-                && _cachedPowerProjectionIncludesSupport == includeProjectedSupport)
+                && _cachedPowerProjectionIncludesSupport == includeProjectedSupport
+                && _cachedPowerProjectionHierarchyRevision == hierarchyRevision
+                && _cachedPowerProjectionServiceRevision == serviceRevision)
             {
                 return _cachedPowerProjection;
             }
@@ -654,6 +662,8 @@ namespace BellumCivile
             _cachedPowerProjectionDay = currentDay;
             _cachedPowerProjectionKingdomClanCount = kingdomClanCount;
             _cachedPowerProjectionIncludesSupport = includeProjectedSupport;
+            _cachedPowerProjectionHierarchyRevision = hierarchyRevision;
+            _cachedPowerProjectionServiceRevision = serviceRevision;
             return _cachedPowerProjection;
         }
 
@@ -800,8 +810,7 @@ namespace BellumCivile
                     return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
 
                 RebellionPowerProjection projection = CalculatePowerProjection(forceRefresh: true);
-                float factionStrength = projection.FactionPower;
-                float liegeStrength = projection.LoyalistPower;
+                var (factionStrength, liegeStrength) = projection.GetConcessionPower();
 
                 if (factionStrength < liegeStrength)
                     return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);

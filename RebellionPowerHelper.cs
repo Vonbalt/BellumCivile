@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
@@ -9,63 +10,41 @@ namespace BellumCivile
 {
     internal sealed class ProjectedRebellionSupport
     {
-        public ProjectedRebellionSupport(
-            Clan clan,
-            Clan sponsor,
-            Clan rootSponsor,
-            float fullPower,
-            float joinChance,
-            float creditedPower,
-            float solidarityScore,
-            CivilWarSolidarityReason reason,
-            float baselineCommitment = 0f,
-            float solidarityChance = 0f)
+        public ProjectedRebellionSupport(Clan clan, Clan sponsor, float fullPower, float joinChance,
+            float contributionCap, CivilWarSolidarityReason reason)
         {
             Clan = clan;
             Sponsor = sponsor;
-            RootSponsor = rootSponsor;
             FullPower = fullPower;
             JoinChance = joinChance;
-            CreditedPower = creditedPower;
-            SolidarityScore = solidarityScore;
+            ContributionCap = contributionCap;
             Reason = reason;
-            BaselineCommitment = baselineCommitment;
-            SolidarityChance = solidarityChance;
         }
 
         public Clan Clan { get; }
         public Clan Sponsor { get; }
-        public Clan RootSponsor { get; }
         public float FullPower { get; }
         public float JoinChance { get; }
-        public float CreditedPower { get; }
-        public float SolidarityScore { get; }
+        public float ContributionCap { get; }
+        public float CreditedPower => FullPower * ContributionCap * JoinChance;
         public CivilWarSolidarityReason Reason { get; }
-        public float BaselineCommitment { get; }
-        public float SolidarityChance { get; }
     }
 
     internal sealed class ProjectedLoyalistContribution
     {
-        public ProjectedLoyalistContribution(
-            Clan clan,
-            float fullPower,
-            float rebelJoinChance,
-            float loyalistCommitment,
-            float creditedPower)
+        public ProjectedLoyalistContribution(Clan clan, float fullPower, float rebelCreditedPower, float loyalistCommitment)
         {
             Clan = clan;
             FullPower = fullPower;
-            RebelJoinChance = rebelJoinChance;
+            RebelCreditedPower = rebelCreditedPower;
             LoyalistCommitment = loyalistCommitment;
-            CreditedPower = creditedPower;
         }
 
         public Clan Clan { get; }
         public float FullPower { get; }
-        public float RebelJoinChance { get; }
+        public float RebelCreditedPower { get; }
         public float LoyalistCommitment { get; }
-        public float CreditedPower { get; }
+        public float CreditedPower => (FullPower - RebelCreditedPower) * LoyalistCommitment;
     }
 
     internal sealed class RebellionPowerProjection
@@ -75,29 +54,37 @@ namespace BellumCivile
             List<Clan> committedRebels,
             List<ProjectedRebellionSupport> projectedSupporters,
             List<ProjectedLoyalistContribution> loyalistContributions,
-            float factionPower,
-            float loyalistPower)
+            float pledgedPower)
         {
             Kingdom = kingdom;
             CommittedRebels = committedRebels ?? new List<Clan>();
             ProjectedSupporters = projectedSupporters ?? new List<ProjectedRebellionSupport>();
             LoyalistContributions = loyalistContributions ?? new List<ProjectedLoyalistContribution>();
-            FactionPower = factionPower;
-            LoyalistPower = loyalistPower;
+            PledgedPower = pledgedPower;
+            ExpectedSupportPower = ProjectedSupporters.Sum(support => support.CreditedPower);
+            LoyalistPower = LoyalistContributions.Sum(entry => entry.CreditedPower);
         }
 
         public Kingdom Kingdom { get; }
         public IReadOnlyList<Clan> CommittedRebels { get; }
         public IReadOnlyList<ProjectedRebellionSupport> ProjectedSupporters { get; }
         public IReadOnlyList<ProjectedLoyalistContribution> LoyalistContributions { get; }
-        public float FactionPower { get; }
+        public float PledgedPower { get; }
+        public float ExpectedSupportPower { get; }
+        public float FactionPower => PledgedPower + ExpectedSupportPower;
         public float LoyalistPower { get; }
 
-        public float GetProjectedSupportPower(Clan rootSponsor)
+        internal (float Faction, float Loyalist) GetConcessionPower()
         {
-            return ProjectedSupporters
-                .Where(support => support.RootSponsor == rootSponsor)
-                .Sum(support => support.CreditedPower);
+            float cappedSupport = Math.Min(ExpectedSupportPower, Math.Max(0f, PledgedPower));
+            if (cappedSupport >= ExpectedSupportPower)
+                return (FactionPower, LoyalistPower);
+
+            // Discount the same share on both sides of the concession calculation.
+            float restoreShare = 1f - cappedSupport / ExpectedSupportPower;
+            float restoredLoyalists = LoyalistContributions.Sum(entry =>
+                entry.RebelCreditedPower * entry.LoyalistCommitment * restoreShare);
+            return (PledgedPower + cappedSupport, LoyalistPower + restoredLoyalists);
         }
     }
 
@@ -162,7 +149,7 @@ namespace BellumCivile
                 .Distinct()
                 .ToList();
 
-            if (parentKingdom?.RulingClan != null)
+            if (rulingClan != null)
             {
                 // Court membership describes the ruler's political sympathies, not
                 // the side they would fight for. A grand coalition expels the ruler
@@ -170,7 +157,7 @@ namespace BellumCivile
                 committed.RemoveAll(clan => clan == rulingClan);
             }
             HashSet<Clan> committedSet = new HashSet<Clan>(committed);
-            float factionPower = committed.Sum(Power);
+            float pledgedPower = committed.Sum(Power);
 
             if (parentKingdom == null)
             {
@@ -179,156 +166,94 @@ namespace BellumCivile
                     committed,
                     new List<ProjectedRebellionSupport>(),
                     new List<ProjectedLoyalistContribution>(),
-                    factionPower,
-                    0f);
+                    pledgedPower);
             }
 
             FactionManagerBehavior factionManager = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
             IdeologyBehavior ideologyBehavior = Campaign.Current?.GetCampaignBehavior<IdeologyBehavior>();
             FeudalTitleBehavior titleBehavior = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
 
-            Dictionary<Clan, float> rebelChances = committed.ToDictionary(clan => clan, clan => 1f);
-            Dictionary<Clan, Clan> rootSponsors = committed.ToDictionary(clan => clan, clan => clan);
-            Dictionary<Clan, CivilWarSolidarityAssessment> assessments = new Dictionary<Clan, CivilWarSolidarityAssessment>();
-
-            List<Clan> candidates = includeProjectedSupport && factionManager != null && ideologyBehavior != null
-                ? parentKingdom.Clans
-                    .Where(clan => projectedLoyalists?.Contains(clan) != true)
-                    .Where(clan => CivilWarSolidarityHelper.IsEligibleProjectionCandidate(
-                        clan,
-                        parentKingdom,
-                        committedSet,
-                        rebelFaction,
-                        factionManager,
-                        rulingClan))
-                    .ToList()
-                : new List<Clan>();
-            Dictionary<Clan, float> rebellionIntentByCandidate = candidates
-                .ToDictionary(clan => clan, clan => ideologyBehavior.CalculateRebellionScore(clan));
-
-            for (int pass = 0; pass < C.CivilWarSolidarityHierarchyPassLimit && candidates.Count > 0; pass++)
-            {
-                List<KeyValuePair<Clan, float>> availableSponsors = rebelChances
-                    .Where(pair => pair.Value > 0f)
-                    .ToList();
-                Dictionary<Clan, CivilWarSolidarityAssessment> passAssessments = new Dictionary<Clan, CivilWarSolidarityAssessment>();
-                Dictionary<Clan, float> passChances = new Dictionary<Clan, float>();
-                bool improved = false;
-
-                foreach (Clan candidate in candidates)
-                {
-                    float currentChance = rebelChances.TryGetValue(candidate, out float existingChance) ? existingChance : 0f;
-                    CivilWarSolidarityAssessment bestAssessment = null;
-                    float bestChance = currentChance;
-
-                    foreach (KeyValuePair<Clan, float> sponsorEntry in availableSponsors)
-                    {
-                        Clan sponsor = sponsorEntry.Key;
-                        bool directVassal = CivilWarSolidarityHelper.IsImmediateVassalOf(titleBehavior, candidate, sponsor);
-                        if (!directVassal
-                            && !CivilWarSolidarityHelper.CanAnswerOutsiderCall(
-                                candidate,
-                                sponsor,
-                                parentKingdom,
-                                ideologyBehavior,
-                                rebellionIntentByCandidate[candidate],
-                                rulingClan))
-                            continue;
-
-                        CivilWarSolidarityAssessment assessment = CivilWarSolidarityHelper.AssessSupport(
-                            candidate,
-                            sponsor,
-                            parentKingdom,
-                            factionManager,
-                            ideologyBehavior,
-                            directVassal,
-                            rebellionIntentByCandidate[candidate],
-                            projectedSovereign);
-                        if (assessment == null || assessment.JoinChance <= 0f)
-                            continue;
-
-                        float effectiveChance = sponsorEntry.Value * assessment.JoinChance;
-                        if (effectiveChance > bestChance + 0.001f)
-                        {
-                            bestChance = effectiveChance;
-                            bestAssessment = assessment;
-                        }
-                    }
-
-                    if (bestAssessment == null)
-                        continue;
-
-                    passAssessments[candidate] = bestAssessment;
-                    passChances[candidate] = bestChance;
-                    improved = true;
-                }
-
-                foreach (KeyValuePair<Clan, float> update in passChances)
-                {
-                    Clan candidate = update.Key;
-                    CivilWarSolidarityAssessment assessment = passAssessments[candidate];
-                    rebelChances[candidate] = update.Value;
-                    assessments[candidate] = assessment;
-                    rootSponsors[candidate] = rootSponsors.TryGetValue(assessment.Sponsor, out Clan root)
-                        ? root
-                        : assessment.Sponsor;
-                }
-
-                if (!improved)
-                    break;
-            }
-
-            List<ProjectedRebellionSupport> projectedSupporters = assessments
-                .Where(pair => rebelChances.TryGetValue(pair.Key, out float chance) && chance > 0f)
-                .Select(pair =>
-                {
-                    Clan clan = pair.Key;
-                    CivilWarSolidarityAssessment assessment = pair.Value;
-                    float fullPower = Power(clan);
-                    float chance = rebelChances[clan];
-                    return new ProjectedRebellionSupport(
-                        clan,
-                        assessment.Sponsor,
-                        rootSponsors.TryGetValue(clan, out Clan root) ? root : assessment.Sponsor,
-                        fullPower,
-                        chance,
-                        fullPower * chance,
-                        assessment.Score,
-                        assessment.PrimaryReason);
-                })
-                .OrderByDescending(support => support.CreditedPower)
-                .ToList();
-
-            factionPower += projectedSupporters.Sum(support => support.CreditedPower);
-
-            List<ProjectedLoyalistContribution> loyalistContributions = new List<ProjectedLoyalistContribution>();
-            float loyalistPower = 0f;
+            Clan[] sponsors = includeProjectedSupport && factionManager != null && ideologyBehavior != null
+                ? committed.Where(clan => clan.Kingdom == parentKingdom && clan.Leader?.IsAlive == true)
+                    .OrderByDescending(clan => clan == rebelLeader)
+                    .ThenBy(clan => clan.StringId, StringComparer.Ordinal)
+                    .ToArray()
+                : Array.Empty<Clan>();
+            FeudalServiceBehavior service = Campaign.Current?.GetCampaignBehavior<FeudalServiceBehavior>();
+            var projectedSupporters = new List<ProjectedRebellionSupport>();
+            var loyalistContributions = new List<ProjectedLoyalistContribution>();
             foreach (Clan clan in parentKingdom.Clans.Where(clan => clan != null && !clan.IsEliminated && !committedSet.Contains(clan)))
             {
                 float fullPower = Power(clan);
-                float rebelChance = rebelChances.TryGetValue(clan, out float chance) ? chance : 0f;
                 FactionObject ideology = factionManager?.GetIdeologicalFaction(clan);
                 bool declaredLoyalist = clan == rulingClan || projectedLoyalists?.Contains(clan) == true;
+                ProjectedRebellionSupport support = null;
+                if (!declaredLoyalist && fullPower > 0f && sponsors.Length > 0
+                    && CivilWarSolidarityHelper.IsEligibleProjectionCandidate(clan, parentKingdom, committedSet, rebelFaction, factionManager, rulingClan))
+                {
+                    support = ProjectDirectSupport(clan, fullPower, sponsors, parentKingdom, rulingClan,
+                        factionManager, ideologyBehavior, titleBehavior, service, projectedSovereign);
+                    if (support != null)
+                        projectedSupporters.Add(support);
+                }
+
                 float commitment = declaredLoyalist ? 1f : CalculateLoyalistContributionMultiplier(parentKingdom, clan, ideology);
                 if (projectedSovereign != null && clan == Clan.PlayerClan && !declaredLoyalist)
                     commitment = 0f;
-                float creditedPower = fullPower * (1f - rebelChance) * commitment;
-                loyalistPower += creditedPower;
                 loyalistContributions.Add(new ProjectedLoyalistContribution(
-                    clan,
-                    fullPower,
-                    rebelChance,
-                    commitment,
-                    creditedPower));
+                    clan, fullPower, support?.CreditedPower ?? 0f, commitment));
             }
 
             return new RebellionPowerProjection(
                 parentKingdom,
                 committed,
-                projectedSupporters,
+                projectedSupporters.OrderByDescending(support => support.CreditedPower).ToList(),
                 loyalistContributions.OrderByDescending(entry => entry.CreditedPower).ToList(),
-                factionPower,
-                loyalistPower);
+                pledgedPower);
+        }
+
+        private static ProjectedRebellionSupport ProjectDirectSupport(
+            Clan candidate, float fullPower, IEnumerable<Clan> sponsors, Kingdom kingdom, Clan rulingClan,
+            FactionManagerBehavior manager, IdeologyBehavior ideology, FeudalTitleBehavior titles,
+            FeudalServiceBehavior service, Hero projectedSovereign)
+        {
+            // Average multiple contracts with the same liege rather than stacking them.
+            var serviceByLiege = titles?.GetTitlesHeldByClan(candidate, deJure: false)
+                .Select(title => new { Title = title, Parent = titles.GetParentTitle(title, FeudalHierarchyMode.DeFacto) })
+                .Where(pair => pair.Parent?.IsActive == true && !string.IsNullOrEmpty(pair.Parent.DeFactoHolderClanId))
+                .GroupBy(pair => pair.Parent.DeFactoHolderClanId)
+                .ToDictionary(group => group.Key, group => group.Average(pair =>
+                    service?.GetTaxShare(pair.Title, pair.Parent) ?? C.FeudalServiceCustomaryTenureTaxShare));
+            bool tiedToCrown = MarriageAllianceHelper.HasMarriageAlliance(candidate, rulingClan);
+            float? intent = null;
+            ProjectedRebellionSupport best = null;
+            foreach (Clan sponsor in sponsors)
+            {
+                float cap = 0f;
+                bool directVassal = !string.IsNullOrEmpty(sponsor.StringId) && serviceByLiege != null
+                    && serviceByLiege.TryGetValue(sponsor.StringId, out cap);
+                if (!directVassal)
+                {
+                    if (tiedToCrown || !CivilWarSolidarityHelper.HasPersonalSolidarityTie(candidate, sponsor))
+                        continue;
+                    cap = C.RebellionProjectedPersonalSupportCap;
+                }
+
+                if (cap <= 0f)
+                    continue;
+
+                intent = intent ?? ideology.CalculateRebellionScore(candidate);
+                CivilWarSolidarityAssessment assessment = CivilWarSolidarityHelper.AssessSupport(
+                    candidate, sponsor, kingdom, manager, ideology, directVassal, intent, projectedSovereign);
+                if (assessment.JoinChance <= 0f)
+                    continue;
+
+                var support = new ProjectedRebellionSupport(candidate, sponsor, fullPower,
+                    assessment.JoinChance, cap, assessment.PrimaryReason);
+                if (best == null || support.CreditedPower > best.CreditedPower)
+                    best = support;
+            }
+            return best;
         }
 
         public static float CalculateLoyalistPower(Kingdom parentKingdom, IEnumerable<Clan> rebelMembers)

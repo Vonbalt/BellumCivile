@@ -247,8 +247,8 @@ internal static class Program
         {
             var share = new CrownPowerShare(powerValue, chance, loyalty);
             Check(Math.Abs(share.Total - share.Loyalists - share.Rebels - share.Uncommitted) < 1e-7, "Crown partitions clan power exactly once");
-            Check(share.Rebels == powerValue * chance, "Expected rebel power uses joining probability");
-            Check(share.Loyalists == powerValue * (1 - chance) * loyalty, "Loyalist power uses remaining probability and commitment");
+            Check(share.Rebels == powerValue * chance, "Expected rebel power uses the already weighted support share");
+            Check(share.Loyalists == powerValue * (1 - chance) * loyalty, "Loyalist power uses remaining power and commitment");
         }
         var reluctant = new CrownPowerShare(1000, .4, .5);
         Check(reluctant.Loyalists == 300 && reluctant.Rebels == 400 && reluctant.Uncommitted == 300, "Partial support is not automatically rebel strength");

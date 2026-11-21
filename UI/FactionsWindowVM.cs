@@ -720,7 +720,7 @@ namespace BellumCivile.UI
             if (selectedBackendFaction != null && selectedBackendFaction.ParentKingdom != null)
             {
                 RebellionPowerProjection powerProjection = selectedBackendFaction.CalculatePowerProjection(forceRefresh: true);
-                FactionPowerHint = BuildProjectedFactionPowerTooltip(powerProjection, factionManager);
+                FactionPowerHint = BuildProjectedFactionPowerTooltip(powerProjection);
 
                 OpposingSideText = new TextObject("{=BC_UI_Opposing_Loyalists}Loyalists").ToString();
 
@@ -1523,76 +1523,76 @@ namespace BellumCivile.UI
             });
         }
 
-        private static BasicTooltipViewModel BuildProjectedFactionPowerTooltip(
-            RebellionPowerProjection projection,
-            FactionManagerBehavior factionManager)
-        {
-            List<Clan> committedClans = projection?.CommittedRebels
-                ?.Where(clan => clan != null && !clan.IsEliminated)
-                .OrderByDescending(clan => RebellionPowerHelper.CalculateClanPower(clan) + projection.GetProjectedSupportPower(clan))
-                .ToList() ?? new List<Clan>();
-            List<ProjectedRebellionSupport> supporters = projection?.ProjectedSupporters?.ToList()
-                ?? new List<ProjectedRebellionSupport>();
+        private const int PledgedPowerTooltipLimit = 4;
+        private const int ExpectedSupportTooltipLimit = 5;
+        private const int LoyalistPowerTooltipLimit = 7;
 
+        private static BasicTooltipViewModel BuildProjectedFactionPowerTooltip(RebellionPowerProjection projection)
+        {
             return new BasicTooltipViewModel(() =>
             {
                 List<TooltipProperty> properties = CreateTooltipWithTitle(
                     new TextObject("{=BC_UI_FactionPowerTooltipTitle}Faction Power"));
-                if (committedClans.Count == 0)
+                if (projection == null || projection.CommittedRebels.Count == 0)
                 {
                     AddTooltipMessage(properties, new TextObject("{=BC_UI_NoPowerContributors}No contributors."));
                     return properties;
                 }
 
-                for (int index = 0; index < committedClans.Count; index++)
-                {
-                    Clan clan = committedClans[index];
-                    List<ProjectedRebellionSupport> clanSupporters = supporters
-                        .Where(support => support.RootSponsor == clan)
-                        .OrderByDescending(support => support.CreditedPower)
-                        .ToList();
-                    float ownPower = RebellionPowerHelper.CalculateClanPower(clan);
-                    float projectedSupportPower = clanSupporters.Sum(support => support.CreditedPower);
-
-                    AddTooltipRow(properties, clan.Name.ToString(), (ownPower + projectedSupportPower).ToString("N0"));
-                    AddTooltipSeparator(properties);
-                    AddTooltipRow(properties, new TextObject("{=BC_UI_OwnPower}  Own power"), ownPower.ToString("N0"));
-                    AddTooltipRow(properties, new TextObject("{=BC_UI_MilitaryStrength}    Military strength"), RebellionPowerHelper.GetClanMilitaryStrength(clan).ToString("N0"));
-                    AddTooltipRow(properties, new TextObject("{=BC_UI_InfluencePower}    Influence"), clan.Influence.ToString("N0"));
-
-                    if (clanSupporters.Count > 0)
+                var pledged = projection.CommittedRebels.Select(clan => new
                     {
-                        AddTooltipRow(
-                            properties,
-                            new TextObject("{=BC_UI_ExpectedSupport}  Expected support"),
-                            projectedSupportPower.ToString("N0"));
+                        Clan = clan,
+                        Military = RebellionPowerHelper.GetClanMilitaryStrength(clan),
+                        Influence = clan.Influence
+                    })
+                    .OrderByDescending(entry => entry.Military + entry.Influence).ToList();
+                AddTooltipRow(properties, new TextObject("{=BC_UI_PledgedPower}Pledged power"), projection.PledgedPower.ToString("N0"));
+                AddTooltipRow(properties, new TextObject("{=BC_UI_MilitaryStrength}    Military strength"),
+                    pledged.Sum(entry => entry.Military).ToString("N0"));
+                AddTooltipRow(properties, new TextObject("{=BC_UI_InfluencePower}    Influence"),
+                    pledged.Sum(entry => entry.Influence).ToString("N0"));
+                foreach (var entry in pledged.Take(PledgedPowerTooltipLimit))
+                    AddTooltipRow(properties, "    " + entry.Clan.Name, (entry.Military + entry.Influence).ToString("N0"));
+                AddPowerTooltipOverflow(properties, pledged.Count - PledgedPowerTooltipLimit,
+                    pledged.Skip(PledgedPowerTooltipLimit).Sum(entry => entry.Military + entry.Influence));
 
-                        foreach (ProjectedRebellionSupport support in clanSupporters)
-                        {
-                            string value = string.Format(
-                                "+{0:N0} / {1:N0} ({2:0}%, {3})",
-                                support.CreditedPower,
-                                support.FullPower,
-                                support.JoinChance * 100f,
-                                GetSolidarityReasonText(support.Reason, support.Sponsor?.Name));
-                            AddTooltipRow(properties, "    " + support.Clan.Name.ToString(), value);
-                        }
+                var supporters = projection.ProjectedSupporters;
+                if (supporters.Count > 0)
+                {
+                    AddTooltipSeparator(properties);
+                    AddTooltipRow(properties, new TextObject("{=BC_UI_ExpectedSupport}  Expected support"),
+                        projection.ExpectedSupportPower.ToString("N0"));
+                    foreach (ProjectedRebellionSupport support in supporters.Take(ExpectedSupportTooltipLimit))
+                    {
+                        var value = new TextObject("{=BC_UI_ExpectedSupportValue}+{POWER} / {TOTAL} ({CAP}% cap, {CHANCE}% chance)");
+                        value.SetTextVariable("POWER", support.CreditedPower.ToString("N0"));
+                        value.SetTextVariable("TOTAL", support.FullPower.ToString("N0"));
+                        value.SetTextVariable("CAP", (support.ContributionCap * 100f).ToString("0.#"));
+                        value.SetTextVariable("CHANCE", (support.JoinChance * 100f).ToString("0"));
+                        AddTooltipRow(properties, "    " + support.Clan.Name, value.ToString());
+                        properties.Add(new TooltipProperty(string.Empty, GetSolidarityReasonText(support.Reason, support.Sponsor?.Name),
+                            0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
                     }
-
-                    if (index < committedClans.Count - 1)
-                        AddTooltipSeparator(properties);
+                    AddPowerTooltipOverflow(properties, supporters.Count - ExpectedSupportTooltipLimit,
+                        supporters.Skip(ExpectedSupportTooltipLimit).Sum(support => support.CreditedPower));
+                    AddTooltipMessage(properties, new TextObject("{=BC_UI_ExpectedSupportHint}Expected support is not pledged. These houses may rally if war breaks out."));
                 }
 
                 AddTooltipSeparator(properties);
-                AddTooltipRow(
-                    properties,
-                    new TextObject("{=BC_UI_ProjectedTotalPower}Projected total"),
-                    (projection?.FactionPower ?? 0f).ToString("N0"));
-                if (supporters.Count > 0)
-                    AddTooltipMessage(properties, new TextObject("{=BC_UI_ExpectedSupportHint}Expected support is not pledged. These houses may rally if war breaks out."));
-
+                AddTooltipRow(properties, new TextObject("{=BC_UI_ProjectedTotalPower}Projected total"),
+                    projection.FactionPower.ToString("N0"));
                 return properties;
             });
+        }
+
+        private static void AddPowerTooltipOverflow(List<TooltipProperty> properties, int remaining, float power)
+        {
+            if (remaining <= 0)
+                return;
+
+            var label = new TextObject("{=BC_UI_OtherPowerContributors}Other houses ({COUNT})");
+            label.SetTextVariable("COUNT", remaining);
+            AddTooltipRow(properties, label, power.ToString("N0"));
         }
 
         private static BasicTooltipViewModel BuildProjectedLoyalistPowerTooltip(
@@ -1616,7 +1616,7 @@ namespace BellumCivile.UI
                     return properties;
                 }
 
-                foreach (ProjectedLoyalistContribution entry in contributors)
+                foreach (ProjectedLoyalistContribution entry in contributors.Take(LoyalistPowerTooltipLimit))
                 {
                     Clan clan = entry.Clan;
                     FactionObject ideology = factionManager?.GetIdeologicalFaction(clan);
@@ -1642,15 +1642,17 @@ namespace BellumCivile.UI
 
                     string value = string.Format("{0:N0} / {1:N0} {2}", entry.CreditedPower, entry.FullPower, modifierText);
                     AddTooltipRow(properties, clan.Name.ToString(), value);
-                    if (entry.RebelJoinChance > 0f)
+                    if (entry.RebelCreditedPower > 0f)
                     {
                         AddTooltipRow(
                             properties,
-                            new TextObject("{=BC_UI_ProjectedRebelPull}  Projected rebel pull"),
-                            "-" + (entry.RebelJoinChance * 100f).ToString("0") + "%");
+                            new TextObject("{=BC_UI_RebelPowerAllocated}  Credited to rebels"),
+                            entry.RebelCreditedPower.ToString("N0"));
                     }
                 }
 
+                AddPowerTooltipOverflow(properties, contributors.Count - LoyalistPowerTooltipLimit,
+                    contributors.Skip(LoyalistPowerTooltipLimit).Sum(entry => entry.CreditedPower));
                 AddTooltipSeparator(properties);
                 AddTooltipRow(
                     properties,

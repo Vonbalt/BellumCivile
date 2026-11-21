@@ -1920,8 +1920,12 @@
     <string id="BC_UI_OwnPower" text="  Own power" />
     <string id="BC_UI_MilitaryStrength" text="    Military strength" />
     <string id="BC_UI_InfluencePower" text="    Influence" />
+    <string id="BC_UI_PledgedPower" text="Pledged power" />
     <string id="BC_UI_ExpectedSupport" text="  Expected support" />
+    <string id="BC_UI_ExpectedSupportValue" text="+{POWER} / {TOTAL} ({CAP}% cap, {CHANCE}% chance)" />
     <string id="BC_UI_ExpectedSupportHint" text="Expected support is not pledged. These houses may rally if war breaks out." />
+    <string id="BC_UI_OtherPowerContributors" text="Other houses ({COUNT})" />
+    <string id="BC_UI_RebelPowerAllocated" text="  Credited to rebels" />
     <string id="BC_UI_ProjectedRebelPull" text="  Projected rebel pull" />
     <string id="BC_UI_BaselineCrownCommitment" text="      Baseline crown commitment" />
     <string id="BC_UI_CrownCommitmentValue" text="+{POWER} / {TOTAL} ({PERCENT}%, {STATE})" />

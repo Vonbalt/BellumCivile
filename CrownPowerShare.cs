@@ -10,12 +10,12 @@ namespace BellumCivile
         internal double Uncommitted => Math.Max(0, Total - Loyalists - Rebels);
         internal double LoyalistPercent => Total > 0 ? 100 * Loyalists / Total : 0;
 
-        internal CrownPowerShare(double power, double rebelChance, double loyalty, bool ruler = false, bool undecidedPlayer = false)
+        internal CrownPowerShare(double power, double rebelFraction, double loyalty, bool ruler = false, bool undecidedPlayer = false)
         {
             Total = Finite(power) ? Math.Max(0, power) : 0;
-            double chance = ruler || undecidedPlayer ? 0 : Clamp(rebelChance);
-            Rebels = Total * chance;
-            Loyalists = undecidedPlayer && !ruler ? 0 : Total * (1 - chance) * (ruler ? 1 : Clamp(loyalty));
+            double fraction = ruler || undecidedPlayer ? 0 : Clamp(rebelFraction);
+            Rebels = Total * fraction;
+            Loyalists = undecidedPlayer && !ruler ? 0 : Total * (1 - fraction) * (ruler ? 1 : Clamp(loyalty));
         }
 
         private CrownPowerShare(CrownPowerShare first, CrownPowerShare second)

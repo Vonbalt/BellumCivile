@@ -36,7 +36,7 @@ namespace BellumCivile
             // One combined projection prevents the same ally being counted for several blocs.
             var projection = RebellionPowerHelper.CalculateProjectedConflictPower(realm, committed, null, null,
                 includeProjectedSupport: committed.Count > 0 && !recorded.Any(f => f.IsCivilWarActive()));
-            var chances = projection.ProjectedSupporters.ToDictionary(s => s.Clan, s => s.JoinChance);
+            var loyalistEntries = projection.LoyalistContributions.ToDictionary(entry => entry.Clan);
             var population = new HashSet<Clan>(realm.Clans.Where(c => c != null && !c.IsEliminated));
             population.UnionWith(committed);
             population.Add(realm.RulingClan);
@@ -45,9 +45,11 @@ namespace BellumCivile
                 bool ruler = clan == realm.RulingClan;
                 bool rebel = committed.Contains(clan);
                 bool playerLoyal = clan == Clan.PlayerClan && recorded.Any(f => f.HasLoyaltyDeclaration(clan));
-                double chance = rebel ? 1 : chances.TryGetValue(clan, out float expected) ? expected : 0;
-                double loyalty = playerLoyal ? 1 : RebellionPowerHelper.CalculateLoyalistContributionMultiplier(realm, clan, manager?.GetIdeologicalFaction(clan));
-                var share = new CrownPowerShare(RebellionPowerHelper.CalculateClanPower(clan), chance, loyalty, ruler,
+                loyalistEntries.TryGetValue(clan, out var entry);
+                double power = entry?.FullPower ?? RebellionPowerHelper.CalculateClanPower(clan);
+                double rebelFraction = rebel ? 1 : entry != null && power > 0 ? entry.RebelCreditedPower / power : 0;
+                double loyalty = playerLoyal ? 1 : entry?.LoyalistCommitment ?? 0;
+                var share = new CrownPowerShare(power, rebelFraction, loyalty, ruler,
                     undecidedPlayer: clan == Clan.PlayerClan && !ruler && !rebel && !playerLoyal);
                 result.Houses.Add(clan, share);
                 result.Total = result.Total.Add(share);

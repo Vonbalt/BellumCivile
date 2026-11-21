@@ -874,3 +874,4 @@ Improvement to balance of power tooltips of rebel factions.
 Improved court agenda chat notifications.
 Fixed RBM Campaign compatibility so lordship holders and indentured retainers keep their party surplus.
 Enabled NPC clans to pay for an indentured retainer as a last resort when they lack other valid commanders for their parties.
+Rebalanced rebel faction power so only pledged members can draw support, vassal contributions follow feudal service terms, and support from friends and family is capped at 50%.

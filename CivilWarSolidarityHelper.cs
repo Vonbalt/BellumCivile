@@ -329,14 +329,13 @@ namespace BellumCivile
             if (MarriageAllianceHelper.HasMarriageAlliance(candidate, projectedRulingClan ?? kingdom.RulingClan))
                 return false;
 
-            if (MarriageAllianceHelper.HasMarriageAlliance(candidate, sponsor))
-                return true;
-
-            if (AreCloseDynasticKin(candidate, sponsor))
-                return true;
-
-            return candidate.Leader.GetRelation(sponsor.Leader) >= C.TreasonSolidarityFriendRelationThreshold;
+            return HasPersonalSolidarityTie(candidate, sponsor);
         }
+
+        internal static bool HasPersonalSolidarityTie(Clan candidate, Clan sponsor) =>
+            MarriageAllianceHelper.HasMarriageAlliance(candidate, sponsor)
+            || AreCloseDynasticKin(candidate, sponsor)
+            || (candidate.Leader?.GetRelation(sponsor.Leader) ?? 0) >= C.TreasonSolidarityFriendRelationThreshold;
 
         internal static CivilWarSolidarityAssessment AssessSupport(
             Clan candidate,
