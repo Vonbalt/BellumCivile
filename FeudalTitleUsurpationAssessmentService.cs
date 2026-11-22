@@ -67,7 +67,9 @@ namespace BellumCivile
             result.InfluenceCost = titleBehavior.GetTitleFormationInfluenceCost(title.TitleType);
             result.ControlUnits = GetControlUnits(titleBehavior, title);
             result.TotalTitles = result.ControlUnits.Count;
-            result.ControlledTitles = result.ControlUnits.Count(unit => IsControlUnitHeldByClaimant(titleBehavior, unit, claimant));
+            result.ControlledTitles = title.TitleType == FeudalTitleType.Barony
+                ? (string.Equals(title.DeFactoHolderClanId, claimant.StringId, StringComparison.Ordinal) ? 1 : 0)
+                : result.ControlUnits.Count(unit => IsControlUnitHeldByClaimant(titleBehavior, unit, claimant));
             result.RequiredTitles = title.TitleType == FeudalTitleType.Barony
                 ? 1
                 : GetStrictMajorityCount(result.TotalTitles);
@@ -94,7 +96,7 @@ namespace BellumCivile
             if (title.TitleType == FeudalTitleType.Barony)
             {
                 // A barony is physical land and must be held by the claimant personally.
-                if (!string.Equals(title.DeFactoHolderClanId, claimant.StringId, StringComparison.Ordinal))
+                if (result.ControlledTitles == 0)
                 {
                     result.Reason = "barony claimant is not the de facto holder";
                     return result;
@@ -161,14 +163,16 @@ namespace BellumCivile
             if (titleBehavior == null || controlUnit == null || claimant == null)
                 return false;
 
-            if (titleBehavior.IsTitleWithinDeFactoAuthority(controlUnit, claimant))
+            // An immediate de jure child cannot prove control via the very title being claimed.
+            string contestedParentId = controlUnit.ParentTitleId;
+            if (titleBehavior.IsTitleWithinDeFactoAuthority(controlUnit, claimant, contestedParentId))
                 return true;
 
             Clan holder = Clan.All.FirstOrDefault(clan => clan != null
                 && string.Equals(clan.StringId, controlUnit.DeFactoHolderClanId, StringComparison.Ordinal));
             return holder != null
                 && holder != claimant
-                && titleBehavior.IsClanWithinDeFactoAuthority(holder, claimant);
+                && titleBehavior.IsClanWithinDeFactoAuthority(holder, claimant, contestedParentId);
         }
 
         public static int GetStrictMajorityCount(int totalTitles)

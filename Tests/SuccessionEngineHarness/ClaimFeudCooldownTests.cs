@@ -245,6 +245,7 @@ internal static class ClaimFeudCooldownTests
             Patch(AccessTools.Method(mod.GetType("BellumCivile.FeudalTitleDisplayHelper"), "FormatTitleName",
                 new[] { typeof(FeudalTitleRecord), typeof(Clan) }), nameof(TitleName));
             Patch(AccessTools.Method(mod.GetType("BellumCivile.NpcInfluenceBudgetService"), "TrySpend"), nameof(Spend));
+            RunUsurpationControlCases(check);
             RunCases(check);
             RunPendingWarCases(check);
             Patch(AccessTools.Method(mod.GetType("BellumCivile.ClanFiefDesireHelper"), "CalculateRebelliousFiefDesirePressure"), nameof(ZeroFloat));
@@ -300,6 +301,74 @@ internal static class ClaimFeudCooldownTests
             RunCrownTitleClaimCases(check);
         }
         finally { h.UnpatchAll(h.Id); _campaign = null; _allowSpend = false; RealmOverrides.Clear(); Owners.Clear(); }
+    }
+
+    private static void RunUsurpationControlCases(Action<bool, string> check)
+    {
+        Reset();
+        var registry = Field<Dictionary<string, FeudalTitleRecord>>(_titles, "_titlesById");
+        FeudalTitleRecord AddBarony(string id, Clan owner, string parent)
+        {
+            var barony = new FeudalTitleRecord(id, id, FeudalTitleType.Barony, owner.StringId,
+                owner.StringId, parent, "", _realm.StringId, 0, 0);
+            registry.Add(id, barony);
+            return barony;
+        }
+        void Index() => Call(_titles, "RebuildRuntimeIndexes", true, false);
+        FeudalTitleUsurpationAssessment Assess() =>
+            FeudalTitleUsurpationAssessmentService.Evaluate(_titles, _claimant, _title, checkResources: false);
+
+        var first = AddBarony("first_barony", _holder, _title.TitleId);
+        var second = AddBarony("second_barony", _holder, _title.TitleId);
+        Index();
+        var blocked = Assess();
+        check(!blocked.CanUsurp && blocked.HasClaim && blocked.ControlledTitles == 0 && blocked.RequiredTitles == 2,
+            "A duke cannot usurp a vassal's county by counting authority over the same county's baronies");
+        _player = _holder;
+        check(!Assess().CanUsurp, "The same control rule applies when the claimant is an NPC and the holder is the player");
+        _player = _claimant;
+        check(_titles.IsTitleWithinDeFactoAuthority(second, _claimant) && _titles.IsClanWithinDeFactoAuthority(_holder, _claimant),
+            "Other systems still see the same feudal hierarchy");
+        check(FeudalTitlePlayerActionService.GetRevocationPreview(_claimant, _title).CanRevoke,
+            "The liege can still demand a normal revocation");
+
+        var preview = FeudalTitlePlayerActionService.GetUsurpationPreview(_claimant, _title);
+        var vmType = typeof(ClaimFeudBehavior).Assembly.GetType("BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy.HierarchyTitleNodeVM", true);
+        var vm = FormatterServices.GetUninitializedObject(vmType);
+        AccessTools.Field(vmType, "<Title>k__BackingField").SetValue(vm, _title);
+        string hint = ((TextObject)Call(vm, "BuildUsurpHint", preview)).ToString();
+        check(!preview.CanUsurp && hint.Contains("Branches that answer to you only through this title do not count")
+            && hint.Contains("independently controlled: 0. Required: 2 of 2."),
+            "The disabled usurpation tooltip explains the boundary and shows the correct branch count");
+
+        first.SetDeFactoParentTitle(string.Empty);
+        Index();
+        check(!FeudalTitleUsurpationAssessmentService.IsControlUnitHeldByClaimant(_titles, first, _claimant),
+            "The holder's county cannot prove independent allegiance in the fallback check");
+
+        var foreign = Blank<Kingdom>(); foreign.StringId = "foreign";
+        RealmOverrides[_holder] = foreign;
+        _crown = _claimant;
+        AddBarony("third_barony", _holder, _title.TitleId);
+        first.SetDeFactoHolder(_claimant.StringId);
+        second.SetDeFactoHolder(_other.StringId);
+        second.SetDeFactoParentTitle(_title.DeFactoParentTitleId);
+        Index();
+        var foreignClaim = Assess();
+        check(foreignClaim.CanUsurp && foreignClaim.ControlledTitles == 2 && foreignClaim.TotalTitles == 3
+            && foreignClaim.RequiredTitles == 2 && foreignClaim.GoldCost == 150000 && foreignClaim.InfluenceCost == 150,
+            "A ruler can still usurp a foreign county with a strict majority held personally and by a vassal");
+
+        second.SetDeFactoParentTitle(string.Empty);
+        Index();
+        var minority = Assess();
+        check(!minority.CanUsurp && minority.ControlledTitles == 1, "A genuinely independent direct hold is not enough by itself");
+        AddBarony("independent_vassal_holding", _other, _title.DeFactoParentTitleId);
+        Index();
+        var independent = Assess();
+        check(independent.CanUsurp && independent.ControlledTitles == 2 && independent.TotalTitles == 3,
+            "A vassal's independent title chain still proves allegiance through the holder fallback");
+        RealmOverrides.Clear();
     }
 
     private static void RunRevocationResistanceCases(Action<bool, string> check)

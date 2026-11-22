@@ -1225,7 +1225,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
             text.SetTextVariable("GOLD_COST", preview.GoldCost);
             text.SetTextVariable("INFLUENCE_COST", (int)Math.Ceiling(preview.InfluenceCost));
             text.SetTextVariable("CONTROL", Title?.TitleType > FeudalTitleType.Barony && preview.TotalTitles > 0
-                ? new TextObject("{=BC_Hierarchy_UsurpBranchCount}\nDe jure branches controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}.")
+                ? new TextObject("{=BC_Hierarchy_UsurpIndependentBranchCount}\nDe jure branches independently controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}.")
                     .SetTextVariable("CONTROLLED", preview.ControlledTitles)
                     .SetTextVariable("REQUIRED", preview.RequiredTitles).SetTextVariable("TOTAL", preview.TotalTitles)
                 : new TextObject(""));
@@ -1663,7 +1663,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 case "barony claimant is not de facto holder":
                 case "barony claimant is not the de facto holder":
                     return new TextObject("{=BC_Hierarchy_ActionReasonNotDeFacto}your clan is not the de facto holder");
-                case "insufficient control of subordinate titles": return new TextObject("{=BC_Hierarchy_ActionReasonControl}your authority controls no strict majority of the title's immediate subordinate branches");
+                case "insufficient control of subordinate titles": return new TextObject("{=BC_Hierarchy_ActionReasonUsurpIndependentControl}your house does not control a majority of the immediate branches independently. Branches that answer to you only through this title do not count");
                 case "title has no active subordinate titles": return new TextObject("{=BC_Hierarchy_ActionReasonNoSubordinates}the title has no active subordinate titles from which a lawful majority can be established");
                 case "insufficient gold": return new TextObject("{=BC_Hierarchy_ActionReasonGold}your clan leader lacks the required gold");
                 case "insufficient influence": return new TextObject("{=BC_Hierarchy_ActionReasonInfluence}your clan lacks the required influence");

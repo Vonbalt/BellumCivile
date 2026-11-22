@@ -40,6 +40,14 @@ if ($view -notmatch 'IsRevocationEnabled\s*=\s*revocation\.CanRevoke' -or
     $view -notmatch 'RevocationHint\s*=\s*new HintViewModel\(BuildRevocationHint\(revocation\)\)') {
     throw 'Hierarchy revocation must bind both its disabled state and hint from the same preview.'
 }
+$usurp = $menu.SelectSingleNode(".//HierarchyActionButtonWidget[@Command.Click='ExecuteUsurp']")
+if ($usurp.IsEnabled -ne '@IsUsurpEnabled' -or $view -notmatch 'IsUsurpEnabled\s*=\s*usurpation\.CanUsurp' -or
+    $view -notmatch 'UsurpHint\s*=\s*new HintViewModel\(BuildUsurpHint\(usurpation\)\)') {
+    throw 'Hierarchy usurpation must bind both its disabled state and hint from the same preview.'
+}
+foreach ($id in @('BC_Hierarchy_UsurpIndependentBranchCount', 'BC_Hierarchy_ActionReasonUsurpIndependentControl')) {
+    if ($strings.SelectNodes("//string[@id='$id']").Count -ne 1) { throw "Missing or duplicate usurpation localization: $id" }
+}
 $slot = $node.SelectSingleNode('//*[@Id="ButtonContainer"]')
 if ($slot.HeightSizePolicy -ne 'Fixed') { throw 'Selection must not change node height.' }
 if (!$slot.SelectSingleNode('.//HierarchyOptionsButtonWidget[@IsVisible="@IsSelected"]')) { throw 'Options must be selection-only.' }

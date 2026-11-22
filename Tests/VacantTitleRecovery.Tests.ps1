@@ -4,6 +4,10 @@ $sources = @('FeudalTitleUsurpationAssessmentService.cs', 'DestroyedRealmTitleSa
 $doubles = @'
 using System;
 using System.Collections.Generic;
+namespace TaleWorlds.Localization
+{
+    public class TextObject { public TextObject(string text) { } }
+}
 namespace TaleWorlds.CampaignSystem
 {
     public class Hero { public bool IsDead; public int Gold = 300000; }
@@ -25,7 +29,9 @@ namespace BellumCivile
     public class FeudalTitleRecord
     {
         public bool IsActive = true;
+        public bool IsDeliberatelyDissolved = false;
         public string TitleId;
+        public string ParentTitleId = "";
         public string DeJureHolderClanId = "player";
         public string DeFactoHolderClanId = "";
         public FeudalTitleType TitleType = FeudalTitleType.Empire;
@@ -84,8 +90,8 @@ namespace BellumCivile.Behaviors
         public float GetTitleFormationInfluenceCost(FeudalTitleType type) { return 300; }
         public bool HasActiveClaim(TaleWorlds.CampaignSystem.Clan clan, FeudalTitleRecord title) { return HasClaim; }
         public IEnumerable<FeudalTitleRecord> GetChildTitles(FeudalTitleRecord title, FeudalHierarchyMode mode) { return Children; }
-        public bool IsTitleWithinDeFactoAuthority(FeudalTitleRecord title, TaleWorlds.CampaignSystem.Clan clan) { return title.DeFactoHolderClanId == clan.StringId; }
-        public bool IsClanWithinDeFactoAuthority(TaleWorlds.CampaignSystem.Clan a, TaleWorlds.CampaignSystem.Clan b) { return false; }
+        public bool IsTitleWithinDeFactoAuthority(FeudalTitleRecord title, TaleWorlds.CampaignSystem.Clan clan, string stopBeforeTitleId) { return title.DeFactoHolderClanId == clan.StringId; }
+        public bool IsClanWithinDeFactoAuthority(TaleWorlds.CampaignSystem.Clan a, TaleWorlds.CampaignSystem.Clan b, string stopBeforeTitleId) { return false; }
     }
 }
 '@

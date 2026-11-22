@@ -753,6 +753,7 @@
     <string id="BC_Hierarchy_ActionReasonNoClaim" text="your clan has no weak or strong claim" />
     <string id="BC_Hierarchy_ActionReasonNotDeFacto" text="your clan is not the de facto holder" />
     <string id="BC_Hierarchy_ActionReasonControl" text="your authority controls no strict majority of the title's immediate subordinate branches" />
+    <string id="BC_Hierarchy_ActionReasonUsurpIndependentControl" text="your house does not control a majority of the immediate branches independently. Branches that answer to you only through this title do not count" />
     <string id="BC_Hierarchy_ActionReasonNoSubordinates" text="the title has no active subordinate titles from which a lawful majority can be established" />
     <string id="BC_Hierarchy_ActionReasonGold" text="your clan leader lacks the required gold" />
     <string id="BC_Hierarchy_ActionReasonInfluence" text="your clan lacks the required influence" />
@@ -849,6 +850,7 @@
     <string id="BC_Hierarchy_AssumeHintBlockedWithControl" text="You cannot assume the vacant {TITLE_NAME}: {REASON}.{CONTROL}{COST}" />
     <string id="BC_Hierarchy_UsurpCostLine" text="&#xA;Cost: {GOLD_COST} denars and {INFLUENCE_COST} influence." />
     <string id="BC_Hierarchy_UsurpBranchCount" text="&#xA;De jure branches controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}." />
+    <string id="BC_Hierarchy_UsurpIndependentBranchCount" text="&#xA;De jure branches independently controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}." />
     <string id="BC_Hierarchy_ActionReasonContestCrown" text="the realm's sovereign title must be contested through succession or rebellion" />
     <string id="BC_Hierarchy_ActionReasonActiveFeud" text="an active claim feud already concerns this title" />
     <string id="BC_Hierarchy_ActionReasonArmedFeud" text="one of the houses is already committed to a private war" />

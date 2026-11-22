@@ -371,6 +371,9 @@ namespace BellumCivile.Behaviors
         }
 
         public bool IsClanWithinDeFactoAuthority(Clan possibleVassal, Clan possibleLiege)
+            => IsClanWithinDeFactoAuthority(possibleVassal, possibleLiege, stopBeforeTitleId: null);
+
+        internal bool IsClanWithinDeFactoAuthority(Clan possibleVassal, Clan possibleLiege, string stopBeforeTitleId)
         {
             EnsureCollectionsInitialized();
             if (possibleVassal == null
@@ -384,33 +387,31 @@ namespace BellumCivile.Behaviors
 
             foreach (FeudalTitleRecord title in GetTitlesHeldByClan(possibleVassal, deJure: false))
             {
-                if (DoesDeFactoAuthorityFlowFromTitleToClan(title, possibleLiege, includeHeldTitle: false))
+                if (DoesDeFactoAuthorityFlowFromTitleToClan(title, possibleLiege, includeHeldTitle: false, stopBeforeTitleId: stopBeforeTitleId))
                     return true;
             }
 
             return false;
         }
 
-        private bool DoesDeFactoAuthorityFlowToClan(FeudalTitleRecord title, Clan clan)
-        {
-            return DoesDeFactoAuthorityFlowFromTitleToClan(title, clan, includeHeldTitle: true);
-        }
-
         public bool IsTitleWithinDeFactoAuthority(FeudalTitleRecord title, Clan clan)
+            => IsTitleWithinDeFactoAuthority(title, clan, stopBeforeTitleId: null);
+
+        internal bool IsTitleWithinDeFactoAuthority(FeudalTitleRecord title, Clan clan, string stopBeforeTitleId)
         {
             EnsureCollectionsInitialized();
-            return DoesDeFactoAuthorityFlowToClan(title, clan);
+            return DoesDeFactoAuthorityFlowFromTitleToClan(title, clan, includeHeldTitle: true, stopBeforeTitleId: stopBeforeTitleId);
         }
 
-        private bool DoesDeFactoAuthorityFlowFromTitleToClan(FeudalTitleRecord title, Clan clan, bool includeHeldTitle)
+        private bool DoesDeFactoAuthorityFlowFromTitleToClan(FeudalTitleRecord title, Clan clan, bool includeHeldTitle, string stopBeforeTitleId)
         {
-            if (title == null || clan == null || string.IsNullOrWhiteSpace(clan.StringId))
+            if (title == null || clan == null || string.IsNullOrWhiteSpace(clan.StringId) || title.TitleId == stopBeforeTitleId)
                 return false;
 
             FeudalTitleRecord current = includeHeldTitle ? title : GetParentTitle(title, FeudalHierarchyMode.DeFacto);
             HashSet<string> visited = new HashSet<string>();
             int guard = 0;
-            while (current != null && guard++ < 32 && visited.Add(current.TitleId))
+            while (current != null && current.TitleId != stopBeforeTitleId && guard++ < 32 && visited.Add(current.TitleId))
             {
                 if (string.Equals(current.DeFactoHolderClanId, clan.StringId, StringComparison.Ordinal))
                     return true;
