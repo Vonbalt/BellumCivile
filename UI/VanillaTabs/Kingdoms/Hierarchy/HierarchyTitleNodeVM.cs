@@ -1713,6 +1713,7 @@ namespace BellumCivile.UI.VanillaTabs.Kingdoms.Hierarchy
                 case "title is not a spare peer title": return new TextObject("{=BC_Hierarchy_ActionReasonGrantPrimaryTitle}you cannot grant away your own sovereign title");
                 case "the sovereign title of the realm cannot be granted": return new TextObject("{=BC_Hierarchy_ActionReasonGrantPrimaryTitle}you cannot grant away your own sovereign title");
                 case "the realm's sovereign title must be contested through succession or rebellion": return new TextObject("{=BC_Hierarchy_ActionReasonContestCrown}the realm's sovereign title must be contested through succession or rebellion");
+                case "title is held by your realm's ruling house": return new TextObject("{=BC_Hierarchy_ActionReasonCrownHeldTitle}the Crown holds this title. Press a claim against the Crown from the Factions tab instead");
                 case "the title is already disputed by an active claim feud": return new TextObject("{=BC_Hierarchy_ActionReasonActiveFeud}an active claim feud already concerns this title");
                 case "one side is already committed to an armed claim feud": return new TextObject("{=BC_Hierarchy_ActionReasonArmedFeud}one of the houses is already committed to a private war");
                 case "clan has no living leader":

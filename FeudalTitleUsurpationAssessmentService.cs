@@ -63,6 +63,14 @@ namespace BellumCivile
                 return result;
             }
 
+            Clan crown = claimant.Kingdom?.RulingClan;
+            if (crown != null && crown != claimant && !string.IsNullOrWhiteSpace(crown.StringId)
+                && string.Equals(title.DeFactoHolderClanId, crown.StringId, StringComparison.Ordinal))
+            {
+                result.Reason = "title is held by your realm's ruling house";
+                return result;
+            }
+
             result.GoldCost = titleBehavior.GetTitleFormationGoldCost(title.TitleType);
             result.InfluenceCost = titleBehavior.GetTitleFormationInfluenceCost(title.TitleType);
             result.ControlUnits = GetControlUnits(titleBehavior, title);

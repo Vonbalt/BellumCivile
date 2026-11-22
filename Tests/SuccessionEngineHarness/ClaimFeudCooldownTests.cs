@@ -346,11 +346,40 @@ internal static class ClaimFeudCooldownTests
         check(!FeudalTitleUsurpationAssessmentService.IsControlUnitHeldByClaimant(_titles, first, _claimant),
             "The holder's county cannot prove independent allegiance in the fallback check");
 
+        first.SetDeFactoHolder(_claimant.StringId);
+        second.SetDeFactoHolder(_claimant.StringId);
+        Index();
+        var peerClaim = Assess();
+        check(peerClaim.CanUsurp && peerClaim.ControlledTitles == 2 && peerClaim.RequiredTitles == 2,
+            "A claim against a non-ruling house still qualifies when both baronies are held directly");
+
+        var formerCrown = _crown;
+        _crown = _holder;
+        var throne = new FeudalTitleRecord("empire", "Empire", FeudalTitleType.Empire,
+            _crown.StringId, _crown.StringId, "", "", _realm.StringId, 0, 0);
+        registry.Add(throne.TitleId, throne);
+        Index();
+        var crownPreview = FeudalTitlePlayerActionService.GetUsurpationPreview(_claimant, _title);
+        string crownHint = ((TextObject)Call(vm, "BuildUsurpHint", crownPreview)).ToString();
+        check(!crownPreview.CanUsurp && crownHint.Contains("Press a claim against the Crown from the Factions tab"),
+            "A player holding both baronies cannot usurp the Crown's county and gets the correct tooltip");
+        check(FeudalTitlePlayerActionService.GetUsurpationPreview(_claimant, throne).Reason
+            == "the realm's sovereign title must be contested through succession or rebellion",
+            "The sovereign title keeps its separate succession or rebellion explanation");
+        _player = _holder;
+        check(!_titles.TryUsurpTitle(_claimant, _title, "test crown usurpation", out string blockedReason)
+            && blockedReason == crownPreview.Reason && _title.DeFactoHolderClanId == _holder.StringId,
+            "NPC execution cannot bypass the shared block on taking a title from its own Crown");
+        _player = _claimant;
+        _title.SetDeJureHolder(_claimant.StringId);
+        check(Assess().Reason == crownPreview.Reason, "A legal holder must also press its claim if the Crown possesses the title");
+        _title.SetDeJureHolder(_holder.StringId);
+        _crown = formerCrown;
+
         var foreign = Blank<Kingdom>(); foreign.StringId = "foreign";
         RealmOverrides[_holder] = foreign;
         _crown = _claimant;
         AddBarony("third_barony", _holder, _title.TitleId);
-        first.SetDeFactoHolder(_claimant.StringId);
         second.SetDeFactoHolder(_other.StringId);
         second.SetDeFactoParentTitle(_title.DeFactoParentTitleId);
         Index();

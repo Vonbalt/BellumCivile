@@ -45,7 +45,7 @@ if ($usurp.IsEnabled -ne '@IsUsurpEnabled' -or $view -notmatch 'IsUsurpEnabled\s
     $view -notmatch 'UsurpHint\s*=\s*new HintViewModel\(BuildUsurpHint\(usurpation\)\)') {
     throw 'Hierarchy usurpation must bind both its disabled state and hint from the same preview.'
 }
-foreach ($id in @('BC_Hierarchy_UsurpIndependentBranchCount', 'BC_Hierarchy_ActionReasonUsurpIndependentControl')) {
+foreach ($id in @('BC_Hierarchy_UsurpIndependentBranchCount', 'BC_Hierarchy_ActionReasonUsurpIndependentControl', 'BC_Hierarchy_ActionReasonCrownHeldTitle')) {
     if ($strings.SelectNodes("//string[@id='$id']").Count -ne 1) { throw "Missing or duplicate usurpation localization: $id" }
 }
 $slot = $node.SelectSingleNode('//*[@Id="ButtonContainer"]')

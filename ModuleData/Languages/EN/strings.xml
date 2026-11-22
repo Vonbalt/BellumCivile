@@ -852,6 +852,7 @@
     <string id="BC_Hierarchy_UsurpBranchCount" text="&#xA;De jure branches controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}." />
     <string id="BC_Hierarchy_UsurpIndependentBranchCount" text="&#xA;De jure branches independently controlled: {CONTROLLED}. Required: {REQUIRED} of {TOTAL}." />
     <string id="BC_Hierarchy_ActionReasonContestCrown" text="the realm's sovereign title must be contested through succession or rebellion" />
+    <string id="BC_Hierarchy_ActionReasonCrownHeldTitle" text="the Crown holds this title. Press a claim against the Crown from the Factions tab instead" />
     <string id="BC_Hierarchy_ActionReasonActiveFeud" text="an active claim feud already concerns this title" />
     <string id="BC_Hierarchy_ActionReasonArmedFeud" text="one of the houses is already committed to a private war" />
     <string id="BC_Hierarchy_ActionReasonNoLivingLeader" text="your house needs a living leader" />
