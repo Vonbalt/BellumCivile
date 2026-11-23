@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Encounters;
@@ -97,6 +98,7 @@ namespace BellumCivile.Behaviors
         private readonly Dictionary<AspectLookupKey, AspectMultiplierAggregate> _aspectMultiplierByLookup =
             new Dictionary<AspectLookupKey, AspectMultiplierAggregate>();
         private bool _aspectIndexDirty = true;
+        private volatile int _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
         private float _nextAspectIndexExpiryDay = float.PositiveInfinity;
         private float _nextIncidentCheckDay;
         private string _incidentScheduleKingdomId = string.Empty;
@@ -115,9 +117,18 @@ namespace BellumCivile.Behaviors
 
         public override void RegisterEvents()
         {
+            _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
             CouncilAssignmentRuntimePatches.BindIncidentBehavior(this);
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.TickEvent.AddNonSerializedListener(this, OnTick);
+        }
+
+        private bool IsCampaignThread => Thread.CurrentThread.ManagedThreadId == _campaignThreadId;
+
+        private void OnSessionLaunched(CampaignGameStarter starter)
+        {
+            _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -167,7 +178,7 @@ namespace BellumCivile.Behaviors
             string assignmentId,
             string aspectId)
         {
-            if (kingdom == null
+            if (!IsCampaignThread || kingdom == null
                 || string.IsNullOrEmpty(assignmentId)
                 || string.IsNullOrEmpty(aspectId))
             {
@@ -188,7 +199,7 @@ namespace BellumCivile.Behaviors
             string assignmentId)
         {
             List<ActiveCouncilAssignmentModifier> modifiers = new List<ActiveCouncilAssignmentModifier>();
-            if (kingdom == null || string.IsNullOrEmpty(assignmentId))
+            if (!IsCampaignThread || kingdom == null || string.IsNullOrEmpty(assignmentId))
                 return modifiers;
 
             float currentDay = (float)CampaignTime.Now.ToDays;

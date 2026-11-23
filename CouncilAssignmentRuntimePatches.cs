@@ -243,6 +243,9 @@ namespace BellumCivile
             if (party?.IsPatrolParty != true || party.Party == null || party.HomeSettlement == null)
                 return false;
 
+            if (GetCouncilBehavior()?.IsCampaignThread != true)
+                return false;
+
             PartySizeLimitModel model = Campaign.Current?.Models?.PartySizeLimitModel;
             if (model == null)
                 return false;

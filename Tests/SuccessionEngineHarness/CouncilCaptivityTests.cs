@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading;
 using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -45,6 +48,8 @@ internal static class CouncilCaptivityTests
     private static float _day, _competence;
     private static bool _war;
     private static int _dismissals, _notices;
+    private static Action _duringOfficeIndex;
+    private static MobileParty _patrol;
     private static bool Skip() => false;
     private static bool Yes(ref bool __result) { __result = true; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
@@ -54,7 +59,14 @@ internal static class CouncilCaptivityTests
     private static bool Kingdoms(ref MBReadOnlyList<Kingdom> __result)
     { __result = new MBReadOnlyList<Kingdom>(new List<Kingdom> { _realm, _enemy }); return false; }
     private static bool Clans(ref MBReadOnlyList<Clan> __result)
-    { __result = new MBReadOnlyList<Clan>(Heads.Keys.ToList()); return false; }
+    {
+        _duringOfficeIndex?.Invoke();
+        __result = new MBReadOnlyList<Clan>(Heads.Keys.ToList());
+        return false;
+    }
+    private static bool Patrol(ref MobileParty __result) { __result = _patrol; return false; }
+    private static bool NoPatrolHome(ref Settlement __result) { __result = null; return false; }
+    private static bool PatrolFaction(ref IFaction __result) { __result = _realm; return false; }
     private static bool Crown(ref Clan __result) { __result = _crown; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool Leader(Clan __instance, ref Hero __result) { __result = Heads[__instance]; return false; }
@@ -305,11 +317,100 @@ internal static class CouncilCaptivityTests
             check((int)severity.Invoke(null, new object[] { 100f, false }) == 25
                 && (int)severity.Invoke(null, new object[] { 100f, true }) == 13,
                 "Normal dismissal severity and legacy captivity grievance semantics remain distinct");
+
+            var patrolSeat = Seat(PrivyCouncilOffice.Marshal);
+            patrolSeat.SetAssignment("marshal_organize_patrols", _day);
+            RunAssignmentThreadChecks(check, b, Invalidate, Patch);
         }
         finally
         {
+            _duringOfficeIndex = null; _patrol = null;
             h.UnpatchAll(h.Id); Heads.Clear(); Captives.Clear(); ticks.SetValue(null, oldTicks);
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { old });
+        }
+    }
+
+    private static void RunAssignmentThreadChecks(Action<bool, string> check, PrivyCouncilBehavior council,
+        Action invalidate, Action<MethodBase, string> patch)
+    {
+        const PrivyCouncilOffice Office = PrivyCouncilOffice.Marshal;
+        const string Assignment = "marshal_organize_patrols";
+        const string Aspect = "patrol_party_size";
+        var incidents = new CouncilIncidentBehavior();
+        incidents.SetAssignmentAspectModifier(_realm, Office, Assignment, Aspect, "thread_test", 1.25f, 5f);
+
+        _patrol = (MobileParty)FormatterServices.GetUninitializedObject(typeof(MobileParty));
+        var party = (PartyBase)FormatterServices.GetUninitializedObject(typeof(PartyBase));
+        patch(AccessTools.PropertyGetter(typeof(PartyBase), "MobileParty"), nameof(Patrol));
+        patch(AccessTools.PropertyGetter(typeof(MobileParty), "IsPatrolParty"), nameof(Yes));
+        patch(AccessTools.PropertyGetter(typeof(MobileParty), "HomeSettlement"), nameof(NoPatrolHome));
+        patch(AccessTools.PropertyGetter(typeof(MobileParty), "MapFaction"), nameof(PatrolFaction));
+        var patches = typeof(PrivyCouncilBehavior).Assembly.GetType("BellumCivile.CouncilAssignmentRuntimePatches", true);
+        var councilField = AccessTools.Field(patches, "_councilBehavior");
+        var incidentField = AccessTools.Field(patches, "_incidentBehavior");
+        var oldCouncil = councilField.GetValue(null);
+        var oldIncidents = incidentField.GetValue(null);
+        var applyPatrol = AccessTools.Method(patches, "ApplyPatrolSizeAssignment");
+        float PatrolSize()
+        {
+            var args = new object[] { party, new ExplainedNumber(100f) };
+            applyPatrol.Invoke(null, args);
+            return ((ExplainedNumber)args[1]).ResultNumber;
+        }
+
+        try
+        {
+            councilField.SetValue(null, council);
+            incidentField.SetValue(null, incidents);
+            invalidate();
+            float size = 0, effect = 0, drawback = 0, aspect = 0;
+            bool officeMissing = false;
+            Exception failure = null;
+            void ReadOnWorker()
+            {
+                var worker = new Thread(() =>
+                {
+                    try
+                    {
+                        size = PatrolSize();
+                        effect = council.GetAssignmentEffectMultiplier(_realm, Office, Assignment, requireFunding: true);
+                        drawback = council.GetAssignmentDrawbackMultiplier(_realm, Office, Assignment);
+                        aspect = incidents.GetAssignmentAspectMultiplier(_realm, Office, Assignment, Aspect);
+                        officeMissing = council.GetOfficeRecords(_realm).Count == 0 && council.GetOfficeRecord(_realm, Office) == null
+                            && council.GetOfficeHolder(_realm, Office) == null;
+                    }
+                    catch (Exception ex) { failure = ex; }
+                }) { IsBackground = true };
+                worker.Start();
+                if (!worker.Join(TimeSpan.FromSeconds(5)))
+                    throw new TimeoutException("Worker council reads must not wait for the campaign thread");
+                if (failure != null) throw new InvalidOperationException("Worker council query failed", failure);
+            }
+
+            bool overlapped = false;
+            _duringOfficeIndex = () =>
+            {
+                _duringOfficeIndex = null;
+                overlapped = true;
+                ReadOnWorker();
+            };
+            float ownerSize = PatrolSize();
+            check(overlapped && size == 100f && effect == 0f && drawback == 0f && aspect == 1f && officeMissing,
+                "Overlapping worker reads leave patrol size and incidents neutral during a dirty council index rebuild");
+            check(ownerSize > 110f && Math.Abs(incidents.GetAssignmentAspectMultiplier(_realm, Office, Assignment, Aspect) - 1.25f) < .001f
+                && council.GetOfficeRecords(_realm).Count == 1,
+                "Campaign-thread patrol size and incident bonus remain active without duplicate office records");
+
+            ReadOnWorker();
+            check(size == 100f && effect == 0f && drawback == 0f && aspect == 1f && officeMissing,
+                "Worker reads also bypass live records and assignment state when the caches are already warm");
+            check(Math.Abs(PatrolSize() - ownerSize) < .001f, "Worker reads leave the campaign thread's cached patrol bonus unchanged");
+        }
+        finally
+        {
+            _duringOfficeIndex = null;
+            councilField.SetValue(null, oldCouncil);
+            incidentField.SetValue(null, oldIncidents);
         }
     }
 }

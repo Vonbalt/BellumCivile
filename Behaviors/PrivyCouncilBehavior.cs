@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
@@ -88,13 +89,16 @@ namespace BellumCivile.Behaviors
             new HashSet<string>(StringComparer.Ordinal);
         private readonly Queue<PendingPlayerCouncilDismissal> _pendingPlayerDismissals =
             new Queue<PendingPlayerCouncilDismissal>();
+        private volatile int _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
         private bool _recordIndexesDirty = true;
         private bool _isShowingPlayerDismissal;
         private CouncilIncidentBehavior _incidentBehavior;
 
         public override void RegisterEvents()
         {
+            _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
             CouncilAssignmentRuntimePatches.BindCouncilBehavior(this);
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.TickEvent.AddNonSerializedListener(this, OnTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
             CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
@@ -102,6 +106,13 @@ namespace BellumCivile.Behaviors
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, OnSettlementEntered);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, OnCouncillorCaptured);
             CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, OnCouncillorReleased);
+        }
+
+        internal bool IsCampaignThread => Thread.CurrentThread.ManagedThreadId == _campaignThreadId;
+
+        private void OnSessionLaunched(CampaignGameStarter starter)
+        {
+            _campaignThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -159,7 +170,7 @@ namespace BellumCivile.Behaviors
 
         internal bool TryGetExistingOfficeHolders(Kingdom kingdom, HashSet<string> holders)
         {
-            if (kingdom == null || holders == null || !IsEligiblePermanentRealm(kingdom))
+            if (!IsCampaignThread || kingdom == null || holders == null || !IsEligiblePermanentRealm(kingdom))
                 return false;
             EnsureRecordIndexes();
             if (!_recordsByKingdomId.TryGetValue(kingdom.StringId, out List<PrivyCouncilOfficeRecord> records))
@@ -172,7 +183,7 @@ namespace BellumCivile.Behaviors
 
         public IReadOnlyList<PrivyCouncilOfficeRecord> GetOfficeRecords(Kingdom kingdom)
         {
-            if (kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
+            if (!IsCampaignThread || kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
                 return Array.Empty<PrivyCouncilOfficeRecord>();
 
             EnsureRecordIndexes();
@@ -190,7 +201,7 @@ namespace BellumCivile.Behaviors
 
         public PrivyCouncilOfficeRecord GetOfficeRecord(Kingdom kingdom, PrivyCouncilOffice office)
         {
-            if (kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
+            if (!IsCampaignThread || kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
                 return null;
 
             EnsureRecordIndexes();
@@ -227,7 +238,7 @@ namespace BellumCivile.Behaviors
 
         public void EnsureCouncilForKingdom(Kingdom kingdom)
         {
-            if (!IsEligiblePermanentRealm(kingdom))
+            if (!IsCampaignThread || !IsEligiblePermanentRealm(kingdom))
                 return;
 
             EnsureRecordIndexes();
@@ -384,7 +395,8 @@ namespace BellumCivile.Behaviors
 
         private CouncilRuntimeSnapshot GetRuntimeSnapshot(Kingdom kingdom)
         {
-            if (kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
+            // Model queries can run on workers. A cache miss can initialize an entire council.
+            if (!IsCampaignThread || kingdom == null || string.IsNullOrEmpty(kingdom.StringId))
                 return null;
 
             if (_runtimeUnavailableKingdomIds.Contains(kingdom.StringId))
@@ -3270,7 +3282,7 @@ namespace BellumCivile.Behaviors
 
         private Clan ResolveClan(string clanId)
         {
-            if (string.IsNullOrEmpty(clanId))
+            if (!IsCampaignThread || string.IsNullOrEmpty(clanId))
                 return null;
 
             EnsureRecordIndexes();

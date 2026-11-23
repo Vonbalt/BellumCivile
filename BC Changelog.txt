@@ -880,3 +880,7 @@ Rebalanced rebel faction power so only pledged members can draw support, vassal 
 
 Fixed usurpation counting lands controlled only through the disputed title, and updated the tooltip to explain which holdings count.
 Fixed a path that still allowed direct usurpation of titles held by a vassal’s own Crown and updated the tooltip to point to Press a Claim Against the Crown faction.
+
+1.5.2 CHANGELOG
+
+Fixed a crash caused by background patrol calculations accessing the Privy Council cache while it was being rebuilt.
