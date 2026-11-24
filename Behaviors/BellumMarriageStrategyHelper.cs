@@ -49,7 +49,10 @@ namespace BellumCivile.Behaviors
     internal sealed class BellumMarriageEvaluationStats
     {
         public int ParticipantChecks, EligibleParticipants, TemporaryParticipants;
+        internal bool MarketHasTemporaryParticipants;
         public int LegalPairs, AcceptedPairs, FirstHouseRefused, SecondHouseRefused;
+        public int DistantPasses, DistantPairChecks;
+        public int BetrothalLegalPairs, DistantBetrothalPairs;
         public float BestRejectedScore = float.NegativeInfinity;
         public BellumMarriageMatch ClosestRefusedMatch;
         public int KingdomsSkippedAtWar;
@@ -128,6 +131,10 @@ namespace BellumCivile.Behaviors
             AcceptedPairs += other.AcceptedPairs;
             FirstHouseRefused += other.FirstHouseRefused;
             SecondHouseRefused += other.SecondHouseRefused;
+            DistantPasses += other.DistantPasses;
+            DistantPairChecks += other.DistantPairChecks;
+            BetrothalLegalPairs += other.BetrothalLegalPairs;
+            DistantBetrothalPairs += other.DistantBetrothalPairs;
             BestRejectedScore = MathF.Max(BestRejectedScore, other.BestRejectedScore);
             KingdomsSkippedAtWar += other.KingdomsSkippedAtWar;
             RejectedAlreadyMarried += other.RejectedAlreadyMarried;
@@ -218,7 +225,7 @@ namespace BellumCivile.Behaviors
         public static BellumMarriageMatch FindBestMatch(Hero suitor, FactionManagerBehavior factionManager, DynasticHeirBehavior heirBehavior)
         {
             BellumMarriageMatch best = FindBestCandidate(suitor, factionManager, heirBehavior);
-            return best != null && best.Score >= C.MarriageStrategyMinimumScore ? best : null;
+            return best != null && best.Score >= BellumCivileOptions.MarriageAcceptanceThreshold ? best : null;
         }
 
         public static BellumMarriageMatch FindBestCandidate(Hero suitor, FactionManagerBehavior factionManager, DynasticHeirBehavior heirBehavior, BellumMarriageEvaluationStats stats = null, bool includePlayerClan = false)
@@ -549,7 +556,7 @@ namespace BellumCivile.Behaviors
             return MathF.Clamp(multiplier, 0.75f, 1.6f);
         }
 
-        private sealed class MarriageTitleClaimCache
+        internal sealed class MarriageTitleClaimCache
         {
             public int Day { get; private set; }
             public Dictionary<string, FeudalTitleRecord> TitlesById { get; private set; } = new Dictionary<string, FeudalTitleRecord>();
@@ -664,21 +671,24 @@ namespace BellumCivile.Behaviors
         }
 
         private static BellumMarriageRejectionReason GetCandidateClanRejectionReason(Hero suitor, Clan clan, FactionManagerBehavior factionManager, bool allowPlayerClan)
+            => GetCandidateHouseRejectionReason(suitor?.Clan, clan, factionManager, allowPlayerClan);
+
+        private static BellumMarriageRejectionReason GetCandidateHouseRejectionReason(Clan sponsor, Clan clan, FactionManagerBehavior factionManager, bool allowPlayerClan)
         {
-            if (suitor?.Clan == null || clan == null)
+            if (sponsor == null || clan == null)
                 return BellumMarriageRejectionReason.InvalidOrInactiveHero;
 
-            if (clan == suitor.Clan)
+            if (clan == sponsor)
                 return BellumMarriageRejectionReason.SameClan;
 
             BellumMarriageRejectionReason clanRejection = GetClanRejectionReason(clan, allowPlayerClan);
             if (clanRejection != BellumMarriageRejectionReason.None)
                 return clanRejection;
 
-            if (suitor.Clan.IsAtWarWith(clan))
+            if (sponsor.IsAtWarWith(clan))
                 return BellumMarriageRejectionReason.KingdomAtWar;
 
-            if (AreClansOnOppositeActiveCivilWarSides(suitor.Clan, clan, factionManager))
+            if (AreClansOnOppositeActiveCivilWarSides(sponsor, clan, factionManager))
                 return BellumMarriageRejectionReason.OppositeCivilWarSides;
 
             return BellumMarriageRejectionReason.None;

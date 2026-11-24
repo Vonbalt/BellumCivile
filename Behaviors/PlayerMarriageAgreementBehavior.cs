@@ -33,6 +33,7 @@ namespace BellumCivile.Behaviors
 
         internal bool Capture(Hero player, Hero other)
         {
+            if (BetrothalBehavior.BlocksWedding(player, other)) return false;
             if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic) return true;
             BeforeHourlyTick();
             if (player?.Clan != Clan.PlayerClan || other?.Clan == null || Native == null) return false;
@@ -87,6 +88,8 @@ namespace BellumCivile.Behaviors
         internal static bool Ready(PlayerMarriageAgreement record, out TextObject reason)
         {
             if (!record.Validate(out reason)) return false;
+            if (BetrothalBehavior.BlocksWedding(record.Player, record.Other))
+            { reason = new TextObject("{=BC_Betrothal_CompetingAgreement}One of the pair is already promised in a betrothal."); return false; }
             if (record.Negotiated && (StrategicMarriageBehavior.HasMarriageOfferFor(record.Player)
                 || StrategicMarriageBehavior.HasMarriageOfferFor(record.Other)))
             { reason = new TextObject("{=BC_Marriage_AlreadyPromised}One of the betrothed is already promised in another marriage offer."); return false; }

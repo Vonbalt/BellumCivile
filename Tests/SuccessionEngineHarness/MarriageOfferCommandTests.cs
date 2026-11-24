@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
@@ -117,6 +118,30 @@ internal static partial class MarriageHouseholdTests
             check(result.StartsWith("Error:") && result.Contains("acceptance_rejected=1"), "Test offers retain the NPC's 95 acceptance floor");
             check(result.Contains("npc_score=94/95") && result.Contains("closest_refused="),
                 "Failed search distinguishes an NPC acceptance shortfall from household restrictions");
+            var options = assembly.GetType("BellumCivile.BellumCivileOptions");
+            var settingsField = AccessTools.Field(options, "_settings");
+            var oldSettings = settingsField.GetValue(null);
+            var settings = Activator.CreateInstance(settingsField.FieldType, nonPublic: true);
+            void SetThreshold(int value) => AccessTools.Property(settingsField.FieldType, "MarriageAcceptanceThreshold").SetValue(settings, value);
+            try
+            {
+                settingsField.SetValue(null, settings);
+                int Threshold() => (int)AccessTools.PropertyGetter(options, "MarriageAcceptanceThreshold").Invoke(null, null);
+                check(Threshold() == 95, "New settings retain the original strategic floor");
+                SetThreshold(1500);
+                check(Threshold() == 150, "Manually edited values are capped at the top of the slider");
+                SetThreshold(-2);
+                check(Threshold() == 50, "Manually edited values are capped at the bottom of the slider");
+                SetThreshold(94);
+                check(Command("matrilineal").StartsWith("Success!") && records.Single().Other == heiress,
+                    "Lowering the configured floor allows the same legal strategic offer at the new threshold");
+                ClearOffer();
+                SetThreshold(111);
+                _firstScore = 110;
+                check(Command("matrilineal").Contains("npc_score=110/111") && records.Count == 0,
+                    "Raising the floor refuses an otherwise legal offer previously acceptable at 95");
+            }
+            finally { settingsField.SetValue(null, oldSettings); }
             _firstScore = 110;
             waiting[player] = heiress;
             result = Command("any", player.Name.ToString());
@@ -133,6 +158,7 @@ internal static partial class MarriageHouseholdTests
             check(records.Count == 0, "Suppressed publication discards the orphaned household record");
             _suppressCommandNotification = false;
             RunAlternatePlayerOffers(check, campaign, behavior, ordinary, player, ClearOffer);
+            CheckScheduledDistantBudget(check, helper, heiress, player);
         }
         finally
         {
@@ -141,6 +167,72 @@ internal static partial class MarriageHouseholdTests
             Houses.Remove(ordinary); Ages.Remove(ordinary); Women.Remove(ordinary);
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { campaign });
             harmony.UnpatchAll(harmony.Id);
+        }
+    }
+
+    private static void CheckScheduledDistantBudget(Action<bool, string> check, Type helper, Hero suitor, Hero player)
+    {
+        var marketType = helper.GetNestedType("ScheduledMarriageMarket", BindingFlags.NonPublic);
+        var searchType = helper.GetNestedType("ScheduledMarriageSearch", BindingFlags.NonPublic);
+        var graphType = helper.Assembly.GetType("BellumCivile.Behaviors.MarriageRealmGeography");
+        var original = _commandCandidates;
+        var home = Rulers.Single(entry => entry.Value == suitor.Clan).Key;
+        var nearby = Rulers.Single(entry => entry.Value == player.Clan).Key;
+        var others = new List<Kingdom>();
+        var created = new List<Hero>();
+
+        try
+        {
+            _commandCandidates = new List<Hero> { suitor };
+            var graph = Activator.CreateInstance(graphType, BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { true }, null);
+            AccessTools.Method(graphType, "Add").Invoke(graph, new[] { home, nearby });
+            foreach (int i in Enumerable.Range(0, 12))
+            {
+                var realm = Blank<Kingdom>(); realm.StringId = "marriage_distant_realm_" + i;
+                var clan = Blank<Clan>(); clan.StringId = "marriage_distant_house_" + i;
+                others.Add(realm); Rulers.Add(realm, clan);
+            }
+
+            int Search(int heroesPerHouse)
+            {
+                foreach (var old in created) { Houses.Remove(old); Ages.Remove(old); }
+                created.Clear(); _commandCandidates.RemoveRange(1, _commandCandidates.Count - 1);
+                foreach (var realm in others)
+                for (int i = 0; i < heroesPerHouse; i++)
+                {
+                    var hero = Blank<Hero>(); hero.StringId = realm.StringId + "_relative_" + i;
+                    Houses[hero] = Rulers[realm]; Ages[hero] = 27;
+                    created.Add(hero); _commandCandidates.Add(hero);
+                }
+                var market = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(marketType);
+                var relatives = _commandCandidates.Concat(new[] { player }).GroupBy(hero => hero.Clan).ToDictionary(group => group.Key, group => group.ToList());
+                var marketStats = AccessTools.Field(marketType, "Stats");
+                marketStats.SetValue(market, Activator.CreateInstance(marketStats.FieldType, nonPublic: true));
+                AccessTools.Field(marketType, "Realms").SetValue(market,
+                    relatives.Keys.ToDictionary(house => house, house => Rulers.Single(entry => entry.Value == house).Key));
+                AccessTools.Field(marketType, "_bySex").SetValue(market, relatives.ToDictionary(entry => entry.Key, entry => entry.Value.ToLookup(hero => hero.IsFemale)));
+                AccessTools.Field(marketType, "_geography").SetValue(market, graph);
+
+                var search = Activator.CreateInstance(searchType, BindingFlags.Instance | BindingFlags.NonPublic, null,
+                    new[] { suitor.Clan, (object)false, true, null, market, 800 }, null);
+                var advance = AccessTools.Method(searchType, "Advance");
+                var complete = AccessTools.PropertyGetter(searchType, "Complete");
+                while (!(bool)complete.Invoke(search, null)) advance.Invoke(search, new object[] { 7 });
+                var stats = AccessTools.Field(searchType, "Stats").GetValue(search);
+                check(AccessTools.Field(searchType, "Best").GetValue(search) != null
+                    && (int)AccessTools.Field(stats.GetType(), "DistantPasses").GetValue(stats) == 1,
+                    "A scored neighboring option still permits a limited Crown-to-Crown search");
+                return (int)AccessTools.Field(stats.GetType(), "DistantPairChecks").GetValue(stats);
+            }
+
+            check(Search(1) == 8, "Twelve distant houses with suitable candidates are bounded to eight house searches");
+            check(Search(12) == 48, "Dense distant households are bounded to 48 pair checks across hourly slices");
+        }
+        finally
+        {
+            _commandCandidates = original;
+            foreach (var old in created) { Houses.Remove(old); Ages.Remove(old); }
+            foreach (var realm in others) Rulers.Remove(realm);
         }
     }
 }

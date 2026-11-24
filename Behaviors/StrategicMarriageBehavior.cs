@@ -14,7 +14,7 @@ namespace BellumCivile.Behaviors
 {
     /// <summary>
     /// Evaluates separate distributed annual dynasty and household opportunities per NPC house.
-    /// Native automation is independently controlled by the exclusive-marriage setting.
+    /// Replaces native matchmaking and automatic offers while strategic marriage is enabled.
     /// </summary>
     public partial class StrategicMarriageBehavior : CampaignBehaviorBase
     {
@@ -61,6 +61,7 @@ namespace BellumCivile.Behaviors
         public override void RegisterEvents()
         {
             CampaignEvents.DailyTickClanEvent.AddNonSerializedListener(this, OnDailyTickClan);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, ProcessScheduledMarriageSearches);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -83,6 +84,7 @@ namespace BellumCivile.Behaviors
             if (_nextHouseholdSearchDay == null) _nextHouseholdSearchDay = new Dictionary<string, int>();
             if (_householdSearchCount == null) _householdSearchCount = new Dictionary<string, int>();
             SyncMarriageProspects(dataStore);
+            SyncScheduledMarriageSearches(dataStore);
         }
 
         private void OnDailyTickClan(Clan clan)
@@ -96,27 +98,30 @@ namespace BellumCivile.Behaviors
             bool dynastyBusy = ProcessMarriageProspect(clan);
             if (!dynastyBusy) dynastyBusy = CourtAgendaBehavior.Current?.PursueDynasticMarriage(clan, this) == true;
             bool householdBusy = ProcessHouseholdMarriageProspect(clan);
-            if (!dynastyBusy) EvaluateMarriageOpportunity(clan, false);
-            if (!householdBusy) EvaluateMarriageOpportunity(clan, true);
+            if (!dynastyBusy) QueueMarriageOpportunity(clan, false);
+            if (!householdBusy) QueueMarriageOpportunity(clan, true);
         }
 
-        private void EvaluateMarriageOpportunity(Clan clan, bool household)
+        private void QueueMarriageOpportunity(Clan clan, bool household)
         {
-            if (household ? !ShouldEvaluateOpportunity(clan, true) : !ShouldEvaluateToday(clan))
-                return;
+            if (!CanScheduleClan(clan) || _scheduledMarriageKeys.Contains((clan, household))) return;
+            var receipts = ScheduledMarriageReceipts(household);
+            int daysPerYear = GetCampaignDaysInYear();
+            int year = CurrentDay / daysPerYear;
+            bool queuedBeforeLoad = receipts.TryGetValue(clan.StringId, out int scheduledYear);
+            if (queuedBeforeLoad && scheduledYear < year - 1)
+            {
+                CloseMarriageOpportunity(clan, household);
+                queuedBeforeLoad = false;
+            }
+            if (!queuedBeforeLoad && (household ? !ShouldEvaluateOpportunity(clan, true) : !ShouldEvaluateToday(clan))) return;
 
             var last = household ? _lastHouseholdEvaluationYear : _lastHouseEvaluationYear;
             var pendingYears = household ? _pendingHouseholdMarriageYear : _pendingMarriageYear;
-            var counts = household ? _householdSearchCount : _marriageSearchCount;
-            var nextDays = household ? _nextHouseholdSearchDay : _nextMarriageSearchDay;
-            var members = HouseholdMembership.Members(clan).Where(h => HouseholdMembership.IsFamily(h) != household).ToList();
-            Hero hero = members.FirstOrDefault(BellumMarriageStrategyHelper.IsStrategicMarriageInitiator)
-                ?? members.FirstOrDefault(BellumMarriageStrategyHelper.MarriageProspectEligible);
+            Hero hero = FindMarriageInitiator(clan, household);
             if (hero == null) { _yearlySummary.AvailabilityDeferrals++; return; }
             float chance = BellumMarriageStrategyHelper.CalculateMarriageOpportunity(hero, household, out float dynasticNeed);
-            int daysPerYear = GetCampaignDaysInYear();
-            int year = CurrentDay / daysPerYear;
-            bool continuing = pendingYears.TryGetValue(clan.StringId, out int pending) && pending == year;
+            bool continuing = queuedBeforeLoad || pendingYears.TryGetValue(clan.StringId, out int pending) && pending == year;
             if (!continuing)
             {
                 last[clan.StringId] = year;
@@ -131,35 +136,49 @@ namespace BellumCivile.Behaviors
                 }
                 _yearlySummary.MarriageAttemptsRolled++;
                 pendingYears[clan.StringId] = year;
-                counts[clan.StringId] = 0;
+                (household ? _householdSearchCount : _marriageSearchCount)[clan.StringId] = 0;
             }
+            ScheduleMarriageSearch(clan, household, hero, dynasticNeed, queuedBeforeLoad ? scheduledYear : year);
+        }
+
+        private static Hero FindMarriageInitiator(Clan clan, bool household)
+        {
+            var members = HouseholdMembership.Members(clan).Where(h => HouseholdMembership.IsFamily(h) != household).ToList();
+            return members.FirstOrDefault(BellumMarriageStrategyHelper.IsStrategicMarriageInitiator)
+                ?? members.FirstOrDefault(BellumMarriageStrategyHelper.MarriageProspectEligible)
+                ?? (!household && BetrothalBehavior.Instance != null && BetrothalBehavior.CanArrange
+                    ? members.FirstOrDefault(BetrothalBehavior.Potential) : null);
+        }
+
+        private void FinishMarriageOpportunity(Clan clan, bool household, Hero hero, float dynasticNeed,
+            BellumMarriageMatch bestCandidate, BellumMarriageEvaluationStats evaluationStats)
+        {
+            var counts = household ? _householdSearchCount : _marriageSearchCount;
+            var nextDays = household ? _nextHouseholdSearchDay : _nextMarriageSearchDay;
             counts.TryGetValue(clan.StringId, out int searches);
             counts[clan.StringId] = searches + 1;
             nextDays[clan.StringId] = CurrentDay + 3;
             _yearlySummary.Searches++;
-            FactionManagerBehavior factionManager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
-            var evaluationStats = new BellumMarriageEvaluationStats();
-            BellumMarriageMatch bestCandidate = household
-                ? BellumMarriageStrategyHelper.FindBestHouseholdMatch(clan, factionManager, CanSendPlayerOffer(), evaluationStats)
-                : BellumMarriageStrategyHelper.FindBestHouseMatch(clan, factionManager, CanSendPlayerOffer(), evaluationStats);
             _yearlySummary.Merge(evaluationStats);
             if (bestCandidate == null)
             {
                 _yearlySummary.NoValidMatchFound++;
                 if (evaluationStats.LegalPairs == 0) _yearlySummary.NoLegalPairSearches++;
                 else _yearlySummary.RefusedPairSearches++;
-                if (!household) _yearlySummary.RecordEndangeredUnmatched(hero.Clan, dynasticNeed);
+                if (!household) _yearlySummary.RecordEndangeredUnmatched(clan, dynasticNeed);
                 TraceMarriage($"no marriage accepted; house={clan.StringId}; purpose={(household ? "household" : "dynasty")}; legal_pairs={evaluationStats.LegalPairs}; first_refused={evaluationStats.FirstHouseRefused}; second_refused={evaluationStats.SecondHouseRefused}; best_rejected={evaluationStats.BestRejectedScore}; temporary_participants={evaluationStats.TemporaryParticipants}.");
                 var refused = evaluationStats.ClosestRefusedMatch;
                 if (refused != null) TraceMarriage($"closest refused pair: {HeroLabel(refused.Suitor)} + {HeroLabel(refused.Candidate)}; reasons={FormatReasons(refused)}.");
-                if (evaluationStats.LegalPairs > 0 || evaluationStats.TemporaryParticipants == 0) CloseMarriageOpportunity(clan, household);
+                if (evaluationStats.LegalPairs > 0 || evaluationStats.TemporaryParticipants == 0 && !evaluationStats.MarketHasTemporaryParticipants)
+                    CloseMarriageOpportunity(clan, household);
                 return;
             }
 
+            int threshold = BellumCivileOptions.MarriageAcceptanceThreshold;
             TraceMarriage(
-                $"best candidate for {HeroLabel(hero)} is {HeroLabel(bestCandidate.Candidate)}; score={bestCandidate.Score:0}; threshold={C.MarriageStrategyMinimumScore:0}; reasons={FormatReasons(bestCandidate)}.");
+                $"best candidate for {HeroLabel(hero)} is {HeroLabel(bestCandidate.Candidate)}; score={bestCandidate.Score:0}; threshold={threshold}; reasons={FormatReasons(bestCandidate)}.");
 
-            BellumMarriageMatch match = bestCandidate.Score >= C.MarriageStrategyMinimumScore ? bestCandidate : null;
+            BellumMarriageMatch match = bestCandidate.Score >= threshold ? bestCandidate : null;
             if (match == null)
             {
                 CloseMarriageOpportunity(clan, household);
@@ -169,6 +188,10 @@ namespace BellumCivile.Behaviors
                 TraceMarriage($"skipped {HeroLabel(hero)}: best score below threshold.");
                 return;
             }
+
+            // The search can span several ticks. Recheck the winning pair against live state.
+            match = BellumMarriageStrategyHelper.RevalidateScheduledMarriage(match, household, CanSendPlayerOffer());
+            if (match == null) return;
 
             if (!BellumMarriageStrategyHelper.MarriageParticipantReady(match.Suitor)
                 || !BellumMarriageStrategyHelper.MarriageParticipantReady(match.Candidate))
@@ -230,7 +253,7 @@ namespace BellumCivile.Behaviors
             if (match?.Suitor?.Clan != Clan.PlayerClan && match?.Candidate?.Clan != Clan.PlayerClan)
                 return false;
 
-            float threshold = C.MarriageStrategyMinimumScore;
+            int threshold = BellumCivileOptions.MarriageAcceptanceThreshold;
             if (match.Score < threshold)
             {
                 _yearlySummary.BestMatchBelowThreshold++;
@@ -305,8 +328,7 @@ namespace BellumCivile.Behaviors
 
         private bool ShouldEvaluateOpportunity(Clan clan, bool household)
         {
-            if (clan == null || clan == Clan.PlayerClan || clan.IsEliminated || clan.Kingdom == null
-                || clan.IsMinorFaction || clan.IsClanTypeMercenary || clan.IsBanditFaction || clan.StringId == "neutral") return false;
+            if (!CanScheduleClan(clan)) return false;
             int days = GetCampaignDaysInYear();
             int year = CurrentDay / days;
             int offset = MarriageOutcome.AnnualOffset(clan.StringId, days);
@@ -327,6 +349,7 @@ namespace BellumCivile.Behaviors
 
         private void CloseMarriageOpportunity(Clan clan, bool household)
         {
+            ScheduledMarriageReceipts(household).Remove(clan.StringId);
             (household ? _pendingHouseholdMarriageYear : _pendingMarriageYear).Remove(clan.StringId);
             (household ? _nextHouseholdSearchDay : _nextMarriageSearchDay).Remove(clan.StringId);
             (household ? _householdSearchCount : _marriageSearchCount).Remove(clan.StringId);
@@ -347,6 +370,7 @@ namespace BellumCivile.Behaviors
         private bool CanSendPlayerOffer()
         {
             if (CurrentDay - _lastPlayerOfferDay < C.MarriagePlayerOfferCooldownDays) return false;
+            if (BetrothalBehavior.Instance?.HasIncomingOffer == true) return false;
             var offers = Campaign.Current.GetCampaignBehavior<MarriageOfferCampaignBehavior>();
             return offers != null && !HasActiveMarriageOffer(offers) && LastNativeOffer != null
                 && ((CampaignTime)LastNativeOffer.GetValue(offers)).ElapsedDaysUntilNow >= C.MarriagePlayerOfferCooldownDays;
@@ -416,10 +440,15 @@ namespace BellumCivile.Behaviors
             public int FamilyPairs, RetainerPairs, MixedPairs;
             public int MarriageAttemptsRolled;
             public int Searches, AvailabilityDeferrals;
+            public int MarriageMarketBuilds, PeakSearchQueue;
+            private long _scheduledWork;
+            private int _peakHourlyWork;
+            private double _scheduledMilliseconds, _peakHourlyMilliseconds;
             public int NoLegalPairSearches, RefusedPairSearches;
             public int ChanceRollFailed;
             public int BellumMarriagesCompleted;
             public int PlayerMarriageOffersSent;
+            public int BetrothalOffersOrPledges;
             public int VanillaModelRejectedBellumMatch;
             public int NoValidMatchFound;
             public int BestMatchBelowThreshold;
@@ -438,6 +467,7 @@ namespace BellumCivile.Behaviors
                                     || MarriageAttemptsRolled > 0
                                     || BellumMarriagesCompleted > 0
                                     || PlayerMarriageOffersSent > 0
+                                    || BetrothalOffersOrPledges > 0
                                     || NoValidMatchFound > 0
                                     || BestMatchBelowThreshold > 0;
 
@@ -452,6 +482,14 @@ namespace BellumCivile.Behaviors
             public void Merge(BellumMarriageEvaluationStats stats)
             {
                 Rejections.Merge(stats);
+            }
+
+            public void RecordScheduledSearchTick(int work, double milliseconds)
+            {
+                _scheduledWork += work;
+                _peakHourlyWork = Math.Max(_peakHourlyWork, work);
+                _scheduledMilliseconds += milliseconds;
+                _peakHourlyMilliseconds = Math.Max(_peakHourlyMilliseconds, milliseconds);
             }
 
             public void RecordCompletedMarriage(BellumMarriageMatch match)
@@ -541,6 +579,9 @@ namespace BellumCivile.Behaviors
                     + $"types: dynastic={DynasticSurvivalMarriages} same_realm={SameRealmPoliticalMarriages} royal_pacification={RoyalVassalPacificationMarriages} foreign_alliance={ForeignRoyalAllianceMarriages} same_culture={SameCultureMarriages} cross_culture={CrossCultureMarriages}; "
                     + $"outcomes: no_match={NoValidMatchFound} no_legal_pair_searches={NoLegalPairSearches} house_refusal_searches={RefusedPairSearches} low_score={BestMatchBelowThreshold} vanilla_rejected={VanillaModelRejectedBellumMatch}; "
                     + $"search_evaluations: participants={Rejections.ParticipantChecks} eligible={Rejections.EligibleParticipants} temporary={Rejections.TemporaryParticipants} legal_pairs={Rejections.LegalPairs} accepted_pairs={Rejections.AcceptedPairs} first_refused={Rejections.FirstHouseRefused} second_refused={Rejections.SecondHouseRefused} best_rejected={(float.IsNegativeInfinity(Rejections.BestRejectedScore) ? "none" : Rejections.BestRejectedScore.ToString("0"))}; "
+                    + $"scheduled_searches: roster_builds={MarriageMarketBuilds} work={_scheduledWork} peak_hour_work={_peakHourlyWork} peak_queue={PeakSearchQueue} total_ms={_scheduledMilliseconds:0.##} peak_hour_ms={_peakHourlyMilliseconds:0.##}; "
+                    + $"geography: distant_passes={Rejections.DistantPasses} distant_pair_checks={Rejections.DistantPairChecks}; "
+                    + $"betrothals: proposed_or_accepted={BetrothalOffersOrPledges} legal_pairs={Rejections.BetrothalLegalPairs} distant_pairs={Rejections.DistantBetrothalPairs}; "
                     + $"rejections: already_married={Rejections.RejectedAlreadyMarried} too_young={Rejections.RejectedTooYoung} female_above_max={Rejections.RejectedFemaleAboveMaxAge} player_clan={Rejections.RejectedPlayerClan} minor_or_neutral={Rejections.RejectedMinorMercenaryOrNeutralClan} eliminated={Rejections.RejectedEliminatedClan} invalid={Rejections.RejectedInvalidOrInactiveHero} no_kingdom={Rejections.RejectedNoKingdom} war={Rejections.RejectedKingdomAtWar} war_kingdom_skips={Rejections.KingdomsSkippedAtWar} civil_war={Rejections.RejectedOppositeCivilWarSides} cannot_marry={Rejections.RejectedCannotMarry} vanilla_model={Rejections.RejectedVanillaModel} other={Rejections.RejectedOther}; "
                     + $"health: endangered_unmatched={_endangeredUnmatchedClans.Count} ruling_low_reserve={rulingClansWithLowMarriageReserve} avg_score={averageScore} highest_accepted={HighestAcceptedScore:0} highest_rejected={HighestRejectedScore:0}.";
             }

@@ -6,7 +6,7 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 namespace BellumCivile.Patches
 {
     /// <summary>
-    /// When Bellum has exclusive marriage control enabled, block vanilla's shallow
+    /// When Bellum's strategic marriage system is enabled, block vanilla's automatic
     /// player-clan marriage offers so Bellum can send strategic offers through the
     /// same vanilla popup.
     /// </summary>
@@ -18,10 +18,6 @@ namespace BellumCivile.Patches
             return AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "DailyTickClan", new[] { typeof(Clan) });
         }
 
-        private static bool Prefix()
-        {
-            return !BellumCivileOptions.EnableBellumStrategicMarriageLogic
-                || !BellumCivileOptions.UseBellumStrategicNpcMarriagesOnly;
-        }
+        private static bool Prefix() => !BellumCivileOptions.EnableBellumStrategicMarriageLogic;
     }
 }

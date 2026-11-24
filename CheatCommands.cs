@@ -16,6 +16,7 @@
 * civilwars.trigger_council_incident
 * civilwars.marry [Hero One] | [Hero Two]
 * civilwars.force_marriage_offer [matrilineal/patrilineal/any] [player hero ID or name]
+* civilwars.force_betrothal_offer [matrilineal/patrilineal/any] [player hero ID or name]
 * civilwars.fund_highwaymen [Kingdom Name]
 * civilwars.trigger_coalition [Kingdom Name] [IdeologyType]
 * * --- TREASON & LOYALTY TESTING ---
@@ -1924,6 +1925,8 @@ namespace BellumCivile
                 return "Error: Marriage offer services are not available in this campaign.";
             if (PlayerMarriageAgreementBehavior.ActivePlayer != null || PlayerMarriageAgreementBehavior.ActiveOther != null)
                 return "Error: A marriage offer is already active. Accept or decline it before requesting another.";
+            if (BetrothalBehavior.Instance?.HasIncomingOffer == true)
+                return "Error: A betrothal offer is already active. Accept or decline it before requesting another.";
             if (Clan.PlayerClan.Kingdom == null || Clan.PlayerClan.Kingdom.IsEliminated)
                 return "Error: The player clan must belong to an active kingdom to qualify for strategic marriage offers.";
 
@@ -1974,6 +1977,71 @@ namespace BellumCivile
                 + $"and {otherClanHero.Name} ({otherClanHero.StringId}) of {otherClanHero.Clan.Name}. "
                 + $"{agreement.HouseholdText()} NPC acceptance={selected.Score:0}. "
                 + "Close the console and open the marriage-offer notification. Accepting performs a real marriage; use a test save.";
+        }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("force_betrothal_offer", "civilwars")]
+        public static string ForceBetrothalOffer(List<string> args)
+        {
+            bool? matrilineal = null;
+            if (args?.Count > 0)
+            {
+                if (string.Equals(args[0], "matrilineal", StringComparison.OrdinalIgnoreCase)) matrilineal = true;
+                else if (string.Equals(args[0], "patrilineal", StringComparison.OrdinalIgnoreCase)) matrilineal = false;
+                else if (!string.Equals(args[0], "any", StringComparison.OrdinalIgnoreCase))
+                    return "Usage: civilwars.force_betrothal_offer [matrilineal/patrilineal/any] [player hero ID or name]. Omit the arguments to allow either arrangement for any eligible family member.";
+            }
+            if (Campaign.Current == null || Clan.PlayerClan == null)
+                return "Error: Load a campaign with a player clan first.";
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+                return "Error: Enable Bellum's strategic marriage logic before testing betrothals.";
+            if (!BetrothalBehavior.CanArrange)
+                return "Error: Betrothals require the campaign's birth and death cycle to be enabled.";
+            var behavior = BetrothalBehavior.Instance;
+            if (behavior == null || PlayerMarriageAgreementBehavior.Native == null)
+                return "Error: Betrothal offer services are not available in this campaign.";
+            if (behavior.HasIncomingOffer || PlayerMarriageAgreementBehavior.ActivePlayer != null || PlayerMarriageAgreementBehavior.ActiveOther != null)
+                return "Error: A marriage or betrothal offer is already active. Accept or decline it first.";
+            Clan playerClan = Clan.PlayerClan;
+            if (playerClan.Kingdom == null || playerClan.Kingdom.IsEliminated)
+                return "Error: The player clan must belong to an active kingdom to qualify for strategic betrothal offers.";
+
+            Hero playerMember = null;
+            if (args?.Count > 1)
+            {
+                string selector = string.Join(" ", args.Skip(1));
+                var members = HouseholdMembership.Members(playerClan).ToList();
+                playerMember = members.FirstOrDefault(h => string.Equals(h.StringId, selector, StringComparison.OrdinalIgnoreCase));
+                if (playerMember == null)
+                {
+                    var named = members.Where(h => string.Equals(h.Name?.ToString(), selector, StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (named.Count > 1) return "Error: More than one player-clan member has that name. Use the hero's StringId instead.";
+                    playerMember = named.FirstOrDefault();
+                }
+                if (playerMember == null) return $"Error: No player-clan member found for '{selector}'. Use a hero StringId or exact display name.";
+            }
+
+            var matches = BellumMarriageStrategyHelper.FindPlayerBetrothalTestOffers(
+                Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>(), matrilineal, playerMember, out string diagnostics);
+            if (matches.Count == 0)
+                return "Error: No eligible betrothal offer found. At least one candidate must be below adulthood. "
+                    + $"Family standing, existing promises, succession protections and NPC consent still apply. {diagnostics}.";
+
+            // Preserve the AI's preference for pairing two minors, then sample by offering house.
+            bool preferMinors = matches.Any(m => m.BothMinors);
+            var houses = matches.Where(m => !preferMinors || m.BothMinors).GroupBy(m => m.First.Clan).Select(g => g.ToList()).ToList();
+            var pool = houses[MBRandom.RandomInt(houses.Count)];
+            var selected = pool[MBRandom.RandomInt(pool.Count)];
+            if (selected.Second.Clan != playerClan || selected.First.Clan == playerClan
+                || !behavior.Create(selected.First, selected.Second, selected.Destination, offerToPlayer: true))
+                return "Error: The betrothal offer was not registered. No pledge or wedding has been performed.";
+
+            bool published = behavior.TryPublishIncomingOfferNotice();
+            BellumCivileLogger.Log($"Betrothal offer console selection: player={selected.Second.StringId}; other={selected.First.StringId}; "
+                + $"destination={selected.Destination.StringId}; npc_score={selected.Score:0.##}; published={published}.");
+            return $"Success! Betrothal offered between {selected.Second.Name} ({selected.Second.StringId}) and "
+                + $"{selected.First.Name} ({selected.First.StringId}) of {selected.First.Clan.Name}. Future household: {selected.Destination.Name}. "
+                + (published ? "Close the console and open the betrothal notification. " : "Close the console and let one campaign hour pass to receive the offer. ")
+                + "No wedding has taken place.";
         }
 
         private static FactionObject CreateFactionFromArgs(List<string> args, out string errorMessage)

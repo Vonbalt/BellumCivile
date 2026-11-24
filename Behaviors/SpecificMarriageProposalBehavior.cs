@@ -370,6 +370,8 @@ namespace BellumCivile.Behaviors
                 return Reason("{=BC_Marriage_CandidateMilitary}", "{HERO} is currently occupied with military duties.");
             if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true)
                 return new TextObject("{=BC_Marriage_AccessionPending}A pending succession must be settled before this marriage can proceed.");
+            if (BetrothalBehavior.IsReserved(hero))
+                return new TextObject("{=BC_Betrothal_MarriageBlocked}{HERO} is already promised in a betrothal.").SetTextVariable("HERO", hero.Name);
             var offers = PlayerMarriageAgreementBehavior.Native;
             if (offers != null && (offers.IsHeroEngaged(hero)
                 || PlayerMarriageAgreementBehavior.ActivePlayer == hero || PlayerMarriageAgreementBehavior.ActiveOther == hero))

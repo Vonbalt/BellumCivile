@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $strategy = Get-Content -Raw (Join-Path $root 'Behaviors/StrategicMarriageBehavior.cs')
+$scheduler = Get-Content -Raw (Join-Path $root 'Behaviors/StrategicMarriageScheduler.cs')
 $helper = Get-Content -Raw (Join-Path $root 'Behaviors/BellumMarriageStrategyHelper.cs')
 $evaluation = Get-Content -Raw (Join-Path $root 'Behaviors/BellumMarriageEvaluation.cs')
 $outcome = Get-Content -Raw (Join-Path $root 'Behaviors/MarriageOutcome.cs')
@@ -15,11 +16,11 @@ Check ($strategy.Contains('BellumCivile_LastMarriageHouseEvaluationYear') -and $
 Check (!$helper.Contains('(!hero.IsFemale || clan.Leader == hero)')) 'Women are eligible household participants without needing leadership.'
 $health = Get-Content -Raw (Join-Path $root 'Behaviors/MarriageHouseHealth.cs')
 Check ($health.Contains('hero.Spouse?.IsAlive != true || hero.Spouse.Clan != clan') -and $health.Contains('HouseholdMembership.IsBloodRelative(hero.Spouse, head)')) 'Dynasty coverage requires a living same-household couple with a blood parent.'
-Check (!$helper.Contains('_titleClaimCache') -and $evaluation.Contains('One context per scheduled house search')) 'No static day-only campaign object cache remains.'
+Check (!$helper.Contains('_titleClaimCache') -and $scheduler.Contains('private BellumMarriageStrategyHelper.ScheduledMarriageMarket _marriageMarket;')) 'The scheduled market belongs to the campaign, not a static cache.'
 Check ($evaluation.Contains('BothAccept') -and $evaluation.Contains('EvaluateHouse(first, second') -and $evaluation.Contains('EvaluateHouse(second, first')) 'Both sides independently evaluate the same outcome.'
 Check (!$helper.Contains('MarriageScoreDynasticHeirPenalty') -and !$helper.Contains('MarriageScoreLowerTierRoyalMatchPenalty')) 'Blanket heir penalty and duplicate royal status penalty are absent.'
 Check ($helper.Contains('if (!personalCarrier) continue;')) 'Unrelated clan members cannot convey someone else''s claim value.'
-Check ($strategy.Contains('FindBestHouseMatch(clan, factionManager, CanSendPlayerOffer()')) 'Unavailable player offers are excluded before searching for executable alternatives.'
+Check ($scheduler.Contains('CanSendPlayerOffer(), factions, _marriageMarket') -and $evaluation.Contains('!includePlayer && entry.Key == Clan.PlayerClan')) 'Unavailable player offers are excluded before searching for executable alternatives.'
 Check ($strategy.IndexOf('MarriageAction.Apply') -lt $strategy.IndexOf('_yearlySummary.RecordCompletedMarriage(match)') -and $strategy.Contains('match.Candidate.Spouse != match.Suitor')) 'Success follows execution and reciprocal marriage verification.'
 Check (!$titles.Contains('IsRoyalHeiressMarriage') -and !$model.Contains('TryResolveDynasticMarriageClanOverride')) 'Retired heiress exceptions no longer alter birthrights or household placement.'
 Check ($evaluation.Contains('PartitionSuccessionBehavior.OrderEstateHeirs') -and !$evaluation.Contains('BuildPlan(') -and !$evaluation.Contains('MarriageAction.Apply')) 'Read-only parental prospects reuse succession rules without allocating or transferring estates.'

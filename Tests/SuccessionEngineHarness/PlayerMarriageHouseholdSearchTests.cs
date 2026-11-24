@@ -27,7 +27,7 @@ internal static partial class MarriageHouseholdTests
         var retryFixture = new Harmony("bellum.test.player_household_retry");
         string Command(string mode) => CheatCommands.ForceMarriageOffer(new List<string> { mode, player.StringId });
         object Context() => Activator.CreateInstance(contextType,
-            new object[] { null, true, null, null, false });
+            new object[] { null, true, null, null, false, null });
         object Match(object context, Hero first, Hero second) => AccessTools.Method(helper, "EvaluateOutcome")
             .Invoke(null, new object[] { first, second, context, true });
         Clan Destination(object match)

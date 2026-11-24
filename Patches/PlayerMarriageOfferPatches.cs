@@ -26,6 +26,7 @@ namespace BellumCivile.Patches
     {
         private static void Postfix(ref MBBindingList<TextObject> __result)
         {
+            if (BetrothalOfferPopupPatch.IsRefreshing) return;
             var record = PlayerMarriageAgreementBehavior.Instance?.Active;
             if (record == null) return;
             // Keep the native relation reward, replacing its ambiguous transfer line.

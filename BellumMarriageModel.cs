@@ -16,6 +16,7 @@ namespace BellumCivile
 
         public override bool IsSuitableForMarriage(Hero hero)
         {
+            if (BetrothalBehavior.BlocksParticipant(hero)) return false;
             if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true) return false;
             if (!MarriageParticipantPolicy.IsCompanion(hero)
                 && (!MarriageProspectEvaluation.Active || BellumMarriageStrategyHelper.MarriageParticipantReady(hero)))
@@ -34,7 +35,8 @@ namespace BellumCivile
 
         public override bool IsCoupleSuitableForMarriage(Hero firstHero, Hero secondHero)
         {
-            if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(firstHero) == true
+            if (BetrothalBehavior.BlocksWedding(firstHero, secondHero)
+                || CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(firstHero) == true
                 || CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(secondHero) == true
                 || RegencyBehavior.Instance?.IsGeneratedRegent(firstHero) == true
                 || RegencyBehavior.Instance?.IsGeneratedRegent(secondHero) == true)
@@ -45,10 +47,7 @@ namespace BellumCivile
             var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
             using (agreement == null && PlayerMarriageValidationScope.Current == null
                 ? null : new PlayerMarriageValidationScope(agreement))
-                if (!base.IsCoupleSuitableForMarriage(firstHero, secondHero)) return false;
-            var native = NativeNpcMarriageHouseholdScope.Current;
-            return native == null || TreatyMarriageClanContext.TryResolve(firstHero, secondHero, out _)
-                || native.Policy.TryChoose(firstHero, secondHero, base.GetClanAfterMarriage(firstHero, secondHero), out _);
+                return base.IsCoupleSuitableForMarriage(firstHero, secondHero);
         }
 
         public override Clan GetClanAfterMarriage(Hero firstHero, Hero secondHero)
@@ -58,10 +57,7 @@ namespace BellumCivile
             if (NpcMarriageClanContext.TryResolve(firstHero, secondHero, out Clan agreedClan)) return agreedClan;
             var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
             if (agreement != null) return agreement.Destination;
-            Clan ordinary = base.GetClanAfterMarriage(firstHero, secondHero);
-            var native = NativeNpcMarriageHouseholdScope.Current;
-            return native != null && native.Policy.TryChoose(firstHero, secondHero, ordinary, out Clan chosen)
-                ? chosen : ordinary;
+            return base.GetClanAfterMarriage(firstHero, secondHero);
         }
     }
 }

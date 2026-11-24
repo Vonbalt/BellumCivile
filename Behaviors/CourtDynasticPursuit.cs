@@ -41,7 +41,7 @@ namespace BellumCivile.Behaviors
                 if (match == null)
                 { DynasticBlocked(a, "native_couple_unavailable"); return true; }
                 if (!MarriageOutcome.BothAccept(match.SuitorAcceptance, match.CandidateAcceptance,
-                    p.First.Clan == Clan.PlayerClan, p.Second.Clan == Clan.PlayerClan, BellumCivileConstants.MarriageStrategyMinimumScore))
+                    p.First.Clan == Clan.PlayerClan, p.Second.Clan == Clan.PlayerClan, BellumCivileOptions.MarriageAcceptanceThreshold))
                 {
                     p.NpcAttempted = true;
                     p.MarriageOutcome = "house_refused";

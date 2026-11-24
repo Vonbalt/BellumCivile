@@ -27,14 +27,4 @@ namespace BellumCivile
 
         public void Dispose() { _current = _previous; }
     }
-
-    // Optional native NPC matchmaking uses the same protection, without changing player courtship.
-    internal sealed class NativeNpcMarriageHouseholdScope : IDisposable
-    {
-        [ThreadStatic] internal static NativeNpcMarriageHouseholdScope Current;
-        private readonly NativeNpcMarriageHouseholdScope _previous;
-        internal readonly MarriageHouseholdPolicy Policy = new MarriageHouseholdPolicy();
-        internal NativeNpcMarriageHouseholdScope() { _previous = Current; Current = this; }
-        public void Dispose() { Current = _previous; }
-    }
 }

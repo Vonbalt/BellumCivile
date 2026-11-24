@@ -11,11 +11,11 @@ namespace BellumCivile.Behaviors
             && hero != hero.Clan.Leader && SuccessionLawHelper.IsBloodRelative(hero, hero.Clan.Leader)
             && MarriageParticipantReady(hero)
             && GetOfferParticipantRejectionReason(hero, true) == BellumMarriageRejectionReason.None
-            && !StrategicMarriageBehavior.HasMarriageOfferFor(hero);
+            && !StrategicMarriageBehavior.HasMarriageOfferFor(hero) && !BetrothalBehavior.IsReserved(hero);
 
         internal static bool CourtMarriageCandidate(Hero hero) => hero?.Clan?.Leader != null
             && hero != hero.Clan.Leader && SuccessionLawHelper.IsBloodRelative(hero, hero.Clan.Leader)
-            && MarriageProspectEligible(hero) && !StrategicMarriageBehavior.HasMarriageOfferFor(hero)
+            && MarriageProspectEligible(hero) && !StrategicMarriageBehavior.HasMarriageOfferFor(hero) && !BetrothalBehavior.IsReserved(hero)
             && Campaign.Current?.GetCampaignBehavior<StrategicMarriageBehavior>()?.HasPendingProspect(hero) != true;
 
         internal static BellumMarriageMatch EvaluateCourtMarriage(Hero first, Hero second, bool requireAcceptance, Clan destination = null)
@@ -55,8 +55,9 @@ namespace BellumCivile.Behaviors
                     calendar?.GetFavoredBloc(realm) == FactionType.Nobility, true);
                 float existingBonus = calendar?.DynasticMarriageBonus(first, second) ?? 0;
                 if (match == null) { unavailable++; continue; }
-                bool domestic = first.Clan == Clan.PlayerClan || match.SuitorAcceptance + forecastBonus - existingBonus >= BellumCivileConstants.MarriageStrategyMinimumScore;
-                bool foreign = second.Clan == Clan.PlayerClan || match.CandidateAcceptance >= BellumCivileConstants.MarriageStrategyMinimumScore;
+                int threshold = BellumCivileOptions.MarriageAcceptanceThreshold;
+                bool domestic = first.Clan == Clan.PlayerClan || match.SuitorAcceptance + forecastBonus - existingBonus >= threshold;
+                bool foreign = second.Clan == Clan.PlayerClan || match.CandidateAcceptance >= threshold;
                 if (!domestic) domesticRefused++;
                 if (!foreign) foreignRefused++;
                 if (domestic && foreign) result.Add(match);

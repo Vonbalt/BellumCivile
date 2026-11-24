@@ -27,6 +27,7 @@ internal static class MarriageMatchmakingTests
     private static int _day;
     private static int _rolls, _searches;
     private static bool _available, _refused;
+    private static int _remainingTestWork;
     private static bool _family;
     private static Hero _hero;
     private static Kingdom _realm, _parent, _otherParent, _shell, _otherShell;
@@ -49,11 +50,25 @@ internal static class MarriageMatchmakingTests
     private static bool House(ref Clan __result) { __result = _first; return false; }
     private static bool Heroes(ref IEnumerable<Hero> __result)
     { __result = new[] { _hero }; return false; }
-    private static bool Search(object stats)
+    private static bool Search(object[] __args, ref int __result)
     {
+        int budget = (int)__args[1];
+        if (_remainingTestWork > budget)
+        {
+            _remainingTestWork -= budget;
+            __args[4] = false;
+            __result = budget;
+            return false;
+        }
         _searches++;
+        var type = typeof(StrategicMarriageBehavior).Assembly.GetType("BellumCivile.Behaviors.BellumMarriageEvaluationStats");
+        object stats = Activator.CreateInstance(type, nonPublic: true);
         AccessTools.Field(stats.GetType(), "TemporaryParticipants").SetValue(stats, _refused ? 0 : 1);
         AccessTools.Field(stats.GetType(), "LegalPairs").SetValue(stats, _refused ? 1 : 0);
+        __args[3] = stats;
+        __args[4] = true;
+        __result = Math.Max(1, _remainingTestWork);
+        _remainingTestWork = 0;
         return false;
     }
     private static bool Player(ref Clan __result) { __result = null; return false; }
@@ -73,6 +88,8 @@ internal static class MarriageMatchmakingTests
         var rules = assembly.GetType("BellumCivile.Behaviors.MarriageMatchmakingRules");
         var departure = AccessTools.Method(rules, "DepartureCost");
         var window = AccessTools.Method(rules, "InWindow");
+        CheckSearchBudget(check, assembly);
+        CheckSearchGeography(check, assembly);
         float Cost(bool leaves, bool fertile, int remaining, bool royal, float risk = 1) =>
             (float)departure.Invoke(null, new object[] { leaves, fertile, remaining, royal, risk });
         foreach (bool fertile in new[] { false, true })
@@ -183,9 +200,8 @@ internal static class MarriageMatchmakingTests
             Patch(AccessTools.Method(helper, "IsStrategicMarriageInitiator"), nameof(Available));
             Patch(AccessTools.Method(helper, "CalculateMarriageOpportunity"), nameof(Chance));
             Patch(AccessTools.Method(helper, "CalculateDynasticNeed"), nameof(Need));
-            Patch(AccessTools.Method(helper, "FindBestHouseMatch"), nameof(Search));
+            Patch(AccessTools.Method(type, "AdvanceScheduledMarriageSearch"), nameof(Search));
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsFamily"), nameof(Family));
-            Patch(AccessTools.Method(helper, "FindBestHouseholdMatch"), nameof(Search));
             Patch(AccessTools.PropertyGetter(typeof(MBRandom), "RandomFloat"), nameof(Roll));
             for (int i = 0; offset > 10; i++)
             {
@@ -195,7 +211,9 @@ internal static class MarriageMatchmakingTests
             }
             scheduler = new StrategicMarriageBehavior(); _day = 240 + offset;
             _available = false; _refused = false; _family = true; _rolls = _searches = 0;
-            void Tick() => AccessTools.Method(type, "OnDailyTickClan").Invoke(scheduler, new object[] { _first });
+            void Discover() => AccessTools.Method(type, "OnDailyTickClan").Invoke(scheduler, new object[] { _first });
+            void Hour() => AccessTools.Method(type, "ProcessScheduledMarriageSearches").Invoke(scheduler, null);
+            void Tick() { Discover(); Hour(); }
             Tick();
             check(_rolls == 0 && _searches == 0, "Temporary absence does not consume or roll the annual opportunity");
             _available = true; _day++; Tick();
@@ -237,12 +255,92 @@ internal static class MarriageMatchmakingTests
             scheduler = new StrategicMarriageBehavior(); scheduler.SyncData(saved);
             check(Dict("_lastHouseholdEvaluationYear").Count == 0 && Dict("_lastHouseEvaluationYear").Count == 1,
                 "Old saves initialize household scheduling without erasing their dynastic annual receipts");
+
+            scheduler = new StrategicMarriageBehavior();
+            _day = 240 + offset; _family = true; _refused = true; _remainingTestWork = 1200; _rolls = _searches = 0;
+            Discover(); Discover();
+            check(_rolls == 1 && _searches == 0 && Dict("_queuedDynastySearches").Count == 1,
+                "Daily discovery queues the search once without evaluating pairs");
+            Hour();
+            check(_remainingTestWork == 432 && _searches == 0 && Dict("_marriageSearchCount")[_first.StringId] == 0,
+                "An oversized scan resumes next hour without consuming a retry or running past the hourly budget");
+            var inFlight = new Store(); scheduler.SyncData(inFlight); inFlight.IsLoading = true;
+            scheduler = new StrategicMarriageBehavior(); scheduler.SyncData(inFlight);
+            _remainingTestWork = 1200;
+            _day = 251 + offset; // Outside the old availability window, but the roll was already made.
+            Discover(); Hour(); Hour();
+            check(_rolls == 1 && _searches == 1 && Dict("_queuedDynastySearches").Count == 0,
+                "A queued search survives save/load and the availability window without rerolling");
         }
         finally
         {
             h.UnpatchAll(h.Id);
+            _remainingTestWork = 0;
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { previousCampaign });
         }
+    }
+
+    private static void CheckSearchBudget(Action<bool, string> check, Assembly assembly)
+    {
+        var searchType = assembly.GetType("BellumCivile.Behaviors.BellumMarriageStrategyHelper+ScheduledMarriageSearch");
+        var advance = AccessTools.Method(searchType, "Advance");
+        var steps = AccessTools.Field(searchType, "_steps");
+        var complete = AccessTools.PropertyGetter(searchType, "Complete");
+        foreach (int realms in new[] { 9, 55 })
+        {
+            int visited = 0;
+            IEnumerable<bool> Sample()
+            {
+                for (int i = 0; i < realms * 120; i++) { visited++; yield return true; }
+            }
+            object search = FormatterServices.GetUninitializedObject(searchType);
+            steps.SetValue(search, Sample().GetEnumerator());
+            int hours = 0;
+            while (!(bool)complete.Invoke(search, null))
+            {
+                int before = visited;
+                int used = (int)advance.Invoke(search, new object[] { 768 });
+                check(used == visited - before && used <= 768, "Search slices count and cap work on a " + realms + "-realm fixture");
+                hours++;
+            }
+            check(visited == realms * 120 && hours == (realms * 120 + 767) / 768,
+                "Budgeting spreads rather than drops work on a " + realms + "-realm fixture");
+        }
+    }
+
+    private static void CheckSearchGeography(Action<bool, string> check, Assembly assembly)
+    {
+        var scope = assembly.GetType("BellumCivile.Behaviors.MarriageSearchScope");
+        var pass = AccessTools.Method(scope, "DistantPass");
+        string Pass(bool household, bool royal, bool viable, float risk, int local) =>
+            pass.Invoke(null, new object[] { household, royal, viable, risk, local }).ToString();
+        check(Pass(false, false, true, 1, 1) == "None" && Pass(true, false, true, 1, 1) == "None",
+            "A viable local match ends the ordinary distant search, even with a stressed house");
+        check(Pass(false, true, true, 0, 5) == "RoyalHouses" && Pass(true, true, true, 0, 5) == "None",
+            "A royal dynastic search may still consider another Crown, not a retainer match");
+        check(Pass(false, false, false, .5f, 4) == "AnyHouse" && Pass(false, false, false, .49f, 4) == "None",
+            "An urgent dynasty with no agreed match can look beyond a well-populated local pool");
+        check(Pass(true, false, false, 0, 1) == "AnyHouse" && Pass(true, false, false, 1, 2) == "None",
+            "Thin local pools allow distant fallback, but household search does not borrow dynastic urgency");
+        var start = AccessTools.Method(scope, "DistantStart");
+        int Start(int day) => (int)start.Invoke(null, new object[] { "house", day, 55 });
+        check(Enumerable.Range(800, 55).Select(Start).Distinct().Count() == 55 && Start(800) == Start(800),
+            "Distant search windows rotate across realms and remain deterministic on reload");
+
+        var graphType = assembly.GetType("BellumCivile.Behaviors.MarriageRealmGeography");
+        object Graph(bool known) => Activator.CreateInstance(graphType, BindingFlags.NonPublic | BindingFlags.Instance,
+            null, new object[] { known }, null);
+        var knownGraph = Graph(true);
+        var first = FormatterServices.GetUninitializedObject(typeof(Kingdom));
+        var second = FormatterServices.GetUninitializedObject(typeof(Kingdom));
+        var third = FormatterServices.GetUninitializedObject(typeof(Kingdom));
+        var local = AccessTools.Method(graphType, "IsLocal");
+        bool Local(object graph, object a, object b) => (bool)local.Invoke(graph, new[] { a, b });
+        AccessTools.Method(graphType, "Add").Invoke(knownGraph, new[] { first, second });
+        AccessTools.Method(graphType, "Add").Invoke(knownGraph, new[] { second, third });
+        check(Local(knownGraph, first, first) && Local(knownGraph, first, second) && Local(knownGraph, second, first)
+            && !Local(knownGraph, first, third), "Only direct neighbors are local, and a map edge counts in both directions");
+        check(Local(Graph(false), first, third), "Missing geography preserves matchmaking rather than excluding unknown realms");
     }
 
     private sealed class Store : IDataStore

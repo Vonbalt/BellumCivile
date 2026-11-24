@@ -1298,6 +1298,8 @@ namespace BellumCivile
         public const float MarriageStrategyBaseAnnualChance = 0.10f;
         public const float MarriageStrategyDynasticNeedChanceScale = 0.005f;
         public const float MarriageStrategyMinimumScore = 95f;
+        public const int MarriageAcceptanceSliderMin = 50;
+        public const int MarriageAcceptanceSliderMax = 150;
         public const float MarriageStrategyMaximumAnnualChance = 0.85f;
         public const int   MarriagePlayerOfferCooldownDays = 7;
         public const int   MarriageMaleMinimumAge = 25;

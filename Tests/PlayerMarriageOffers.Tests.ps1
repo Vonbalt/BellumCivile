@@ -37,12 +37,22 @@ Check ($scrollbar.WidthSizePolicy -eq 'Fixed' -and $scrollbar.HorizontalAlignmen
     [double]$clip.MarginRight -ge [double]$scrollbar.SuggestedWidth -and
     [double]$clip.MarginRight -lt [double]$replacement.SuggestedWidth) 'Scrollbar space is reserved inside the column, without covering text or skills.'
 Check ($replacement.SelectNodes(".//*[@DataSource='{ConsequencesList}']").Count -eq 1) 'Offer terms have exactly one data binding.'
+$portraits = Get-Content -Raw (Join-Path $root 'UI/BetrothalOfferPortraitPrefabExtension.cs')
+$anchor = [regex]::Match($portraits, 'PrefabExtension\("MarriageOfferPopup", "([^"]+)"\)').Groups[1].Value
+Check ($native.SelectNodes($anchor).Count -eq 1) 'Betrothal child portraits have a single native overlay anchor.'
+[xml]$portraitXml = [regex]::Match($portraits, 'LoadXml\(@"([\s\S]*?)"\);').Groups[1].Value
+$childSprites = $portraitXml.SelectNodes("//Widget[@IsVisible='@BellumBetrothalChildPortrait']")
+Check ($portraitXml.DocumentElement.'StackLayout.LayoutMethod' -eq 'HorizontalSpaced' -and $childSprites.Count -eq 2 -and
+    $childSprites[0].ParentNode.ParentNode.DataSource -eq '{OffereeClanMember}' -and
+    $childSprites[1].ParentNode.ParentNode.DataSource -eq '{OffererClanMember}') 'Child portraits align with the two native character columns and are gated per hero.'
+Check (@($childSprites | Where-Object { $_.Sprite -eq 'Encyclopedia\portrait_baby' -and $_.DoNotAcceptEvents -eq 'true' }).Count -eq 2) 'Child fallbacks use the native encyclopedia sprite without taking focus.'
 $definer = Get-Content -Raw (Join-Path $root 'BellumCivileSaveDefiner.cs')
 $ids = [regex]::Matches($definer, 'Add(?:Class|Enum)Definition\(typeof\([^\r\n]+\), (\d+)\)') |
     ForEach-Object { [int]$_.Groups[1].Value }
 Check (($ids | Sort-Object -Unique).Count -eq $ids.Count) 'All save class and enum IDs remain unique.'
 Check ($definer.Contains('AddClassDefinition(typeof(PlayerMarriageAgreement), 128)') -and
     $definer.Contains('ConstructContainerDefinition(typeof(List<PlayerMarriageAgreement>))')) 'Offer record and saved list have explicit registrations.'
+Check ($definer.Contains('AddClassDefinition(typeof(BetrothalOfferNotice), 160)')) 'Betrothal notices have their own saved class.'
 $dialogue = Get-Content -Raw (Join-Path $root 'Behaviors/SpecificMarriageProposalBehavior.cs')
 Check ($dialogue.Contains('BC_Marriage_ChooseMatrilineal') -and $dialogue.Contains('BC_Marriage_ChoosePatrilineal') -and
     $dialogue.Contains('PlayerMarriageAgreementBehavior.ConfirmDeparture')) 'Both household choices and own-heir confirmation are wired into dialogue.'

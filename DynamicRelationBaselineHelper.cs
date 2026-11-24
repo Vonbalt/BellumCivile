@@ -182,6 +182,9 @@ namespace BellumCivile
             {
                 if (MarriageAllianceHelper.HasMarriageAlliance(firstClan, secondClan))
                     Add(ref score, reasons, C.DynamicRelationMarriageAllianceBonus, "{=BC_Relation_MarriageAlliance}Marriage alliance: {DELTA}");
+                else if (firstHero == firstClan.Leader && secondHero == secondClan.Leader
+                    && BetrothalBehavior.Instance?.HasAcceptedPledge(firstClan, secondClan) == true)
+                    Add(ref score, reasons, BetrothalRules.PledgedHousesOpinion, "{=BC_Relation_Betrothal}Our houses are pledged in betrothal: {DELTA}");
 
                 Kingdom firstKingdom = firstClan.Kingdom;
                 Kingdom secondKingdom = secondClan.Kingdom;

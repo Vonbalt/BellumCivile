@@ -70,7 +70,7 @@ namespace BellumCivile
                     BellumCivileLogger.Log($"Failed to apply Harmony patch '{type.Name}': {ex}");
                 }
             }
-
+            Patches.BetrothalOfferPopupPatch.Initialize();
         }
 
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
@@ -355,6 +355,7 @@ namespace BellumCivile
                 campaignStarter.AddBehavior(new DynamicMercenaryBandBehavior());
                 campaignStarter.AddBehavior(new SuccessionYearlySummaryBehavior());
                 campaignStarter.AddBehavior(new StrategicMarriageBehavior());
+                campaignStarter.AddBehavior(new BetrothalBehavior());
                 campaignStarter.AddBehavior(new PlayerMarriageAgreementBehavior());
                 campaignStarter.AddBehavior(new SpecificMarriageProposalBehavior());
                 campaignStarter.AddModel(new DynamicArmyManagementModel());

@@ -7,8 +7,10 @@ using TaleWorlds.SaveSystem.Definition;
 
 internal static class PlayerMarriageSaveDefinitionTests
 {
-    private static bool OnlyAgreement(Type type) => type == typeof(PlayerMarriageAgreement);
-    private static bool OnlyList(Type type) => type == typeof(List<PlayerMarriageAgreement>);
+    private static readonly Type Pledge = typeof(PlayerMarriageAgreement).Assembly.GetType("BellumCivile.BetrothalRecord", true);
+    private static readonly Type PledgeList = typeof(List<>).MakeGenericType(Pledge);
+    private static bool OnlyAgreement(Type type) => type == typeof(PlayerMarriageAgreement) || type == Pledge || type == typeof(BetrothalOfferNotice);
+    private static bool OnlyList(Type type) => type == typeof(List<PlayerMarriageAgreement>) || type == PledgeList;
     internal static void Run(Action<bool, string> check)
     {
         var context = new DefinitionContext();
@@ -32,6 +34,13 @@ internal static class PlayerMarriageSaveDefinitionTests
             check(AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
                 .Invoke(context, new object[] { typeof(List<PlayerMarriageAgreement>) }) != null && !context.GotError,
                 "Native save registry resolves player agreement list without definition errors");
+            check(AccessTools.Method(typeof(DefinitionContext), "GetClassDefinition", new[] { typeof(Type) })
+                .Invoke(context, new object[] { Pledge }) != null && AccessTools.Method(typeof(DefinitionContext), "GetContainerDefinition")
+                .Invoke(context, new object[] { PledgeList }) != null && !context.GotError,
+                "Native save registry resolves the separate betrothal records and list");
+            check(AccessTools.Method(typeof(DefinitionContext), "GetClassDefinition", new[] { typeof(Type) })
+                .Invoke(context, new object[] { typeof(BetrothalOfferNotice) }) != null && !context.GotError,
+                "Native save registry resolves the separate betrothal map notice");
         }
         finally { harmony.UnpatchAll(harmony.Id); }
     }

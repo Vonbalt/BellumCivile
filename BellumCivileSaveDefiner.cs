@@ -25,6 +25,8 @@ namespace BellumCivile
             AddClassDefinition(typeof(DefensivePactJoinDecision), 156);
             AddClassDefinition(typeof(DefensivePactJoinDecision.JoinOutcome), 157);
             AddClassDefinition(typeof(InternalPeaceCourierNotice), 158);
+            AddClassDefinition(typeof(BetrothalRecord), 159);
+            AddClassDefinition(typeof(BetrothalOfferNotice), 160);
             AddClassDefinition(typeof(VoluntaryPactDecision), 148);
             AddClassDefinition(typeof(VoluntaryPactDecision.PactOutcome), 149);
             AddClassDefinition(typeof(CourtTermPreparationRecord), 145);
@@ -294,6 +296,7 @@ namespace BellumCivile
             ConstructContainerDefinition(typeof(Dictionary<string, TaleWorlds.CampaignSystem.Election.KingdomDecision>));
             ConstructContainerDefinition(typeof(Dictionary<string, double>));
             ConstructContainerDefinition(typeof(List<PendingMarriageProspect>));
+            ConstructContainerDefinition(typeof(List<BetrothalRecord>));
             ConstructContainerDefinition(typeof(List<RealmUnionClanRecord>));
             ConstructContainerDefinition(typeof(List<RealmUnionTitleRecord>));
             ConstructContainerDefinition(typeof(List<CrownPartitionPromotionRecord>));

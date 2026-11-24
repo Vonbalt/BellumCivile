@@ -307,13 +307,13 @@ namespace BellumCivile
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public int ArmyPersonalFriendRelationThreshold { get; set; } = C.ArmyPersonalFriendRelationThreshold;
 
-        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}When enabled, Bellum gives NPC houses separate annual chances to arrange family and retainer marriages, balancing bloodline survival, household manpower and suitable political ties. Only family-to-family marriages create new house-level marriage ties. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On.")]
+        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}Bellum replaces vanilla NPC matchmaking and automatic offers to the player clan with separate annual chances for family and retainer marriages. Disable this to restore vanilla matchmaking and automatic offers, subject to other mods. Direct player negotiations remain available. Bellum default: On.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public bool EnableBellumStrategicMarriageLogic { get; set; } = true;
 
-        [SettingPropertyBool("{=BC_MCM_BellumOnlyMarriage}Block Vanilla Dice-Roll Marriage Logic", Order = 10, RequireRestart = false, HintText = "{=BC_MCM_BellumOnlyMarriage_Hint}When enabled alongside Strategic Marriage Logic, Bellum replaces vanilla NPC marriage rolls and automatic offers to the player clan with its strategic matchmaking. Disable this to allow vanilla rolls alongside Bellum's matches. Default: On.")]
+        [SettingPropertyInteger("{=BC_MCM_MarriageAcceptance}Strategic Marriage Acceptance Threshold", C.MarriageAcceptanceSliderMin, C.MarriageAcceptanceSliderMax, Order = 10, RequireRestart = false, HintText = "{=BC_MCM_MarriageAcceptance_Hint}Minimum acceptance score for NPC houses considering a strategic match, including court-backed matches. Higher values make houses pickier; lower values make them more receptive. Does not change marriage eligibility or the price of directly negotiated marriages. Bellum default: 95.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
-        public bool UseBellumStrategicNpcMarriagesOnly { get; set; } = true;
+        public int MarriageAcceptanceThreshold { get; set; } = (int)C.MarriageStrategyMinimumScore;
 
         [SettingPropertyInteger("{=BC_MCM_MarriageMaleMinAge}Male Minimum Marriage Age", 16, 80, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_MarriageMaleMinAge_Hint}Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]

@@ -13,6 +13,8 @@ namespace BellumCivile
         private readonly Dictionary<Clan, Hero> _clanHeirs = new Dictionary<Clan, Hero>();
         private readonly Dictionary<Clan, HashSet<Hero>> _continuation = new Dictionary<Clan, HashSet<Hero>>();
 
+        internal void UseCrownHeirs(HashSet<Hero> heirs) => _crownHeirs = heirs;
+
         internal HashSet<Hero> CrownHeirs
         {
             get

@@ -54,6 +54,7 @@ namespace BellumCivile
         public const string DevastatedSettlement = "devastated_settlement";
         public const string InterferedInAffairs = "interfered_in_affairs";
         public const string CelebratedMarriage = "celebrated_marriage";
+        public const string BrokeBetrothal = "broke_betrothal";
         public const string FulfilledRequest = "fulfilled_request";
         public const string FailedRequest = "failed_request";
         public const string BetrayedTrust = "betrayed_trust";
@@ -200,6 +201,7 @@ namespace BellumCivile
                 case MurderedCloseFamily: text = new TextObject("{=BC_RelationMemory_MurderedCloseFamily}Murdered a close member of my family"); break;
                 case MurderedKinsman: text = new TextObject("{=BC_RelationMemory_MurderedKinsman}Murdered a member of our house"); break;
                 case CelebratedMarriage: text = new TextObject("{=BC_RelationMemory_CelebratedMarriage}Celebrated a marriage"); break;
+                case BrokeBetrothal: text = new TextObject("{=BC_RelationMemory_BrokeBetrothal}Broke a betrothal"); break;
                 case FulfilledRequest: text = new TextObject("{=BC_RelationMemory_FulfilledRequest}Fulfilled my request"); break;
                 case FailedRequest: text = new TextObject("{=BC_RelationMemory_FailedRequest}Failed my request"); break;
                 case BetrayedTrust: text = new TextObject("{=BC_RelationMemory_BetrayedTrust}Betrayed my trust"); break;

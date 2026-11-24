@@ -79,7 +79,6 @@ internal static partial class MarriageHouseholdTests
         var assembly = typeof(BellumMarriageModel).Assembly;
         var policyType = assembly.GetType("BellumCivile.MarriageHouseholdPolicy");
         var scopeType = assembly.GetType("BellumCivile.NpcMarriageClanContext");
-        var nativeScopeType = assembly.GetType("BellumCivile.NativeNpcMarriageHouseholdScope");
         var treatyType = assembly.GetType("BellumCivile.TreatyMarriageClanContext");
         var helper = assembly.GetType("BellumCivile.Behaviors.BellumMarriageStrategyHelper");
         var laws = assembly.GetType("BellumCivile.SuccessionLawHelper");
@@ -250,16 +249,14 @@ internal static partial class MarriageHouseholdTests
             catch (InvalidOperationException) { }
             check(_model.GetClanAfterMarriage(bride, groom) == b, "Exception unwinding cannot leak a household override into later marriages");
 
-            using ((IDisposable)Activator.CreateInstance(nativeScopeType, true))
-            {
-                check(_model.IsCoupleSuitableForMarriage(bride, groom) && _model.GetClanAfterMarriage(bride, groom) == a,
-                    "Optional native NPC matchmaking applies the same household policy");
-            }
-            Heirs[b] = groom;
-            using ((IDisposable)Activator.CreateInstance(nativeScopeType, true))
-                check(!_model.IsCoupleSuitableForMarriage(bride, groom), "Optional native NPC path cannot bypass groom retention");
-            Heirs[b] = spare;
-            check(_model.GetClanAfterMarriage(bride, groom) == b, "Outside NPC scope the ordinary model remains unchanged");
+            var npcRoll = assembly.GetType("BellumCivile.Patches.BlockVanillaNpcMarriagePatch");
+            var playerRoll = assembly.GetType("BellumCivile.Patches.BlockVanillaPlayerMarriageOfferPatch");
+            bool NativeRuns(Type patchType) => (bool)AccessTools.Method(patchType, "Prefix").Invoke(null, null);
+            check(!NativeRuns(npcRoll) && !NativeRuns(playerRoll), "Enabled strategy replaces both vanilla automatic rolls");
+            _enabled = false;
+            check(NativeRuns(npcRoll) && NativeRuns(playerRoll) && _model.GetClanAfterMarriage(bride, groom) == b,
+                "Disabled strategy restores automatic rolls and ordinary unguided household placement");
+            _enabled = true;
 
             Patch(AccessTools.Method(typeof(DefaultMarriageModel), "GetEffectiveRelationIncrease"), nameof(Zero));
             Patch(AccessTools.Method(typeof(ChangeRelationAction), "ApplyRelationChangeBetweenHeroes"), nameof(Skip));
@@ -274,9 +271,8 @@ internal static partial class MarriageHouseholdTests
             check(_callbackHouse == a, "Before-wedding listeners observe the same receiving house as native transfer");
             check(Houses[child] == b, "Existing child stays in the original house");
 
-            var patch = assembly.GetType("BellumCivile.Patches.BlockVanillaNpcMarriagePatch");
-            check(harmony.CreateClassProcessor(patch).Patch().Count > 0,
-                "Installed native marriage scheduler accepts household-scope prefix/finalizer signatures");
+            check(harmony.CreateClassProcessor(npcRoll).Patch().Count > 0 && harmony.CreateClassProcessor(playerRoll).Patch().Count > 0,
+                "Both toggle prefixes patch their native automatic scheduling methods");
             RunPlayer(check, harmony, campaign, bride, groom, a, b, spare);
         }
         finally

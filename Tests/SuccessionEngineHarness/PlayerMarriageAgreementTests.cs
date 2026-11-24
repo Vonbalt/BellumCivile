@@ -267,6 +267,7 @@ internal static partial class MarriageHouseholdTests
                 "Player agreement field is persisted: " + field.Name);
         PlayerMarriageSaveDefinitionTests.Run(check);
         RunOfferCommand(check, campaign, behavior, bride, groom);
+        RunBetrothalLifecycle(check, campaign, bride, groom, spare);
         _player = null;
     }
 }

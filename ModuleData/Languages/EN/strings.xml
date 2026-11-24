@@ -420,9 +420,9 @@
     <string id="BC_MCM_ArmyPersonalFriendRelation" text="Personal Army Favor Relation" />
     <string id="BC_MCM_ArmyPersonalFriendRelation_Hint" text="Minimum relation at which a lord outside your de facto authority may answer your call for friendship's sake, either through the army menu or in person. Default: 60." />
     <string id="BC_MCM_EnableBellumMarriage" text="Enable Strategic Marriage Logic" />
-    <string id="BC_MCM_EnableBellumMarriage_Hint" text="When enabled, Bellum gives NPC houses separate annual chances to arrange family and retainer marriages, balancing bloodline survival, household manpower and suitable political ties. Only family-to-family marriages create new house-level marriage ties. Disable this to leave NPC matchmaking to vanilla or another mod. Default: On." />
-    <string id="BC_MCM_BellumOnlyMarriage" text="Block Vanilla Dice-Roll Marriage Logic" />
-    <string id="BC_MCM_BellumOnlyMarriage_Hint" text="When enabled alongside Strategic Marriage Logic, Bellum replaces vanilla NPC marriage rolls and automatic offers to the player clan with its strategic matchmaking. Disable this to allow vanilla rolls alongside Bellum's matches. Default: On." />
+    <string id="BC_MCM_EnableBellumMarriage_Hint" text="Bellum replaces vanilla NPC matchmaking and automatic offers to the player clan with separate annual chances for family and retainer marriages. Disable this to restore vanilla matchmaking and automatic offers, subject to other mods. Direct player negotiations remain available. Bellum default: On." />
+    <string id="BC_MCM_MarriageAcceptance" text="Strategic Marriage Acceptance Threshold" />
+    <string id="BC_MCM_MarriageAcceptance_Hint" text="Minimum acceptance score for NPC houses considering a strategic match, including court-backed matches. Higher values make houses pickier; lower values make them more receptive. Does not change marriage eligibility or the price of directly negotiated marriages. Bellum default: 95." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />
     <string id="BC_MCM_MarriageMaleMinAge_Hint" text="Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years." />
     <string id="BC_MCM_MarriageFemaleMinAge" text="Female Minimum Marriage Age" />
@@ -463,6 +463,7 @@
     <string id="BC_Relation_SameCulture" text="Same culture: {DELTA}" />
     <string id="BC_Relation_DifferentCulture" text="Different culture: {DELTA}" />
     <string id="BC_Relation_MarriageAlliance" text="Marriage alliance: {DELTA}" />
+    <string id="BC_Relation_Betrothal" text="Our houses are pledged in betrothal: {DELTA}" />
     <string id="BC_Relation_SameRealm" text="Same realm: {DELTA}" />
     <string id="BC_Relation_DifferentRealm" text="Different realm: {DELTA}" />
     <string id="BC_Relation_KingdomsAtWar" text="Kingdoms at war: {DELTA}" />
@@ -5389,6 +5390,7 @@
     <string id="BC_Relation_Siblings" text="Bond between siblings: {DELTA}" />
     <string id="BC_Relation_ExtendedFamily" text="Close blood kin: {DELTA}" />
     <string id="BC_RelationMemory_CelebratedMarriage" text="Celebrated a marriage" />
+    <string id="BC_RelationMemory_BrokeBetrothal" text="Broke a betrothal" />
     <string id="BC_RelationMemory_KilledCloseFamily" text="Killed a close member of my family" />
     <string id="BC_RelationMemory_ExecutedCloseFamily" text="Executed a close member of my family" />
     <string id="BC_RelationMemory_MurderedCloseFamily" text="Murdered a close member of my family" />
@@ -7871,6 +7873,45 @@
     <string id="BC_Marriage_CandidateUnavailable" text="{HERO} is unavailable for marriage at present." />
     <string id="BC_Marriage_CandidateMilitary" text="{HERO} is currently occupied with military duties." />
     <string id="BC_Marriage_CandidateEngaged" text="{HERO} is already promised in another marriage offer." />
+    <string id="BC_Betrothal_Propose" text="I wish to speak of a betrothal between our houses." />
+    <string id="BC_Betrothal_ProposeReply" text="Such a promise is not lightly made. Tell me whom you have in mind." />
+    <string id="BC_Betrothal_DiscussBreaking" text="I would speak with you about ending a betrothal between our houses." />
+    <string id="BC_Betrothal_BreakReply" text="We gave one another our word. Which pledge are you asking me to set aside?" />
+    <string id="BC_Betrothal_BreakChoice" text="The pledge between {BC_PLEDGE_FIRST} and {BC_PLEDGE_SECOND}." />
+    <string id="BC_Betrothal_AnotherPledge" text="I meant another pledge." />
+    <string id="BC_Betrothal_LeaveIt" text="Let us leave it as it stands." />
+    <string id="BC_Betrothal_BreakQuestion" text="My house has made plans on the strength of your word. Are you truly withdrawing it?" />
+    <string id="BC_Betrothal_WithdrawWord" text="I am. The betrothal is at an end." />
+    <string id="BC_Betrothal_BreakAnger" text="So your promise was worth no more than that. I shall remember what your word is worth." />
+    <string id="BC_Betrothal_BreakStale" text="There is no such pledge between our houses now." />
+    <string id="BC_Betrothal_OurCandidates" text="Whom will you pledge?" />
+    <string id="BC_Betrothal_TheirCandidates" text="Whom will you ask for?" />
+    <string id="BC_Betrothal_NoLongerPossible" text="The betrothal can no longer be agreed on those terms." />
+    <string id="BC_Betrothal_HouseholdBlocked" text="Their house cannot let its head, heir or last family successor leave." />
+    <string id="BC_Betrothal_HouseholdTitle" text="The Future Household" />
+    <string id="BC_Betrothal_HouseholdText" text="When {FIRST} and {SECOND} marry, which house should they join? The wedding is expected on {DATE}." />
+    <string id="BC_Betrothal_OfferTerms" text="Offer these terms" />
+    <string id="BC_Betrothal_Refusal" text="The other house is unwilling to give its word on those terms." />
+    <string id="BC_Betrothal_Agreed" text="The houses have pledged {FIRST} and {SECOND} in betrothal." />
+    <string id="BC_Betrothal_NoCandidates" text="There is no suitable betrothal between our houses at present." />
+    <string id="BC_Betrothal_Continue" text="Continue" />
+    <string id="BC_Betrothal_Cancel" text="Cancel" />
+    <string id="BC_Betrothal_OfferHeader" text="Betrothal offer from {CLAN}" />
+    <string id="BC_Betrothal_OfferLetter" text="A messenger from {OTHER_HOUSE} brings a letter proposing that {FIRST} and {SECOND} be betrothed. They would join {HOUSE} when they marry. The wedding is expected on {DATE}." />
+    <string id="BC_Betrothal_OfferTransfer" text="At the wedding, {HERO} will join {HOUSE}." />
+    <string id="BC_Betrothal_OfferExpectedDate" text="Expected wedding: {DATE}." />
+    <string id="BC_Betrothal_OfferReservation" text="Accepting reserves the match. No marriage or claim transfer takes place yet." />
+    <string id="BC_Betrothal_AcceptOffer" text="Give my word" />
+    <string id="BC_Betrothal_DeclineOffer" text="Decline" />
+    <string id="BC_Betrothal_WeddingTitle" text="A Promise Comes Due" />
+    <string id="BC_Betrothal_WeddingLetter" text="A messenger from {OTHER_HOUSE} brings word that {FIRST} and {SECOND} have both come of age. Their house asks you to honor the pledge made between your families. The couple would join {HOUSE}." />
+    <string id="BC_Betrothal_Honor" text="Honor the pledge" />
+    <string id="BC_Betrothal_Renounce" text="Break the betrothal" />
+    <string id="BC_Betrothal_Lapsed" text="The betrothal of {FIRST} and {SECOND} has come to an end." />
+    <string id="BC_Betrothal_MarriageBlocked" text="{HERO} is already promised in a betrothal." />
+    <string id="BC_Betrothal_CompetingAgreement" text="One of the pair is already promised in a betrothal." />
+    <string id="BC_Betrothal_Partner" text="Betrothed to" />
+    <string id="BC_Betrothal_WeddingExpected" text="Wedding expected" />
     <string id="BC_Marriage_CandidateSameSex" text="This marriage requires a bride and a groom." />
     <string id="BC_Marriage_CandidatePairRestricted" text="{HERO} cannot marry {OTHER} under the current marriage rules." />
     <string id="BC_Marriage_CandidateNoMatch" text="There is no eligible match for {HERO} in this household at present." />

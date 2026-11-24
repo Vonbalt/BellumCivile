@@ -56,6 +56,7 @@ namespace BellumCivile
                 foreach (Hero receivingSpouse in receiving)
                 {
                     if (sourceSpouse.IsFemale == receivingSpouse.IsFemale
+                        || BetrothalBehavior.BlocksWedding(sourceSpouse, receivingSpouse)
                         || !Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(sourceSpouse, receivingSpouse)
                         || !CanGuaranteeReceivingClan(sourceSpouse, receivingSpouse, receivingRealm.RulingClan))
                         continue;
