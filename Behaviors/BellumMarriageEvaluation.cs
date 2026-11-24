@@ -20,6 +20,7 @@ namespace BellumCivile.Behaviors
             private readonly Dictionary<Hero, List<Hero>> _parentalEstates = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, List<Hero>> _parentHeirs = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, bool> _bloodMembers = new Dictionary<Hero, bool>();
+            private readonly Dictionary<Hero, int> _dowries = new Dictionary<Hero, int>();
             public readonly Dictionary<Clan, Dictionary<Clan, float>> Politics = new Dictionary<Clan, Dictionary<Clan, float>>();
             private readonly FeudalTitleBehavior _titles;
             private readonly int _day;
@@ -135,6 +136,13 @@ namespace BellumCivile.Behaviors
             }
 
             public bool FertileHousehold(Clan house) => Health(house).HasFertileCouple;
+            public int DowryFor(Hero hero)
+            {
+                if (!_dowries.TryGetValue(hero, out int dowry))
+                    _dowries[hero] = dowry = MarriagePayments.Quote(hero, CrownHeirs.Contains(hero),
+                        HouseholdMembership.IsFamily(hero) && _households.MustRemain(hero));
+                return dowry;
+            }
 
             public float IncomingClaimValue(Clan house, Hero carrier, List<string> reasons, bool canFoundLine)
             {
@@ -379,6 +387,7 @@ namespace BellumCivile.Behaviors
                     if (match == null) continue;
                     match.HouseholdOpportunity = household;
                     stats.LegalPairs++;
+                    if (match.FundingBlocked) { stats.UnaffordablePairs++; continue; }
                     bool firstAccepts = member.Clan == Clan.PlayerClan || match.SuitorAcceptance >= threshold;
                     bool secondAccepts = candidate.Clan == Clan.PlayerClan || match.CandidateAcceptance >= threshold;
                     if (!firstAccepts || !secondAccepts)
@@ -454,7 +463,7 @@ namespace BellumCivile.Behaviors
                                 continue;
                             }
                             var match = EvaluateHousehold(other, player, context, destination, false);
-                            if (match.Score < threshold)
+                            if (match.FundingBlocked || match.Score < threshold)
                             {
                                 acceptanceRejected++;
                                 if (requested && (closestRefused == null || match.Score > closestRefused.Score)) closestRefused = match;
@@ -502,7 +511,8 @@ namespace BellumCivile.Behaviors
             {
                 if (!context.CanChooseHousehold(first, second, destination, out _)) continue;
                 var match = EvaluateHousehold(first, second, context, destination, requireAcceptance);
-                if (match != null && (best == null || match.Score > best.Score)) best = match;
+                if (match != null && (best == null || best.FundingBlocked && !match.FundingBlocked
+                    || best.FundingBlocked == match.FundingBlocked && match.Score > best.Score)) best = match;
             }
             return best;
         }
@@ -511,13 +521,14 @@ namespace BellumCivile.Behaviors
             Clan destination, bool requireAcceptance)
         {
             if (destination == null || destination.IsEliminated) return null;
+            if (!MarriageParticipantPolicy.SameMarriageStanding(first, second)) return null;
             var outcome = new MarriageOutcome(first, second, destination,
                 context.CrownHeirs.Contains(first), context.CrownHeirs.Contains(second));
             outcome.FirstParentalEstateProspects = context.ParentalEstateProspects(first);
             outcome.SecondParentalEstateProspects = context.ParentalEstateProspects(second);
             var match = new BellumMarriageMatch { Suitor = first, Candidate = second, Outcome = outcome };
             bool firstFamily = HouseholdMembership.IsFamily(first), secondFamily = HouseholdMembership.IsFamily(second);
-            match.PairClass = firstFamily && secondFamily ? "family" : !firstFamily && !secondFamily ? "retainers" : "mixed";
+            match.PairClass = firstFamily && secondFamily ? "family" : "retainers";
             match.HasDynasticContinuity = outcome.HasReproductiveOpportunity
                 && (destination == first.Clan && context.IsBloodMember(first) && !context.FertileHousehold(first.Clan)
                     || destination == second.Clan && context.IsBloodMember(second) && !context.FertileHousehold(second.Clan));
@@ -533,6 +544,14 @@ namespace BellumCivile.Behaviors
             if (requireAcceptance && !MarriageOutcome.BothAccept(match.SuitorAcceptance, match.CandidateAcceptance,
                 firstPlayer, secondPlayer, BellumCivileOptions.MarriageAcceptanceThreshold)) return null;
             match.Score = MarriageOutcome.Rank(match.SuitorAcceptance, match.CandidateAcceptance, firstPlayer, secondPlayer);
+            Hero leaving = destination == first.Clan ? second : first;
+            match.Dowry = context.DowryFor(leaving);
+            match.FundingBlocked = !MarriagePayments.CanTransfer(destination, leaving.Clan, match.Dowry);
+            if (match.FundingBlocked)
+            {
+                if (requireAcceptance) return null;
+                match.Reasons.Add("receiving house cannot fund dowry");
+            }
             if (match.IsDomestic) match.Reasons.Add("same realm");
             if (match.HasRoyalPolitics) match.Reasons.Add("royal pacification");
             if (match.HasForeignPolitics) match.Reasons.Add("foreign royal alliance");
@@ -564,9 +583,6 @@ namespace BellumCivile.Behaviors
             float status = dynasticPair ? System.Math.Max(0, house.Tier - other.Tier) * C.MarriageScoreRankGapPenalty : 0;
             status *= preference;
             score -= status;
-            float retainerCost = MarriageHealthRules.MixedStatusCost(family, spouseFamily, health.Risk);
-            score -= retainerCost;
-            if (retainerCost > 0) reasons.Add($"{house.StringId}: mixed-status reluctance -{retainerCost:0}");
             if (!family)
             {
                 float ordinary = MarriageHealthRules.HouseholdMarriageValue(spouseFamily);

@@ -9,6 +9,11 @@ namespace BellumCivile
 
         internal static bool IsParticipant(Hero hero) => hero != null && (hero.IsLord || IsCompanion(hero));
 
+        internal static bool SameMarriageStanding(Hero first, Hero second) =>
+            !BellumCivileOptions.EnableBellumStrategicMarriageLogic || first?.Clan == null || second?.Clan == null
+            || !HouseholdMembership.Supports(first.Clan) || !HouseholdMembership.Supports(second.Clan)
+            || HouseholdMembership.IsFamily(first) == HouseholdMembership.IsFamily(second);
+
         internal static float RetainerCost(Hero member, Hero spouse) =>
             Behaviors.MarriageHealthRules.MixedStatusCost(HouseholdMembership.IsFamily(member), HouseholdMembership.IsFamily(spouse), 0);
 

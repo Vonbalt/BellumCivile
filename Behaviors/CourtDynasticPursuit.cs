@@ -40,6 +40,8 @@ namespace BellumCivile.Behaviors
                 match = BellumMarriageStrategyHelper.EvaluateCourtMarriage(p.First, p.Second, false, p.Destination);
                 if (match == null)
                 { DynasticBlocked(a, "native_couple_unavailable"); return true; }
+                if (match.FundingBlocked)
+                { DynasticBlocked(a, "receiving_house_cannot_fund_dowry"); return true; }
                 if (!MarriageOutcome.BothAccept(match.SuitorAcceptance, match.CandidateAcceptance,
                     p.First.Clan == Clan.PlayerClan, p.Second.Clan == Clan.PlayerClan, BellumCivileOptions.MarriageAcceptanceThreshold))
                 {
@@ -69,8 +71,12 @@ namespace BellumCivile.Behaviors
                 }
                 else
                 {
+                    Clan sending = p.Destination == match.Outcome.FirstHouse ? match.Outcome.SecondHouse : match.Outcome.FirstHouse;
+                    var payment = MarriagePayments.Reserve(match.Suitor, match.Candidate, p.Destination, sending, match.Dowry);
+                    if (payment == null) { DynasticBlocked(a, "receiving_house_cannot_fund_dowry"); return true; }
                     // Seal before native callbacks; a partial failure must not repeat a completed wedding.
                     p.NpcAttempted = true;
+                    using (payment)
                     using (new NpcMarriageClanContext(match.Suitor, match.Candidate, p.Destination))
                         MarriageAction.Apply(match.Suitor, match.Candidate);
                     if (!DynasticMarried(p))

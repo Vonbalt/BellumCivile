@@ -5751,6 +5751,9 @@
     <string id="BC_Marriage_LastContinuation" text="This house cannot give up its last viable continuation of the family line." />
     <string id="BC_Marriage_HeirMustStay" text="This offer requires the heir to remain in their own house." />
     <string id="BC_Marriage_HouseChanged" text="One of the betrothed has changed houses. A new marriage agreement is required." />
+    <string id="BC_Marriage_Standing" text="Members of noble families marry within their rank, and retainers marry other retainers." />
+    <string id="BC_Marriage_DowryUnavailable" text="{HOUSE} cannot fund the payment of {GOLD} denars." />
+    <string id="BC_Marriage_DowryTerms" text="{PAYER} will pay {PAYEE} {GOLD} denars at the wedding." />
     <string id="BC_Marriage_HouseholdTerms" text="{HERO} will leave {SOURCE} and join {HOUSE}." />
     <string id="BC_Marriage_Matrilineal" text="Matrilineal marriage" />
     <string id="BC_Marriage_Patrilineal" text="Patrilineal marriage" />
@@ -7880,22 +7883,37 @@
     <string id="BC_Betrothal_BreakChoice" text="The pledge between {BC_PLEDGE_FIRST} and {BC_PLEDGE_SECOND}." />
     <string id="BC_Betrothal_AnotherPledge" text="I meant another pledge." />
     <string id="BC_Betrothal_LeaveIt" text="Let us leave it as it stands." />
-    <string id="BC_Betrothal_BreakQuestion" text="My house has made plans on the strength of your word. Are you truly withdrawing it?" />
+    <string id="BC_Betrothal_BreakQuestion" text="My house has made plans on the strength of your word. Are you truly withdrawing it?{BC_BETROTHAL_BREAK_COST}" />
+    <string id="BC_Betrothal_BreakForfeits" text=" Your deposit of {DEPOSIT} denars will pass to my house." />
+    <string id="BC_Betrothal_BreakRepays" text=" My house will have its {DEPOSIT}-denar deposit returned, and you will owe us {PREMIUM} more." />
     <string id="BC_Betrothal_WithdrawWord" text="I am. The betrothal is at an end." />
     <string id="BC_Betrothal_BreakAnger" text="So your promise was worth no more than that. I shall remember what your word is worth." />
     <string id="BC_Betrothal_BreakStale" text="There is no such pledge between our houses now." />
-    <string id="BC_Betrothal_OurCandidates" text="Whom will you pledge?" />
-    <string id="BC_Betrothal_TheirCandidates" text="Whom will you ask for?" />
+    <string id="BC_Betrothal_PlayerChoice" text="I would pledge {BC_BETROTHAL_CANDIDATE}." />
+    <string id="BC_Betrothal_AnotherCandidate" text="I had someone else in mind." />
+    <string id="BC_Betrothal_TheirCandidates" text="And whom would you ask me to pledge in return?" />
+    <string id="BC_Betrothal_OtherChoice" text="I would ask for {BC_BETROTHAL_CANDIDATE}." />
     <string id="BC_Betrothal_NoLongerPossible" text="The betrothal can no longer be agreed on those terms." />
-    <string id="BC_Betrothal_HouseholdBlocked" text="Their house cannot let its head, heir or last family successor leave." />
-    <string id="BC_Betrothal_HouseholdTitle" text="The Future Household" />
-    <string id="BC_Betrothal_HouseholdText" text="When {FIRST} and {SECOND} marry, which house should they join? The wedding is expected on {DATE}." />
-    <string id="BC_Betrothal_OfferTerms" text="Offer these terms" />
-    <string id="BC_Betrothal_Refusal" text="The other house is unwilling to give its word on those terms." />
-    <string id="BC_Betrothal_Agreed" text="The houses have pledged {FIRST} and {SECOND} in betrothal." />
+    <string id="BC_Betrothal_HouseholdBlocked" text="A house cannot let its head, heir or last family successor leave." />
+    <string id="BC_Betrothal_HouseholdText" text="When {BC_BETROTHAL_FIRST} and {BC_BETROTHAL_SECOND} marry, which house will they join? The wedding is expected on {BC_BETROTHAL_DATE}." />
+    <string id="BC_Betrothal_OurHouseChoice" text="They will join my house, {BC_BETROTHAL_OUR_HOUSE}." />
+    <string id="BC_Betrothal_TheirHouseChoice" text="They will join your house, {BC_BETROTHAL_THEIR_HOUSE}." />
+    <string id="BC_Betrothal_ChooseAnotherCounterpart" text="Let us speak of another match." />
+    <string id="BC_Betrothal_ReconsiderHousehold" text="Perhaps we should speak again of which house they will join." />
+    <string id="BC_Betrothal_TermsReply" text="So be it. Let us set down what we have agreed." />
+    <string id="BC_Betrothal_OfferTerms" text="Let us settle the pledge." />
+    <string id="BC_Betrothal_Refusal" text="I cannot give my word on those terms." />
+    <string id="BC_Betrothal_Agreed" text="Then our houses have given their word. May this pledge bring us closer." />
     <string id="BC_Betrothal_NoCandidates" text="There is no suitable betrothal between our houses at present." />
-    <string id="BC_Betrothal_Continue" text="Continue" />
-    <string id="BC_Betrothal_Cancel" text="Cancel" />
+    <string id="BC_Betrothal_BarterCancelled" text="Then we shall leave the matter for another day." />
+    <string id="BC_Betrothal_BarterDeposit" text="Betrothal of {FIRST} and {SECOND}: {BALANCE} denars due at the wedding" />
+    <string id="BC_Betrothal_DepositTerms" text="{PAYER} will put {DEPOSIT} denars in escrow now and pay the remaining {BALANCE} to {PAYEE} at the wedding." />
+    <string id="BC_Betrothal_DepositForfeited" text="{PAYER} forfeited its {GOLD}-denar deposit to {PAYEE}." />
+    <string id="BC_Betrothal_DepositCompensated" text="{PAYER} recovered {GOLD} denars, including compensation for the broken pledge." />
+    <string id="BC_Betrothal_DepositRefunded" text="{PAYER}'s deposit of {GOLD} denars was returned." />
+    <string id="BC_Betrothal_DepositReleased" text="{PAYEE} received {DOWRY} denars at the wedding, including the {DEPOSIT}-denar deposit." />
+    <string id="BC_Betrothal_ChatPledged" text="{FIRST} and {SECOND} have been betrothed." />
+    <string id="BC_Betrothal_ChatBroken" text="House {HOUSE} has broken its word, casting aside the betrothal of {FIRST} and {SECOND}." />
     <string id="BC_Betrothal_OfferHeader" text="Betrothal offer from {CLAN}" />
     <string id="BC_Betrothal_OfferLetter" text="A messenger from {OTHER_HOUSE} brings a letter proposing that {FIRST} and {SECOND} be betrothed. They would join {HOUSE} when they marry. The wedding is expected on {DATE}." />
     <string id="BC_Betrothal_OfferTransfer" text="At the wedding, {HERO} will join {HOUSE}." />

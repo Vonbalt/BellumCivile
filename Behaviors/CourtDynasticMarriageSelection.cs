@@ -54,7 +54,7 @@ namespace BellumCivile.Behaviors
                 float forecastBonus = CourtDynasticRules.AcceptanceBonus(first.Clan == Clan.PlayerClan,
                     calendar?.GetFavoredBloc(realm) == FactionType.Nobility, true);
                 float existingBonus = calendar?.DynasticMarriageBonus(first, second) ?? 0;
-                if (match == null) { unavailable++; continue; }
+                if (match == null || match.FundingBlocked) { unavailable++; continue; }
                 int threshold = BellumCivileOptions.MarriageAcceptanceThreshold;
                 bool domestic = first.Clan == Clan.PlayerClan || match.SuitorAcceptance + forecastBonus - existingBonus >= threshold;
                 bool foreign = second.Clan == Clan.PlayerClan || match.CandidateAcceptance >= threshold;

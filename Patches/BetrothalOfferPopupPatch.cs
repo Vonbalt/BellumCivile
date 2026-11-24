@@ -161,6 +161,11 @@ namespace BellumCivile.Patches
                 .SetTextVariable("HOUSE", offer.Destination.Name));
             Add(new TextObject("{=BC_Betrothal_OfferExpectedDate}Expected wedding: {DATE}.")
                 .SetTextVariable("DATE", offer.ExpectedDate(BetrothalBehavior.Adulthood).ToString()));
+            if (offer.Dowry > 0)
+            {
+                Add(BetrothalBehavior.BetrothalDepositText(offer));
+                if (!BetrothalBehavior.CanFundDeposit(offer)) Add(MarriagePayments.Unaffordable(offer.Destination, offer.Deposit));
+            }
             Add(new TextObject("{=BC_Betrothal_OfferReservation}Accepting reserves the match. No marriage or claim transfer takes place yet."));
         }
 
@@ -173,6 +178,7 @@ namespace BellumCivile.Patches
         private static bool Resolve(MarriageOfferPopupVM popup, Action close, bool accept)
         {
             if (!Offers.TryGetValue(popup, out var offer)) return true;
+            if (accept && !BetrothalBehavior.CanFundDeposit(offer)) return false;
             try { BetrothalBehavior.Instance?.ResolveIncomingOffer(offer, accept); }
             catch (Exception ex) { BellumCivileLogger.Log($"Could not resolve the betrothal offer: {ex}"); }
             finally { close?.Invoke(); }
@@ -181,6 +187,13 @@ namespace BellumCivile.Patches
 
         internal static bool ShowsChildPortrait(MarriageOfferPopupHeroVM vm) => vm != null
             && Portraits.TryGetValue(vm, out _) && NeedsPortrait(vm.Hero);
+
+        internal static bool CanAccept(MarriageOfferPopupVM vm)
+        {
+            if (Offers.TryGetValue(vm, out var offer)) return BetrothalBehavior.CanFundDeposit(offer);
+            var marriage = PlayerMarriageAgreementBehavior.Instance?.Active;
+            return marriage == null || PlayerMarriageAgreementBehavior.CanFund(marriage);
+        }
 
         private static bool NeedsPortrait(Hero hero) => hero != null
             && FaceGen.GetMaturityTypeWithAge(hero.Age) <= BodyMeshMaturityType.Child;

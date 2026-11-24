@@ -886,3 +886,4 @@ Fixed a path that still allowed direct usurpation of titles held by a vassal’s
 Fixed a crash caused by background patrol calculations accessing the Privy Council cache while it was being rebuilt.
 Improved strategic marriage matchmaking and spread its checks across campaign hours to reduce stutter.
 Added dynastic betrothals, allowing noble houses to promise a future marriage before both heirs come of age.
+Rebalanced marriage dowries so the receiving clan pays and restricted new matches to nobles of the same standing or to two retainers.

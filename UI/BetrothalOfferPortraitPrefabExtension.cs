@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Xml;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs2;
@@ -5,6 +6,13 @@ using JetBrains.Annotations;
 
 namespace BellumCivile.ViewModelMixin
 {
+    [PrefabExtension("MarriageOfferPopup", "descendant::ButtonWidget[@Id='MarriagePopupOkButton']")]
+    [UsedImplicitly]
+    internal sealed class MarriageOfferAffordabilityPrefabExtension : PrefabExtensionSetAttributePatch
+    {
+        public override List<Attribute> Attributes => new List<Attribute> { new Attribute("IsEnabled", "@BellumCanAcceptMarriageOffer") };
+    }
+
     [PrefabExtension("MarriageOfferPopup", "descendant::Widget[@Id='MarriageClipRect']/Children/Widget[@AlphaFactor='2']")]
     [UsedImplicitly]
     internal sealed class BetrothalOfferPortraitPrefabExtension : PrefabExtensionInsertPatch

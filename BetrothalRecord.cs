@@ -18,11 +18,18 @@ namespace BellumCivile
         [SaveableField(10)] internal int FirstDelayedDay = -1;
         [SaveableField(11)] internal int HostilityStartedDay = -1;
         [SaveableField(12)] internal bool OfferNoticePublished;
+        [SaveableField(13)] internal int Dowry;
+        [SaveableField(14)] internal int HeldDeposit;
+        [SaveableField(15)] internal Hero OriginalDepositor;
+        [SaveableField(16)] internal bool SendingHouseHadUrgentNeed;
 
         internal bool Involves(Clan house) => house != null && (FirstHouse == house || SecondHouse == house);
         internal bool Includes(Hero hero) => hero != null && (First == hero || Second == hero);
         internal Hero PartnerOf(Hero hero) => hero == First ? Second : hero == Second ? First : null;
         internal Hero Departing => Destination == FirstHouse ? Second : First;
+        internal Clan SendingHouse => Destination == FirstHouse ? SecondHouse : FirstHouse;
+        internal int Deposit => MarriagePayments.Deposit(Dowry);
+        internal int Balance => Dowry - HeldDeposit;
         internal bool IsPlayerPledge => Involves(Clan.PlayerClan);
         internal Clan OtherPlayerHouse => FirstHouse == Clan.PlayerClan ? SecondHouse : FirstHouse;
 

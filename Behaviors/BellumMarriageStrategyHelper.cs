@@ -23,6 +23,8 @@ namespace BellumCivile.Behaviors
         public List<string> Reasons { get; } = new List<string>();
         internal bool HouseholdOpportunity;
         internal string PairClass;
+        internal int Dowry;
+        internal bool FundingBlocked;
     }
 
     internal enum BellumMarriageRejectionReason
@@ -43,7 +45,8 @@ namespace BellumCivile.Behaviors
         OppositeCivilWarSides,
         TemporarilyUnavailable,
         CannotMarry,
-        VanillaRejected
+        VanillaRejected,
+        DifferentStanding
     }
 
     internal sealed class BellumMarriageEvaluationStats
@@ -51,6 +54,7 @@ namespace BellumCivile.Behaviors
         public int ParticipantChecks, EligibleParticipants, TemporaryParticipants;
         internal bool MarketHasTemporaryParticipants;
         public int LegalPairs, AcceptedPairs, FirstHouseRefused, SecondHouseRefused;
+        public int UnaffordablePairs;
         public int DistantPasses, DistantPairChecks;
         public int BetrothalLegalPairs, DistantBetrothalPairs;
         public float BestRejectedScore = float.NegativeInfinity;
@@ -129,6 +133,7 @@ namespace BellumCivile.Behaviors
             TemporaryParticipants += other.TemporaryParticipants;
             LegalPairs += other.LegalPairs;
             AcceptedPairs += other.AcceptedPairs;
+            UnaffordablePairs += other.UnaffordablePairs;
             FirstHouseRefused += other.FirstHouseRefused;
             SecondHouseRefused += other.SecondHouseRefused;
             DistantPasses += other.DistantPasses;
@@ -780,6 +785,8 @@ namespace BellumCivile.Behaviors
 
             if (suitor.IsFemale == candidate.IsFemale)
                 return BellumMarriageRejectionReason.SameSex;
+            if (!MarriageParticipantPolicy.SameMarriageStanding(suitor, candidate))
+                return BellumMarriageRejectionReason.DifferentStanding;
 
             if (suitor.Clan.IsAtWarWith(candidate.Clan))
                 return BellumMarriageRejectionReason.KingdomAtWar;

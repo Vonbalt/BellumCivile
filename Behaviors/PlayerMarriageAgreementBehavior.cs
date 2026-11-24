@@ -49,7 +49,11 @@ namespace BellumCivile.Behaviors
                 Clan ordinary = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(player, other);
                 if (!policy.TryChoosePlayerOffer(player, other, ordinary, out destination)) return false;
             }
-            _agreements.Add(PlayerMarriageAgreement.Create(player, other, destination, false));
+            var record = PlayerMarriageAgreement.Create(player, other, destination, false);
+            record.Dowry = MarriagePayments.Quote(record.Departing, policy.CrownHeirs.Contains(record.Departing),
+                policy.MustRemain(record.Departing));
+            if (!CanFund(record)) return false;
+            _agreements.Add(record);
             return true;
         }
 
@@ -58,7 +62,7 @@ namespace BellumCivile.Behaviors
             var behavior = Instance;
             var native = Native;
             if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic
-                || behavior == null || native == null || match?.Outcome?.StillMatches() != true
+                || behavior == null || native == null || match?.Outcome?.StillMatches() != true || match.FundingBlocked
                 || ActivePlayer != null || ActiveOther != null) return false;
             Hero player = match.Suitor.Clan == Clan.PlayerClan ? match.Suitor : match.Candidate;
             Hero other = player == match.Suitor ? match.Candidate : match.Suitor;
@@ -103,6 +107,9 @@ namespace BellumCivile.Behaviors
             reason = new TextObject("{=BC_Marriage_NotReady}The betrothed cannot marry at present. The marriage terms must be discussed again when both are available.");
             return false;
         }
+
+        internal static bool CanFund(PlayerMarriageAgreement record) => record.DowrySettled
+            || MarriagePayments.CanTransfer(record.Destination, record.SendingHouse, record.Dowry);
 
         internal static bool StillLegal(PlayerMarriageAgreement record, out TextObject reason)
         {

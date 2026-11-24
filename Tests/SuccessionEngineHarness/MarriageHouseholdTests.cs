@@ -88,6 +88,8 @@ internal static partial class MarriageHouseholdTests
         _clanReads = _crownReads = _rosterReads = _moves = 0;
         var a = Blank<Clan>(); a.StringId = "heiress_house";
         var b = Blank<Clan>(); b.StringId = "groom_house";
+        AccessTools.Field(typeof(Clan), "_tier").SetValue(a, 4);
+        AccessTools.Field(typeof(Clan), "_tier").SetValue(b, 4);
         Hero Hero(Clan house, string id, bool woman = false, float age = 30)
         {
             var hero = Blank<Hero>(); hero.StringId = id;
@@ -99,6 +101,7 @@ internal static partial class MarriageHouseholdTests
         var groom = Hero(b, "groom");
         Leaders[a] = Hero(a, "bride_parent", age: 60);
         Leaders[b] = Hero(b, "groom_parent", age: 60);
+        Leaders[a].Gold = Leaders[b].Gold = 500000;
         var spare = Hero(b, "groom_spare");
         var home = Blank<Kingdom>(); var foreign = Blank<Kingdom>(); var third = Blank<Kingdom>();
         Rulers[home] = a; Rulers[foreign] = b;
@@ -204,6 +207,7 @@ internal static partial class MarriageHouseholdTests
             var context = FormatterServices.GetUninitializedObject(contextType);
             AccessTools.Field(contextType, "_households").SetValue(context, Policy());
             AccessTools.Field(contextType, "_bloodMembers").SetValue(context, new Dictionary<Hero, bool>());
+            AccessTools.Field(contextType, "_dowries").SetValue(context, new Dictionary<Hero, int>());
             AccessTools.Field(contextType, "CrownHeirs").SetValue(context, new HashSet<Hero> { bride });
             AccessTools.Field(contextType, "Realms").SetValue(context, new Dictionary<Clan, Kingdom> { [a] = home, [b] = foreign });
             Patch(AccessTools.Method(contextType, "ParentalEstateProspects"), nameof(NoEstates));
@@ -216,6 +220,12 @@ internal static partial class MarriageHouseholdTests
             check(AccessTools.Property(outcome.GetType(), "Destination").GetValue(outcome) == a
                 && (bool)AccessTools.Method(outcome.GetType(), "StillMatches").Invoke(outcome, null),
                 "Actual matchmaking forecast and pre-wedding validation agree on the matrilineal destination");
+            int savedGold = Leaders[a].Gold;
+            Leaders[a].Gold = 39999;
+            check(Match() == null, "NPC matchmaking rejects a willing couple when the receiving house is one denar short");
+            Leaders[a].Gold = 40000;
+            check(Match() != null, "NPC matchmaking accepts a willing couple with exactly enough to pay the adjusted dowry");
+            Leaders[a].Gold = savedGold;
             _secondScore = 94;
             check(Match() == null, "Matrilineal household never bypasses the other house's 95 acceptance floor");
             _secondScore = 120;

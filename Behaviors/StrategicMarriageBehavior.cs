@@ -224,9 +224,14 @@ namespace BellumCivile.Behaviors
                 return;
             }
 
+            Clan destination = match.Outcome.Destination;
+            Clan sending = destination == match.Outcome.FirstHouse ? match.Outcome.SecondHouse : match.Outcome.FirstHouse;
+            var payment = MarriagePayments.Reserve(match.Suitor, match.Candidate, destination, sending, match.Dowry);
+            if (payment == null) return;
             CloseMarriageOpportunity(clan, match.HouseholdOpportunity);
             try
             {
+                using (payment)
                 using (new NpcMarriageClanContext(match.Suitor, match.Candidate, match.Outcome.Destination))
                     MarriageAction.Apply(match.Suitor, match.Candidate);
             }
@@ -578,7 +583,7 @@ namespace BellumCivile.Behaviors
                     + $"opportunities: dynasty={DynastyOpportunities} household={HouseholdOpportunities}; pairs_completed_or_offered: family={FamilyPairs} retainers={RetainerPairs} mixed={MixedPairs}; "
                     + $"types: dynastic={DynasticSurvivalMarriages} same_realm={SameRealmPoliticalMarriages} royal_pacification={RoyalVassalPacificationMarriages} foreign_alliance={ForeignRoyalAllianceMarriages} same_culture={SameCultureMarriages} cross_culture={CrossCultureMarriages}; "
                     + $"outcomes: no_match={NoValidMatchFound} no_legal_pair_searches={NoLegalPairSearches} house_refusal_searches={RefusedPairSearches} low_score={BestMatchBelowThreshold} vanilla_rejected={VanillaModelRejectedBellumMatch}; "
-                    + $"search_evaluations: participants={Rejections.ParticipantChecks} eligible={Rejections.EligibleParticipants} temporary={Rejections.TemporaryParticipants} legal_pairs={Rejections.LegalPairs} accepted_pairs={Rejections.AcceptedPairs} first_refused={Rejections.FirstHouseRefused} second_refused={Rejections.SecondHouseRefused} best_rejected={(float.IsNegativeInfinity(Rejections.BestRejectedScore) ? "none" : Rejections.BestRejectedScore.ToString("0"))}; "
+                    + $"search_evaluations: participants={Rejections.ParticipantChecks} eligible={Rejections.EligibleParticipants} temporary={Rejections.TemporaryParticipants} legal_pairs={Rejections.LegalPairs} accepted_pairs={Rejections.AcceptedPairs} unaffordable_pairs={Rejections.UnaffordablePairs} first_refused={Rejections.FirstHouseRefused} second_refused={Rejections.SecondHouseRefused} best_rejected={(float.IsNegativeInfinity(Rejections.BestRejectedScore) ? "none" : Rejections.BestRejectedScore.ToString("0"))}; "
                     + $"scheduled_searches: roster_builds={MarriageMarketBuilds} work={_scheduledWork} peak_hour_work={_peakHourlyWork} peak_queue={PeakSearchQueue} total_ms={_scheduledMilliseconds:0.##} peak_hour_ms={_peakHourlyMilliseconds:0.##}; "
                     + $"geography: distant_passes={Rejections.DistantPasses} distant_pair_checks={Rejections.DistantPairChecks}; "
                     + $"betrothals: proposed_or_accepted={BetrothalOffersOrPledges} legal_pairs={Rejections.BetrothalLegalPairs} distant_pairs={Rejections.DistantBetrothalPairs}; "

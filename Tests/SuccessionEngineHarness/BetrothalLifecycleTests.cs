@@ -72,6 +72,9 @@ internal static partial class MarriageHouseholdTests
             Patch(AccessTools.Method(helper, "MarriageParticipantReady"), nameof(BetrothalAvailable));
             Patch(AccessTools.Method(typeof(RelationMemoryService), "ApplyChange"), nameof(RecordBetrothalMemory));
             Patch(AccessTools.Method(type, "ShowPledgeLapsed"), nameof(Skip));
+            Patch(AccessTools.Method(type, "ShowBetrothalOutcome"), nameof(Skip));
+            Patch(AccessTools.Method(type, "ShowBetrothalSettlement"), nameof(Skip));
+            Patch(AccessTools.Method(type, "ShowBetrothalWeddingPayment"), nameof(Skip));
             _pledgeDay = 500; _pledgeRelation = 40; _pledgeAvailable = true; _pledgeMemoryHits = 0;
             Spouses.Clear(); _moves = 0;
             var oldSave = new OfferStore { IsLoading = true };
@@ -84,10 +87,37 @@ internal static partial class MarriageHouseholdTests
             check(!Creation(), "Retainers are excluded even if they come from a noble clan");
             Outsiders.Remove(second);
             CheckBetrothalOfferCommand(check, behavior, first, second);
+            CheckBetrothalProposalDialogue(check, behavior, first, second);
+            var payer = firstHouse.Leader;
+            var payee = secondHouse.Leader;
+            int held = 0;
+            int payerStart = payer.Gold, payeeStart = payee.Gold;
+            payer.Gold = 9999;
+            check(!Creation(true) && Records().Count == 0, "A tier-four betrothal cannot be offered with less than the 10,000-denar deposit");
+            payer.Gold = 10000;
+            check(Creation(true) && payer.Gold == 10000, "Exactly enough for the deposit is sufficient to send an offer");
+            Call("ResolveIncomingOffer", Pledge(), false);
+
+            check(Creation(true), "A stored offer is available for the repricing regression check");
+            var olderQuote = Pledge();
+            AccessTools.Field(recordType, "Dowry").SetValue(olderQuote, 20000);
+            Call("ResolveIncomingOffer", olderQuote, true);
+            check(Accepted() && payer.Gold == 5000 && (int)AccessTools.Field(recordType, "HeldDeposit").GetValue(olderQuote) == 5000,
+                "Accepting a previously quoted offer still uses its original deposit rather than repricing it");
+            Call("End", olderQuote, "fixture_previous_price", null);
+            check(payer.Gold == 10000 && payee.Gold == payeeStart, "Refunds also use the previously quoted deposit");
+
+            payer.Gold = payerStart;
             check(Creation(true) && !Accepted() && Reserved(first) && Reserved(second) && !Creation(),
                 "An unanswered incoming offer reserves its candidates without becoming a pledge or permitting a duplicate");
+            check(payer.Gold == payerStart && payee.Gold == payeeStart, "An unanswered offer never reserves gold");
             check(!(bool)Call("HasAcceptedPledge", firstHouse, secondHouse), "An unanswered offer has no political benefit");
             ResolveBetrothalThroughPopup(check, Pledge(), first, second, accept: true);
+            held = (int)AccessTools.Field(recordType, "HeldDeposit").GetValue(Pledge());
+            int dowry = (int)AccessTools.Field(recordType, "Dowry").GetValue(Pledge());
+            check(dowry == 40000 && held == 10000 && dowry - held == 30000
+                && payer.Gold == payerStart - held && payee.Gold == payeeStart,
+                "A new tier-four betrothal escrows 10,000 of the 40,000-denar dowry, leaving 30,000 due");
             check(Accepted() && (bool)Call("HasAcceptedPledge", secondHouse, firstHouse)
                 && Spouses.Count == 0 && first.Clan == firstHouse && second.Clan == secondHouse && _moves == 0,
                 "Giving your word creates a temporary house tie with no wedding or transfer");
@@ -102,7 +132,8 @@ internal static partial class MarriageHouseholdTests
             var restored = (CampaignBehaviorBase)Activator.CreateInstance(type, nonPublic: true); restored.SyncData(saved);
             UseBehavior(restored);
             check(Records().Count == 1 && Accepted() && Reserved(first)
-                && AccessTools.Field(recordType, "Destination").GetValue(Pledge()) == firstHouse,
+                && AccessTools.Field(recordType, "Destination").GetValue(Pledge()) == firstHouse
+                && (int)AccessTools.Field(recordType, "HeldDeposit").GetValue(Pledge()) == held && payer.Gold == payerStart - held,
                 "Save/load restores both reservations and the originally agreed household");
 
             var cancelled = Pledge();
@@ -111,6 +142,26 @@ internal static partial class MarriageHouseholdTests
                 && _pledgeMemoryHits == 1 && _pledgeMemoryAmount == -30 && _pledgeMemoryYears == 10
                 && !Reserved(first) && !(bool)Call("HasAcceptedPledge", firstHouse, secondHouse),
                 "Deliberate renunciation removes reservation and political benefit and applies one -30 ten-year memory");
+            int premium = (held + 1) / 2;
+            check(payer.Gold == payerStart + premium && payee.Gold == payeeStart - premium,
+                "The sending clan refunds the full deposit and funds the 50-percent premium itself");
+
+            payerStart = payer.Gold; payeeStart = payee.Gold;
+            check(Creation(), "A funded pledge can be used to test a paying house renouncing");
+            check((bool)Call("End", Pledge(), "fixture_payer_renounced", firstHouse)
+                && payer.Gold == payerStart - held && payee.Gold == payeeStart + held,
+                "When the payer breaks its word, the other house receives the deposit without a premium");
+            _pledgeMemoryHits = 1;
+
+            payerStart = payer.Gold; payeeStart = payee.Gold;
+            check(Creation(), "A pledge can outlast a temporary deterioration in relations");
+            _pledgeRelation = -60;
+            Review();
+            _pledgeDay += 30;
+            Review();
+            check(Records().Count == 0 && _pledgeMemoryHits == 1 && payer.Gold == payerStart && payee.Gold == payeeStart,
+                "Sustained hostility without a deliberate renunciation only refunds the deposit");
+            _pledgeRelation = 40;
 
             check(Creation(offer: true), "Another incoming offer can be reviewed after the earlier pledge ends");
             ResolveBetrothalThroughPopup(check, Pledge(), first, second, accept: false);
@@ -119,6 +170,7 @@ internal static partial class MarriageHouseholdTests
 
             check(Creation(), "Family members can make a new pledge after an earlier one ends");
             var wedding = Pledge();
+            payerStart = payer.Gold + held; payeeStart = payee.Gold;
             Ages[first] = 17; Ages[second] = 18;
             Call("HonorPlayerPledge", wedding);
             check(Spouses.Count == 0, "Player consent cannot bypass the younger partner's adulthood");
@@ -130,13 +182,16 @@ internal static partial class MarriageHouseholdTests
             check(Spouses.Count == 0, "A temporary blocker cannot retry before the saved three-day interval");
             _pledgeDay++; Review(); Review();
             check(Spouses[first] == second && Spouses[second] == first && second.Clan == firstHouse && _moves == 1
-                && _callbackHouse == firstHouse && Records().Count == 0,
+                && _callbackHouse == firstHouse && Records().Count == 0
+                && payer.Gold == payerStart - dowry && payee.Gold == payeeStart + dowry,
                 "One real native wedding joins the recorded household and the pledge cannot fire twice");
 
             Spouses.Clear(); Houses[second] = secondHouse; Ages[first] = 17; Ages[second] = 18;
+            payerStart = payer.Gold; payeeStart = payee.Gold;
             check(Creation(), "A protected heir test begins with a valid direction");
             Heirs[secondHouse] = second; Ages[first] = 18; Review();
-            check(Spouses.Count == 0 && Records().Count == 0 && _pledgeMemoryHits == 1,
+            check(Spouses.Count == 0 && Records().Count == 0 && _pledgeMemoryHits == 1
+                && payer.Gold == payerStart && payee.Gold == payeeStart,
                 "A newly protected heir lapses stale terms without swapping the receiving house or blaming either side");
             Heirs[secondHouse] = oldSecondHeir;
 
@@ -158,8 +213,8 @@ internal static partial class MarriageHouseholdTests
                 && !(bool)expired.Invoke(null, new object[] { 10, 39 }) && (bool)expired.Invoke(null, new object[] { 10, 40 }),
                 "Hostility must remain at -60 or worse for thirty days, and recovers immediately above the threshold");
             check(recordType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).Count(f =>
-                f.GetCustomAttributes(false).Any(a => a.GetType().Name == "SaveableFieldAttribute")) == 12,
-                "Betrothal saves include identity, consent, expiration, retry, hostility and notice state");
+                f.GetCustomAttributes(false).Any(a => a.GetType().Name == "SaveableFieldAttribute")) == 16,
+                "Betrothal saves include identity, consent, timing, notification and escrow terms");
         }
         finally
         {

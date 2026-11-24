@@ -275,7 +275,7 @@ namespace BellumCivile.Behaviors
             Hero playerHero = agreement.Player;
             Hero otherHero = agreement.Other;
             MarriageBarterable marriageBarterable = new MarriageBarterable(Hero.MainHero, PartyBase.MainParty, playerHero, otherHero);
-            PlayerMarriagePricing.Bind(marriageBarterable, agreement, out _);
+            PlayerMarriagePricing.BindAgreement(marriageBarterable, agreement);
 
             using (new NpcMarriageClanContext(playerHero, otherHero, agreement.Destination))
             BarterManager.Instance.StartBarterOffer(
@@ -344,6 +344,7 @@ namespace BellumCivile.Behaviors
                 return new List<Hero>();
 
             return ProposalMembers(otherClan)
+                .Where(hero => MarriageParticipantPolicy.SameMarriageStanding(playerClanHero, hero))
                 .OrderByDescending(hero => CanSelectPair(playerClanHero, hero, otherClan, out _))
                 .ThenByDescending(hero => hero == otherClan.Leader)
                 .ThenByDescending(HouseholdMembership.IsFamily)
@@ -387,6 +388,8 @@ namespace BellumCivile.Behaviors
                 reason = new TextObject("{=BC_Marriage_HouseChanged}One of the betrothed has changed houses. A new marriage agreement is required.");
             else if (player.IsFemale == other.IsFemale)
                 reason = new TextObject("{=BC_Marriage_CandidateSameSex}This marriage requires a bride and a groom.");
+            else if (!MarriageParticipantPolicy.SameMarriageStanding(player, other))
+                reason = new TextObject("{=BC_Marriage_Standing}Members of noble families marry within their rank, and retainers marry other retainers.");
             else if (!Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(player, other))
                 reason = new TextObject("{=BC_Marriage_CandidatePairRestricted}{HERO} cannot marry {OTHER} under the current marriage rules.")
                     .SetTextVariable("HERO", player.Name).SetTextVariable("OTHER", other.Name);

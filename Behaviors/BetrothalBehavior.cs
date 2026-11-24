@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 
 namespace BellumCivile.Behaviors
 {
@@ -52,10 +53,13 @@ namespace BellumCivile.Behaviors
             for (int i = 0; i < _pledges.Count; i++)
             {
                 var p = _pledges[i];
-                if (p?.First == null || p.Second == null || p.First == p.Second || p.FirstHouse == null
-                    || p.SecondHouse == null || p.FirstHouse == p.SecondHouse || p.Destination != p.FirstHouse && p.Destination != p.SecondHouse
+                if (!HasPledgeStructure(p)
                     || _byHero.ContainsKey(p.First) || _byHero.ContainsKey(p.Second))
-                { _pledges.RemoveAt(i--); continue; }
+                {
+                    // A malformed saved agreement must not silently discard funded escrow.
+                    if ((p?.HeldDeposit ?? 0) == 0) _pledges.RemoveAt(i--);
+                    continue;
+                }
                 _byHero.Add(p.First, p);
                 _byHero.Add(p.Second, p);
                 if (!p.Accepted) { if (p.IsPlayerPledge) _incomingOffer = p; continue; }
@@ -85,7 +89,11 @@ namespace BellumCivile.Behaviors
         private static bool HouseExists(Clan clan) => clan != null && !clan.IsEliminated && !clan.IsBanditFaction
             && (clan == Clan.PlayerClan || !clan.IsMinorFaction && !clan.IsClanTypeMercenary);
 
-        private static bool IdentityValid(BetrothalRecord p) => HouseExists(p.FirstHouse) && HouseExists(p.SecondHouse)
+        private static bool HasPledgeStructure(BetrothalRecord p) => p?.First != null && p.Second != null && p.First != p.Second
+            && p.FirstHouse != null && p.SecondHouse != null && p.FirstHouse != p.SecondHouse
+            && (p.Destination == p.FirstHouse || p.Destination == p.SecondHouse);
+
+        private static bool IdentityValid(BetrothalRecord p) => HasPledgeStructure(p) && HouseExists(p.FirstHouse) && HouseExists(p.SecondHouse)
             && PersonBelongs(p.First, p.FirstHouse) && PersonBelongs(p.Second, p.SecondHouse);
 
         internal static bool Potential(Hero hero) => hero?.Clan != null && HouseExists(hero.Clan) && PersonBelongs(hero, hero.Clan)
@@ -121,16 +129,28 @@ namespace BellumCivile.Behaviors
             return leaving != Hero.MainHero && !policy.MustRemain(leaving) && !policy.IsLastContinuation(leaving);
         }
 
-        internal bool Create(Hero first, Hero second, Clan destination, bool offerToPlayer)
+        internal bool Create(Hero first, Hero second, Clan destination, bool offerToPlayer) =>
+            CreateWithTerms(first, second, destination, offerToPlayer, BetrothalDowry(first, second, destination));
+
+        internal static int BetrothalDowry(Hero first, Hero second, Clan destination)
+        {
+            if (first?.Clan == null || second?.Clan == null || destination != first.Clan && destination != second.Clan) return 0;
+            return MarriagePayments.Quote(destination == first.Clan ? second : first);
+        }
+
+        private bool CreateWithTerms(Hero first, Hero second, Clan destination, bool offerToPlayer, int dowry)
         {
             if (!CanArrange || !Potential(first) || !Potential(second) || !CompatiblePair(first, second)
                 || _byHero.ContainsKey(first) || _byHero.ContainsKey(second)
                 || !CanSetDestination(first, second, destination, new MarriageHouseholdPolicy())) return false;
             var p = new BetrothalRecord { First = first, Second = second, FirstHouse = first.Clan, SecondHouse = second.Clan,
-                Destination = destination, Accepted = !offerToPlayer, OfferExpiresDay = Day + 7, NextReviewDay = Day };
+                Destination = destination, Dowry = dowry, OfferExpiresDay = Day + 7, NextReviewDay = Day };
             if (offerToPlayer && (!p.IsPlayerPledge || HasIncomingOffer)) return false;
+            if (!CanFundDeposit(p)) return false;
+            if (!offerToPlayer && !FundPledge(p)) return false;
             _pledges.Add(p);
             Changed(p, offerToPlayer ? "offered" : "pledged");
+            if (p.Accepted) ShowBetrothalOutcome(p, "pledged", null);
             return true;
         }
 
@@ -139,21 +159,70 @@ namespace BellumCivile.Behaviors
             if (!_pledges.Contains(p) || p.Accepted || Day > p.OfferExpiresDay || !CanArrange || !p.IsPlayerPledge
                 || !IdentityValid(p) || !CompatiblePair(p.First, p.Second)
                 || !CanSetDestination(p.First, p.Second, p.Destination, new MarriageHouseholdPolicy())) return false;
-            p.Accepted = true;
+            if (!FundPledge(p)) return false;
             Changed(p, "pledged");
+            ShowBetrothalOutcome(p, "pledged", null);
             return true;
+        }
+
+        internal static bool CanFundDeposit(BetrothalRecord p) => p.Deposit == 0
+            || MarriagePayments.CanPay(p.Destination, p.Deposit) && MarriagePayments.Wallet(p.SendingHouse) != null;
+
+        private static bool FundPledge(BetrothalRecord p)
+        {
+            if (p.Accepted || !CanFundDeposit(p)) return false;
+            p.SendingHouseHadUrgentNeed = p.SendingHouse == Clan.PlayerClan || HasUrgentDeparture(p);
+            p.OriginalDepositor = MarriagePayments.Wallet(p.Destination);
+            MarriagePayments.Move(p.OriginalDepositor, null, p.Deposit);
+            p.HeldDeposit = p.Deposit;
+            p.Accepted = true;
+            return true;
+        }
+
+        private static bool HasUrgentDeparture(BetrothalRecord p) =>
+            BellumMarriageStrategyHelper.PlayerMarriageHouseRisk(p.SendingHouse) >= .75f
+            && new MarriageHouseholdPolicy().IsContinuation(p.Departing);
+
+        private static Hero RefundWallet(BetrothalRecord p) =>
+            MarriagePayments.Wallet(p.Destination) ?? (p.OriginalDepositor?.IsAlive == true ? p.OriginalDepositor : null);
+
+        private static bool CanSettleEscrow(BetrothalRecord p, Clan breakingHouse)
+        {
+            if (p.HeldDeposit <= 0) return true;
+            if (breakingHouse != null && breakingHouse == p.Destination)
+                return MarriagePayments.HasRoom(MarriagePayments.Wallet(p.SendingHouse), p.HeldDeposit);
+            int premium = breakingHouse == null ? 0 : MarriagePayments.RenunciationPremium(p.HeldDeposit);
+            Hero refund = RefundWallet(p);
+            return (refund == null && breakingHouse == null && (p.Destination == null || p.Destination.IsEliminated)
+                    || MarriagePayments.HasRoom(refund, p.HeldDeposit + premium))
+                && (breakingHouse == null || MarriagePayments.CanPay(breakingHouse, premium));
+        }
+
+        private static void SettleEscrow(BetrothalRecord p, Clan breakingHouse)
+        {
+            int held = p.HeldDeposit;
+            p.HeldDeposit = 0;
+            if (held <= 0) return;
+            bool forfeited = breakingHouse != null && breakingHouse == p.Destination;
+            Hero beneficiary = forfeited ? MarriagePayments.Wallet(p.SendingHouse) : RefundWallet(p);
+            MarriagePayments.Move(breakingHouse != null && !forfeited ? MarriagePayments.Wallet(breakingHouse) : null, beneficiary,
+                breakingHouse != null && !forfeited ? MarriagePayments.RenunciationPremium(held) : 0);
+            if (beneficiary != null) MarriagePayments.Move(null, beneficiary, held);
+            ShowBetrothalSettlement(p, breakingHouse, held);
         }
 
         private void Changed(BetrothalRecord p, string result)
         {
             Reindex();
             if (p.Accepted) DynamicRelationBehavior.Instance?.InvalidateBaselineCache();
-            BellumCivileLogger.Log($"Betrothal {result}; first={p.First?.StringId}; second={p.Second?.StringId}; house={p.Destination?.StringId}.");
+            BellumCivileLogger.Log($"Betrothal {result}; first={p.First?.StringId}; second={p.Second?.StringId}; house={p.Destination?.StringId}; dowry={p.Dowry}; held={p.HeldDeposit}.");
         }
 
         private bool End(BetrothalRecord p, string reason, Clan breakingHouse = null)
         {
+            if (!_pledges.Contains(p) || p.Accepted && !CanSettleEscrow(p, breakingHouse)) return false;
             if (!_pledges.Remove(p)) return false;
+            if (p.Accepted) SettleEscrow(p, breakingHouse);
             Changed(p, reason);
             if (p.Accepted && breakingHouse != null && p.Involves(breakingHouse))
             {
@@ -162,6 +231,11 @@ namespace BellumCivile.Behaviors
                 Hero offended = other == Clan.PlayerClan ? Hero.MainHero : other.Leader;
                 RelationMemoryService.ApplyChange(breaker, offended, BetrothalRules.BrokenPledgeRelation, p.IsPlayerPledge,
                     RelationMemorySources.BrokeBetrothal, BetrothalRules.BrokenPledgeYears);
+            }
+            if (p.Accepted && reason != "married")
+            {
+                if (breakingHouse == null) ShowPledgeLapsed(p);
+                else ShowBetrothalOutcome(p, "renounced", breakingHouse);
             }
             return true;
         }
@@ -173,7 +247,7 @@ namespace BellumCivile.Behaviors
             {
                 if (!IdentityValid(p))
                 {
-                    if (End(p, "house_or_participant_changed") && p.Accepted) ShowPledgeLapsed(p);
+                    End(p, "house_or_participant_changed");
                     continue;
                 }
                 if (!p.Accepted)
@@ -188,9 +262,13 @@ namespace BellumCivile.Behaviors
                 p.HostilityStartedDay = BetrothalRules.TrackHostility(p.HostilityStartedDay, Day, relation);
                 if (BetrothalRules.MayEndForHostility(p.HostilityStartedDay, Day))
                 {
-                    var breakingHouse = p.IsPlayerPledge ? p.OtherPlayerHouse : p.FirstHouse;
-                    End(p, "renounced_after_hostility", breakingHouse);
-                    ShowPledgeLapsed(p);
+                    // Hostility alone is not a deliberate breach. A dishonorable NPC may renege to
+                    // retain a family member only if the need arose after it gave its word.
+                    Clan sending = p.SendingHouse;
+                    bool npcRenounces = sending != Clan.PlayerClan && !p.SendingHouseHadUrgentNeed
+                        && sending.Leader?.GetTraitLevel(DefaultTraits.Honor) < 0
+                        && CanSetDestination(p.First, p.Second, p.Destination, new MarriageHouseholdPolicy()) && HasUrgentDeparture(p);
+                    if (!npcRenounces || !End(p, "npc_renounced", sending)) End(p, "lapsed_after_hostility");
                     continue;
                 }
                 ReviewWedding(p);
@@ -205,8 +283,8 @@ namespace BellumCivile.Behaviors
             p.NextReviewDay = Day + BetrothalRules.WeddingRetryDays;
             if (TemporaryBlocker(p)) { DelayWedding(p); return; }
             if (!CanSetDestination(p.First, p.Second, p.Destination, new MarriageHouseholdPolicy()))
-            { if (End(p, "household_terms_no_longer_possible")) ShowPledgeLapsed(p); return; }
-            if (!CanExecuteWedding(p)) { DelayWedding(p); return; }
+            { End(p, "household_terms_no_longer_possible"); return; }
+            if (!CanFundWedding(p) || !CanExecuteWedding(p)) { DelayWedding(p); return; }
             if (!p.IsPlayerPledge || p.PlayerConsentedToWedding) CompleteWedding(p);
             else p.FirstDelayedDay = -1;
         }
@@ -214,7 +292,7 @@ namespace BellumCivile.Behaviors
         private void DelayWedding(BetrothalRecord p)
         {
             if (p.FirstDelayedDay < 0) p.FirstDelayedDay = Day;
-            if (BetrothalRules.DelayExpired(p.FirstDelayedDay, Day) && End(p, "wedding_remained_unavailable")) ShowPledgeLapsed(p);
+            if (BetrothalRules.DelayExpired(p.FirstDelayedDay, Day)) End(p, "wedding_remained_unavailable");
         }
 
         private static bool TemporaryBlocker(BetrothalRecord p) => AtWar(p.FirstHouse, p.SecondHouse)
@@ -225,6 +303,8 @@ namespace BellumCivile.Behaviors
             || !BellumMarriageStrategyHelper.MarriageParticipantReady(p.First) || !BellumMarriageStrategyHelper.MarriageParticipantReady(p.Second);
 
         private static bool CanExecuteWedding(BetrothalRecord p) => WithWeddingScope(p, marry: false);
+        private static bool CanFundWedding(BetrothalRecord p) =>
+            MarriagePayments.CanFundWedding(p.Destination, p.SendingHouse, p.Balance, p.HeldDeposit);
 
         private static bool WithWeddingScope(BetrothalRecord p, bool marry)
         {
@@ -247,11 +327,17 @@ namespace BellumCivile.Behaviors
         private void CompleteWedding(BetrothalRecord p)
         {
             if (!_pledges.Contains(p) || !p.Accepted || p.IsPlayerPledge && !p.PlayerConsentedToWedding) return;
-            bool married = false;
-            try { married = WithWeddingScope(p, marry: true); }
+            var payment = MarriagePayments.Reserve(p.First, p.Second, p.Destination, p.SendingHouse, p.Balance, p.HeldDeposit);
+            if (payment == null) { DelayWedding(p); return; }
+            try { using (payment) WithWeddingScope(p, marry: true); }
             catch (Exception ex) { BellumCivileLogger.Log($"Betrothal wedding failed; first={p.First.StringId}; second={p.Second.StringId}; error={ex}"); }
-            if (married || p.First.Spouse != null || p.Second.Spouse != null)
-                End(p, married ? "married" : "wedding_already_changed_state");
+            if (payment.Settled)
+            {
+                int released = p.HeldDeposit;
+                p.HeldDeposit = 0;
+                if (End(p, "married")) ShowBetrothalWeddingPayment(p, released);
+            }
+            else if (p.First.Spouse != null || p.Second.Spouse != null) End(p, "wedding_already_changed_state");
             else DelayWedding(p);
         }
     }

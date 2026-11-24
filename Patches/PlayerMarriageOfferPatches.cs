@@ -34,6 +34,12 @@ namespace BellumCivile.Patches
             __result.Insert(0, record.FormText());
             __result.Insert(1, record.HouseholdText());
             __result.Insert(2, record.ChildrenText());
+            if (record.Dowry > 0)
+            {
+                __result.Add(MarriagePayments.DowryText(record.Destination, record.SendingHouse, record.Dowry));
+                if (!PlayerMarriageAgreementBehavior.CanFund(record))
+                    __result.Add(MarriagePayments.Unaffordable(record.Destination, record.Dowry));
+            }
             if (new MarriageHouseholdPolicy().CrownHeirs.Contains(record.Departing)) __result.Add(record.CrownWarning());
         }
     }
@@ -49,6 +55,8 @@ namespace BellumCivile.Patches
             if (record == null) return true;
             if (!PlayerMarriageAgreementBehavior.StillLegal(record, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); __instance.OnMarriageOfferDeclinedOnPopUp(); return false; }
+            if (!PlayerMarriageAgreementBehavior.CanFund(record))
+            { PlayerMarriageAgreementBehavior.Notify(MarriagePayments.Unaffordable(record.Destination, record.Dowry)); return false; }
             if (_confirmed != record)
             {
                 PlayerMarriageAgreementBehavior.ConfirmDeparture(record, () =>
@@ -79,9 +87,19 @@ namespace BellumCivile.Patches
         {
             private readonly NpcMarriageClanContext _household;
             private readonly PlayerMarriageValidationScope _validation;
-            internal WeddingScope(PlayerMarriageAgreement record)
-            { _household = new NpcMarriageClanContext(record.Player, record.Other, record.Destination); _validation = new PlayerMarriageValidationScope(record); }
-            public void Dispose() { _validation.Dispose(); _household.Dispose(); }
+            private readonly PlayerMarriageAgreement _record;
+            private readonly MarriagePayments.Reservation _payment;
+            internal WeddingScope(PlayerMarriageAgreement record, MarriagePayments.Reservation payment)
+            {
+                _record = record; _payment = payment;
+                _household = new NpcMarriageClanContext(record.Player, record.Other, record.Destination);
+                _validation = new PlayerMarriageValidationScope(record);
+            }
+            public void Dispose()
+            {
+                _validation.Dispose(); _household.Dispose(); _payment?.Dispose();
+                if (_payment?.Settled == true) _record.DowrySettled = true;
+            }
         }
         private static bool Prefix(Hero playerClanHero, Hero otherClanHero, out WeddingScope __state)
         {
@@ -90,7 +108,10 @@ namespace BellumCivile.Patches
             if (record == null) return true;
             if (!PlayerMarriageAgreementBehavior.Ready(record, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); return false; }
-            __state = new WeddingScope(record);
+            var payment = record.DowrySettled ? null
+                : MarriagePayments.Reserve(record.Player, record.Other, record.Destination, record.SendingHouse, record.Dowry);
+            if (!record.DowrySettled && payment == null) return false;
+            __state = new WeddingScope(record, payment);
             return true;
         }
         private static void Finalizer(WeddingScope __state) => __state?.Dispose();

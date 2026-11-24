@@ -45,6 +45,12 @@ namespace BellumCivile
             }
 
             var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
+            if (!MarriageParticipantPolicy.SameMarriageStanding(firstHero, secondHero)
+                && !(agreement?.Accepted == true && !agreement.StandingRequired)
+                && !(agreement == null && (PlayerMarriageAgreementBehavior.Waiting?.TryGetValue(firstHero, out var firstPartner) == true && firstPartner == secondHero
+                    || PlayerMarriageAgreementBehavior.Waiting?.TryGetValue(secondHero, out var secondPartner) == true && secondPartner == firstHero))) return false;
+            if (agreement?.Accepted == true && !MarriageProspectEvaluation.Active
+                && !PlayerMarriageAgreementBehavior.CanFund(agreement)) return false;
             using (agreement == null && PlayerMarriageValidationScope.Current == null
                 ? null : new PlayerMarriageValidationScope(agreement))
                 return base.IsCoupleSuitableForMarriage(firstHero, secondHero);

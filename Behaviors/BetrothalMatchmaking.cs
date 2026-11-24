@@ -101,6 +101,7 @@ namespace BellumCivile.Behaviors
             {
                 if (matrilineal.HasValue && matrilineal.Value != (possible == maternalHouse)
                     || !BetrothalBehavior.CanSetDestination(first, second, possible, policy)) continue;
+                if (!MarriagePayments.CanPay(possible, MarriagePayments.Deposit(BetrothalBehavior.BetrothalDowry(first, second, possible)))) continue;
                 float firstScore = BetrothalBehavior.BetrothalScore(first, second, possible, delay, firstRisk, firstPolitics);
                 float secondScore = playerResponds ? firstScore
                     : BetrothalBehavior.BetrothalScore(second, first, possible, delay, secondRisk, secondPolitics);

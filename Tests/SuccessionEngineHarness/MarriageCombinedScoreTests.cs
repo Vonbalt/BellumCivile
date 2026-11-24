@@ -117,15 +117,7 @@ internal static class MarriageCombinedScoreTests
                 "Secure donor can consent when the foreign political tie is useful");
             Near(Scores(0, 1, domestic: false)[1], 47.5f,
                 "Endangered donor protects its line despite the same political opportunity");
-            _politicsA = _politicsB = 0; _familyB = false;
-            var retainer = Scores(0, 0);
-            Near(retainer[0], 70, "A healthy family retains mixed-status reluctance without employer political benefits");
-            Near(retainer[1], 95, "A retainer can accept an ordinary mixed marriage without inventing employer bloodline continuity");
-            var mixedSurvival = Scores(1, 0);
-            Near(mixedSurvival[0], 195, "Endangered family can relax mixed-status reluctance for real bloodline continuity");
-            Near(mixedSurvival[1], 95, "The retainer's consent does not borrow the other house's desperation");
-            Near(Scores(0, 0, staffRisk: 1)[0], 100,
-                "A real service shortage can make a healthy family value an incoming retainer without inventing dynasty risk");
+            _politicsA = _politicsB = 0;
             _familyA = _familyB = false;
             var household = Scores(0, 0);
             Near(household[0], 100, "An ordinary retainer pair passes consent through household value, not political fiction");

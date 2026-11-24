@@ -38,8 +38,10 @@ Check ($scrollbar.WidthSizePolicy -eq 'Fixed' -and $scrollbar.HorizontalAlignmen
     [double]$clip.MarginRight -lt [double]$replacement.SuggestedWidth) 'Scrollbar space is reserved inside the column, without covering text or skills.'
 Check ($replacement.SelectNodes(".//*[@DataSource='{ConsequencesList}']").Count -eq 1) 'Offer terms have exactly one data binding.'
 $portraits = Get-Content -Raw (Join-Path $root 'UI/BetrothalOfferPortraitPrefabExtension.cs')
-$anchor = [regex]::Match($portraits, 'PrefabExtension\("MarriageOfferPopup", "([^"]+)"\)').Groups[1].Value
+$anchor = [regex]::Match($portraits, 'PrefabExtension\("MarriageOfferPopup", "([^"]*MarriageClipRect[^"]*)"\)').Groups[1].Value
 Check ($native.SelectNodes($anchor).Count -eq 1) 'Betrothal child portraits have a single native overlay anchor.'
+Check ($native.SelectNodes("//ButtonWidget[@Id='MarriagePopupOkButton' and @Command.Click='ExecuteAcceptOffer']").Count -eq 1 -and
+    $portraits.Contains('new Attribute("IsEnabled", "@BellumCanAcceptMarriageOffer")')) 'Affordability gates only the native offer confirmation button.'
 [xml]$portraitXml = [regex]::Match($portraits, 'LoadXml\(@"([\s\S]*?)"\);').Groups[1].Value
 $childSprites = $portraitXml.SelectNodes("//Widget[@IsVisible='@BellumBetrothalChildPortrait']")
 Check ($portraitXml.DocumentElement.'StackLayout.LayoutMethod' -eq 'HorizontalSpaced' -and $childSprites.Count -eq 2 -and

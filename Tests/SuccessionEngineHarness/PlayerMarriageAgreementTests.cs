@@ -183,10 +183,12 @@ internal static partial class MarriageHouseholdTests
         check((bool)AccessTools.Method(AgreementBehavior, "Capture").Invoke(behavior, new object[] { groom, bride }),
             "New unsolicited offer records protected heiress household");
         var accepted = records.Single(); Active(groom, bride);
+        int incomingDowry = accepted.Dowry, brideGold = brideHouse.Leader.Gold, groomGold = groomHouse.Leader.Gold;
         check(accepted.Destination == brideHouse && _model.GetClanAfterMarriage(groom, bride) == brideHouse,
             "Preview uses the stored matrilineal household");
         _offers.OnMarriageOfferAcceptedOnPopUp();
-        check(waiting[groom] == bride && accepted.Accepted && playerField.GetValue(_offers) == null && _offerRewards == 0,
+        check(waiting[groom] == bride && accepted.Accepted && playerField.GetValue(_offers) == null && _offerRewards == 0
+            && incomingDowry > 0 && brideHouse.Leader.Gold == brideGold && groomHouse.Leader.Gold == groomGold,
             "Accepted unavailable pair enters the native queue without relation rewards or a wedding");
         AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
         check(waiting[groom] == bride && _offerRewards == 0, "Temporary unavailability preserves accepted household on hourly retry");
@@ -196,13 +198,21 @@ internal static partial class MarriageHouseholdTests
         check(((List<PlayerMarriageAgreement>)recordsField.GetValue(loaded)).Single().Destination == brideHouse,
             "Behavior save/load preserves agreed destination alongside the native queued pair");
         _offerReady = true;
+        brideHouse.Leader.Gold = incomingDowry - 1;
+        AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
+        check(waiting.TryGetValue(groom, out var deferredPartner) && deferredPartner == bride
+            && Spouses.Count == 0 && groomHouse.Leader.Gold == groomGold,
+            "The accepted offer waits for the paying house to restore its funds");
+        brideHouse.Leader.Gold = brideGold;
         check(_offers.IsHeroEngaged(groom) && _model.IsCoupleSuitableForMarriage(groom, bride),
             "Own queued engagement is ignored only during that pair's wedding suitability check");
         AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
-        check(Spouses[groom] == bride && Houses[groom] == brideHouse && _offerRewards == 1 && waiting.Count == 0,
+        check(Spouses[groom] == bride && Houses[groom] == brideHouse && _offerRewards == 1 && waiting.Count == 0
+            && brideHouse.Leader.Gold == brideGold - incomingDowry && groomHouse.Leader.Gold == groomGold + incomingDowry,
             "Actual native hourly path completes delayed matrilineal wedding and rewards once");
         AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
-        check(_offerRewards == 1, "Later native ticks cannot repeat the accepted wedding reward");
+        check(_offerRewards == 1 && groomHouse.Leader.Gold == groomGold + incomingDowry,
+            "Later native ticks cannot repeat the accepted wedding reward or dowry");
         Reset();
         check(_model.GetClanAfterMarriage(groom, bride) == groomHouse,
             "Old native pending offers without a Bellum record keep the original household");
@@ -266,6 +276,7 @@ internal static partial class MarriageHouseholdTests
             check(field.GetCustomAttributes(false).Any(a => a.GetType().Name == "SaveableFieldAttribute"),
                 "Player agreement field is persisted: " + field.Name);
         PlayerMarriageSaveDefinitionTests.Run(check);
+        CheckDirectionalDowryBarter(check, harmony, campaign, bride, groom, Reset);
         RunOfferCommand(check, campaign, behavior, bride, groom);
         RunBetrothalLifecycle(check, campaign, bride, groom, spare);
         _player = null;

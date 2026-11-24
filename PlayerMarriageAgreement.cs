@@ -16,16 +16,20 @@ namespace BellumCivile
         [SaveableField(5)] public Clan Destination;
         [SaveableField(6)] public bool Negotiated;
         [SaveableField(7)] public bool Accepted;
+        [SaveableField(8)] public int Dowry;
+        [SaveableField(9)] public bool StandingRequired;
+        [SaveableField(10)] public bool DowrySettled;
 
         internal bool Matches(Hero a, Hero b) => Player == a && Other == b || Player == b && Other == a;
         internal Hero Departing => Destination == PlayerHouse ? Other : Player;
+        internal Clan SendingHouse => Destination == PlayerHouse ? OtherHouse : PlayerHouse;
         internal bool Matrilineal => (Player.IsFemale ? PlayerHouse : OtherHouse) == Destination;
         internal static PlayerMarriageAgreement Create(Hero player, Hero other, Clan destination, bool negotiated)
             => new PlayerMarriageAgreement { Player = player, Other = other, PlayerHouse = player.Clan,
-                OtherHouse = other.Clan, Destination = destination, Negotiated = negotiated };
+                OtherHouse = other.Clan, Destination = destination, Negotiated = negotiated, StandingRequired = true };
 
         internal static bool CanChoose(Hero player, Hero other, Clan destination, bool negotiated,
-            MarriageHouseholdPolicy policy, out TextObject reason)
+            MarriageHouseholdPolicy policy, out TextObject reason, bool preserveStanding = false)
         {
             reason = null;
             if (player?.Clan == null || other?.Clan == null || player.Clan != Clan.PlayerClan
@@ -35,6 +39,8 @@ namespace BellumCivile
                 || player.IsFemale == other.IsFemale || !player.IsAlive || !other.IsAlive
                 || player.Spouse != null || other.Spouse != null)
                 reason = new TextObject("{=BC_Marriage_AgreementChanged}This marriage can no longer proceed on the agreed terms.");
+            else if (!preserveStanding && !MarriageParticipantPolicy.SameMarriageStanding(player, other))
+                reason = new TextObject("{=BC_Marriage_Standing}Members of noble families marry within their rank, and retainers marry other retainers.");
             else if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(player) == true
                 || CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(other) == true)
                 reason = new TextObject("{=BC_Marriage_AccessionPending}A pending succession must be settled before this marriage can proceed.");
@@ -60,7 +66,7 @@ namespace BellumCivile
             if (Player == null || Other == null || PlayerHouse == null || OtherHouse == null
                 || Player.Clan != PlayerHouse || Other.Clan != OtherHouse)
             { reason = new TextObject("{=BC_Marriage_HouseChanged}One of the betrothed has changed houses. A new marriage agreement is required."); return false; }
-            return CanChoose(Player, Other, Destination, Negotiated, new MarriageHouseholdPolicy(), out reason);
+            return CanChoose(Player, Other, Destination, Negotiated, new MarriageHouseholdPolicy(), out reason, Accepted && !StandingRequired);
         }
 
         internal TextObject HouseholdText() => new TextObject("{=BC_Marriage_HouseholdTerms}{HERO} will leave {SOURCE} and join {HOUSE}.")

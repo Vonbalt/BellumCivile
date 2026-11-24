@@ -1,0 +1,78 @@
+using System;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.Localization;
+
+namespace BellumCivile
+{
+    internal static class MarriagePayments
+    {
+        internal static int Quote(Hero departing, bool crownHeir = false, bool clanHeir = false)
+        {
+            int tier = Math.Min(6, Math.Max(0, departing.Clan.Tier));
+            return HouseholdMembership.IsFamily(departing)
+                ? 20000 + tier * 5000 + (crownHeir ? 45000 : clanHeir ? 20000 : 0)
+                : 4000 + tier * 500;
+        }
+
+        internal static int Deposit(int dowry) => dowry <= 0 ? 0 : (int)((dowry + 3L) / 4);
+        internal static int RenunciationPremium(int deposit) => (int)((deposit + 1L) / 2);
+        internal static Hero Wallet(Clan clan) => clan?.Leader?.IsAlive == true ? clan.Leader : null;
+        internal static bool CanPay(Clan clan, int amount) => amount == 0 || (Wallet(clan)?.Gold ?? -1) >= amount;
+        internal static bool CanTransfer(Clan payer, Clan payee, int amount) => amount == 0
+            || payer != payee && CanPay(payer, amount) && HasRoom(Wallet(payee), amount);
+        internal static bool HasRoom(Hero hero, int amount) => hero != null && hero.Gold <= int.MaxValue - amount;
+
+        internal static void Move(Hero from, Hero to, int amount)
+        {
+            if (amount <= 0) return;
+            // Escrow debits and credits are not standalone native trades.
+            from?.ChangeHeroGold(-amount);
+            to?.ChangeHeroGold(amount);
+        }
+
+        internal static bool IsWedding(Hero first, Hero second, Clan destination) =>
+            first.Spouse == second && second.Spouse == first && first.Clan == destination && second.Clan == destination;
+
+        internal static bool CanFundWedding(Clan payer, Clan payee, int balance, int held = 0) =>
+            (balance == 0 && held == 0) || payer != payee && CanPay(payer, balance) && HasRoom(Wallet(payee), balance + held);
+
+        internal static Reservation Reserve(Hero first, Hero second, Clan destination, Clan sendingHouse, int balance, int held = 0)
+        {
+            if (!CanFundWedding(destination, sendingHouse, balance, held)) return null;
+            return new Reservation(first, second, destination, sendingHouse, balance, held);
+        }
+
+        internal sealed class Reservation : IDisposable
+        {
+            private readonly Hero _first, _second, _payer, _payee;
+            private readonly Clan _destination;
+            private readonly int _balance, _held;
+            private bool _closed;
+            internal bool Settled { get; private set; }
+
+            internal Reservation(Hero first, Hero second, Clan destination, Clan sendingHouse, int balance, int held)
+            {
+                _first = first; _second = second; _destination = destination;
+                _payer = Wallet(destination); _payee = Wallet(sendingHouse); _balance = balance; _held = held;
+                Move(_payer, null, _balance);
+            }
+
+            public void Dispose()
+            {
+                if (_closed) return;
+                _closed = true;
+                Settled = IsWedding(_first, _second, _destination);
+                if (Settled) Move(null, _payee, _balance + _held);
+                else Move(null, _payer, _balance);
+            }
+        }
+
+        internal static TextObject Unaffordable(Clan payer, int amount) =>
+            new TextObject("{=BC_Marriage_DowryUnavailable}{HOUSE} cannot fund the payment of {GOLD} denars.")
+                .SetTextVariable("HOUSE", payer?.Name ?? new TextObject(string.Empty)).SetTextVariable("GOLD", amount);
+
+        internal static TextObject DowryText(Clan payer, Clan payee, int amount) =>
+            new TextObject("{=BC_Marriage_DowryTerms}{PAYER} will pay {PAYEE} {GOLD} denars at the wedding.")
+                .SetTextVariable("PAYER", payer.Name).SetTextVariable("PAYEE", payee.Name).SetTextVariable("GOLD", amount);
+    }
+}

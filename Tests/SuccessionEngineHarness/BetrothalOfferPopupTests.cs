@@ -74,8 +74,9 @@ internal static partial class MarriageHouseholdTests
                 && popup.ButtonOkLabel == "Give my word" && popup.ButtonCancelLabel == "Decline",
                 "The betrothal presentation survives a native refresh with no active vanilla marriage offer");
             var terms = popup.ConsequencesList.Select(item => item.Item).ToList();
-            check(terms.Count == 5 && terms[0].Contains("Matrilineal") && terms[1].Contains("At the wedding,")
-                && terms[2].Contains("Future children") && terms[3].Contains("Winter 2, 1085") && terms[4].Contains("No marriage or claim transfer"),
+            check(terms.Count == 6 && terms[0].Contains("Matrilineal") && terms[1].Contains("At the wedding,")
+                && terms[2].Contains("Future children") && terms[3].Contains("Winter 2, 1085")
+                && terms[4].Contains("escrow") && terms[5].Contains("No marriage or claim transfer"),
                 "The native consequences panel previews household, descendants, date and deferred effects");
             check((bool)AccessTools.Method(type, "Accept").Invoke(null, new object[] { Blank<MarriageOfferPopupVM>(), null }) && closes == 0,
                 "An unmarked marriage popup always keeps its original accept path");

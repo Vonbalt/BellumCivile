@@ -16,4 +16,14 @@ namespace BellumCivile.ViewModelMixin
         [DataSourceProperty]
         public bool BellumBetrothalChildPortrait => BetrothalOfferPopupPatch.ShowsChildPortrait(ViewModel);
     }
+
+    [ViewModelMixin("RefreshValues")]
+    [UsedImplicitly]
+    internal sealed class MarriageOfferAffordabilityMixin : BaseViewModelMixin<MarriageOfferPopupVM>
+    {
+        public MarriageOfferAffordabilityMixin(MarriageOfferPopupVM vm) : base(vm) { }
+
+        [DataSourceProperty]
+        public bool BellumCanAcceptMarriageOffer => BetrothalOfferPopupPatch.CanAccept(ViewModel);
+    }
 }

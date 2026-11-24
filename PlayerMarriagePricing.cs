@@ -10,6 +10,14 @@ namespace BellumCivile
     {
         internal PlayerMarriageAgreement Agreement;
         internal int Compensation;
+        internal MarriageDowryBarterable Payment;
+
+        internal bool TryConfirmPayment(out int amount)
+        {
+            amount = Payment?.CurrentAmount ?? 0;
+            return Payment == null || Payment.IsOffered && amount >= Payment.Minimum
+                && MarriagePayments.CanTransfer(Agreement.Destination, Agreement.SendingHouse, amount);
+        }
     }
 
     internal static class PlayerMarriagePricing
@@ -89,6 +97,32 @@ namespace BellumCivile
             quote = new PlayerMarriageQuote { Agreement = agreement, Compensation = AdjustStatus(compensation, playerFamily, family) };
             Quotes.Add(item, quote);
             return true;
+        }
+
+        internal static void BindNegotiated(MarriageBarterable item, PlayerMarriageAgreement agreement, int amount,
+            MarriageDowryBarterable payment)
+        {
+            Quotes.Remove(item);
+            Quotes.Add(item, new PlayerMarriageQuote { Agreement = agreement, Compensation = amount, Payment = payment });
+        }
+
+        internal static void BindAgreement(MarriageBarterable item, PlayerMarriageAgreement agreement)
+        {
+            if (BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+                Quotes.Add(item, new PlayerMarriageQuote { Agreement = agreement });
+            else Bind(item, agreement, out _);
+        }
+
+        internal static PlayerMarriageAgreement AgreementFor(MarriageBarterable item)
+        {
+            if (Quotes.TryGetValue(item, out var quote)) return quote.Agreement;
+            Hero first = item.HeroBeingProposedTo, second = item.ProposingHero;
+            if (first?.Clan == null || second?.Clan == null || first.Clan == second.Clan
+                || TreatyMarriageClanContext.TryResolve(first, second, out _)) return null;
+            Hero player = first.Clan == Clan.PlayerClan ? first : second.Clan == Clan.PlayerClan ? second : null;
+            if (player == null) return null;
+            Clan destination = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(first, second);
+            return PlayerMarriageAgreement.Create(player, player == first ? second : first, destination, true);
         }
     }
 }
