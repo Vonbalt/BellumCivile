@@ -609,7 +609,7 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
-            InitializeExistingWarMomentum();
+            InitializeExistingWarMomentum(exhaustive: true);
         }
 
         private void OnDailyTick()
@@ -1032,49 +1032,56 @@ namespace BellumCivile.Behaviors
             InvalidateKingdom(second);
         }
 
-        private void InitializeExistingWarMomentum()
+        private void InitializeExistingWarMomentum(bool exhaustive = false)
         {
             if (!IsRevampEnabled())
                 return;
 
             EnsureCollectionsInitialized();
             WarScoreBehavior warScore = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>();
-            Dictionary<string, int> initializedForeignWarsByKingdomId = CountInitializedForeignWarMomentum();
-            foreach (Kingdom first in Kingdom.All.Where(IsValidWarKingdom).Where(kingdom => !IsTemporaryWarKingdom(kingdom)))
+            var initializedForeignWarsByKingdomId = new Dictionary<string, int>();
+            var pending = new List<(Kingdom First, Kingdom Second, string Key)>();
+            var wars = ActiveKingdomWarPairs.Capture(kingdom => IsValidWarKingdom(kingdom) && !IsTemporaryWarKingdom(kingdom), exhaustive);
+            foreach (var (first, second) in wars)
             {
-                foreach (Kingdom second in Kingdom.All.Where(IsValidWarKingdom).Where(kingdom => !IsTemporaryWarKingdom(kingdom)))
+                string key = BuildWarMomentumKey(first, second);
+                if (!_initializedWarMomentumByConflictId.ContainsKey(key))
                 {
-                    if (string.CompareOrdinal(first.StringId, second.StringId) >= 0 || !first.IsAtWarWith(second))
-                        continue;
-
-                    string momentumKey = BuildWarMomentumKey(first, second);
-                    if (_initializedWarMomentumByConflictId.ContainsKey(momentumKey))
-                        continue;
-
-                    WarScoreRecord war = warScore?.GetActiveWar(first, second);
-                    Kingdom attacker = ResolveKingdom(war?.AttackerKingdomId);
-                    Kingdom defender = ResolveKingdom(war?.DefenderKingdomId);
-                    if (attacker == null || defender == null)
-                    {
-                        bool firstIsAttacker = MBRandom.RandomFloat < 0.5f;
-                        attacker = firstIsAttacker ? first : second;
-                        defender = firstIsAttacker ? second : first;
-                    }
-
-                    bool scripted = StorylineWarProtectionHelper.IsPeaceBlocked(attacker, defender);
-                    float attackerExistingLoad = scripted ? 0 : GetInternalConflictLoad(attacker) + GetCount(initializedForeignWarsByKingdomId, attacker.StringId);
-                    float defenderExistingLoad = scripted ? 0 : GetInternalConflictLoad(defender) + GetCount(initializedForeignWarsByKingdomId, defender.StringId);
-                    ApplyWarOpeningMomentum(attacker, defender, isDefender: false, attackerExistingLoad, "starting war; aggressor inferred");
-                    ApplyWarOpeningMomentum(defender, attacker, isDefender: true, defenderExistingLoad, "starting war; defender inferred");
-
-                    _initializedWarMomentumByConflictId[momentumKey] = true;
-                    if (!scripted)
-                    {
-                        IncrementCount(initializedForeignWarsByKingdomId, attacker.StringId);
-                        IncrementCount(initializedForeignWarsByKingdomId, defender.StringId);
-                    }
-                    BellumCivileLogger.Log($"Initialized existing-war momentum; attacker={attacker.StringId}; defender={defender.StringId}; war={momentumKey}.");
+                    pending.Add((first, second, key));
                 }
+                else if (!StorylineWarProtectionHelper.IsPeaceBlocked(first, second))
+                {
+                    IncrementCount(initializedForeignWarsByKingdomId, first.StringId);
+                    IncrementCount(initializedForeignWarsByKingdomId, second.StringId);
+                }
+            }
+
+            // Count all existing fronts before applying any missing opening effects in encounter order.
+            foreach (var (first, second, key) in pending)
+            {
+                WarScoreRecord war = warScore?.GetActiveWar(first, second);
+                Kingdom attacker = ResolveKingdom(war?.AttackerKingdomId);
+                Kingdom defender = ResolveKingdom(war?.DefenderKingdomId);
+                if (attacker == null || defender == null)
+                {
+                    bool firstIsAttacker = MBRandom.RandomFloat < 0.5f;
+                    attacker = firstIsAttacker ? first : second;
+                    defender = firstIsAttacker ? second : first;
+                }
+
+                bool scripted = StorylineWarProtectionHelper.IsPeaceBlocked(attacker, defender);
+                float attackerExistingLoad = scripted ? 0 : GetInternalConflictLoad(attacker) + GetCount(initializedForeignWarsByKingdomId, attacker.StringId);
+                float defenderExistingLoad = scripted ? 0 : GetInternalConflictLoad(defender) + GetCount(initializedForeignWarsByKingdomId, defender.StringId);
+                ApplyWarOpeningMomentum(attacker, defender, isDefender: false, attackerExistingLoad, "starting war; aggressor inferred");
+                ApplyWarOpeningMomentum(defender, attacker, isDefender: true, defenderExistingLoad, "starting war; defender inferred");
+
+                _initializedWarMomentumByConflictId[key] = true;
+                if (!scripted)
+                {
+                    IncrementCount(initializedForeignWarsByKingdomId, attacker.StringId);
+                    IncrementCount(initializedForeignWarsByKingdomId, defender.StringId);
+                }
+                BellumCivileLogger.Log($"Initialized existing-war momentum; attacker={attacker.StringId}; defender={defender.StringId}; war={key}.");
             }
         }
 
@@ -1122,33 +1129,6 @@ namespace BellumCivile.Behaviors
                 multiplier = 0.75f;
 
             return -Math.Min(C.WarPeaceRevampMultipleFrontShockCap, magnitude * multiplier);
-        }
-
-        private Dictionary<string, int> CountInitializedForeignWarMomentum()
-        {
-            Dictionary<string, int> result = new Dictionary<string, int>();
-            List<Kingdom> kingdoms = Kingdom.All
-                .Where(IsValidWarKingdom)
-                .Where(kingdom => !IsTemporaryWarKingdom(kingdom))
-                .ToList();
-            foreach (Kingdom first in kingdoms)
-            {
-                foreach (Kingdom second in kingdoms)
-                {
-                    if (string.CompareOrdinal(first.StringId, second.StringId) >= 0
-                        || StorylineWarProtectionHelper.IsPeaceBlocked(first, second)
-                        || !first.IsAtWarWith(second)
-                        || !_initializedWarMomentumByConflictId.ContainsKey(BuildWarMomentumKey(first, second)))
-                    {
-                        continue;
-                    }
-
-                    IncrementCount(result, first.StringId);
-                    IncrementCount(result, second.StringId);
-                }
-            }
-
-            return result;
         }
 
         private static float GetInternalConflictLoad(Kingdom kingdom)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BellumCivile.WarPeace;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.MapEvents;
@@ -455,7 +456,7 @@ namespace BellumCivile.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
-            ReconcileExistingWars();
+            ReconcileExistingWars(exhaustive: true);
             ReconcileReversibleScores();
         }
 
@@ -672,31 +673,23 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private void ReconcileExistingWars()
+        private void ReconcileExistingWars(bool exhaustive = false)
         {
             if (!WarPeaceRevampBehavior.IsRevampEnabled())
                 return;
 
             ReconcileOrphanedForeignWarTrackers();
 
-            foreach (Kingdom first in Kingdom.All.Where(IsValidForeignWarParticipant))
+            foreach (var (first, second) in ActiveKingdomWarPairs.Capture(IsValidForeignWarParticipant, exhaustive))
             {
-                foreach (Kingdom second in Kingdom.All.Where(IsValidForeignWarParticipant))
-                {
-                    if (string.CompareOrdinal(first.StringId, second.StringId) >= 0)
-                        continue;
-                    if (!first.IsAtWarWith(second) || GetActiveWar(first, second) != null)
-                        continue;
-                    if (!IsForeignWarPair(first, second)) continue;
+                if (GetActiveWar(first, second) != null || !IsForeignWarPair(first, second)) continue;
 
-                    // Bannerlord preserves when an existing war began, but not which side originally declared it.
-                    // Assign that missing role once when Bellum creates the conflict record; the record then becomes
-                    // the shared source of truth for War Will, war score, and treaty logic.
-                    bool firstIsAttacker = MBRandom.RandomFloat < 0.5f;
-                    Kingdom attacker = firstIsAttacker ? first : second;
-                    Kingdom defender = firstIsAttacker ? second : first;
-                    RegisterConflict(WarScoreConflictType.ForeignWar, attacker, defender, string.Empty, "existing war reconciliation; aggressor inferred");
-                }
+                // Bannerlord preserves the start date but not who declared an existing war.
+                // The ledger records that inferred role once for war score, enthusiasm and treaty logic.
+                bool firstIsAttacker = MBRandom.RandomFloat < 0.5f;
+                Kingdom attacker = firstIsAttacker ? first : second;
+                Kingdom defender = firstIsAttacker ? second : first;
+                RegisterConflict(WarScoreConflictType.ForeignWar, attacker, defender, string.Empty, "existing war reconciliation; aggressor inferred");
             }
         }
 

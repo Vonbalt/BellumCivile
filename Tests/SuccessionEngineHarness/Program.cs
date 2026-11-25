@@ -75,6 +75,11 @@ internal static class Program
                 WarTargetPerformanceTests.Run(Check);
                 Console.WriteLine($"{_checks} war target performance checks passed.");
             }
+            else if (args.Contains("--war-reconciliation"))
+            {
+                WarReconciliationTests.Run(Check);
+                Console.WriteLine($"{_checks} war reconciliation checks passed.");
+            }
             else if (args.Contains("--defensive-pact-votes"))
             {
                 DefensivePactVoteTests.Run(Check);

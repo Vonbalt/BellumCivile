@@ -30,6 +30,8 @@ namespace BellumCivile
             _baseModel = baseModel ?? new DefaultDiplomacyModel();
         }
 
+        internal bool UsesNativeWarStances => _baseModel.GetType() == typeof(DefaultDiplomacyModel);
+
         public override float GetScoreOfMercenaryToJoinKingdom(Clan clan, Kingdom kingdom)
         {
             if (!HasValidMercenaryNegotiationState(clan, kingdom, "mercenary join score"))
