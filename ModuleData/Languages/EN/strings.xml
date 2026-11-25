@@ -371,6 +371,8 @@
     <string id="BC_TitleDisplay_WeakClaim" text="Weak" />
     <string id="BC_TitleDisplay_LandedTitle" text="{TITLE_NOUN} of {TITLE_NAME}" />
     <string id="BC_TitleDisplay_HeldTitle" text="{DISPLAY_TITLE} of {TITLE_NAME}" />
+    <string id="BC_TitleDisplay_LandedTitleWithArticle" text="{TITLE_NOUN} of the {TITLE_NAME}" />
+    <string id="BC_TitleDisplay_HeldTitleWithArticle" text="{DISPLAY_TITLE} of the {TITLE_NAME}" />
     <string id="BC_TitleDisplay_HeroNameFormat" text="{DISPLAY_TITLE} {HERO_NAME}" />
     <string id="BC_TitleDisplay_RegentSuffix" text="{FORMATTED_NAME}, regent to {WARD_NAME}" />
     <string id="BC_TitleLanded_Barony" text="Barony" />
@@ -5771,11 +5773,11 @@
     <string id="BC_Marriage_OneAgreement" text="Only one marriage agreement can be concluded at a time." />
     <string id="BC_Marriage_BarterHousehold" text="{FORM}: {HERO} joins {HOUSE}" />
     <!-- Shipped title preset names, territorial roots, ranks and formats. -->
-    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_aserai" text="the Aserai" />
-    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n" text="the Northern Calradians" />
-    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s" text="the Southern Calradians" />
-    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_w" text="the Western Calradians" />
-    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_nord" text="the Nords" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_aserai" text="Aserai" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n" text="Northern Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s" text="Southern Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_empire_w" text="Western Calradians" />
+    <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_nord" text="Nords" />
     <string id="BC_TitleRoot_Anglicized_bc_title_kingdom_nord2" text="Rhodok" />
     <string id="BC_TitleRoot_Anglicized_county_ailtadruin" text="Ailta Druin" />
     <string id="BC_TitleRoot_Anglicized_county_akkan" text="Akkan" />
@@ -5811,7 +5813,7 @@
     <string id="BC_TitleRoot_Anglicized_county_mesogea" text="Mesogea" />
     <string id="BC_TitleRoot_Anglicized_county_minador" text="Minador" />
     <string id="BC_TitleRoot_Anglicized_county_morcomb" text="Morcomb" />
-    <string id="BC_TitleRoot_Anglicized_county_myzead" text="the Myzead" />
+    <string id="BC_TitleRoot_Anglicized_county_myzead" text="Myzead" />
     <string id="BC_TitleRoot_Anglicized_county_n_rhennod" text="Northern Rhennod" />
     <string id="BC_TitleRoot_Anglicized_county_nahralkals" text="Nahr Al-Kals" />
     <string id="BC_TitleRoot_Anglicized_county_neurval" text="Neurval" />
@@ -5853,7 +5855,7 @@
     <string id="BC_TitleRoot_Anglicized_duchy_vostoku" text="Vostoka" />
     <string id="BC_TitleRoot_Anglicized_duchy_walhdok" text="Walhdok" />
     <string id="BC_TitleRoot_Anglicized_duchy_zapadu" text="Zapada" />
-    <string id="BC_TitleRoot_Anglicized_empire_calradia" text="the Calradians" />
+    <string id="BC_TitleRoot_Anglicized_empire_calradia" text="Calradians" />
     <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_aserai" text="al-Aserai" />
     <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_battania" text="Battaniaid" />
     <string id="BC_TitleRoot_Bannerkings_bc_title_kingdom_empire_n" text="Voreioi Calradoi" />

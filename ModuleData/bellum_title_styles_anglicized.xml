@@ -34,7 +34,9 @@
   <TitleName id="county_minador" name="{=BC_TitleRoot_Anglicized_county_minador}Minador" />
   <TitleName id="county_chertyg" name="{=BC_TitleRoot_Anglicized_county_chertyg}Chertyg" />
   <TitleName id="county_iltan" name="{=BC_TitleRoot_Anglicized_county_iltan}Iltan" />
-  <TitleName id="bc_title_kingdom_nord" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_nord}the Nords" />
+  <TitleName id="bc_title_kingdom_nord" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_nord}Nords"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="duchy_nordvyg" name="{=BC_TitleRoot_Anglicized_duchy_nordvyg}Nordvyg" />
   <TitleName id="duchy_jumne" name="{=BC_TitleRoot_Anglicized_duchy_jumne}Jumne" />
   <TitleName id="county_beinland" name="{=BC_TitleRoot_Anglicized_county_beinland}Beinland" />
@@ -42,7 +44,9 @@
   <TitleName id="county_kjolfjallen" name="{=BC_TitleRoot_Anglicized_county_kjolfjallen}Kjolfjallen" />
   <TitleName id="county_byal" name="{=BC_TitleRoot_Anglicized_county_byal}Byal" />
   <TitleName id="county_iltanhindrun" name="{=BC_TitleRoot_Anglicized_county_iltanhindrun}Iltanhindrun" />
-  <TitleName id="bc_title_kingdom_aserai" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_aserai}the Aserai" />
+  <TitleName id="bc_title_kingdom_aserai" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_aserai}Aserai"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="duchy_jarjara" name="{=BC_TitleRoot_Anglicized_duchy_jarjara}Jarjara" />
   <TitleName id="duchy_nahasa" name="{=BC_TitleRoot_Anglicized_duchy_nahasa}Nahasa" />
   <TitleName id="duchy_alkinaniyya" name="{=BC_TitleRoot_Anglicized_duchy_alkinaniyya}Al-Kinaniyya" />
@@ -62,18 +66,28 @@
   <TitleName id="county_barsdag" name="{=BC_TitleRoot_Anglicized_county_barsdag}Barsdag" />
   <TitleName id="county_sulundag" name="{=BC_TitleRoot_Anglicized_county_sulundag}Sulun Dag" />
   <TitleName id="county_kohirohini" name="{=BC_TitleRoot_Anglicized_county_kohirohini}Kohi Rohini" />
-  <TitleName id="empire_calradia" name="{=BC_TitleRoot_Anglicized_empire_calradia}the Calradians" />
-  <TitleName id="bc_title_kingdom_calradian_empire" name="{=BC_TitleRoot_Anglicized_empire_calradia}the Calradians" />
-  <TitleName id="bc_title_kingdom_empire_n" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n}the Northern Calradians" />
+  <TitleName id="empire_calradia" name="{=BC_TitleRoot_Anglicized_empire_calradia}Calradians"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
+  <TitleName id="bc_title_kingdom_calradian_empire" name="{=BC_TitleRoot_Anglicized_empire_calradia}Calradians"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
+  <TitleName id="bc_title_kingdom_empire_n" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_n}Northern Calradians"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="duchy_dryatica" name="{=BC_TitleRoot_Anglicized_duchy_dryatica}Dryatica" />
   <TitleName id="duchy_laconia" name="{=BC_TitleRoot_Anglicized_duchy_laconia}Laconia" />
   <TitleName id="county_galchas" name="{=BC_TitleRoot_Anglicized_county_galchas}Galchas" />
   <TitleName id="county_diatagmatia" name="{=BC_TitleRoot_Anglicized_county_diatagmatia}Diatagmatia" />
   <TitleName id="county_ophthys" name="{=BC_TitleRoot_Anglicized_county_ophthys}Ophthys" />
   <TitleName id="county_nevis" name="{=BC_TitleRoot_Anglicized_county_nevis}Nevis" />
-  <TitleName id="county_myzead" name="{=BC_TitleRoot_Anglicized_county_myzead}the Myzead" />
+  <TitleName id="county_myzead" name="{=BC_TitleRoot_Anglicized_county_myzead}Myzead"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="county_portatia" name="{=BC_TitleRoot_Anglicized_county_portatia}Portatia" />
-  <TitleName id="bc_title_kingdom_empire_s" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s}the Southern Calradians" />
+  <TitleName id="bc_title_kingdom_empire_s" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s}Southern Calradians"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="duchy_lycarea" name="{=BC_TitleRoot_Anglicized_duchy_lycarea}Lycarea" />
   <TitleName id="duchy_tanaesia" name="{=BC_TitleRoot_Anglicized_duchy_tanaesia}Tanaesia" />
   <TitleName id="duchy_tripotamia" name="{=BC_TitleRoot_Anglicized_duchy_tripotamia}Tripotamia" />
@@ -83,7 +97,9 @@
   <TitleName id="county_sericea" name="{=BC_TitleRoot_Anglicized_county_sericea}Sericea" />
   <TitleName id="county_gorea" name="{=BC_TitleRoot_Anglicized_county_gorea}Gorea" />
   <TitleName id="county_calsa" name="{=BC_TitleRoot_Anglicized_county_calsa}Calsa" />
-  <TitleName id="bc_title_kingdom_empire_w" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_w}the Western Calradians" />
+  <TitleName id="bc_title_kingdom_empire_w" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_w}Western Calradians"
+             titleFormat="{=BC_TitleDisplay_LandedTitleWithArticle}{TITLE_NOUN} of the {TITLE_NAME}"
+             heldTitleFormat="{=BC_TitleDisplay_HeldTitleWithArticle}{DISPLAY_TITLE} of the {TITLE_NAME}" />
   <TitleName id="duchy_ilatarea" name="{=BC_TitleRoot_Anglicized_duchy_ilatarea}Ilatarea" />
   <TitleName id="duchy_aminys" name="{=BC_TitleRoot_Anglicized_duchy_aminys}Aminys" />
   <TitleName id="duchy_erithrys" name="{=BC_TitleRoot_Anglicized_duchy_erithrys}Erithrys" />

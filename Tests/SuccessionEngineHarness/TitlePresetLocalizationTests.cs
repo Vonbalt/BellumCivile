@@ -100,7 +100,7 @@ internal static class TitlePresetLocalizationTests
                     preset + ": Rhodok has a localized territorial root without a rank");
                 Type display = typeof(FeudalTitleRecord).Assembly.GetType("BellumCivile.FeudalTitleDisplayHelper", true);
                 var rhodokRealm = (TextObject)AccessTools.Method(display, "FormatRealmName")
-                    .Invoke(null, new object[] { FeudalTitleType.Kingdom, rhodokRoot, null, null, "rhodok" });
+                    .Invoke(null, new object[] { FeudalTitleType.Kingdom, rhodokRoot, null, null, "rhodok", "bc_title_kingdom_nord2" });
                 string rhodokTitle = (string)AccessTools.Method(display, "FormatTitleName",
                     new[] { typeof(FeudalTitleType), typeof(string), typeof(Clan), typeof(Kingdom), typeof(string) })
                     .Invoke(null, new object[] { FeudalTitleType.Kingdom, rhodokRoot.Value, null, null, "rhodok" });
@@ -110,6 +110,42 @@ internal static class TitlePresetLocalizationTests
                 check(((TextObject)rhodokRealm.Attributes["TITLE_NAME"]).GetID() == rhodokRoot.GetID(),
                     preset + ": realm display preserves Rhodok's nested localization key");
                 Translate(rhodokRoot.GetID(), "Translated Rhodok");
+                if (preset == "anglicized")
+                {
+                    var articleTitles = new[]
+                    {
+                        ("bc_title_kingdom_nord", FeudalTitleType.Kingdom, "Nords"),
+                        ("bc_title_kingdom_aserai", FeudalTitleType.Kingdom, "Aserai"),
+                        ("empire_calradia", FeudalTitleType.Empire, "Calradians"),
+                        ("bc_title_kingdom_calradian_empire", FeudalTitleType.Empire, "Calradians"),
+                        ("bc_title_kingdom_empire_n", FeudalTitleType.Kingdom, "Northern Calradians"),
+                        ("bc_title_kingdom_empire_s", FeudalTitleType.Kingdom, "Southern Calradians"),
+                        ("bc_title_kingdom_empire_w", FeudalTitleType.Kingdom, "Western Calradians"),
+                        ("county_myzead", FeudalTitleType.County, "Myzead")
+                    };
+                    var formatTitle = AccessTools.Method(display, "FormatTitleName", new[] { typeof(FeudalTitleRecord), typeof(Clan) });
+                    var formatRealm = AccessTools.Method(display, "FormatRealmName");
+                    foreach (var (id, tier, territory) in articleTitles)
+                    {
+                        string raw = (string)Names(config)[id];
+                        var shortName = new TextObject(raw);
+                        string expected = tier + " of the " + territory;
+                        var title = new FeudalTitleRecord(id, raw, tier, "", "", "", "", "", 0, 0);
+                        check(shortName.ToString() == territory && english[shortName.GetID()] == territory,
+                            id + ": English short name is article-free in both the preset and catalog");
+                        check((string)formatTitle.Invoke(null, new object[] { title, null }) == expected,
+                            id + ": hierarchy keeps the article in the full title");
+                        if (tier >= FeudalTitleType.Kingdom)
+                            check(((TextObject)formatRealm.Invoke(null, new object[] { tier, shortName, null, null, "", id }))
+                                .ToString() == expected, id + ": realm display keeps the article in its full name");
+                    }
+
+                    const string southernId = "bc_title_kingdom_empire_s";
+                    var customName = new TextObject("Southern Calradia");
+                    check(((TextObject)formatRealm.Invoke(null,
+                        new object[] { FeudalTitleType.Kingdom, customName, null, null, "", southernId })).ToString()
+                        == "Kingdom of Southern Calradia", "An alternate or player-chosen root does not inherit preset grammar");
+                }
 
                 var styles = (IList)AccessTools.Field(Config, "_styles").GetValue(config);
                 object vlandian = styles.Cast<object>().First(style => Field(style, "CultureRef") == "Vlandia");
@@ -236,12 +272,16 @@ internal static class TitlePresetLocalizationTests
                 titles[entry.Key] = new FeudalTitleRecord((string)entry.Key, "Old literal root", FeudalTitleType.Kingdom,
                     "legal_holder", "holder", "", "capital", "realm", 0, 0);
             var vlandia = (FeudalTitleRecord)titles["bc_title_kingdom_vlandia"];
+            var southern = (FeudalTitleRecord)titles["bc_title_kingdom_empire_s"];
+            southern.SetName("{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s}the Southern Calradians");
             var renamed = (FeudalTitleRecord)titles["bc_title_kingdom_sturgia"];
             renamed.SetName("Player's chosen name");
             ((IDictionary)AccessTools.Field(typeof(FeudalTitleBehavior), "_playerTitleNameOverrides").GetValue(behavior))
                 [renamed.TitleId] = renamed.Name;
             AccessTools.Method(typeof(FeudalTitleBehavior), "ApplyConfiguredTitleNames").Invoke(behavior, new object[] { "localization test" });
             check(vlandia.Name == "{=FjwRsf1C}Vlandia", "Existing unkeyed Crown root picks up the preset's native translation token");
+            check(southern.Name == "{=BC_TitleRoot_Anglicized_bc_title_kingdom_empire_s}Southern Calradians",
+                "Existing Anglicized names are updated to the article-free root");
             var rhodok = (FeudalTitleRecord)titles["bc_title_kingdom_nord2"];
             check(rhodok.Name == "{=BC_TitleRoot_Anglicized_bc_title_kingdom_nord2}Rhodok"
                 && rhodok.DeFactoHolderClanId == "holder" && rhodok.DeJureHolderClanId == "legal_holder"

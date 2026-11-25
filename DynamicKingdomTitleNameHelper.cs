@@ -438,7 +438,7 @@ namespace BellumCivile
                     return false;
 
                 TextObject fullName = FeudalTitleDisplayHelper.FormatRealmName(sovereignTitle.TitleType,
-                    root, kingdom.RulingClan, kingdom, sovereignTitle.FallbackCultureRef);
+                    root, kingdom.RulingClan, kingdom, sovereignTitle.FallbackCultureRef, sovereignTitle.TitleId);
                 displayText = field == KingdomDisplayNameField.InformalName ? root : fullName;
                 lock (CacheLock)
                 {

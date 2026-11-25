@@ -152,7 +152,7 @@ namespace BellumCivile
             {
                 string territory = CleanTerritorialRoot(LocalizeConfiguredText(sourceTitle.Name));
                 if (!string.IsNullOrWhiteSpace(territory))
-                    heldTitle = FormatHeldTitle(rankStyle?.HeldTitleFormat, displayTitle, territory);
+                    heldTitle = FormatHeldTitle(ResolveHeldTitleFormat(sourceTitle, rankStyle), displayTitle, territory);
             }
 
             string format = string.IsNullOrWhiteSpace(rankStyle?.HeroNameFormat)
@@ -234,10 +234,15 @@ namespace BellumCivile
             if (title == null)
                 return string.Empty;
 
-            return FormatTitleName(title.TitleType, title.Name, styleClan, ResolveKingdom(title.AssociatedKingdomId), title.FallbackCultureRef);
+            return FormatTitleNameCore(title.TitleType, title.Name, styleClan, ResolveKingdom(title.AssociatedKingdomId),
+                title.FallbackCultureRef, FeudalTitleConfig.Instance.GetTitleNameFormats(title.TitleId, title.Name).Landed);
         }
 
         public static string FormatTitleName(FeudalTitleType type, string titleRoot, Clan styleClan, Kingdom fallbackKingdom = null, string fallbackCultureRef = "")
+            => FormatTitleNameCore(type, titleRoot, styleClan, fallbackKingdom, fallbackCultureRef, null);
+
+        private static string FormatTitleNameCore(FeudalTitleType type, string titleRoot, Clan styleClan,
+            Kingdom fallbackKingdom, string fallbackCultureRef, string titleFormat)
         {
             string root = CleanTerritorialRoot(LocalizeConfiguredText(titleRoot));
             if (string.IsNullOrWhiteSpace(root))
@@ -248,7 +253,7 @@ namespace BellumCivile
             if (string.IsNullOrWhiteSpace(titleNoun))
                 return root;
 
-            return FormatLandedTitle(style?.TitleFormat, titleNoun, root);
+            return FormatLandedTitle(string.IsNullOrWhiteSpace(titleFormat) ? style?.TitleFormat : titleFormat, titleNoun, root);
         }
 
         internal static TextObject FormatLordshipName(Settlement village)
@@ -284,14 +289,17 @@ namespace BellumCivile
         }
 
         internal static TextObject FormatRealmName(FeudalTitleType type, TextObject root, Clan styleClan,
-            Kingdom kingdom, string fallbackCultureRef = "")
+            Kingdom kingdom, string fallbackCultureRef = "", string titleId = null)
         {
             FeudalTitleConfig.RankStyle style = ResolveRankStyle(type, styleClan, kingdom, fallbackCultureRef);
             TextObject noun = !string.IsNullOrWhiteSpace(style?.TitleName)
                 ? new TextObject(style.TitleName) : GetDefaultLandedTitleNoun(type);
             if (noun.IsEmpty()) return root;
-            TextObject text = new TextObject(!string.IsNullOrWhiteSpace(style?.TitleFormat)
-                ? style.TitleFormat : "{=BC_TitleDisplay_LandedTitle}{TITLE_NOUN} of {TITLE_NAME}");
+            string format = FeudalTitleConfig.Instance.GetTitleNameFormats(titleId, root.Value).Landed;
+            if (string.IsNullOrWhiteSpace(format))
+                format = style?.TitleFormat;
+            TextObject text = new TextObject(string.IsNullOrWhiteSpace(format)
+                ? "{=BC_TitleDisplay_LandedTitle}{TITLE_NOUN} of {TITLE_NAME}" : format);
             // Keep nested TextObjects, including translation IDs and grammatical variables.
             text.SetTextVariable("TITLE_NOUN", noun);
             text.SetTextVariable("TITLE_NAME", root);
@@ -313,7 +321,13 @@ namespace BellumCivile
                 return legalName;
 
             FeudalTitleConfig.RankStyle style = ResolveRankStyle(title.TitleType, clan, ResolveKingdom(title.AssociatedKingdomId), title.FallbackCultureRef);
-            return FormatHeldTitle(style?.HeldTitleFormat, rank, territory);
+            return FormatHeldTitle(ResolveHeldTitleFormat(title, style), rank, territory);
+        }
+
+        private static string ResolveHeldTitleFormat(FeudalTitleRecord title, FeudalTitleConfig.RankStyle style)
+        {
+            string format = FeudalTitleConfig.Instance.GetTitleNameFormats(title.TitleId, title.Name).Held;
+            return string.IsNullOrWhiteSpace(format) ? style?.HeldTitleFormat : format;
         }
 
         private static string GetHeldTitleStatus(Clan clan, FeudalTitleRecord title)

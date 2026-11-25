@@ -99,11 +99,21 @@ namespace BellumCivile
         private readonly List<TitleStyle> _styles = new List<TitleStyle>();
         private readonly List<StartingClientage> _startingClientages = new List<StartingClientage>();
         private readonly Dictionary<string, string> _titleNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, (string Landed, string Held)> _titleNameFormats =
+            new Dictionary<string, (string Landed, string Held)>(StringComparer.OrdinalIgnoreCase);
 
         public IReadOnlyList<ConfiguredTitle> Titles => _titles;
         public IReadOnlyList<TitleStyle> Styles => _styles;
         public IReadOnlyList<StartingClientage> StartingClientages => _startingClientages;
         public IReadOnlyDictionary<string, string> TitleNames => _titleNames;
+
+        internal (string Landed, string Held) GetTitleNameFormats(string id, string root)
+        {
+            // Do not carry a preset's grammar over to a custom or alternate realm name.
+            return !string.IsNullOrEmpty(id) && _titleNameFormats.TryGetValue(id, out var formats)
+                && _titleNames.TryGetValue(id, out string configuredRoot)
+                && string.Equals(configuredRoot, root, StringComparison.Ordinal) ? formats : default;
+        }
 
         private static FeudalTitleConfig Load()
         {
@@ -168,7 +178,10 @@ namespace BellumCivile
                         _titles.Add(title);
 
                     if (!string.IsNullOrWhiteSpace(title.Name))
+                    {
                         _titleNames[title.Id] = title.Name;
+                        _titleNameFormats.Remove(title.Id);
+                    }
                 }
             }
 
@@ -177,7 +190,16 @@ namespace BellumCivile
                 string id = FirstAttr(node, "id", "title", "titleId");
                 string name = FirstAttr(node, "name", "value", "text");
                 if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(name))
-                    _titleNames[id.Trim()] = name.Trim();
+                {
+                    id = id.Trim();
+                    _titleNames[id] = name.Trim();
+                    string landed = Attr(node, "titleFormat");
+                    string held = Attr(node, "heldTitleFormat");
+                    if (string.IsNullOrWhiteSpace(landed) && string.IsNullOrWhiteSpace(held))
+                        _titleNameFormats.Remove(id);
+                    else
+                        _titleNameFormats[id] = (landed, held);
+                }
             }
 
             foreach (XmlNode node in doc.SelectNodes("/BellumFeudalTitles/TitleStyle") ?? (XmlNodeList)new EmptyNodeList())
