@@ -94,6 +94,7 @@ namespace BellumCivile.Behaviors
 
                 DequeueMarriageSearch(job);
                 receipts.Remove(job.House.StringId);
+                stats.BestFundingBlock?.Trace(job.House);
                 if (best == null && TryCompleteBetrothal(job, stats)) continue;
                 FinishMarriageOpportunity(job.House, job.Household, job.Initiator, job.DynasticNeed, best, stats);
                 if (best != null) _marriageMarket?.InvalidateAfterMatch();

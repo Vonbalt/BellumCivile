@@ -101,11 +101,20 @@ namespace BellumCivile.Behaviors
             {
                 if (matrilineal.HasValue && matrilineal.Value != (possible == maternalHouse)
                     || !BetrothalBehavior.CanSetDestination(first, second, possible, policy)) continue;
-                if (!MarriagePayments.CanPay(possible, MarriagePayments.Deposit(BetrothalBehavior.BetrothalDowry(first, second, possible)))) continue;
+                int dowry = BetrothalBehavior.BetrothalDowry(first, second, possible);
+                int deposit = MarriagePayments.Deposit(dowry);
+                bool canPay = MarriagePayments.CanPay(possible, deposit);
+                if (!canPay && context.FundingDiagnostics == null) continue;
                 float firstScore = BetrothalBehavior.BetrothalScore(first, second, possible, delay, firstRisk, firstPolitics);
                 float secondScore = playerResponds ? firstScore
                     : BetrothalBehavior.BetrothalScore(second, first, possible, delay, secondRisk, secondPolitics);
                 float score = Math.Min(firstScore, secondScore);
+                if (!canPay)
+                {
+                    context.FundingDiagnostics.ConsiderFundingBlock(first, second, possible, possible == house ? other : house,
+                        score, dowry, deposit, deposit: true);
+                    continue;
+                }
                 if (destination == null || score > best) { destination = possible; best = score; }
             }
             return destination != null;

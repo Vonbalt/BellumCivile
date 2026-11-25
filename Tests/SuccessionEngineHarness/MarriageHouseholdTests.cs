@@ -226,6 +226,7 @@ internal static partial class MarriageHouseholdTests
             Leaders[a].Gold = 40000;
             check(Match() != null, "NPC matchmaking accepts a willing couple with exactly enough to pay the adjusted dowry");
             Leaders[a].Gold = savedGold;
+            CheckMarriageFundingDiagnostics(check, context, Match, bride, groom);
             _secondScore = 94;
             check(Match() == null, "Matrilineal household never bypasses the other house's 95 acceptance floor");
             _secondScore = 120;

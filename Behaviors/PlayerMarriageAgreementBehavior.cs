@@ -72,7 +72,11 @@ namespace BellumCivile.Behaviors
                 native.CreateMarriageOffer(player, other);
             var record = behavior.Find(player, other);
             if (ActivePlayer == player && ActiveOther == other && record?.Destination == match.Outcome.Destination)
+            {
+                MarriagePayments.TraceQuote("marriage offer quoted", player, other, record.Destination,
+                    record.SendingHouse, record.Dowry, record.Dowry);
                 return true;
+            }
             // A compatibility patch may suppress publication after our capture prefix ran.
             if (record != null && !record.Matches(ActivePlayer, ActiveOther)
                 && !(Waiting?.TryGetValue(player, out Hero partner) == true && partner == other))

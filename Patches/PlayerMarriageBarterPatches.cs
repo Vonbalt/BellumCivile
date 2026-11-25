@@ -6,6 +6,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.BarterSystem;
 using TaleWorlds.CampaignSystem.BarterSystem.Barterables;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Barter;
+using TaleWorlds.Core;
 using TaleWorlds.Localization;
 
 namespace BellumCivile.Patches
@@ -23,23 +24,51 @@ namespace BellumCivile.Patches
             if (!PlayerMarriageAgreementBehavior.Ready(terms, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); return false; }
 
-            var policy = new MarriageHouseholdPolicy();
-            int quote = MarriagePayments.Quote(terms.Departing, policy.CrownHeirs.Contains(terms.Departing), policy.MustRemain(terms.Departing));
-            if (!MarriagePayments.CanTransfer(terms.Destination, terms.SendingHouse, quote))
+            int quote = PlayerMarriagePricing.NegotiatedQuote(terms);
+            var payer = MarriagePayments.Wallet(terms.Destination);
+            var payee = MarriagePayments.Wallet(terms.SendingHouse);
+            bool playerPays = terms.Destination == terms.PlayerHouse;
+            if (payer == null || payee == null || !playerPays && payer.Gold <= 0)
             { PlayerMarriageAgreementBehavior.Notify(MarriagePayments.Unaffordable(terms.Destination, quote)); return false; }
 
-            var gold = new MarriageDowryBarterable(MarriagePayments.Wallet(terms.Destination),
-                MarriagePayments.Wallet(terms.SendingHouse), terms.Destination, terms.SendingHouse, quote);
+            var gold = payer.Gold > 0 ? new MarriageDowryBarterable(payer, payee, terms.Destination, terms.SendingHouse, quote) : null;
             var barter = new BarterData(__0.OffererHero, __0.OtherHero, __0.OffererParty, __0.OtherParty,
                 (item, _, __) => item == wedding || item == gold);
             barter.AddBarterable<OtherBarterGroup>(wedding, isContextDependent: true);
-            barter.AddBarterable<GoldBarterGroup>(gold, isContextDependent: true);
-            if (barter.GetBarterables().Count != 2) return false;
+            if (gold != null) barter.AddBarterable<GoldBarterGroup>(gold, isContextDependent: true);
+            if (barter.GetBarterables().Count != (gold == null ? 1 : 2)) return false;
+            var valuables = playerPays ? AddValuables(__0, barter, payer, payee) : new List<MarriageValuableBarterable>();
             wedding.SetIsOffered(true);
-            gold.SetIsOffered(true);
-            PlayerMarriagePricing.BindNegotiated(wedding, terms, quote, gold);
+            gold?.SetIsOffered(true);
+            PlayerMarriagePricing.BindNegotiated(wedding, terms, quote, gold, valuables);
+            MarriagePayments.TraceQuote("marriage barter quoted", terms.Player, terms.Other, terms.Destination,
+                terms.SendingHouse, quote, quote);
             __0 = barter;
             return true;
+        }
+
+        private static List<MarriageValuableBarterable> AddValuables(BarterData original, BarterData barter, Hero payer, Hero payee)
+        {
+            var added = new List<MarriageValuableBarterable>();
+            var roster = original.OffererParty?.ItemRoster;
+            if (roster == null || barter.GetBarterGroup<ItemBarterGroup>() == null) return added;
+            var nativeValues = new Dictionary<EquipmentElement, int>();
+            foreach (var item in original.GetBarterables().OfType<ItemBarterable>())
+                if (item.OriginalParty == original.OffererParty && item.OriginalOwner == original.OffererHero && item.ItemValue > 0)
+                    nativeValues[item.ItemRosterElement.EquipmentElement] = item.ItemValue;
+            for (int i = 0; i < roster.Count; i++)
+            {
+                var element = roster.GetElementCopyAtIndex(i);
+                if (element.Amount <= 0 || element.EquipmentElement.Item == null) continue;
+                int value = nativeValues.TryGetValue(element.EquipmentElement, out int native)
+                    ? native : element.EquipmentElement.GetBaseValue();
+                if (value <= 100) continue;
+                var receivingParty = original.OtherParty == original.OffererParty ? null : original.OtherParty;
+                var good = new MarriageValuableBarterable(payer, payee, original.OffererParty, receivingParty, element, value);
+                barter.AddBarterable<ItemBarterGroup>(good);
+                added.Add(good);
+            }
+            return added;
         }
     }
 
@@ -73,7 +102,11 @@ namespace BellumCivile.Patches
                     PlayerMarriageAgreementBehavior.Notify(new TextObject("{=BC_Marriage_OneAgreement}Only one marriage agreement can be concluded at a time."));
                     return false;
                 }
-                if (quote.Payment != null && (!offered.Contains(quote.Payment) || offered.Count != 2 || !quote.TryConfirmPayment(out _)))
+                if (quote.HasNegotiatedPayment
+                    && (!quote.TryConfirmPayment(out int gold, out var goods)
+                        || gold > 0 && !offered.Contains(quote.Payment)
+                        || goods.Any(good => !offered.Contains(good))
+                        || offered.Count != 1 + (gold > 0 ? 1 : 0) + goods.Length))
                 {
                     PlayerMarriageAgreementBehavior.Notify(MarriagePayments.Unaffordable(quote.Agreement.Destination, quote.Compensation));
                     return false;
@@ -82,7 +115,8 @@ namespace BellumCivile.Patches
                 PlayerMarriageAgreementBehavior.Notify(reason);
                 return false;
             }
-            return marriages > 0 || !offered.OfType<MarriageDowryBarterable>().Any(item => !item.IsDeposit);
+            return marriages > 0 || !offered.Any(item => item is MarriageValuableBarterable
+                || item is MarriageDowryBarterable gold && !gold.IsDeposit);
         }
     }
 
@@ -110,9 +144,41 @@ namespace BellumCivile.Patches
         {
             internal readonly NpcMarriageClanContext Household;
             internal readonly MarriagePayments.Reservation Payment;
-            internal WeddingScope(PlayerMarriageAgreement terms, MarriagePayments.Reservation payment)
-            { Household = new NpcMarriageClanContext(terms.Player, terms.Other, terms.Destination); Payment = payment; }
-            public void Dispose() { Household.Dispose(); Payment?.Dispose(); }
+            private readonly PlayerMarriageValidationScope _validation;
+            private readonly (MarriageValuableBarterable Item, int Amount)[] _goods;
+            private readonly Hero _payee;
+            internal WeddingScope(PlayerMarriageAgreement terms, MarriagePayments.Reservation payment, MarriageValuableBarterable[] goods)
+            {
+                Household = new NpcMarriageClanContext(terms.Player, terms.Other, terms.Destination);
+                _validation = new PlayerMarriageValidationScope(terms);
+                Payment = payment;
+                _payee = MarriagePayments.Wallet(terms.SendingHouse);
+                _goods = goods.Select(item => (item, item.CurrentAmount)).ToArray();
+                foreach (var good in _goods)
+                    good.Item.OriginalParty.ItemRoster.AddToCounts(good.Item.ItemRosterElement.EquipmentElement, -good.Amount);
+            }
+
+            public void Dispose()
+            {
+                _validation.Dispose();
+                Household.Dispose();
+                Payment?.Dispose();
+                foreach (var good in _goods)
+                {
+                    var item = good.Item;
+                    if (Payment?.Settled != true)
+                        item.OriginalParty.ItemRoster.AddToCounts(item.ItemRosterElement.EquipmentElement, good.Amount);
+                    else if (item.ReceivingParty != null)
+                        item.ReceivingParty.ItemRoster.AddToCounts(item.ItemRosterElement.EquipmentElement, good.Amount);
+                    else
+                        MarriagePayments.Move(null, _payee, item.Credit * good.Amount);
+                }
+                if (_goods.Length != 0 && BellumCivileDebug.ShowInGameMessages)
+                    BellumCivileDebug.Trace("marriage",
+                        $"wedding valuables {(Payment?.Settled == true ? "settled" : "returned")}; "
+                        + $"payee={_payee?.StringId}; stacks={_goods.Length}; barter_credit={_goods.Sum(g => (long)g.Item.Credit * g.Amount)}.",
+                        requestInGameDisplay: true);
+            }
         }
 
         private static bool Prefix(MarriageBarterable __instance, out WeddingScope __state)
@@ -121,12 +187,12 @@ namespace BellumCivile.Patches
             if (!PlayerMarriagePricing.TryGet(__instance, out var quote)) return true;
             if (!PlayerMarriageAgreementBehavior.Ready(quote.Agreement, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); return false; }
-            if (!quote.TryConfirmPayment(out int amount)) return false;
+            if (!quote.TryConfirmPayment(out int amount, out var goods)) return false;
             var terms = quote.Agreement;
-            var reservation = quote.Payment == null ? null
+            var reservation = !quote.HasNegotiatedPayment ? null
                 : MarriagePayments.Reserve(terms.Player, terms.Other, terms.Destination, terms.SendingHouse, amount);
-            if (quote.Payment != null && reservation == null) return false;
-            __state = new WeddingScope(terms, reservation);
+            if (quote.HasNegotiatedPayment && reservation == null) return false;
+            __state = new WeddingScope(terms, reservation, goods);
             return true;
         }
         private static void Finalizer(WeddingScope __state) => __state?.Dispose();

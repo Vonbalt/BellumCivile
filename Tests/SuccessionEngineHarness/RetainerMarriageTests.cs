@@ -101,6 +101,7 @@ internal static class RetainerMarriageTests
             Patch(AccessTools.Method(typeof(CampaignEventDispatcher), "CanHeroMarry"), nameof(CanMarry));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "MainHero"), nameof(Main));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
+            Patch(AccessTools.Method(typeof(FactionManager), "IsAtWarAgainstFaction"), nameof(No));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Age"), nameof(Age));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "Name"), nameof(Name));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "IsChild"), nameof(Child));
@@ -144,15 +145,15 @@ internal static class RetainerMarriageTests
                 "The player's proposal dialogue includes companions after available family members");
             var otherCandidates = (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetOtherCandidates")
                 .Invoke(proposal, new object[] { companion, other });
-            check(otherCandidates.Contains(retainer) && !otherCandidates.Contains(daughter),
-                "The other house's proposal list only displays candidates of the selected member's standing");
+            check(otherCandidates.Contains(retainer) && otherCandidates.IndexOf(retainer) < otherCandidates.IndexOf(daughter),
+                "Same-standing candidates are listed first, while an attempted retainer-to-noble proposal is visible");
             List<Hero> Players() => (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetPlayerCandidates")
                 .Invoke(proposal, new object[] { other });
             List<Hero> Others(Hero hero) => (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetOtherCandidates")
                 .Invoke(proposal, new object[] { hero, other });
             string Reason(Hero hero)
             {
-                object[] args = { hero, other, null, null };
+                object[] args = { hero, other, null };
                 bool enabled = (bool)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "CanSelectPlayerCandidate").Invoke(null, args);
                 check(!enabled && args[2] is TextObject, "A disabled candidate has an explanatory tooltip: " + hero.StringId);
                 return ((TextObject)args[2]).GetID();
@@ -165,9 +166,10 @@ internal static class RetainerMarriageTests
             }
             var femaleCompanion = Person(_player, "female_companion", true, true);
             Invalidate();
-            check(Players().Contains(femaleCompanion) && Reason(femaleCompanion) == "BC_Marriage_CandidateNoMatch"
-                && Players().IndexOf(companion) < Players().IndexOf(femaleCompanion),
-                "A companion without a compatible spouse remains visible after available candidates, with a no-match reason");
+            object[] browseArgs = { femaleCompanion, other, null };
+            check(Players().Contains(femaleCompanion)
+                && (bool)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "CanSelectPlayerCandidate").Invoke(null, browseArgs)
+                && browseArgs[2] == null, "An eligible companion can browse the other household without a compatible spouse");
             var otherMale = Person(other, "other_male"); Invalidate();
             check(PairReason(femaleCompanion, otherMale) == null && Others(femaleCompanion).First() == otherMale,
                 "A female companion becomes selectable when a valid groom exists, ahead of unavailable nobles");
@@ -180,11 +182,12 @@ internal static class RetainerMarriageTests
             check(Reason(companion) == "BC_Marriage_CandidatePrisoner", "Captivity gets a specific player-candidate explanation");
             AccessTools.Field(typeof(Hero), "_heroState").SetValue(companion, Hero.CharacterStates.Active);
             AccessTools.Field(typeof(Hero), "_heroState").SetValue(retainer, Hero.CharacterStates.Prisoner);
-            check(Others(companion).Contains(retainer) && PairReason(companion, retainer) == "BC_Marriage_CandidatePrisoner"
-                && !Others(companion).Contains(daughter),
-                "An imprisoned retainer keeps their availability hint; a noble is not listed at all");
+            check(Others(companion).Contains(retainer) && PairReason(companion, retainer) == "BC_Marriage_CandidatePrisoner",
+                "An imprisoned retainer keeps their availability hint");
             AccessTools.Field(typeof(Hero), "_heroState").SetValue(retainer, Hero.CharacterStates.Active);
-            check(PairReason(companion, daughter) == "BC_Marriage_Standing", "Live validation explains a mismatch in standing");
+            check(PairReason(companion, daughter) == null, "A retainer-to-noble attempt can reach a spoken refusal");
+            check(PairReason(son, retainer) == null && !model.IsCoupleSuitableForMarriage(son, retainer),
+                "Only direct dialogue can preview bringing a retainer into a noble family");
             companion.Spouse = femaleCompanion;
             check(Players().Contains(companion) && Reason(companion) == "BC_Marriage_CandidateMarried",
                 "Already married household members remain visible with an explicit reason");
@@ -199,7 +202,7 @@ internal static class RetainerMarriageTests
             AccessTools.Field(typeof(Hero), "_heroState").SetValue(deadMember, Hero.CharacterStates.Dead);
             Invalidate();
             check(!Players().Contains(deadMember), "Dead members are not offered as disabled marriage candidates");
-            MarriageProposalDialogueTests.Run(check, proposal, companion, retainer, head);
+            MarriageProposalDialogueTests.Run(check, proposal, companion, retainer, head, daughter);
             AccessTools.Field(typeof(Clan), "_kingdom").SetValue(_player, Blank<Kingdom>());
             object rejection = AccessTools.Method(helper, "GetOfferParticipantRejectionReason")
                 .Invoke(null, new object[] { companion, true, false });
@@ -298,6 +301,23 @@ internal static class RetainerMarriageTests
             check(staying.Spouse == incoming && staying.CompanionOf == _player && incoming.CompanionOf == _player
                 && !other.Companions.Contains(incoming) && _player.Companions.Count(x => x == incoming) == 1,
                 "Companion-to-companion marriage supports an incoming spouse while the player companion stays home");
+            var elevated = Person(other, "elevated_retainer", true, true);
+            Invalidate();
+            var direct = new PlayerMarriageAgreement { Player = son, Other = elevated, PlayerHouse = _player,
+                OtherHouse = other, Destination = _player, Negotiated = true };
+            AccessTools.Property(typeof(PlayerMarriageAgreement), "RetainerElevationNegotiated").SetValue(direct, true);
+            check(!model.IsCoupleSuitableForMarriage(son, elevated), "Automatic marriage remains prohibited for this same mixed-rank pair");
+            using ((IDisposable)Activator.CreateInstance(Type("PlayerMarriageValidationScope"),
+                BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { direct }, null))
+            using ((IDisposable)Activator.CreateInstance(scope, BindingFlags.Instance | BindingFlags.NonPublic,
+                null, new object[] { son, elevated, _player }, null))
+            {
+                check(model.IsCoupleSuitableForMarriage(son, elevated), "A direct agreement permits precisely the incoming retainer match");
+                MarriageAction.Apply(son, elevated, false);
+            }
+            check(elevated.Clan == _player && son.Spouse == elevated && elevated.CompanionOf == _player
+                && (bool)AccessTools.Method(household, "IsFamily").Invoke(null, new object[] { elevated }),
+                "The agreed wedding recognizes the incoming companion as married-in family without breaking native companion membership");
         }
         finally
         {

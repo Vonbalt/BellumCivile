@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using BellumCivile.Behaviors;
 using TaleWorlds.CampaignSystem;
@@ -11,12 +13,31 @@ namespace BellumCivile
         internal PlayerMarriageAgreement Agreement;
         internal int Compensation;
         internal MarriageDowryBarterable Payment;
+        internal IReadOnlyList<MarriageValuableBarterable> Valuables;
+        internal bool HasNegotiatedPayment => Valuables != null;
 
-        internal bool TryConfirmPayment(out int amount)
+        internal bool TryConfirmPayment(out int amount, out MarriageValuableBarterable[] goods)
         {
-            amount = Payment?.CurrentAmount ?? 0;
-            return Payment == null || Payment.IsOffered && amount >= Payment.Minimum
-                && MarriagePayments.CanTransfer(Agreement.Destination, Agreement.SendingHouse, amount);
+            amount = Payment?.IsOffered == true ? Payment.CurrentAmount : 0;
+            goods = Array.Empty<MarriageValuableBarterable>();
+            if (!HasNegotiatedPayment) return true;
+            var payer = MarriagePayments.Wallet(Agreement.Destination);
+            var payee = MarriagePayments.Wallet(Agreement.SendingHouse);
+            if (payer == null || payee == null || amount > payer.Gold || amount < 0
+                || amount > 0 && (Payment.OriginalOwner != payer || amount > Payment.MaxAmount)) return false;
+            if (Agreement.Destination != Agreement.PlayerHouse)
+                return amount > 0 && amount <= Compensation && MarriagePayments.HasRoom(payee, amount);
+
+            goods = Valuables.Where(item => item.IsOffered).ToArray();
+            long credit = amount, goldCredit = amount;
+            foreach (var item in goods)
+            {
+                if (!item.HasStock()) return false;
+                long value = (long)item.Credit * item.CurrentAmount;
+                credit += value;
+                if (item.ReceivingParty == null) goldCredit += value;
+            }
+            return credit >= Compensation && goldCredit <= int.MaxValue && MarriagePayments.HasRoom(payee, (int)goldCredit);
         }
     }
 
@@ -100,10 +121,16 @@ namespace BellumCivile
         }
 
         internal static void BindNegotiated(MarriageBarterable item, PlayerMarriageAgreement agreement, int amount,
-            MarriageDowryBarterable payment)
+            MarriageDowryBarterable payment, IReadOnlyList<MarriageValuableBarterable> valuables)
         {
             Quotes.Remove(item);
-            Quotes.Add(item, new PlayerMarriageQuote { Agreement = agreement, Compensation = amount, Payment = payment });
+            Quotes.Add(item, new PlayerMarriageQuote { Agreement = agreement, Compensation = amount, Payment = payment, Valuables = valuables });
+        }
+
+        internal static int NegotiatedQuote(PlayerMarriageAgreement terms)
+        {
+            var policy = new MarriageHouseholdPolicy();
+            return MarriagePayments.Quote(terms.Departing, policy.CrownHeirs.Contains(terms.Departing), policy.MustRemain(terms.Departing));
         }
 
         internal static void BindAgreement(MarriageBarterable item, PlayerMarriageAgreement agreement)

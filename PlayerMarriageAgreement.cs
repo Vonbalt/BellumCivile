@@ -19,11 +19,21 @@ namespace BellumCivile
         [SaveableField(8)] public int Dowry;
         [SaveableField(9)] public bool StandingRequired;
         [SaveableField(10)] public bool DowrySettled;
+        // Only the active in-person barter can authorize this exception.
+        internal bool RetainerElevationNegotiated { get; set; }
 
         internal bool Matches(Hero a, Hero b) => Player == a && Other == b || Player == b && Other == a;
         internal Hero Departing => Destination == PlayerHouse ? Other : Player;
         internal Clan SendingHouse => Destination == PlayerHouse ? OtherHouse : PlayerHouse;
         internal bool Matrilineal => (Player.IsFemale ? PlayerHouse : OtherHouse) == Destination;
+        internal static bool CanElevateRetainer(Hero noble, Hero retainer) =>
+            BellumCivileOptions.EnableBellumStrategicMarriageLogic && noble?.Clan != null && noble.Clan == Clan.PlayerClan
+            && retainer?.Clan != null && retainer.Clan != noble.Clan && HouseholdMembership.IsFamily(noble)
+            && MarriageParticipantPolicy.IsParticipant(retainer) && HouseholdMembership.IsRetainer(retainer);
+
+        internal bool AllowsRetainerElevation(Hero first, Hero second) => RetainerElevationNegotiated && Negotiated
+            && Matches(first, second) && Destination == PlayerHouse && Player.Clan == PlayerHouse && Other.Clan == OtherHouse
+            && CanElevateRetainer(Player, Other);
         internal static PlayerMarriageAgreement Create(Hero player, Hero other, Clan destination, bool negotiated)
             => new PlayerMarriageAgreement { Player = player, Other = other, PlayerHouse = player.Clan,
                 OtherHouse = other.Clan, Destination = destination, Negotiated = negotiated, StandingRequired = true };
@@ -66,7 +76,8 @@ namespace BellumCivile
             if (Player == null || Other == null || PlayerHouse == null || OtherHouse == null
                 || Player.Clan != PlayerHouse || Other.Clan != OtherHouse)
             { reason = new TextObject("{=BC_Marriage_HouseChanged}One of the betrothed has changed houses. A new marriage agreement is required."); return false; }
-            return CanChoose(Player, Other, Destination, Negotiated, new MarriageHouseholdPolicy(), out reason, Accepted && !StandingRequired);
+            return CanChoose(Player, Other, Destination, Negotiated, new MarriageHouseholdPolicy(), out reason,
+                Accepted && !StandingRequired || AllowsRetainerElevation(Player, Other));
         }
 
         internal TextObject HouseholdText() => new TextObject("{=BC_Marriage_HouseholdTerms}{HERO} will leave {SOURCE} and join {HOUSE}.")

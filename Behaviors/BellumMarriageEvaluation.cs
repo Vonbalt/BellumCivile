@@ -27,6 +27,7 @@ namespace BellumCivile.Behaviors
             private MarriageTitleClaimCache _claims;
             private readonly Dictionary<Clan, Dictionary<Hero, ClaimConsideration[]>> _claimValues = new Dictionary<Clan, Dictionary<Hero, ClaimConsideration[]>>();
             public readonly FactionManagerBehavior Factions;
+            public readonly BellumMarriageEvaluationStats FundingDiagnostics;
 
             private sealed class ClaimConsideration
             {
@@ -45,6 +46,7 @@ namespace BellumCivile.Behaviors
                 CrownHeirs.UnionWith(_households.CrownHeirs);
                 if (market != null)
                 {
+                    if (BellumCivileDebug.ShowInGameMessages) FundingDiagnostics = stats;
                     Participants = market.Participants;
                     Realms = market.Realms;
                     return;
@@ -549,6 +551,8 @@ namespace BellumCivile.Behaviors
             match.FundingBlocked = !MarriagePayments.CanTransfer(destination, leaving.Clan, match.Dowry);
             if (match.FundingBlocked)
             {
+                context.FundingDiagnostics?.ConsiderFundingBlock(first, second, destination, leaving.Clan, match.Score,
+                    match.Dowry, match.Dowry, deposit: false);
                 if (requireAcceptance) return null;
                 match.Reasons.Add("receiving house cannot fund dowry");
             }

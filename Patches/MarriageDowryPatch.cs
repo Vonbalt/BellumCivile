@@ -13,8 +13,8 @@ namespace BellumCivile.Patches
             if (!PlayerMarriagePricing.TryGet(__instance, out var quote)) return;
             if (faction == quote.Agreement.OtherHouse
                 || faction == quote.Agreement.OtherHouse.Kingdom && faction != quote.Agreement.PlayerHouse.Kingdom)
-                __result = quote.Payment != null && quote.Agreement.Destination == quote.Agreement.OtherHouse
-                    ? quote.Compensation : -quote.Compensation;
+                __result = quote.HasNegotiatedPayment && quote.Agreement.Destination == quote.Agreement.OtherHouse
+                    && quote.Payment?.IsOffered == true && quote.Payment.CurrentAmount > 0 ? quote.Compensation : -quote.Compensation;
         }
     }
 }

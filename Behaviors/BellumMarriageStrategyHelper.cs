@@ -55,6 +55,7 @@ namespace BellumCivile.Behaviors
         internal bool MarketHasTemporaryParticipants;
         public int LegalPairs, AcceptedPairs, FirstHouseRefused, SecondHouseRefused;
         public int UnaffordablePairs;
+        internal MarriageFundingDiagnostic? BestFundingBlock { get; private set; }
         public int DistantPasses, DistantPairChecks;
         public int BetrothalLegalPairs, DistantBetrothalPairs;
         public float BestRejectedScore = float.NegativeInfinity;
@@ -73,6 +74,14 @@ namespace BellumCivile.Behaviors
         public int RejectedCannotMarry;
         public int RejectedVanillaModel;
         public int RejectedOther;
+
+        internal void ConsiderFundingBlock(Hero first, Hero second, Clan payer, Clan payee, float score,
+            int dowry, int dueNow, bool deposit)
+        {
+            if (score < BellumCivileOptions.MarriageAcceptanceThreshold
+                || BestFundingBlock.HasValue && score <= BestFundingBlock.Value.Score) return;
+            BestFundingBlock = new MarriageFundingDiagnostic(first, second, payer, payee, score, dowry, dueNow, deposit);
+        }
 
         public void AddRejection(BellumMarriageRejectionReason reason)
         {

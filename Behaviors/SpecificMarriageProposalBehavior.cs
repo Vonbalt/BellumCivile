@@ -23,6 +23,7 @@ namespace BellumCivile.Behaviors
         private bool _playerCandidateListInitialized;
         private bool _otherCandidateListInitialized;
         private PlayerMarriageAgreement _agreement;
+        private int? _otherHouseDowryLimit;
 
         public override void RegisterEvents()
         {
@@ -56,7 +57,7 @@ namespace BellumCivile.Behaviors
                 "bc_specific_marriage_choose_player_relative",
                 "bc_specific_marriage_choose_player",
                 "bc_specific_marriage_choose_other_prompt",
-                "{=BC_Marriage_PlayerCandidateChoice}{?BC_PLAYER_IS_SELF}My own hand.{?}The hand of {BC_PLAYER_CANDIDATE.NAME}.{\\?}",
+                "{=BC_Marriage_PlayerOfferLine}{BC_PLAYER_MARRIAGE_OFFER}",
                 "{=BC_Marriage_PlayerRelativeOther}I am thinking of a different person.",
                 "bc_specific_marriage_choose_player_prompt",
                 PlayerCandidateRepeatCondition,
@@ -111,6 +112,12 @@ namespace BellumCivile.Behaviors
                 ClearSelection,
                 90);
 
+            starter.AddDialogLine("bc_specific_marriage_rank_refusal", "bc_specific_marriage_household_prompt", "lord_pretalk",
+                "{=BC_Marriage_RefuseRetainer}You ask me to wed one of my kin to a retainer? No. My house will not give its hand beneath its station.",
+                OfferingRetainerToNoble, ClearSelection, 125);
+            starter.AddDialogLine("bc_specific_marriage_retainer_reply", "bc_specific_marriage_household_prompt", "bc_specific_marriage_household",
+                "{=BC_Marriage_RetainerSurprise}You ask for the hand of one of my retainers for your own family? An unusual proposition, but I will hear your terms.",
+                () => AskingForRetainer && HasSelectedMarriagePair(), SetHouseholdNames, 120);
             starter.AddDialogLine("bc_specific_marriage_household_prompt", "bc_specific_marriage_household_prompt",
                 "bc_specific_marriage_household", "{=BC_Marriage_HouseholdQuestion}Which house would the couple belong to?", null, SetHouseholdNames);
             foreach (bool matrilineal in new[] { false, true })
@@ -128,6 +135,9 @@ namespace BellumCivile.Behaviors
             starter.AddDialogLine("bc_specific_marriage_stale", "bc_specific_marriage_confirm_prompt", "lord_pretalk",
                 "{=BC_Marriage_AgreementChanged}This marriage can no longer proceed on the agreed terms.",
                 () => !HasSelectedMarriagePair() || _agreement == null, ClearSelection, 200);
+            starter.AddDialogLine("bc_specific_marriage_empty_coffers", "bc_specific_marriage_confirm_prompt", "lord_pretalk",
+                "{=BC_Marriage_EmptyDowryCoffers}I would consider the match, but my coffers will not bear a dowry at present.",
+                () => _otherHouseDowryLimit == 0, ClearSelection, 190);
 
             starter.AddDialogLine(
                 "bc_specific_marriage_confirm_prompt",
@@ -182,10 +192,15 @@ namespace BellumCivile.Behaviors
 
         private bool HasSelectedMarriagePair()
         {
-            return _selectedPlayerHero != null
-                && _selectedOtherHero != null
-                && Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(_selectedPlayerHero, _selectedOtherHero);
+            return CanSelectPair(_selectedPlayerHero, _selectedOtherHero, Hero.OneToOneConversationHero?.Clan, out _)
+                && !OfferingRetainerToNoble();
         }
+
+        private bool AskingForRetainer => PlayerMarriageAgreement.CanElevateRetainer(_selectedPlayerHero, _selectedOtherHero);
+        private bool OfferingRetainerToNoble() => IsRetainerOfferedToNoble(_selectedPlayerHero, _selectedOtherHero);
+        private static bool IsRetainerOfferedToNoble(Hero player, Hero other) =>
+            !MarriageParticipantPolicy.SameMarriageStanding(player, other) && HouseholdMembership.IsRetainer(player)
+            && HouseholdMembership.IsFamily(other);
 
         private void SetupPlayerCandidateList()
         {
@@ -201,13 +216,16 @@ namespace BellumCivile.Behaviors
         {
             if (ConversationSentence.CurrentProcessedRepeatObject is CharacterObject character)
             {
-                StringHelpers.SetRepeatableCharacterProperties("BC_PLAYER_CANDIDATE", character);
-                MBTextManager.SetTextVariable("BC_PLAYER_IS_SELF", character.HeroObject == Hero.MainHero ? 1 : 0);
+                ConversationSentence.SelectedRepeatLine.SetTextVariable("BC_PLAYER_MARRIAGE_OFFER", MarriageHandText(character.HeroObject));
                 return true;
             }
 
             return false;
         }
+
+        internal static TextObject MarriageHandText(Hero hero) => hero == Hero.MainHero
+            ? new TextObject("{=BC_Marriage_MyOwnHand}My own hand.")
+            : new TextObject("{=BC_Marriage_RelativeHand}The hand of {HERO}.").SetTextVariable("HERO", hero.Name);
 
         private bool PlayerCandidateClickable(out TextObject reason) => CanSelectPlayerCandidate(
             (ConversationSentence.CurrentProcessedRepeatObject as CharacterObject)?.HeroObject,
@@ -297,9 +315,16 @@ namespace BellumCivile.Behaviors
             => (_selectedPlayerHero.IsFemale == matrilineal ? _selectedPlayerHero : _selectedOtherHero).Clan;
 
         private bool CanChooseHousehold(bool matrilineal, out TextObject reason)
-            => PlayerMarriageAgreement.CanChoose(_selectedPlayerHero, _selectedOtherHero,
-                _selectedPlayerHero == null || _selectedOtherHero == null ? null : Household(matrilineal),
-                true, new MarriageHouseholdPolicy(), out reason);
+        {
+            Clan destination = _selectedPlayerHero == null || _selectedOtherHero == null ? null : Household(matrilineal);
+            if (AskingForRetainer && destination != Clan.PlayerClan)
+            {
+                reason = new TextObject("{=BC_Marriage_RetainerJoinsPlayer}For this match, their retainer must join your house.");
+                return false;
+            }
+            return PlayerMarriageAgreement.CanChoose(_selectedPlayerHero, _selectedOtherHero, destination,
+                true, new MarriageHouseholdPolicy(), out reason, AskingForRetainer);
+        }
 
         private void SetHouseholdNames()
         {
@@ -317,7 +342,22 @@ namespace BellumCivile.Behaviors
             if (!CanChooseHousehold(matrilineal, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); _agreement = null; return; }
             _agreement = PlayerMarriageAgreement.Create(_selectedPlayerHero, _selectedOtherHero, Household(matrilineal), true);
+            _agreement.RetainerElevationNegotiated = AskingForRetainer;
             TextObject terms = _agreement.HouseholdText();
+            _otherHouseDowryLimit = null;
+            if (BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+            {
+                int quote = PlayerMarriagePricing.NegotiatedQuote(_agreement);
+                if (_agreement.Destination == _agreement.OtherHouse)
+                {
+                    _otherHouseDowryLimit = Math.Min(quote, MarriagePayments.Wallet(_agreement.OtherHouse)?.Gold ?? 0);
+                    terms = new TextObject("{=BC_Marriage_QuotedDowryLimit}{TERMS} I would offer no more than {GOLD} denars for this match.")
+                        .SetTextVariable("TERMS", terms).SetTextVariable("GOLD", _otherHouseDowryLimit.Value);
+                }
+                else
+                    terms = new TextObject("{=BC_Marriage_QuotedDowryPrice}{TERMS} I would ask for {GOLD} denars' worth in gold or goods.")
+                        .SetTextVariable("TERMS", terms).SetTextVariable("GOLD", quote);
+            }
             if (new MarriageHouseholdPolicy().CrownHeirs.Contains(_agreement.Departing))
                 terms = new TextObject("{=BC_Marriage_TermsWithCrown}{TERMS} {CROWN}")
                     .SetTextVariable("TERMS", terms).SetTextVariable("CROWN", _agreement.CrownWarning());
@@ -329,9 +369,8 @@ namespace BellumCivile.Behaviors
             if (Clan.PlayerClan == null || otherClan == null)
                 return new List<Hero>();
 
-            var others = ProposalMembers(otherClan).ToList();
             return ProposalMembers(Clan.PlayerClan)
-                .OrderByDescending(hero => CanSelectPlayerCandidate(hero, otherClan, out _, others))
+                .OrderByDescending(hero => CanSelectPlayerCandidate(hero, otherClan, out _))
                 .ThenByDescending(hero => hero == Hero.MainHero)
                 .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
@@ -344,8 +383,8 @@ namespace BellumCivile.Behaviors
                 return new List<Hero>();
 
             return ProposalMembers(otherClan)
-                .Where(hero => MarriageParticipantPolicy.SameMarriageStanding(playerClanHero, hero))
                 .OrderByDescending(hero => CanSelectPair(playerClanHero, hero, otherClan, out _))
+                .ThenByDescending(hero => MarriageParticipantPolicy.SameMarriageStanding(playerClanHero, hero))
                 .ThenByDescending(hero => hero == otherClan.Leader)
                 .ThenByDescending(HouseholdMembership.IsFamily)
                 .ThenByDescending(hero => hero.Age)
@@ -367,7 +406,10 @@ namespace BellumCivile.Behaviors
             if (hero.IsTraveling) return Reason("{=BC_Marriage_CandidateTraveling}", "{HERO} is currently traveling.");
             if (!hero.IsAlive || !hero.IsActive || hero.IsDisabled)
                 return Reason("{=BC_Marriage_CandidateUnavailable}", "{HERO} is unavailable for marriage at present.");
-            if (hero.PartyBelongedTo?.MapEvent != null || hero.PartyBelongedTo?.SiegeEvent != null || hero.PartyBelongedTo?.Army != null)
+            var party = hero.PartyBelongedTo;
+            if (party?.Army != null)
+                return Reason("{=BC_Marriage_CandidateArmy}", "{HERO} is currently serving in an army.");
+            if (party?.MapEvent != null || party?.SiegeEvent != null)
                 return Reason("{=BC_Marriage_CandidateMilitary}", "{HERO} is currently occupied with military duties.");
             if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true)
                 return new TextObject("{=BC_Marriage_AccessionPending}A pending succession must be settled before this marriage can proceed.");
@@ -388,22 +430,26 @@ namespace BellumCivile.Behaviors
                 reason = new TextObject("{=BC_Marriage_HouseChanged}One of the betrothed has changed houses. A new marriage agreement is required.");
             else if (player.IsFemale == other.IsFemale)
                 reason = new TextObject("{=BC_Marriage_CandidateSameSex}This marriage requires a bride and a groom.");
-            else if (!MarriageParticipantPolicy.SameMarriageStanding(player, other))
-                reason = new TextObject("{=BC_Marriage_Standing}Members of noble families marry within their rank, and retainers marry other retainers.");
-            else if (!Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(player, other))
-                reason = new TextObject("{=BC_Marriage_CandidatePairRestricted}{HERO} cannot marry {OTHER} under the current marriage rules.")
-                    .SetTextVariable("HERO", player.Name).SetTextVariable("OTHER", other.Name);
+            else if (!IsRetainerOfferedToNoble(player, other))
+            {
+                var preview = PlayerMarriageAgreement.CanElevateRetainer(player, other)
+                    ? PlayerMarriageAgreement.Create(player, other, player.Clan, true) : null;
+                if (preview != null) preview.RetainerElevationNegotiated = true;
+                using (preview == null ? null : new PlayerMarriageValidationScope(preview))
+                    if (!Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(player, other))
+                        reason = new TextObject("{=BC_Marriage_CandidatePairRestricted}{HERO} cannot marry {OTHER} under the current marriage rules.")
+                            .SetTextVariable("HERO", player.Name).SetTextVariable("OTHER", other.Name);
+            }
             return reason == null;
         }
 
-        private static bool CanSelectPlayerCandidate(Hero hero, Clan otherClan, out TextObject reason, IEnumerable<Hero> others = null)
+        private static bool CanSelectPlayerCandidate(Hero hero, Clan otherClan, out TextObject reason)
         {
             reason = CandidateReason(hero);
             if (reason != null) return false;
-            if (hero.Clan == Clan.PlayerClan && otherClan != null
-                && (others ?? ProposalMembers(otherClan)).Any(other => CanSelectPair(hero, other, otherClan, out _))) return true;
-            reason = new TextObject("{=BC_Marriage_CandidateNoMatch}There is no eligible match for {HERO} in this household at present.")
-                .SetTextVariable("HERO", hero.Name);
+            // Availability of the other house's members is explained on their own rows.
+            if (hero.Clan == Clan.PlayerClan && otherClan != null && otherClan != hero.Clan) return true;
+            reason = new TextObject("{=BC_Marriage_AgreementChanged}This marriage can no longer proceed on the agreed terms.");
             return false;
         }
 
@@ -418,6 +464,7 @@ namespace BellumCivile.Behaviors
         private void ClearSelection()
         {
             _agreement = null;
+            _otherHouseDowryLimit = null;
             _selectedPlayerHero = null;
             _selectedOtherHero = null;
             _playerCandidateListInitialized = false;

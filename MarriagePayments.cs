@@ -42,10 +42,20 @@ namespace BellumCivile
             return new Reservation(first, second, destination, sendingHouse, balance, held);
         }
 
+        internal static void TraceQuote(string stage, Hero first, Hero second, Clan payer, Clan payee, int dowry, int dueNow)
+        {
+            if (!BellumCivileDebug.ShowInGameMessages || dowry <= 0) return;
+            int? available = Wallet(payer)?.Gold;
+            BellumCivileDebug.Trace("marriage",
+                $"{stage}; first={first?.StringId}; second={second?.StringId}; payer={payer?.StringId}; payee={payee?.StringId}; "
+                + $"dowry={dowry}; due_now={dueNow}; payer_gold={available?.ToString() ?? "unavailable"}.", requestInGameDisplay: true);
+        }
+
         internal sealed class Reservation : IDisposable
         {
             private readonly Hero _first, _second, _payer, _payee;
             private readonly Clan _destination;
+            private readonly Clan _sendingHouse;
             private readonly int _balance, _held;
             private bool _closed;
             internal bool Settled { get; private set; }
@@ -53,6 +63,7 @@ namespace BellumCivile
             internal Reservation(Hero first, Hero second, Clan destination, Clan sendingHouse, int balance, int held)
             {
                 _first = first; _second = second; _destination = destination;
+                _sendingHouse = sendingHouse;
                 _payer = Wallet(destination); _payee = Wallet(sendingHouse); _balance = balance; _held = held;
                 Move(_payer, null, _balance);
             }
@@ -62,8 +73,17 @@ namespace BellumCivile
                 if (_closed) return;
                 _closed = true;
                 Settled = IsWedding(_first, _second, _destination);
-                if (Settled) Move(null, _payee, _balance + _held);
-                else Move(null, _payer, _balance);
+                bool trace = _balance + _held > 0 && BellumCivileDebug.ShowInGameMessages;
+                var recipient = Settled ? _payee : _payer;
+                int before = trace ? (recipient?.Gold ?? 0) : 0;
+                Move(null, recipient, Settled ? _balance + _held : _balance);
+                if (!trace) return;
+                int credited = (recipient?.Gold ?? 0) - before;
+                BellumCivileDebug.Trace("marriage",
+                    $"wedding payment {(Settled ? "settled" : "rolled back")}; first={_first.StringId}; second={_second.StringId}; "
+                    + $"payer={_destination?.StringId}; payee={_sendingHouse?.StringId}; agreed={_balance + _held}; "
+                    + $"transferred={(Settled ? credited : 0)}; refunded={(Settled ? 0 : credited)}; escrow={_held}; wedding_balance={_balance}.",
+                    requestInGameDisplay: true);
             }
         }
 

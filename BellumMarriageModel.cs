@@ -46,6 +46,7 @@ namespace BellumCivile
 
             var agreement = PlayerMarriageAgreementBehavior.Instance?.Find(firstHero, secondHero);
             if (!MarriageParticipantPolicy.SameMarriageStanding(firstHero, secondHero)
+                && PlayerMarriageValidationScope.Current?.AllowsRetainerElevation(firstHero, secondHero) != true
                 && !(agreement?.Accepted == true && !agreement.StandingRequired)
                 && !(agreement == null && (PlayerMarriageAgreementBehavior.Waiting?.TryGetValue(firstHero, out var firstPartner) == true && firstPartner == secondHero
                     || PlayerMarriageAgreementBehavior.Waiting?.TryGetValue(secondHero, out var secondPartner) == true && secondPartner == firstHero))) return false;

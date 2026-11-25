@@ -7868,12 +7868,21 @@
     <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_retainerRank" text="Sir" />
     <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRetainerRank" text="Dame" />
     <string id="BC_Indenture_Captain" text="Captain" />
-    <string id="BC_Marriage_PlayerCandidateChoice" text="{?BC_PLAYER_IS_SELF}My own hand.{?}The hand of {BC_PLAYER_CANDIDATE.NAME}.{\?}" />
+    <string id="BC_Marriage_PlayerOfferLine" text="{BC_PLAYER_MARRIAGE_OFFER}" />
+    <string id="BC_Marriage_MyOwnHand" text="My own hand." />
+    <string id="BC_Marriage_RelativeHand" text="The hand of {HERO}." />
+    <string id="BC_Marriage_RefuseRetainer" text="You ask me to wed one of my kin to a retainer? No. My house will not give its hand beneath its station." />
+    <string id="BC_Marriage_RetainerSurprise" text="You ask for the hand of one of my retainers for your own family? An unusual proposition, but I will hear your terms." />
+    <string id="BC_Marriage_RetainerJoinsPlayer" text="For this match, their retainer must join your house." />
+    <string id="BC_Marriage_EmptyDowryCoffers" text="I would consider the match, but my coffers will not bear a dowry at present." />
+    <string id="BC_Marriage_QuotedDowryLimit" text="{TERMS} I would offer no more than {GOLD} denars for this match." />
+    <string id="BC_Marriage_QuotedDowryPrice" text="{TERMS} I would ask for {GOLD} denars' worth in gold or goods." />
     <string id="BC_Marriage_CandidateMarried" text="{HERO} is already married." />
     <string id="BC_Marriage_CandidateMinor" text="{HERO} has not yet reached marriageable age." />
     <string id="BC_Marriage_CandidatePrisoner" text="{HERO} is being held prisoner." />
     <string id="BC_Marriage_CandidateTraveling" text="{HERO} is currently traveling." />
     <string id="BC_Marriage_CandidateUnavailable" text="{HERO} is unavailable for marriage at present." />
+    <string id="BC_Marriage_CandidateArmy" text="{HERO} is currently serving in an army." />
     <string id="BC_Marriage_CandidateMilitary" text="{HERO} is currently occupied with military duties." />
     <string id="BC_Marriage_CandidateEngaged" text="{HERO} is already promised in another marriage offer." />
     <string id="BC_Betrothal_Propose" text="I wish to speak of a betrothal between our houses." />
@@ -7889,7 +7898,8 @@
     <string id="BC_Betrothal_WithdrawWord" text="I am. The betrothal is at an end." />
     <string id="BC_Betrothal_BreakAnger" text="So your promise was worth no more than that. I shall remember what your word is worth." />
     <string id="BC_Betrothal_BreakStale" text="There is no such pledge between our houses now." />
-    <string id="BC_Betrothal_PlayerChoice" text="I would pledge {BC_BETROTHAL_CANDIDATE}." />
+    <string id="BC_Betrothal_PlayerOfferLine" text="{BC_BETROTHAL_OFFER}" />
+    <string id="BC_Betrothal_PlayerChoice" text="I would pledge {HERO}." />
     <string id="BC_Betrothal_AnotherCandidate" text="I had someone else in mind." />
     <string id="BC_Betrothal_TheirCandidates" text="And whom would you ask me to pledge in return?" />
     <string id="BC_Betrothal_OtherChoice" text="I would ask for {BC_BETROTHAL_CANDIDATE}." />
@@ -7932,7 +7942,6 @@
     <string id="BC_Betrothal_WeddingExpected" text="Wedding expected" />
     <string id="BC_Marriage_CandidateSameSex" text="This marriage requires a bride and a groom." />
     <string id="BC_Marriage_CandidatePairRestricted" text="{HERO} cannot marry {OTHER} under the current marriage rules." />
-    <string id="BC_Marriage_CandidateNoMatch" text="There is no eligible match for {HERO} in this household at present." />
     <string id="BC_ClientRelease_Open" text="I would speak of your realm's obligations to my crown." />
     <string id="BC_ClientRelease_Question" text="What would you ask of us?" />
     <string id="BC_ClientRelease_Proposal" text="I would release {BC_RELEASE_CLIENT} from its oath of obedience. Our realms would remain allies, but yours would answer to no overlord." />

@@ -150,6 +150,8 @@ namespace BellumCivile.Behaviors
             if (!offerToPlayer && !FundPledge(p)) return false;
             _pledges.Add(p);
             Changed(p, offerToPlayer ? "offered" : "pledged");
+            if (offerToPlayer)
+                MarriagePayments.TraceQuote("betrothal offer quoted", p.First, p.Second, p.Destination, p.SendingHouse, p.Dowry, p.Deposit);
             if (p.Accepted) ShowBetrothalOutcome(p, "pledged", null);
             return true;
         }
@@ -176,6 +178,11 @@ namespace BellumCivile.Behaviors
             MarriagePayments.Move(p.OriginalDepositor, null, p.Deposit);
             p.HeldDeposit = p.Deposit;
             p.Accepted = true;
+            if (p.HeldDeposit > 0 && BellumCivileDebug.ShowInGameMessages)
+                BellumCivileDebug.Trace("marriage",
+                    $"betrothal deposit held; first={p.First.StringId}; second={p.Second.StringId}; payer={p.Destination.StringId}; "
+                    + $"payee={p.SendingHouse.StringId}; dowry={p.Dowry}; escrow={p.HeldDeposit}; wedding_balance={p.Balance}; "
+                    + $"payer_gold_after={p.OriginalDepositor.Gold}.", requestInGameDisplay: true);
             return true;
         }
 
@@ -205,9 +212,15 @@ namespace BellumCivile.Behaviors
             if (held <= 0) return;
             bool forfeited = breakingHouse != null && breakingHouse == p.Destination;
             Hero beneficiary = forfeited ? MarriagePayments.Wallet(p.SendingHouse) : RefundWallet(p);
-            MarriagePayments.Move(breakingHouse != null && !forfeited ? MarriagePayments.Wallet(breakingHouse) : null, beneficiary,
-                breakingHouse != null && !forfeited ? MarriagePayments.RenunciationPremium(held) : 0);
+            int premium = breakingHouse != null && !forfeited ? MarriagePayments.RenunciationPremium(held) : 0;
+            MarriagePayments.Move(premium > 0 ? MarriagePayments.Wallet(breakingHouse) : null, beneficiary, premium);
             if (beneficiary != null) MarriagePayments.Move(null, beneficiary, held);
+            if (BellumCivileDebug.ShowInGameMessages)
+                BellumCivileDebug.Trace("marriage",
+                    $"betrothal escrow settled; first={p.First?.StringId}; second={p.Second?.StringId}; breaker={breakingHouse?.StringId ?? "none"}; "
+                    + $"payer={p.Destination?.StringId}; payee={p.SendingHouse?.StringId}; credited_hero={beneficiary?.StringId ?? "none"}; dowry={p.Dowry}; "
+                    + $"refunded={(!forfeited && beneficiary != null ? held : 0)}; forfeited={(forfeited ? held : 0)}; "
+                    + $"premium={premium}; unclaimed={(beneficiary == null ? held : 0)}.", requestInGameDisplay: true);
             ShowBetrothalSettlement(p, breakingHouse, held);
         }
 

@@ -38,9 +38,9 @@ namespace BellumCivile.Behaviors
                 "{=BC_Betrothal_NoCandidates}There is no suitable betrothal between our houses at present.",
                 () => !_hasProposalChoices, ClearProposal);
             starter.AddRepeatablePlayerLine("bc_betrothal_player_choice", "bc_betrothal_choose_player", "bc_betrothal_other_prompt",
-                "{=BC_Betrothal_PlayerChoice}I would pledge {BC_BETROTHAL_CANDIDATE}.",
+                "{=BC_Betrothal_PlayerOfferLine}{BC_BETROTHAL_OFFER}",
                 "{=BC_Betrothal_AnotherCandidate}I had someone else in mind.", "bc_betrothal_propose_reply",
-                ShowProposalCandidate, SelectPlayerCandidate, 120);
+                ShowPlayerProposalCandidate, SelectPlayerCandidate, 120);
             starter.AddPlayerLine("bc_betrothal_player_cancel", "bc_betrothal_choose_player", "lord_pretalk",
                 "{=BC_Marriage_NeverMind}Actually, never mind.", null, ClearProposal, 100);
             starter.AddDialogLine("bc_betrothal_other_prompt", "bc_betrothal_other_prompt", "bc_betrothal_choose_other",
@@ -227,7 +227,16 @@ namespace BellumCivile.Behaviors
         private static bool ShowProposalCandidate()
         {
             if (!(ConversationSentence.CurrentProcessedRepeatObject is Hero hero)) return false;
-            MBTextManager.SetTextVariable("BC_BETROTHAL_CANDIDATE", hero.Name);
+            ConversationSentence.SelectedRepeatLine.SetTextVariable("BC_BETROTHAL_CANDIDATE", hero.Name);
+            return true;
+        }
+
+        private static bool ShowPlayerProposalCandidate()
+        {
+            if (!(ConversationSentence.CurrentProcessedRepeatObject is Hero hero)) return false;
+            var text = hero == Hero.MainHero ? SpecificMarriageProposalBehavior.MarriageHandText(hero)
+                : new TextObject("{=BC_Betrothal_PlayerChoice}I would pledge {HERO}.").SetTextVariable("HERO", hero.Name);
+            ConversationSentence.SelectedRepeatLine.SetTextVariable("BC_BETROTHAL_OFFER", text);
             return true;
         }
 

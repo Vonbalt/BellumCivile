@@ -16,20 +16,21 @@ internal static partial class MarriageHouseholdTests
 {
     private sealed class BetrothalDialogueLine
     {
-        internal string Input, Output;
+        internal string Input, Output, Text;
         internal Delegate Condition, Consequence, Clickable;
     }
 
     private static readonly Dictionary<string, BetrothalDialogueLine> BetrothalLines = new Dictionary<string, BetrothalDialogueLine>();
     private static Hero _betrothalSpeaker, _betrothalSelected;
     private static IReadOnlyList<object> _betrothalCandidates;
+    private static TextObject _betrothalRepeatLine;
     private static BarterData _betrothalBarter;
 
     private static bool RegisterBetrothalLine(MethodBase __originalMethod, object[] __args, ref ConversationSentence __result)
     {
         bool repeat = __originalMethod.Name == "AddRepeatablePlayerLine";
         BetrothalLines[(string)__args[0]] = new BetrothalDialogueLine {
-            Input = (string)__args[1], Output = (string)__args[2], Condition = __args[repeat ? 6 : 4] as Delegate,
+            Input = (string)__args[1], Output = (string)__args[2], Text = (string)__args[3], Condition = __args[repeat ? 6 : 4] as Delegate,
             Consequence = __args[repeat ? 7 : 5] as Delegate, Clickable = repeat ? null : __args.ElementAtOrDefault(7) as Delegate
         };
         __result = null;
@@ -38,6 +39,7 @@ internal static partial class MarriageHouseholdTests
 
     private static bool BetrothalSpeaker(ref Hero __result) { __result = _betrothalSpeaker; return false; }
     private static bool BetrothalSelected(ref object __result) { __result = _betrothalSelected; return false; }
+    private static bool BetrothalRepeatLine(ref TextObject __result) { __result = _betrothalRepeatLine; return false; }
     private static bool CaptureBetrothalCandidates(IReadOnlyList<object> __0) { _betrothalCandidates = __0; return false; }
     private static bool CaptureBetrothalBarter(BarterData __0) { _betrothalBarter = __0; return false; }
     private static bool BetrothalTestParty(ref PartyBase __result) { __result = Blank<PartyBase>(); return false; }
@@ -74,6 +76,8 @@ internal static partial class MarriageHouseholdTests
                     Patch(method, nameof(RegisterBetrothalLine));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "OneToOneConversationHero"), nameof(BetrothalSpeaker));
             Patch(AccessTools.PropertyGetter(typeof(ConversationSentence), "SelectedRepeatObject"), nameof(BetrothalSelected));
+            Patch(AccessTools.PropertyGetter(typeof(ConversationSentence), "CurrentProcessedRepeatObject"), nameof(BetrothalSelected));
+            Patch(AccessTools.PropertyGetter(typeof(ConversationSentence), "SelectedRepeatLine"), nameof(BetrothalRepeatLine));
             Patch(AccessTools.Method(typeof(ConversationSentence), "SetObjectsToRepeatOver"), nameof(CaptureBetrothalCandidates));
             Patch(AccessTools.Method(typeof(BarterManager), "BeginPlayerBarter"), nameof(CaptureBetrothalBarter));
             Patch(AccessTools.PropertyGetter(typeof(PartyBase), "MainParty"), nameof(BetrothalTestParty));
@@ -84,6 +88,15 @@ internal static partial class MarriageHouseholdTests
             diplomacy.SetValue(campaign.Models, new DefaultDiplomacyModel());
             AccessTools.Method(type, "RegisterDialogue").Invoke(behavior, new[] { Blank<CampaignGameStarter>() });
             _betrothalSpeaker = first.Clan.Leader;
+
+            _betrothalSelected = Hero.MainHero;
+            var self = _betrothalRepeatLine = new TextObject(Line("player_choice").Text);
+            CanSay("player_choice");
+            _betrothalSelected = second;
+            var relative = _betrothalRepeatLine = new TextObject(Line("player_choice").Text);
+            CanSay("player_choice");
+            check(self.ToString() == "My own hand." && relative.ToString() == "I would pledge " + second.Name + ".",
+                "Betrothal uses a self line only for the player, and a named pledge for relatives");
 
             Outsiders.Add(first);
             Ages[second] = 24;
@@ -163,6 +176,7 @@ internal static partial class MarriageHouseholdTests
             BetrothalLines.Clear();
             _betrothalSpeaker = _betrothalSelected = null;
             _betrothalCandidates = null;
+            _betrothalRepeatLine = null;
             _betrothalBarter = null;
         }
     }
