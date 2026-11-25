@@ -70,6 +70,11 @@ internal static class Program
                 DefensivePactThreatTests.Run(Check);
                 Console.WriteLine($"{_checks} defensive pact threat checks passed.");
             }
+            else if (args.Contains("--war-target-performance"))
+            {
+                WarTargetPerformanceTests.Run(Check);
+                Console.WriteLine($"{_checks} war target performance checks passed.");
+            }
             else if (args.Contains("--defensive-pact-votes"))
             {
                 DefensivePactVoteTests.Run(Check);

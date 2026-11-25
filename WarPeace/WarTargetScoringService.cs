@@ -343,75 +343,75 @@ namespace BellumCivile.WarPeace
             List<string> reasons,
             List<WarTargetMotive> motives)
         {
-            Clan clan = context.Clan;
-            FeudalTitleBehavior titleBehavior = context.TitleBehavior;
-            if (titleBehavior == null || clan == null || targetKingdom == null)
+            if (targetKingdom == null || !context.TitleClaimsByController.TryGetValue(targetKingdom, out var claims))
                 return 0f;
 
             float score = 0f;
-            HashSet<string> countedTitles = new HashSet<string>();
-
-            foreach (FeudalClaimRecord claim in titleBehavior.GetActiveClaimsByClan(clan))
+            foreach (var claim in claims)
             {
-                FeudalTitleRecord title = titleBehavior.GetTitle(claim.TargetTitleId);
-                if (!IsTitleControlledByKingdom(title, targetKingdom, context.ClansById) || !countedTitles.Add(title.TitleId))
-                    continue;
-
-                float value = claim.Strength == FeudalClaimStrength.Strong
-                    ? BellumCivileOptions.WarTargetStrongClaimScore
-                    : BellumCivileOptions.WarTargetWeakClaimScore;
-                score += value;
-                reasons.Add($"{claim.Strength.ToString().ToLowerInvariant()} claim to {title.Name} +{value:0}");
-                motives?.Add(new WarTargetMotive
+                string name = claim.Title.Name;
+                float value;
+                WarTargetMotiveType type;
+                if (claim.Strength.HasValue)
                 {
-                    Type = claim.Strength == FeudalClaimStrength.Strong
-                        ? WarTargetMotiveType.StrongClaim
-                        : WarTargetMotiveType.WeakClaim,
-                    Score = value,
-                    Subject = new TextObject(title.Name ?? string.Empty)
-                });
-            }
-
-            foreach (FeudalTitleRecord title in context.AllTitles)
-            {
-                if (title == null
-                    || !title.IsActive
-                    || title.DeJureHolderClanId != clan.StringId
-                    || title.DeFactoHolderClanId == clan.StringId
-                    || !IsTitleControlledByKingdom(title, targetKingdom, context.ClansById)
-                    || !countedTitles.Add(title.TitleId))
-                {
-                    continue;
+                    bool strong = claim.Strength == FeudalClaimStrength.Strong;
+                    value = strong ? BellumCivileOptions.WarTargetStrongClaimScore : BellumCivileOptions.WarTargetWeakClaimScore;
+                    type = strong ? WarTargetMotiveType.StrongClaim : WarTargetMotiveType.WeakClaim;
+                    reasons.Add($"{claim.Strength.Value.ToString().ToLowerInvariant()} claim to {name} +{value:0}");
                 }
-
-                score += BellumCivileOptions.WarTargetImpliedDeJureScore;
-                reasons.Add($"legal title occupied: {title.Name} +{BellumCivileOptions.WarTargetImpliedDeJureScore:0}");
+                else
+                {
+                    value = BellumCivileOptions.WarTargetImpliedDeJureScore;
+                    type = WarTargetMotiveType.DeJureReclamation;
+                    reasons.Add($"legal title occupied: {name} +{value:0}");
+                }
+                score += value;
                 motives?.Add(new WarTargetMotive
                 {
-                    Type = WarTargetMotiveType.DeJureReclamation,
-                    Score = BellumCivileOptions.WarTargetImpliedDeJureScore,
-                    Subject = new TextObject(title.Name ?? string.Empty)
+                    Type = type,
+                    Score = value,
+                    Subject = new TextObject(name ?? string.Empty)
                 });
             }
-
             return Math.Min(100f, score);
         }
 
-        private static bool IsTitleControlledByKingdom(
-            FeudalTitleRecord title,
-            Kingdom targetKingdom,
-            Dictionary<string, Clan> clansById)
+        private static Dictionary<Kingdom, List<TitleClaim>> IndexTitleClaimsByController(FeudalTitleBehavior titles, Clan clan)
         {
-            if (title == null
-                || !title.IsActive
-                || targetKingdom == null
-                || string.IsNullOrWhiteSpace(title.DeFactoHolderClanId)
-                || !clansById.TryGetValue(title.DeFactoHolderClanId, out Clan holder))
+            var result = new Dictionary<Kingdom, List<TitleClaim>>();
+            if (titles == null || clan == null) return result;
+
+            Dictionary<string, Clan> clansById = null;
+            var countedTitles = new HashSet<string>(StringComparer.Ordinal);
+            void Add(FeudalTitleRecord title, FeudalClaimStrength? strength)
             {
-                return false;
+                if (title == null || !title.IsActive || string.IsNullOrWhiteSpace(title.DeFactoHolderClanId)
+                    || countedTitles.Contains(title.TitleId)) return;
+
+                if (clansById == null)
+                {
+                    clansById = new Dictionary<string, Clan>(StringComparer.Ordinal);
+                    foreach (Clan house in Clan.All)
+                        if (!string.IsNullOrWhiteSpace(house?.StringId) && !clansById.ContainsKey(house.StringId))
+                            clansById.Add(house.StringId, house);
+                }
+
+                if (!clansById.TryGetValue(title.DeFactoHolderClanId, out Clan holder)) return;
+                Kingdom controller = holder.Kingdom;
+                if (controller == null) return;
+                countedTitles.Add(title.TitleId);
+                if (!result.TryGetValue(controller, out var bucket))
+                    result.Add(controller, bucket = new List<TitleClaim>());
+                bucket.Add(new TitleClaim(title, strength));
             }
 
-            return holder.Kingdom == targetKingdom;
+            // Explicit claims keep precedence and their original order in the target's reasons.
+            foreach (FeudalClaimRecord claim in titles.GetActiveClaimsByClan(clan))
+                Add(titles.GetTitle(claim.TargetTitleId), claim.Strength);
+            foreach (FeudalTitleRecord title in titles.GetTitlesHeldByClan(clan, deJure: true))
+                if (title.DeJureHolderClanId == clan.StringId && title.DeFactoHolderClanId != clan.StringId)
+                    Add(title, null);
+            return result;
         }
 
         private static float CalculateSameCultureFiefScore(Clan clan, IReadOnlyCollection<Settlement> targetFiefs)
@@ -592,12 +592,7 @@ namespace BellumCivile.WarPeace
                 SourceKingdom = sourceKingdom,
                 ClientKingdoms = ClientKingdomBehavior.Instance,
                 TradeAgreements = Campaign.Current?.GetCampaignBehavior<ITradeAgreementsCampaignBehavior>(),
-                TitleBehavior = titleBehavior,
-                ClansById = Clan.All
-                    .Where(candidate => candidate != null && !string.IsNullOrWhiteSpace(candidate.StringId))
-                    .GroupBy(candidate => candidate.StringId)
-                    .ToDictionary(group => group.Key, group => group.First()),
-                AllTitles = titleBehavior?.GetAllTitles()?.Where(title => title != null).ToList() ?? new List<FeudalTitleRecord>(),
+                TitleClaimsByController = IndexTitleClaimsByController(titleBehavior, clan),
                 LocalFiefs = localFiefs,
                 RealmFiefs = realmFiefs,
                 LocalPorts = navalDlcLoaded ? localFiefs.Where(settlement => settlement.HasPort).ToList() : new List<Settlement>(),
@@ -910,9 +905,7 @@ namespace BellumCivile.WarPeace
             public Kingdom SourceKingdom;
             public ClientKingdomBehavior ClientKingdoms;
             public ITradeAgreementsCampaignBehavior TradeAgreements;
-            public FeudalTitleBehavior TitleBehavior;
-            public Dictionary<string, Clan> ClansById;
-            public List<FeudalTitleRecord> AllTitles;
+            public Dictionary<Kingdom, List<TitleClaim>> TitleClaimsByController;
             public List<Settlement> LocalFiefs;
             public List<Settlement> RealmFiefs;
             public List<Settlement> LocalPorts;
@@ -922,6 +915,18 @@ namespace BellumCivile.WarPeace
             public float LandThreshold;
             public float MaritimeThreshold;
             public bool NavalDlcLoaded;
+        }
+
+        private readonly struct TitleClaim
+        {
+            public readonly FeudalTitleRecord Title;
+            public readonly FeudalClaimStrength? Strength;
+
+            public TitleClaim(FeudalTitleRecord title, FeudalClaimStrength? strength)
+            {
+                Title = title;
+                Strength = strength;
+            }
         }
 
         private sealed class TargetContext
