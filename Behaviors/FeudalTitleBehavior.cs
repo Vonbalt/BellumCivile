@@ -137,6 +137,14 @@ namespace BellumCivile.Behaviors
             return _titlesById.Values.ToList();
         }
 
+        private FeudalFabricationTitleIndex _fabricationTitleIndex;
+
+        internal FeudalFabricationTitleIndex GetFabricationTitleIndex()
+        {
+            EnsureCollectionsInitialized();
+            return _fabricationTitleIndex ?? (_fabricationTitleIndex = new FeudalFabricationTitleIndex(_titlesById.Values));
+        }
+
         public IReadOnlyCollection<FeudalClaimRecord> GetAllClaims()
         {
             EnsureCollectionsInitialized();
@@ -5077,6 +5085,7 @@ namespace BellumCivile.Behaviors
 
         private void RebuildRuntimeIndexes(bool advanceRevision = true, bool refreshDisplay = true)
         {
+            _fabricationTitleIndex = null;
             if (advanceRevision)
                 RuntimeRevision++;
             if (_claimIndexBatchDepth == 0)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -441,7 +442,10 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            if (!TryFindBestAiFabricationTarget(titleBehavior, clan, out AiFabricationCandidate bestCandidate, out string reason))
+            long searchStarted = Stopwatch.GetTimestamp();
+            bool found = TryFindBestAiFabricationTarget(titleBehavior, clan, out AiFabricationCandidate bestCandidate, out string reason);
+            Campaign.Current?.GetCampaignBehavior<FeudalPoliticalOptionsBehavior>()?.RecordFabricationSearch(searchStarted);
+            if (!found)
             {
                 report = reason;
                 return false;
@@ -524,40 +528,87 @@ namespace BellumCivile.Behaviors
 
             List<FeudalTitleRecord> heldTitles = GetHeldTitles(titleBehavior, clan);
 
-            return titleBehavior.GetAllTitles()
-                .Where(title => title != null && title.IsActive)
-                .Where(title => title.DeJureHolderClanId != clan.StringId)
-                .Where(title => !titleBehavior.HasActiveClaim(clan, title))
-                .Where(title => Campaign.Current?.GetCampaignBehavior<FeudalClaimFabricationBehavior>()?.IsOnCooldown(clan, title) != true)
-                .Select(title => TryBuildAiFabricationCandidate(titleBehavior, clan, title, heldTitles, out AiFabricationCandidate candidate) ? candidate : null)
-                .Where(candidate => candidate != null)
-                .GroupBy(candidate => candidate.Title.TitleId)
-                .Select(group => group.OrderByDescending(candidate => candidate.Score).First())
-                .ToList();
+            var index = titleBehavior.GetFabricationTitleIndex();
+            var search = new HashSet<FeudalTitleRecord>();
+            var cooldowns = Campaign.Current?.GetCampaignBehavior<FeudalClaimFabricationBehavior>();
+            bool CanConsider(FeudalTitleRecord title) => title != null && title.IsActive
+                && title.DeJureHolderClanId != clan.StringId
+                && !titleBehavior.HasActiveClaim(clan, title)
+                && cooldowns?.IsOnCooldown(clan, title) != true
+                && CanAffordAiFabricationGold(clan, GetFabricationGoldCost(title.TitleType));
+
+            foreach (var title in heldTitles)
+            {
+                if (CanConsider(title)) search.Add(title);
+                var parent = titleBehavior.GetParentTitle(title, FeudalHierarchyMode.DeJure);
+                if (CanConsider(parent)) search.Add(parent);
+                if (title.DeJureHolderClanId != clan.StringId) continue;
+                foreach (var child in titleBehavior.GetChildTitles(title))
+                    if (CanConsider(child)) search.Add(child);
+            }
+            if (heldTitles.Count == 0 && clan.Kingdom != null)
+            {
+                foreach (var title in index.Baronies(clan.Kingdom.StringId))
+                    if (CanConsider(title)) search.Add(title);
+            }
+
+            var horizontal = new HashSet<FeudalTitleRecord>();
+            foreach (var group in heldTitles.GroupBy(title => title.TitleType))
+            {
+                foreach (var title in index.Rank(group.Key))
+                {
+                    if (search.Contains(title) || !CanConsider(title)) continue;
+                    if (!group.Any(heldTitle => AreTitlesAdjacent(titleBehavior, heldTitle, title))) continue;
+                    search.Add(title);
+                    horizontal.Add(title);
+                }
+            }
+
+            var candidates = new List<AiFabricationCandidate>();
+            float? desirePressure = null;
+            Func<float> sharedDesire = () =>
+            {
+                if (!desirePressure.HasValue)
+                    desirePressure = ClanFiefDesireHelper.CalculateRebelliousFiefDesirePressure(clan);
+                return desirePressure.Value;
+            };
+            foreach (var title in index.InRegistryOrder(search))
+            {
+                if (!TryBuildAiFabricationCandidate(titleBehavior, clan, title, heldTitles, out var candidate,
+                        knownHorizontal: horizontal.Contains(title), sharedDesirePressure: sharedDesire))
+                    continue;
+                candidates.Add(candidate);
+            }
+            return candidates;
         }
+
+        private static bool CanAffordAiFabricationGold(Clan clan, int goldCost) => clan.Leader != null
+            && clan.Leader.Gold >= (int)Math.Round(goldCost * C.FeudalClaimFabricationAiGoldCostMultiplier)
+                + C.FeudalClaimFabricationAiGoldReserve;
 
         private static bool TryBuildAiFabricationCandidate(
             FeudalTitleBehavior titleBehavior,
             Clan clan,
             FeudalTitleRecord title,
             IReadOnlyCollection<FeudalTitleRecord> heldTitles,
-            out AiFabricationCandidate candidate, bool requireStartingFunds = true)
+            out AiFabricationCandidate candidate, bool requireStartingFunds = true, bool knownHorizontal = false,
+            Func<float> sharedDesirePressure = null)
         {
             candidate = null;
-            if (!TryGetFabricationTrack(titleBehavior, clan, title, out FeudalClaimFabricationTrack track, out _, heldTitles))
+            FeudalClaimFabricationTrack track = FeudalClaimFabricationTrack.Horizontal;
+            if (!knownHorizontal && !TryGetFabricationTrack(titleBehavior, clan, title, out track, out _, heldTitles))
                 return false;
 
             int goldCost = GetFabricationGoldCost(title.TitleType);
             float influenceCost = GetFabricationInfluenceCost(title.TitleType);
-            int requiredGold = (int)Math.Round(goldCost * C.FeudalClaimFabricationAiGoldCostMultiplier) + C.FeudalClaimFabricationAiGoldReserve;
-            if (clan.Leader == null || (requireStartingFunds && clan.Leader.Gold < requiredGold))
+            if (clan.Leader == null || requireStartingFunds && !CanAffordAiFabricationGold(clan, goldCost))
                 return false;
 
             List<string> reasons = new List<string>();
             float score = GetTrackBaseScore(track);
             reasons.Add($"{track} base +{GetTrackBaseScore(track):0}");
 
-            float desirePressure = ClanFiefDesireHelper.CalculateRebelliousFiefDesirePressure(clan);
+            float desirePressure = sharedDesirePressure?.Invoke() ?? ClanFiefDesireHelper.CalculateRebelliousFiefDesirePressure(clan);
             float desireScore = Math.Min(GetTrackDesireCap(track), desirePressure * GetTrackDesireScale(track));
             if (desireScore > 0f)
             {

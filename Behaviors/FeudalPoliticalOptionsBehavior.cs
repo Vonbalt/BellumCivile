@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -16,7 +17,11 @@ namespace BellumCivile.Behaviors
     {
 
         private Dictionary<string, float> _nextClanEvaluationDays = new Dictionary<string, float>();
+        private List<string> _dailyBatch = new List<string>();
+        private float _batchDay = -1f;
         private float _nextScheduledEvaluationDay = float.MaxValue;
+        private readonly Dictionary<string, Clan> _scheduledClansById = new Dictionary<string, Clan>(StringComparer.Ordinal);
+        private readonly FeudalPoliticalTiming _timing = new FeudalPoliticalTiming();
         private FeudalTitleUsurpationBehavior _usurpationBehavior;
         private ClaimFeudBehavior _claimFeudBehavior;
         private FeudalServiceBehavior _serviceBehavior;
@@ -25,6 +30,7 @@ namespace BellumCivile.Behaviors
         {
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, OnHourlyTick);
             CampaignEvents.OnClanDestroyedEvent.AddNonSerializedListener(this, OnClanDestroyed);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, OnClanChangedKingdom);
         }
@@ -32,6 +38,8 @@ namespace BellumCivile.Behaviors
         public override void SyncData(IDataStore dataStore)
         {
             dataStore.SyncData("BellumCivile_FeudalPoliticalOptionNextClanEvaluationDays", ref _nextClanEvaluationDays);
+            dataStore.SyncData("BellumCivile_FeudalPoliticalOptionDailyBatch", ref _dailyBatch);
+            dataStore.SyncData("BellumCivile_FeudalPoliticalOptionBatchDay", ref _batchDay);
             EnsureCollectionsInitialized();
         }
 
@@ -48,43 +56,51 @@ namespace BellumCivile.Behaviors
             EnsureCollectionsInitialized();
 
             float currentDay = CurrentDay;
-            if (currentDay < _nextScheduledEvaluationDay)
+            _timing.FlushIfYearChanged((int)(currentDay / GetCampaignDaysInYear()));
+            if (_dailyBatch.Count > 0 || Math.Floor(_batchDay) == Math.Floor(currentDay)
+                || currentDay < _nextScheduledEvaluationDay)
                 return;
 
-            FeudalTitleBehavior titleBehavior = FeudalTitleBehavior.Instance ?? Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
-            if (titleBehavior == null)
-                return;
-
-            Dictionary<string, Clan> clansById = Clan.All
-                .Where(clan => clan != null && !string.IsNullOrWhiteSpace(clan.StringId))
-                .GroupBy(clan => clan.StringId)
-                .ToDictionary(group => group.Key, group => group.First());
-
-            List<string> dueClanIds = _nextClanEvaluationDays
+            _dailyBatch = _nextClanEvaluationDays
                 .Where(pair => pair.Value <= currentDay)
                 .OrderBy(pair => pair.Value)
                 .ThenBy(pair => pair.Key)
                 .Take(C.ClaimFeudMaxClanEvaluationsPerDailyTick)
                 .Select(pair => pair.Key)
                 .ToList();
+            _batchDay = currentDay;
+            _timing.RecordBatch(_dailyBatch.Count);
+        }
 
-            foreach (string clanId in dueClanIds)
+        private void OnHourlyTick()
+        {
+            if (_dailyBatch.Count == 0) return;
+            FeudalTitleBehavior titleBehavior = FeudalTitleBehavior.Instance ?? Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
+            if (titleBehavior == null) return;
+
+            string clanId = _dailyBatch[0];
+            _dailyBatch.RemoveAt(0);
+            if (_nextClanEvaluationDays.TryGetValue(clanId, out float dueDay) && dueDay <= _batchDay)
             {
-                if (!clansById.TryGetValue(clanId, out Clan clan) || !IsValidPoliticalActionClan(clan))
+                Clan clan = ResolveScheduledClan(clanId);
+                if (!IsValidPoliticalActionClan(clan))
                 {
                     _nextClanEvaluationDays.Remove(clanId);
-                    continue;
                 }
-
-                TryRunPoliticalOptionsForClan(titleBehavior, clan, out string report);
-                BellumCivileDebug.TraceIfEnabled(
-                    "titles",
-                    $"Feudal political options evaluated; clan={clan.Name} ({clan.StringId}); report={report ?? "no report"}.",
-                    requestInGameDisplay: false);
-                ScheduleNextEvaluation(clan, initialSchedule: false);
+                else
+                {
+                    long started = Stopwatch.GetTimestamp();
+                    TryRunPoliticalOptionsForClan(titleBehavior, clan, out string report);
+                    _timing.Record(FeudalPoliticalTiming.Stage.Total, started);
+                    if (BellumCivileDebug.ShowInGameMessages)
+                        BellumCivileDebug.Trace("titles",
+                            $"Feudal political options evaluated; clan={clan.Name} ({clan.StringId}); report={report ?? "no report"}.");
+                    // Preserve the normal cadence from the day this job would have run.
+                    ScheduleNextEvaluation(clan, initialSchedule: false, scheduledFromDay: _batchDay);
+                }
             }
 
-            RecalculateNextScheduledEvaluationDay();
+            if (_dailyBatch.Count == 0) RecalculateNextScheduledEvaluationDay();
         }
 
         public bool TryForceEvaluateClan(Clan clan, out string report)
@@ -103,10 +119,15 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            long started = Stopwatch.GetTimestamp();
             bool acted = TryRunPoliticalOptionsForClan(titleBehavior, clan, out report);
+            _timing.Record(FeudalPoliticalTiming.Stage.Total, started);
             report = $"{(acted ? "Action selected" : "No action selected")}: {report}";
             return true;
         }
+
+        internal void RecordFabricationSearch(long startedAt) =>
+            _timing.Record(FeudalPoliticalTiming.Stage.FabricationSearch, startedAt);
 
         public void QueueClanForEvaluation(Clan clan, string reason, float delayDays = 1f)
         {
@@ -114,16 +135,16 @@ namespace BellumCivile.Behaviors
             if (!IsValidPoliticalActionClan(clan) || string.IsNullOrWhiteSpace(clan.StringId))
                 return;
 
+            _scheduledClansById[clan.StringId] = clan;
             float dueDay = CurrentDay + Math.Max(1f, delayDays);
             if (!_nextClanEvaluationDays.TryGetValue(clan.StringId, out float existingDueDay) || existingDueDay > dueDay)
             {
                 _nextClanEvaluationDays[clan.StringId] = dueDay;
                 if (dueDay < _nextScheduledEvaluationDay)
                     _nextScheduledEvaluationDay = dueDay;
-                BellumCivileDebug.TraceIfEnabled(
-                    "titles",
-                    $"Queued feudal political options evaluation; clan={clan.Name} ({clan.StringId}); due_day={dueDay:0}; reason={reason ?? "unknown"}.",
-                    requestInGameDisplay: false);
+                if (BellumCivileDebug.ShowInGameMessages)
+                    BellumCivileDebug.Trace("titles",
+                        $"Queued feudal political options evaluation; clan={clan.Name} ({clan.StringId}); due_day={dueDay:0}; reason={reason ?? "unknown"}.");
             }
         }
 
@@ -132,29 +153,34 @@ namespace BellumCivile.Behaviors
             report = null;
             CachePoliticalBehaviors();
 
-            if (_usurpationBehavior != null
-                && _usurpationBehavior.TryRunAutonomousUsurpationEvaluationForClan(titleBehavior, clan, out string usurpationReport))
+            if (_usurpationBehavior != null)
             {
-                report = $"usurpation: {usurpationReport}";
-                return true;
+                long started = Stopwatch.GetTimestamp();
+                bool acted = _usurpationBehavior.TryRunAutonomousUsurpationEvaluationForClan(titleBehavior, clan, out string detail);
+                _timing.Record(FeudalPoliticalTiming.Stage.Usurpation, started);
+                if (acted) { report = $"usurpation: {detail}"; return true; }
             }
 
-            if (_claimFeudBehavior != null
-                && (C.ClaimFeudAiEnabled || C.FeudalClaimFabricationAiEnabled)
-                && _claimFeudBehavior.TryRunAutonomousLandedAmbitionEvaluationForClan(titleBehavior, clan, out string landedReport))
+            if (_claimFeudBehavior != null && (C.ClaimFeudAiEnabled || C.FeudalClaimFabricationAiEnabled))
             {
-                report = $"landed ambition: {landedReport}";
-                return true;
+                long started = Stopwatch.GetTimestamp();
+                bool acted = _claimFeudBehavior.TryRunAutonomousLandedAmbitionEvaluationForClan(titleBehavior, clan, out string detail);
+                _timing.Record(FeudalPoliticalTiming.Stage.Landed, started);
+                if (acted) { report = $"landed ambition: {detail}"; return true; }
             }
 
-            if (_serviceBehavior != null
-                && _serviceBehavior.TryRunAutonomousServiceReviewForClan(titleBehavior, clan, out string serviceReport))
+            if (_serviceBehavior != null)
             {
-                report = $"service review: {serviceReport}";
-                return true;
+                long started = Stopwatch.GetTimestamp();
+                bool acted = _serviceBehavior.TryRunAutonomousServiceReviewForClan(titleBehavior, clan, out string detail);
+                _timing.Record(FeudalPoliticalTiming.Stage.Service, started);
+                if (acted) { report = $"service review: {detail}"; return true; }
             }
 
-            if (TryRunAutonomousFormationEvaluationForClan(titleBehavior, clan, out string formationReport))
+            long formationStart = Stopwatch.GetTimestamp();
+            bool formed = TryRunAutonomousFormationEvaluationForClan(titleBehavior, clan, out string formationReport);
+            _timing.Record(FeudalPoliticalTiming.Stage.Formation, formationStart);
+            if (formed)
             {
                 report = $"title formation: {formationReport}";
                 return true;
@@ -265,14 +291,26 @@ namespace BellumCivile.Behaviors
 
         private void ScheduleMissingClanEvaluations()
         {
-            foreach (Clan clan in Clan.All.Where(IsValidPoliticalActionClan))
+            _scheduledClansById.Clear();
+            foreach (Clan clan in Clan.All)
             {
-                if (!_nextClanEvaluationDays.ContainsKey(clan.StringId))
+                if (clan == null || string.IsNullOrWhiteSpace(clan.StringId)) continue;
+                if (!_scheduledClansById.ContainsKey(clan.StringId))
+                    _scheduledClansById.Add(clan.StringId, clan);
+                if (IsValidPoliticalActionClan(clan) && !_nextClanEvaluationDays.ContainsKey(clan.StringId))
                     ScheduleNextEvaluation(clan, initialSchedule: true);
             }
         }
 
-        private void ScheduleNextEvaluation(Clan clan, bool initialSchedule)
+        private Clan ResolveScheduledClan(string clanId)
+        {
+            if (_scheduledClansById.TryGetValue(clanId, out Clan clan)) return clan;
+            clan = Clan.All.FirstOrDefault(candidate => candidate != null && candidate.StringId == clanId);
+            if (clan != null) _scheduledClansById[clanId] = clan;
+            return clan;
+        }
+
+        private void ScheduleNextEvaluation(Clan clan, bool initialSchedule, float? scheduledFromDay = null)
         {
             if (clan == null || string.IsNullOrWhiteSpace(clan.StringId))
                 return;
@@ -284,7 +322,7 @@ namespace BellumCivile.Behaviors
                 ? GetStableClanDayOffset(clan, Math.Max(1, (int)Math.Ceiling(minDays + randomDays)))
                 : minDays + MBRandom.RandomFloat * randomDays;
 
-            float dueDay = CurrentDay + Math.Max(1f, delay);
+            float dueDay = (scheduledFromDay ?? CurrentDay) + Math.Max(1f, delay);
             _nextClanEvaluationDays[clan.StringId] = dueDay;
             if (dueDay < _nextScheduledEvaluationDay)
                 _nextScheduledEvaluationDay = dueDay;
@@ -296,6 +334,7 @@ namespace BellumCivile.Behaviors
                 return;
 
             _nextClanEvaluationDays.Remove(clan.StringId);
+            _scheduledClansById.Remove(clan.StringId);
             RecalculateNextScheduledEvaluationDay();
         }
 
@@ -310,9 +349,15 @@ namespace BellumCivile.Behaviors
                 return;
 
             if (!IsValidPoliticalActionClan(clan))
+            {
                 _nextClanEvaluationDays.Remove(clan.StringId);
+                _scheduledClansById.Remove(clan.StringId);
+            }
             else
+            {
+                _scheduledClansById[clan.StringId] = clan;
                 ScheduleNextEvaluation(clan, initialSchedule: true);
+            }
 
             RecalculateNextScheduledEvaluationDay();
         }
@@ -364,6 +409,8 @@ namespace BellumCivile.Behaviors
         {
             if (_nextClanEvaluationDays == null)
                 _nextClanEvaluationDays = new Dictionary<string, float>();
+            if (_dailyBatch == null)
+                _dailyBatch = new List<string>();
         }
 
         private static float CurrentDay => (float)CampaignTime.Now.ToDays;

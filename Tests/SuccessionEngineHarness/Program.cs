@@ -154,6 +154,12 @@ internal static class Program
                 TitleReorganizationTests.Run(Check);
                 Console.WriteLine($"{_checks} hierarchy performance checks passed.");
             }
+            else if (args.Contains("--feudal-politics"))
+            {
+                FeudalPoliticalPerformanceTests.Run(Check);
+                FabricationSetbackTests.Run(Check);
+                Console.WriteLine($"{_checks} feudal politics checks passed.");
+            }
             else if (args.Contains("--lordship-naming"))
             {
                 LordshipNamingTests.Run(Check);
