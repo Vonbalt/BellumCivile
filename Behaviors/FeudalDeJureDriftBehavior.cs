@@ -763,10 +763,8 @@ namespace BellumCivile.Behaviors
                 .Where(candidate => candidate != null)
                 .Select(candidate => candidate.TitleId));
 
-            FeudalTitleRecord sameTierParent = titleBehavior.GetAllTitles()
-                .Where(candidate => candidate != null
-                    && candidate.IsActive
-                    && candidate.TitleType == originalParent.TitleType
+            FeudalTitleRecord sameTierParent = titleBehavior.GetTitleCandidateIndex().Rank(originalParent.TitleType)
+                .Where(candidate => candidate.IsActive
                     && candidate.TitleType > title.TitleType
                     && candidate.TitleId != originalParent.TitleId
                     && !descendantIds.Contains(candidate.TitleId)

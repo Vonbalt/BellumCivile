@@ -72,6 +72,7 @@ internal static class DeJureDriftConflictTests
             Patch(AccessTools.PropertyGetter(type, "CurrentDay"), nameof(Day));
             Patch(AccessTools.Method(type, "TryEvaluateEligibility", new[] { typeof(FeudalTitleBehavior), typeof(FeudalTitleRecord),
                 typeof(FeudalDeJureDriftEligibility).MakeByRefType(), typeof(string).MakeByRefType() }), nameof(Eligible));
+            Patch(AccessTools.Method(type, "CalculateProgressDelta"), nameof(Delta));
             _eligible = false; _eligibility = null;
             foreach (var temporary in new[] { rebels, feud })
             {
@@ -82,8 +83,7 @@ internal static class DeJureDriftConflictTests
                 check(record.LastEvaluatedDay == _day && record.TargetKingdomId == home.StringId && record.TargetParentTitleId == target.TitleId,
                     "Pause updates evaluation date without retargeting the legal destination: " + temporary.StringId);
             }
-            _realm = home; _eligible = true; _eligibility = new FeudalDeJureDriftEligibility(title, parent, target, home, _leader);
-            Patch(AccessTools.Method(type, "CalculateProgressDelta"), nameof(Delta));
+            _realm = home; _eligible = true; _eligibility = new FeudalDeJureDriftEligibility(title, parent, target, home, null);
             _day += 7; Evaluate();
             check(Math.Abs(record.Progress - .46f) < .00001f && record.State == FeudalDeJureDriftState.Advancing,
                 "Reunification resumes the same record instead of starting again from zero");

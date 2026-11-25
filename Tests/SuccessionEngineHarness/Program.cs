@@ -164,6 +164,13 @@ internal static class Program
                 TitleReorganizationTests.Run(Check);
                 Console.WriteLine($"{_checks} hierarchy performance checks passed.");
             }
+            else if (args.Contains("--title-maintenance-performance"))
+            {
+                DeJureDriftConflictTests.Run(Check);
+                IndependentDriftTests.Run(Check);
+                TitleMaintenancePerformanceTests.Run(Check);
+                Console.WriteLine($"{_checks} title maintenance performance checks passed.");
+            }
             else if (args.Contains("--feudal-politics"))
             {
                 FeudalPoliticalPerformanceTests.Run(Check);

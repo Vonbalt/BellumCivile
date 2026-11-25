@@ -528,7 +528,7 @@ namespace BellumCivile.Behaviors
 
             List<FeudalTitleRecord> heldTitles = GetHeldTitles(titleBehavior, clan);
 
-            var index = titleBehavior.GetFabricationTitleIndex();
+            var index = titleBehavior.GetTitleCandidateIndex();
             var search = new HashSet<FeudalTitleRecord>();
             var cooldowns = Campaign.Current?.GetCampaignBehavior<FeudalClaimFabricationBehavior>();
             bool CanConsider(FeudalTitleRecord title) => title != null && title.IsActive

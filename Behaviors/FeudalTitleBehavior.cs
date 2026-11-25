@@ -137,12 +137,12 @@ namespace BellumCivile.Behaviors
             return _titlesById.Values.ToList();
         }
 
-        private FeudalFabricationTitleIndex _fabricationTitleIndex;
+        private FeudalTitleCandidateIndex _titleCandidateIndex;
 
-        internal FeudalFabricationTitleIndex GetFabricationTitleIndex()
+        internal FeudalTitleCandidateIndex GetTitleCandidateIndex()
         {
             EnsureCollectionsInitialized();
-            return _fabricationTitleIndex ?? (_fabricationTitleIndex = new FeudalFabricationTitleIndex(_titlesById.Values));
+            return _titleCandidateIndex ?? (_titleCandidateIndex = new FeudalTitleCandidateIndex(_titlesById.Values));
         }
 
         public IReadOnlyCollection<FeudalClaimRecord> GetAllClaims()
@@ -280,6 +280,18 @@ namespace BellumCivile.Behaviors
             var index = mode == FeudalHierarchyMode.DeFacto ? _childrenByDeFactoParentTitleId : _childrenByParentTitleId;
             return index.TryGetValue(parentTitle.TitleId, out List<string> children)
                 && children.Any(id => id != parentTitle.TitleId && GetTitle(id)?.IsActive == true);
+        }
+
+        private IEnumerable<FeudalTitleRecord> EnumerateActiveChildren(string parentTitleId, FeudalHierarchyMode mode)
+        {
+            var index = mode == FeudalHierarchyMode.DeFacto ? _childrenByDeFactoParentTitleId : _childrenByParentTitleId;
+            if (!index.TryGetValue(parentTitleId, out List<string> children)) yield break;
+            foreach (string childId in children)
+            {
+                FeudalTitleRecord child = GetTitle(childId);
+                if (child?.IsActive == true && (mode == FeudalHierarchyMode.DeFacto ? child.DeFactoParentTitleId : child.ParentTitleId) == parentTitleId)
+                    yield return child;
+            }
         }
 
         public IReadOnlyCollection<FeudalTitleRecord> GetTitleAndDescendants(FeudalTitleRecord rootTitle)
@@ -1582,12 +1594,8 @@ namespace BellumCivile.Behaviors
             string deJureParentId = destinations.DeJure?.TitleId ?? string.Empty;
             string deFactoParentId = destinations.DeFacto?.TitleId ?? string.Empty;
 
-            List<FeudalTitleRecord> deJureChildren = _titlesById.Values
-                .Where(child => child != null && child.IsActive && child.ParentTitleId == title.TitleId)
-                .ToList();
-            List<FeudalTitleRecord> deFactoChildren = _titlesById.Values
-                .Where(child => child != null && child.IsActive && child.DeFactoParentTitleId == title.TitleId)
-                .ToList();
+            List<FeudalTitleRecord> deJureChildren = EnumerateActiveChildren(title.TitleId, FeudalHierarchyMode.DeJure).ToList();
+            List<FeudalTitleRecord> deFactoChildren = EnumerateActiveChildren(title.TitleId, FeudalHierarchyMode.DeFacto).ToList();
 
             var inheritedOrigins = deJureChildren.Where(child => string.IsNullOrWhiteSpace(child.AssociatedKingdomId))
                 .ToDictionary(child => child, GetDriftOriginKingdomId);
@@ -3494,12 +3502,13 @@ namespace BellumCivile.Behaviors
                 .Where(title => title != null
                     && title.IsActive
                     && title.TitleType > FeudalTitleType.Barony
+                    && !string.IsNullOrWhiteSpace(title.TitleId)
                     && !configuredTitleIds.Contains(title.TitleId)
+                    // Keep malformed self-links out of automatic cleanup, as the full scan did.
+                    && !EnumerateActiveChildren(title.TitleId, FeudalHierarchyMode.DeJure).Any()
+                    && !EnumerateActiveChildren(title.TitleId, FeudalHierarchyMode.DeFacto).Any()
                     && !IsSovereignTitle(title, ResolveClan(title.DeFactoHolderClanId)?.Kingdom)
-                    && !HasActiveTitleDispute(title)
-                    && !_titlesById.Values.Any(child => child != null
-                        && child.IsActive
-                        && (child.ParentTitleId == title.TitleId || child.DeFactoParentTitleId == title.TitleId)))
+                    && !HasActiveTitleDispute(title))
                 .ToList();
 
             HashSet<string> currentIds = new HashSet<string>(orphaned.Select(title => title.TitleId));
@@ -5085,7 +5094,7 @@ namespace BellumCivile.Behaviors
 
         private void RebuildRuntimeIndexes(bool advanceRevision = true, bool refreshDisplay = true)
         {
-            _fabricationTitleIndex = null;
+            _titleCandidateIndex = null;
             if (advanceRevision)
                 RuntimeRevision++;
             if (_claimIndexBatchDepth == 0)
