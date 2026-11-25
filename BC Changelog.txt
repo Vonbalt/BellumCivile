@@ -888,4 +888,4 @@ Improved strategic marriage matchmaking and spread its checks across campaign ho
 Added dynastic betrothals, allowing noble houses to promise a future marriage before both heirs come of age.
 Rebalanced marriage dowries so the receiving clan pays and restricted new matches to nobles of the same standing or to two retainers.
 Fixed article issue on anglicized preset with repeated "the the" realm names.
-Add cultural titles for the Rhodok culture in the anglicized preset to match the immersive/banner kings presets that already have it (Rise of Rhodoks mod compatibility).
+Updated and improved compatibility with Rise of the Rhodoks mod.

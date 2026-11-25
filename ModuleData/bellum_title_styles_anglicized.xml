@@ -5,7 +5,7 @@
   <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
        The default is "{DISPLAY_TITLE} {HERO_NAME}"; order and separators may be changed.
        Example: heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
-  <TitleName id="bc_title_kingdom_nord2" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_nord2}Rhodok" />
+  <TitleName id="bc_title_kingdom_rhodok" name="{=BC_TitleRoot_Anglicized_bc_title_kingdom_nord2}Rhodok" />
   <TitleName id="bc_title_kingdom_vlandia" name="{=FjwRsf1C}Vlandia" />
   <TitleName id="bc_title_kingdom_battania" name="{=0B27RrYJ}Battania" />
   <TitleName id="bc_title_kingdom_sturgia" name="{=PjO7oY16}Sturgia" />

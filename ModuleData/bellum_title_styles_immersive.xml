@@ -6,7 +6,7 @@
   <!-- Optional Rank heroNameFormat tokens are {DISPLAY_TITLE}, {HERO_NAME}, and {HELD_TITLE}.
        Examples: heroNameFormat="{DISPLAY_TITLE} &#xB7; {HERO_NAME}"
        or heroNameFormat="{HERO_NAME}, {HELD_TITLE}". -->
-  <TitleName id="bc_title_kingdom_nord2" name="{=BC_TitleRoot_Immersive_bc_title_kingdom_nord2}Rhodok" />
+  <TitleName id="bc_title_kingdom_rhodok" name="{=BC_TitleRoot_Immersive_bc_title_kingdom_nord2}Rhodok" />
   <TitleName id="bc_title_kingdom_vlandia" name="{=BC_TitleRoot_Immersive_bc_title_kingdom_vlandia}Valandorum" />
   <TitleName id="duchy_ebor" name="{=BC_TitleRoot_Immersive_duchy_ebor}Eboraci" />
   <TitleName id="duchy_svadia" name="{=BC_TitleRoot_Immersive_duchy_svadia}Svadiae" />
