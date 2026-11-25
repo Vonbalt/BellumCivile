@@ -150,7 +150,7 @@ namespace BellumCivile
             var selected = new List<CourtObjectiveChoice>();
             foreach (var owner in owners)
             {
-                var pool = Evaluate(context, owner, c => diagnostic?.Invoke(owner, c));
+                var pool = Evaluate(context, owner, diagnostic == null ? (Action<CourtObjectiveChoice>)null : c => diagnostic(owner, c));
                 pools.Add(pool);
                 selected.Add(SelectEvaluated(pool, random));
             }

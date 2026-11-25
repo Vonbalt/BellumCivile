@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 
@@ -57,7 +58,9 @@ namespace BellumCivile.Behaviors
                     BellumCivileLogger.Log($"Court term preparation skipped after prolonged unavailability; realm={term.RealmId}; start={term.StartDay}; end={term.EndDay}; day={now}.");
                     continue;
                 }
-                OpenTerm(realm, manager, ideology, term);
+                long started = Stopwatch.GetTimestamp();
+                try { OpenTerm(realm, manager, ideology, term); }
+                finally { _agendaTiming.RecordRealm(term.RealmId, Stopwatch.GetTimestamp() - started); }
             }
         }
 

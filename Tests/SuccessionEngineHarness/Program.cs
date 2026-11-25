@@ -499,6 +499,7 @@ internal static class Program
             else if (args.Contains("--court-term-preparation"))
             {
                 CourtTermPreparationTests.Run(Check);
+                CourtAgendaTimingTests.Run(Check);
                 PlayerCrownBusinessTests.Run(Check);
                 IntegrationSaveDefinitionTests.Run(Check);
                 Console.WriteLine($"{_checks} court term preparation checks passed.");

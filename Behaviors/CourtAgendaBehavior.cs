@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
@@ -25,6 +26,7 @@ namespace BellumCivile.Behaviors
         private Dictionary<string, CampaignTime> _reconsiderAfter = new Dictionary<string, CampaignTime>();
         private Dictionary<string, CampaignTime> _emergencyAfter = new Dictionary<string, CampaignTime>();
         private readonly CourtObjectiveSelector<CourtTermContext, CourtObjectiveOwner> _objectiveSelector = CreateObjectiveSelector();
+        private readonly CourtAgendaTiming _agendaTiming = new CourtAgendaTiming();
 
         private static CourtObjectiveSelector<CourtTermContext, CourtObjectiveOwner> CreateObjectiveSelector()
         {
@@ -340,6 +342,15 @@ namespace BellumCivile.Behaviors
 
         private void Tick()
         {
+            double day = CampaignTime.Now.ToDays;
+            _agendaTiming.BeginDay((int)(day / Math.Max(1, CampaignTime.DaysInYear)));
+            long started = Stopwatch.GetTimestamp();
+            try { RunDailyCourtTick(); }
+            finally { _agendaTiming.EndDay(day, Stopwatch.GetTimestamp() - started); }
+        }
+
+        private void RunDailyCourtTick()
+        {
             MigratePlayerCrownBusiness();
             _recentResults.RemoveAll(a => a == null || !a.ResultVisibleUntil.IsFuture || !ReactionApproval(a).HasValue);
             FreezeExistingSchedules();
@@ -403,7 +414,12 @@ namespace BellumCivile.Behaviors
                     Advance(agenda, ideology);
                 }
             }
-            PrepareQueuedCourtTerms(realms, manager, ideology);
+            if (_pendingCourtTerms.Count > 0)
+            {
+                long started = Stopwatch.GetTimestamp();
+                try { PrepareQueuedCourtTerms(realms, manager, ideology); }
+                finally { _agendaTiming.RecordPreparation(Stopwatch.GetTimestamp() - started); }
+            }
             foreach (string key in _reconsiderAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _reconsiderAfter.Remove(key);
             foreach (string key in _mandateSettledUntil.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _mandateSettledUntil.Remove(key);
             foreach (string key in _emergencyAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _emergencyAfter.Remove(key);
@@ -464,12 +480,7 @@ namespace BellumCivile.Behaviors
                 if (playerLed && owner.Mood <= -60 && manager.HasCivilWarGrace(realm) != true) agenda.CrisisInterventionPending = true;
                 selecting.Add(agenda);
             }
-            var choices = selecting.Count == 0 ? new CourtObjectiveChoice[0] : _objectiveSelector.SelectBatch(
-                new CourtTermContext(realm, policy => CanPropose(realm, policy)),
-                selecting.Select(a => new CourtObjectiveOwner(a.Faction, a.Sponsor)).ToList(), new[] { "council_appointment", CourtMandateRules.Kind },
-                    () => MBRandom.RandomFloat,
-                    (owner, candidate) => BellumCivileDebug.TraceIfEnabled("court-objectives",
-                        $"realm={realm.StringId}; owner={owner.Faction?.Type.ToString() ?? "Crown"}; kind={candidate.Kind}; target={candidate.Candidate.TargetId}; action={candidate.Candidate.ActionId}; eligible={candidate.Evaluation.Eligible}; viable={candidate.Evaluation.Viable}; {candidate.Evaluation.Weight}; {candidate.Evaluation.Reason}"));
+            var choices = SelectTermObjectives(realm, selecting);
             for (int i = 0; i < selecting.Count; i++)
             {
                 var agenda = selecting[i];
@@ -489,6 +500,26 @@ namespace BellumCivile.Behaviors
             var message = new TextObject("{=BC_CourtTermOpened}The houses of {REALM} have gathered for a new term at court.");
             message.SetTextVariable("REALM", realm.Name);
             BellumCivileNotifications.Show(message, BellumNotificationColors.Politics, primaryKingdom: realm);
+        }
+
+        private IReadOnlyList<CourtObjectiveChoice> SelectTermObjectives(Kingdom realm, List<CourtAgendaRecord> selecting)
+        {
+            if (selecting.Count == 0) return Array.Empty<CourtObjectiveChoice>();
+            long started = Stopwatch.GetTimestamp();
+            try
+            {
+                return _objectiveSelector.SelectBatch(new CourtTermContext(realm, policy => CanPropose(realm, policy)),
+                    selecting.Select(a => new CourtObjectiveOwner(a.Faction, a.Sponsor)).ToList(),
+                    new[] { "council_appointment", CourtMandateRules.Kind }, () => MBRandom.RandomFloat, CreateObjectiveDiagnostic(realm));
+            }
+            finally { _agendaTiming.RecordSelection(Stopwatch.GetTimestamp() - started); }
+        }
+
+        private static Action<CourtObjectiveOwner, CourtObjectiveChoice> CreateObjectiveDiagnostic(Kingdom realm)
+        {
+            if (!BellumCivileDebug.ShowInGameMessages) return null;
+            return (owner, candidate) => BellumCivileDebug.Trace("court-objectives",
+                $"realm={realm.StringId}; owner={owner.Faction?.Type.ToString() ?? "Crown"}; kind={candidate.Kind}; target={candidate.Candidate.TargetId}; action={candidate.Candidate.ActionId}; eligible={candidate.Evaluation.Eligible}; viable={candidate.Evaluation.Viable}; {candidate.Evaluation.Weight}; {candidate.Evaluation.Reason}");
         }
 
         private void Advance(CourtAgendaRecord agenda, IdeologyBehavior ideology)

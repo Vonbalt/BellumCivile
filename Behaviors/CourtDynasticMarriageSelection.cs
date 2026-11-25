@@ -62,7 +62,8 @@ namespace BellumCivile.Behaviors
                 if (!foreign) foreignRefused++;
                 if (domestic && foreign) result.Add(match);
             }
-            BellumCivileDebug.TraceIfEnabled("court", $"Royal marriage candidates; realm={realm.StringId}; eligible_home_relatives={relatives.Count}; pairs={pairs}; unavailable={unavailable}; reserved={reserved}; domestic_refused={domesticRefused}; foreign_refused={foreignRefused}; accepted={result.Count}.");
+            if (BellumCivileDebug.ShowInGameMessages)
+                BellumCivileDebug.Trace("court", $"Royal marriage candidates; realm={realm.StringId}; eligible_home_relatives={relatives.Count}; pairs={pairs}; unavailable={unavailable}; reserved={reserved}; domestic_refused={domesticRefused}; foreign_refused={foreignRefused}; accepted={result.Count}.");
             return result;
         }
     }
