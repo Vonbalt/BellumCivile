@@ -1405,17 +1405,6 @@ namespace BellumCivile
         public const int DynamicMercenaryPlayerIntentExpiryYears = 1;
 
         // ------------------------------------------------------------
-        // ROYAL DOWRY  (MarriageDowryPatch)
-        // Multipliers applied to the target clan's marriage valuation when the
-        // proposer is of lower tier. Higher tier gap = steeper "prove yourself" tax.
-        // The heir premium stacks on top and applies regardless of tier direction.
-        // ------------------------------------------------------------
-        // Each tier of difference makes the marriage 100% more expensive (+1x per tier gap).
-        // Applied as: multiplier = 1.0 + tierDiff. Only fires when proposer is lower tier (tierDiff > 0).
-        // Equal or higher-tier proposers pay no penalty.
-        public const float DowryHeirPremium = 1.00f;  // flat +1x additive on top of any tier penalty - dynastic heirs are always expensive regardless of tier direction
-
-        // ------------------------------------------------------------
         // FEUDAL SERVICE OWED
         // Legal obligations from a de facto child title to its immediate de facto liege title.
         // Tax is calculated from actual effective title revenue after title penalties.

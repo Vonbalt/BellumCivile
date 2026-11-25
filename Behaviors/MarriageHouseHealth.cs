@@ -8,13 +8,6 @@ namespace BellumCivile.Behaviors
     {
         internal static float PlayerMarriageHouseRisk(Clan clan) => AssessHouseHealth(clan).Risk;
 
-        internal static float PlayerMarriageStaffRisk(Hero member, Hero spouse, Clan destination)
-        {
-            var health = AssessHouseHealth(member.Clan);
-            return destination != member.Clan ? health.StaffDepartureCost(member) / BellumCivileConstants.MarriageHouseholdStaffLoss
-                : health.StaffIncomingValue(member, spouse) / BellumCivileConstants.MarriageHouseholdStaffGain;
-        }
-
         private sealed class HouseHealth
         {
             public int Adults, Children, BloodAdults, ServiceAdults, ServiceChildren, ServiceDemand;

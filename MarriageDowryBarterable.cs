@@ -10,6 +10,7 @@ namespace BellumCivile
     {
         private readonly Clan _payer, _payee;
         internal int Minimum { get; }
+        internal int OpeningAmount { get; }
         internal bool IsDeposit { get; }
 
         internal MarriageDowryBarterable(Hero payer, Hero payee, Clan payerClan, Clan payeeClan, int quote, bool isDeposit = false)
@@ -19,7 +20,7 @@ namespace BellumCivile
             _payer = payerClan; _payee = payeeClan;
             IsDeposit = isDeposit;
             Minimum = payerClan == Clan.PlayerClan || isDeposit ? quote : 1;
-            CurrentAmount = Math.Min(quote, MaxAmount);
+            OpeningAmount = CurrentAmount = Math.Min(quote, MaxAmount);
         }
 
         public override int GetUnitValueForFaction(IFaction faction) => faction == _payer ? -1 : faction == _payee ? 1 : 0;

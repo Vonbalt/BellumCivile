@@ -10,10 +10,10 @@ namespace BellumCivile.Patches
         [HarmonyPostfix]
         public static void GetUnitValueForFactionPostfix(MarriageBarterable __instance, IFaction faction, ref int __result)
         {
-            if (!PlayerMarriagePricing.TryGet(__instance, out var quote)) return;
+            if (!PlayerMarriagePricing.TryGet(__instance, out var quote) || !quote.HasNegotiatedPayment) return;
             if (faction == quote.Agreement.OtherHouse
                 || faction == quote.Agreement.OtherHouse.Kingdom && faction != quote.Agreement.PlayerHouse.Kingdom)
-                __result = quote.HasNegotiatedPayment && quote.Agreement.Destination == quote.Agreement.OtherHouse
+                __result = quote.Agreement.Destination == quote.Agreement.OtherHouse
                     && quote.Payment?.IsOffered == true && quote.Payment.CurrentAmount > 0 ? quote.Compensation : -quote.Compensation;
         }
     }

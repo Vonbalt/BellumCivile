@@ -144,7 +144,18 @@ internal static partial class MarriageHouseholdTests
             check(items[0].Group == _betrothalBarter.GetBarterGroup<OtherBarterGroup>()
                 && _betrothalBarter.ContextInitializer(items[0], _betrothalBarter)
                 && campaign.BarterManager.IsOfferAcceptable(_betrothalBarter, _betrothalSpeaker, null),
-                "Native barter accepts the fully funded pledge, and resetting the screen preserves its terms");
+                "Native barter accepts the fully funded pledge");
+            var pledgeVM = MakeMarriageBarterVM(_betrothalBarter);
+            int deposit = items[1].CurrentAmount;
+            var depositRow = pledgeVM.LeftOfferList.Concat(pledgeVM.RightOfferList).Single(row => row.Barterable == items[1]);
+            depositRow.CurrentOfferedAmount = deposit - 1;
+            pledgeVM.ExecuteAutoBalance();
+            check(items[1].CurrentAmount == deposit && !pledgeVM.IsOfferDisabled && pledges.Count == 0,
+                "Auto Offer restores the fixed betrothal deposit without committing it");
+            depositRow.CurrentOfferedAmount = deposit - 1;
+            pledgeVM.ExecuteReset();
+            check(items[1].CurrentAmount == deposit && _betrothalBarter.GetOfferedBarterables().SequenceEqual(items),
+                "Reset restores both original betrothal terms");
             SayLine("barter_cancelled");
             items[0].Apply();
             items[1].Apply();

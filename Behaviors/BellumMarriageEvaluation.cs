@@ -20,7 +20,6 @@ namespace BellumCivile.Behaviors
             private readonly Dictionary<Hero, List<Hero>> _parentalEstates = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, List<Hero>> _parentHeirs = new Dictionary<Hero, List<Hero>>();
             private readonly Dictionary<Hero, bool> _bloodMembers = new Dictionary<Hero, bool>();
-            private readonly Dictionary<Hero, int> _dowries = new Dictionary<Hero, int>();
             public readonly Dictionary<Clan, Dictionary<Clan, float>> Politics = new Dictionary<Clan, Dictionary<Clan, float>>();
             private readonly FeudalTitleBehavior _titles;
             private readonly int _day;
@@ -138,13 +137,7 @@ namespace BellumCivile.Behaviors
             }
 
             public bool FertileHousehold(Clan house) => Health(house).HasFertileCouple;
-            public int DowryFor(Hero hero)
-            {
-                if (!_dowries.TryGetValue(hero, out int dowry))
-                    _dowries[hero] = dowry = MarriagePayments.Quote(hero, CrownHeirs.Contains(hero),
-                        HouseholdMembership.IsFamily(hero) && _households.MustRemain(hero));
-                return dowry;
-            }
+            public int DowryFor(Hero departing, Hero receiving) => MarriagePayments.Quote(departing, receiving, _households);
 
             public float IncomingClaimValue(Clan house, Hero carrier, List<string> reasons, bool canFoundLine)
             {
@@ -547,7 +540,7 @@ namespace BellumCivile.Behaviors
                 firstPlayer, secondPlayer, BellumCivileOptions.MarriageAcceptanceThreshold)) return null;
             match.Score = MarriageOutcome.Rank(match.SuitorAcceptance, match.CandidateAcceptance, firstPlayer, secondPlayer);
             Hero leaving = destination == first.Clan ? second : first;
-            match.Dowry = context.DowryFor(leaving);
+            match.Dowry = context.DowryFor(leaving, destination == first.Clan ? first : second);
             match.FundingBlocked = !MarriagePayments.CanTransfer(destination, leaving.Clan, match.Dowry);
             if (match.FundingBlocked)
             {

@@ -22,12 +22,13 @@ namespace BellumCivile
         public override int GetUnitValueForFaction(IFaction faction) => faction == _receivingHouse ? Credit : 0;
         public override void Apply() { } // The wedding settles these goods, not the individual native barter row.
 
-        internal bool HasStock()
+        internal int AvailableUnits()
         {
             var roster = OriginalParty.ItemRoster;
             int index = roster.FindIndexOfElement(ItemRosterElement.EquipmentElement);
-            return CurrentAmount > 0 && CurrentAmount <= MaxAmount
-                && index >= 0 && roster.GetElementNumber(index) >= CurrentAmount;
+            return index < 0 ? 0 : System.Math.Min(MaxAmount, roster.GetElementNumber(index));
         }
+
+        internal bool HasStock() => CurrentAmount > 0 && CurrentAmount <= AvailableUnits();
     }
 }

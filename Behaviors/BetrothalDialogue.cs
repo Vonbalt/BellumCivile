@@ -258,16 +258,22 @@ namespace BellumCivile.Behaviors
 
         private Clan ProposalDestination(bool ours) => ours ? Clan.PlayerClan : _proposalHouse;
 
-        private bool CanChooseProposalHousehold(Clan destination, out TextObject hint)
+        private bool CanChooseProposalHousehold(Clan destination, out TextObject hint) =>
+            TryQuoteProposalHousehold(destination, out _, out hint);
+
+        private bool TryQuoteProposalHousehold(Clan destination, out int dowry, out TextObject hint)
         {
+            dowry = 0;
             hint = null;
+            var policy = new MarriageHouseholdPolicy();
             if (!ProposalPairIsValid())
                 hint = new TextObject("{=BC_Betrothal_NoLongerPossible}The betrothal can no longer be agreed on those terms.");
-            else if (!CanSetDestination(_proposedPlayer, _proposedOther, destination, new MarriageHouseholdPolicy()))
+            else if (!CanSetDestination(_proposedPlayer, _proposedOther, destination, policy))
                 hint = new TextObject("{=BC_Betrothal_HouseholdBlocked}A house cannot let its head, heir or last family successor leave.");
             else
             {
-                int deposit = MarriagePayments.Deposit(BetrothalDowry(_proposedPlayer, _proposedOther, destination));
+                dowry = BetrothalDowry(_proposedPlayer, _proposedOther, destination, policy);
+                int deposit = MarriagePayments.Deposit(dowry);
                 if (!MarriagePayments.CanPay(destination, deposit)) hint = MarriagePayments.Unaffordable(destination, deposit);
             }
             return hint == null;
@@ -280,11 +286,11 @@ namespace BellumCivile.Behaviors
         private void ChooseProposalHousehold(Clan destination)
         {
             _proposal = null;
-            if (!CanChooseProposalHousehold(destination, out _)) { _proposalResult = ProposalResult.Stale; return; }
+            if (!TryQuoteProposalHousehold(destination, out int dowry, out _)) { _proposalResult = ProposalResult.Stale; return; }
             if (!AcceptsProposalTerms(destination)) { _proposalResult = ProposalResult.Refused; return; }
             _proposal = new BetrothalRecord { First = _proposedPlayer, Second = _proposedOther, FirstHouse = Clan.PlayerClan,
                 SecondHouse = _proposalHouse, Destination = destination,
-                Dowry = BetrothalDowry(_proposedPlayer, _proposedOther, destination) };
+                Dowry = dowry };
             _proposalResult = ProposalResult.Ready;
         }
 

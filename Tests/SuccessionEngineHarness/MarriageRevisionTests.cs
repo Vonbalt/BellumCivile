@@ -78,29 +78,6 @@ internal static class MarriageRevisionTests
             "Existing children and reproductive households reduce replacement urgency");
         check(F("StaffDepartureCost", 3, 3, 4) == 0 && F("StaffDepartureCost", 3, 2, 4) == 10,
             "A replaceable endowment holder is not charged as a lost heir or irreplaceable worker");
-        var pricing = Mod.GetType("BellumCivile.PlayerMarriagePricing");
-        int Quote(int native, float risk, bool leaves) => (int)AccessTools.Method(pricing, "CalculateHousehold")
-            .Invoke(null, new object[] { native, risk, leaves });
-        check(Quote(-10000, 0, true) == 10000 && Quote(-10000, 1, true) == 15000 && Quote(-10000, 1, false) == 7500,
-            "Retainer negotiation uses bounded staffing cost rather than a borrowed dynasty premium");
-        check(Quote(int.MinValue, 1, true) == int.MaxValue && Quote(500, 1, true) == 0,
-            "Household quotes preserve saturation and cannot become negative");
-        int Status(int amount, bool playerFamily, bool otherFamily) => (int)AccessTools.Method(pricing, "AdjustStatus")
-            .Invoke(null, new object[] { amount, playerFamily, otherFamily });
-        check(Status(10000, false, true) == 12500 && Status(0, false, true) == 2500
-            && Status(1000, false, true) == 3500,
-            "Offering a retainer to a noble family adds 25 percent, with a minimum additional 2500 denars");
-        check(Status(10000, true, false) == 7500 && Status(0, true, false) == 0,
-            "Offering family to a retainer discounts compensation by 25 percent without creating a reverse payment");
-        foreach (int amount in new[] { 0, 1, 9999, 10000, 10001, int.MaxValue })
-        {
-            check(Status(amount, true, true) == amount && Status(amount, false, false) == amount,
-                "Same-status negotiations retain their original quote: " + amount);
-            check(Status(amount, false, true) >= amount && Status(amount, true, false) <= amount,
-                "Status adjustments are monotonic and remain inside integer bounds: " + amount);
-        }
-        check(Status(int.MaxValue, false, true) == int.MaxValue && Status(10001, true, false) == 7501,
-            "Status pricing saturates safely and rounds fractional denars upward");
     }
 
     private static void Snapshots(Action<bool, string> check)

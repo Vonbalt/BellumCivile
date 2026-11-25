@@ -130,21 +130,24 @@ namespace BellumCivile.Behaviors
         }
 
         internal bool Create(Hero first, Hero second, Clan destination, bool offerToPlayer) =>
-            CreateWithTerms(first, second, destination, offerToPlayer, BetrothalDowry(first, second, destination));
+            CreateWithTerms(first, second, destination, offerToPlayer);
 
-        internal static int BetrothalDowry(Hero first, Hero second, Clan destination)
+        internal static int BetrothalDowry(Hero first, Hero second, Clan destination, MarriageHouseholdPolicy policy)
         {
             if (first?.Clan == null || second?.Clan == null || destination != first.Clan && destination != second.Clan) return 0;
-            return MarriagePayments.Quote(destination == first.Clan ? second : first);
+            bool firstReceives = destination == first.Clan;
+            return MarriagePayments.Quote(firstReceives ? second : first, firstReceives ? first : second, policy);
         }
 
-        private bool CreateWithTerms(Hero first, Hero second, Clan destination, bool offerToPlayer, int dowry)
+        private bool CreateWithTerms(Hero first, Hero second, Clan destination, bool offerToPlayer, int? dowry = null)
         {
+            var policy = new MarriageHouseholdPolicy();
             if (!CanArrange || !Potential(first) || !Potential(second) || !CompatiblePair(first, second)
                 || _byHero.ContainsKey(first) || _byHero.ContainsKey(second)
-                || !CanSetDestination(first, second, destination, new MarriageHouseholdPolicy())) return false;
+                || !CanSetDestination(first, second, destination, policy)) return false;
             var p = new BetrothalRecord { First = first, Second = second, FirstHouse = first.Clan, SecondHouse = second.Clan,
-                Destination = destination, Dowry = dowry, OfferExpiresDay = Day + 7, NextReviewDay = Day };
+                Destination = destination, Dowry = dowry ?? BetrothalDowry(first, second, destination, policy),
+                OfferExpiresDay = Day + 7, NextReviewDay = Day };
             if (offerToPlayer && (!p.IsPlayerPledge || HasIncomingOffer)) return false;
             if (!CanFundDeposit(p)) return false;
             if (!offerToPlayer && !FundPledge(p)) return false;

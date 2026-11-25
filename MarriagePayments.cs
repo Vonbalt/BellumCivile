@@ -6,12 +6,32 @@ namespace BellumCivile
 {
     internal static class MarriagePayments
     {
-        internal static int Quote(Hero departing, bool crownHeir = false, bool clanHeir = false)
+        internal static int Quote(Hero departing, Hero receiving, MarriageHouseholdPolicy policy)
         {
-            int tier = Math.Min(6, Math.Max(0, departing.Clan.Tier));
-            return HouseholdMembership.IsFamily(departing)
-                ? 20000 + tier * 5000 + (crownHeir ? 45000 : clanHeir ? 20000 : 0)
-                : 4000 + tier * 500;
+            Clan sending = departing.Clan;
+            int tier = ClampTier(sending.Tier);
+            if (!HouseholdMembership.IsFamily(departing))
+                return 4000 + tier * 500;
+
+            int ordinary = 20000 + tier * 5000;
+            if (HouseholdMembership.IsFamily(receiving))
+                ordinary = ApplyPrestigePremium(ordinary, tier, receiving.Clan.Tier,
+                    policy.DowryPeerage(sending), policy.DowryPeerage(receiving.Clan));
+
+            return ordinary + (policy.IsCrownHeirForDowry(departing) ? 45000 : policy.MustRemain(departing) ? 20000 : 0);
+        }
+
+        private static int ClampTier(int tier) => Math.Min(6, Math.Max(0, tier));
+
+        internal static int ApplyPrestigePremium(int ordinary, int sendingTier, int receivingTier,
+            FeudalTitleType? sendingRank, FeudalTitleType? receivingRank)
+        {
+            int renown = 25 * Math.Max(0, ClampTier(sendingTier) - ClampTier(receivingTier));
+            int peerage = 35 * Math.Max(0, (sendingRank.HasValue ? (int)sendingRank.Value : -1)
+                - (receivingRank.HasValue ? (int)receivingRank.Value : -1));
+            // Count the larger gap in full and the smaller at half weight; cap the base at 3x.
+            int halfPercent = Math.Min(400, 2 * Math.Max(renown, peerage) + Math.Min(renown, peerage));
+            return (ordinary * (200 + halfPercent) + 199) / 200;
         }
 
         internal static int Deposit(int dowry) => dowry <= 0 ? 0 : (int)((dowry + 3L) / 4);

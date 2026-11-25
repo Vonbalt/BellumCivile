@@ -307,7 +307,7 @@ namespace BellumCivile
         [SettingPropertyGroup(ArmyLoyalty, GroupOrder = ArmyLoyaltyGroupOrder)]
         public int ArmyPersonalFriendRelationThreshold { get; set; } = C.ArmyPersonalFriendRelationThreshold;
 
-        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}Bellum replaces vanilla NPC matchmaking and automatic offers to the player clan with separate annual chances for family and retainer marriages. Disable this to restore vanilla matchmaking and automatic offers, subject to other mods. Direct player negotiations remain available. Bellum default: On.")]
+        [SettingPropertyBool("{=BC_MCM_EnableBellumMarriage}Enable Strategic Marriage Logic", Order = 0, RequireRestart = false, HintText = "{=BC_MCM_EnableBellumMarriage_Hint}Enables Bellum's matchmaking, marriage negotiations, dowries and betrothals. Turn it off to use vanilla matchmaking, offers and barter for new marriages, subject to other mods. Existing agreements keep their terms. Bellum default: On.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public bool EnableBellumStrategicMarriageLogic { get; set; } = true;
 

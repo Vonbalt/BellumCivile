@@ -30,6 +30,7 @@ internal static class RetainerMarriageTests
 
     private static readonly Dictionary<Hero, float> Ages = new Dictionary<Hero, float>();
     private static Hero _engaged, _barred, _main, _legalHead;
+    private static bool _marriageEnabled;
     private static Clan _player, _changedFrom;
     private static int _events, _clanEvents;
     private static CampaignEventDispatcher _dispatcher;
@@ -45,6 +46,7 @@ internal static class RetainerMarriageTests
     private static bool Main(ref Hero __result) { __result = _main; return false; }
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool No(ref bool __result) { __result = false; return false; }
+    private static bool MarriageEnabled(ref bool __result) { __result = _marriageEnabled; return false; }
     private static bool Zero(ref int __result) { __result = 0; return false; }
     private static bool Day(ref float __result) { __result = 100; return false; }
     private static bool Ambition(ref float __result) { __result = 1; return false; }
@@ -96,6 +98,8 @@ internal static class RetainerMarriageTests
             campaign.AddCampaignBehaviorManager(new Manager());
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { campaign });
             _dispatcher = Blank<CampaignEventDispatcher>(); _legalHead = _barred = _engaged = null;
+            _marriageEnabled = true;
+            Patch(AccessTools.PropertyGetter(Type("BellumCivileOptions"), "EnableBellumStrategicMarriageLogic"), nameof(MarriageEnabled));
             Patch(AccessTools.PropertyGetter(typeof(CampaignEventDispatcher), "Instance"), nameof(Dispatcher));
             Patch(AccessTools.Method(typeof(CampaignEventDispatcher), "OnHeroChangedClan"), nameof(Changed));
             Patch(AccessTools.Method(typeof(CampaignEventDispatcher), "CanHeroMarry"), nameof(CanMarry));
@@ -139,6 +143,15 @@ internal static class RetainerMarriageTests
                 && !model.IsCoupleSuitableForMarriage(companion, daughter) && !model.IsCoupleSuitableForMarriage(daughter, companion),
                 "Companion marriages require a retainer partner in either proposal orientation");
             var proposal = new SpecificMarriageProposalBehavior();
+            _marriageEnabled = false;
+            try
+            {
+                check(model.IsSuitableForMarriage(companion) == new DefaultMarriageModel().IsSuitableForMarriage(companion),
+                    "Disabled strategic marriage uses native suitability for a new companion match");
+                check(!(bool)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "CanOpenSpecificMarriageProposal")
+                    .Invoke(proposal, null), "Disabled strategic marriage hides Bellum's proposal dialogue");
+            }
+            finally { _marriageEnabled = true; }
             var playerCandidates = (List<Hero>)AccessTools.Method(typeof(SpecificMarriageProposalBehavior), "GetPlayerCandidates")
                 .Invoke(proposal, new object[] { other });
             check(playerCandidates.Contains(companion) && playerCandidates.IndexOf(son) < playerCandidates.IndexOf(companion),

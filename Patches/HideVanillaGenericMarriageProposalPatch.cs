@@ -5,9 +5,8 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 namespace BellumCivile.Patches
 {
     /// <summary>
-    /// Hides vanilla's generic "propose an alliance between our families" branch.
-    /// Bellum replaces it with a specific spouse-selection branch while leaving
-    /// normal personal courtship dialogue intact.
+    /// Hides vanilla's generic marriage proposal only when Bellum supplies its
+    /// own spouse-selection branch. Personal courtship is unaffected.
     /// </summary>
     [HarmonyPatch]
     internal static class HideVanillaGenericMarriageProposalPatch
@@ -21,6 +20,9 @@ namespace BellumCivile.Patches
 
         private static bool Prefix(ref bool __result)
         {
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+                return true;
+
             __result = false;
             return false;
         }

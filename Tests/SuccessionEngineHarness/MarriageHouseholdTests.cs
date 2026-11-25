@@ -18,6 +18,7 @@ internal static partial class MarriageHouseholdTests
     private static readonly Dictionary<Hero, float> Ages = new Dictionary<Hero, float>();
     private static readonly HashSet<Hero> Women = new HashSet<Hero>(), Dead = new HashSet<Hero>(), Outsiders = new HashSet<Hero>();
     private static readonly Dictionary<Clan, Hero> Leaders = new Dictionary<Clan, Hero>(), Heirs = new Dictionary<Clan, Hero>();
+    private static readonly Dictionary<Clan, FeudalTitleType> DowryRanks = new Dictionary<Clan, FeudalTitleType>();
     private static readonly Dictionary<Kingdom, Hero> Crowns = new Dictionary<Kingdom, Hero>();
     private static readonly Dictionary<Kingdom, Clan> Rulers = new Dictionary<Kingdom, Clan>();
     private static MBReadOnlyList<Kingdom> _realms;
@@ -41,6 +42,8 @@ internal static partial class MarriageHouseholdTests
     { _clanReads++; __result = Heirs.TryGetValue(clan, out Hero heir) ? new List<Hero> { heir } : new List<Hero>(); return false; }
     private static bool CrownLine(Kingdom realm, ref List<Hero> __result)
     { _crownReads++; __result = Crowns.TryGetValue(realm, out Hero heir) ? new List<Hero> { heir } : new List<Hero>(); return false; }
+    private static bool DowryRank(Clan clan, ref FeudalTitleType? __result)
+    { __result = DowryRanks.TryGetValue(clan, out var rank) ? rank : (FeudalTitleType?)null; return false; }
     private static bool Hereditary(Kingdom realm, ref bool __result) { __result = Crowns.ContainsKey(realm); return false; }
     private static bool Realms(ref MBReadOnlyList<Kingdom> __result) { __result = _realms; return false; }
     private static bool Ruler(Kingdom __instance, ref Clan __result) { __result = Rulers[__instance]; return false; }
@@ -84,7 +87,7 @@ internal static partial class MarriageHouseholdTests
         var laws = assembly.GetType("BellumCivile.SuccessionLawHelper");
         var oldCampaign = Campaign.Current;
         Houses.Clear(); Spouses.Clear(); Ages.Clear(); Women.Clear(); Dead.Clear(); Outsiders.Clear();
-        Leaders.Clear(); Heirs.Clear(); Crowns.Clear(); Rulers.Clear(); _player = null; _enabled = true;
+        Leaders.Clear(); Heirs.Clear(); Crowns.Clear(); Rulers.Clear(); DowryRanks.Clear(); _player = null; _enabled = true;
         _clanReads = _crownReads = _rosterReads = _moves = 0;
         var a = Blank<Clan>(); a.StringId = "heiress_house";
         var b = Blank<Clan>(); b.StringId = "groom_house";
@@ -155,6 +158,7 @@ internal static partial class MarriageHouseholdTests
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.HouseholdMembership"), "IsBloodRelative"), nameof(Family));
             Patch(AccessTools.Method(laws, "GetAgeOfMajority"), nameof(Majority));
             Patch(AccessTools.Method(assembly.GetType("BellumCivile.HereditaryRealmSuccession"), "GetLine"), nameof(CrownLine));
+            Patch(AccessTools.Method(assembly.GetType("BellumCivile.FeudalPoliticalWeightHelper"), "GetHighestHeldTitleRank"), nameof(DowryRank));
             Patch(AccessTools.PropertyGetter(assembly.GetType("BellumCivile.BellumCivileOptions"), "EnableBellumStrategicMarriageLogic"), nameof(Enabled));
             Patch(AccessTools.Method(typeof(DefaultMarriageModel), "IsCoupleSuitableForMarriage"), nameof(Yes));
 
@@ -207,7 +211,6 @@ internal static partial class MarriageHouseholdTests
             var context = FormatterServices.GetUninitializedObject(contextType);
             AccessTools.Field(contextType, "_households").SetValue(context, Policy());
             AccessTools.Field(contextType, "_bloodMembers").SetValue(context, new Dictionary<Hero, bool>());
-            AccessTools.Field(contextType, "_dowries").SetValue(context, new Dictionary<Hero, int>());
             AccessTools.Field(contextType, "CrownHeirs").SetValue(context, new HashSet<Hero> { bride });
             AccessTools.Field(contextType, "Realms").SetValue(context, new Dictionary<Clan, Kingdom> { [a] = home, [b] = foreign });
             Patch(AccessTools.Method(contextType, "ParentalEstateProspects"), nameof(NoEstates));
@@ -225,6 +228,15 @@ internal static partial class MarriageHouseholdTests
             check(Match() == null, "NPC matchmaking rejects a willing couple when the receiving house is one denar short");
             Leaders[a].Gold = 40000;
             check(Match() != null, "NPC matchmaking accepts a willing couple with exactly enough to pay the adjusted dowry");
+            DowryRanks[a] = FeudalTitleType.Barony;
+            DowryRanks[b] = FeudalTitleType.Duchy;
+            AccessTools.Field(contextType, "_households").SetValue(context, Policy());
+            Leaders[a].Gold = 67999;
+            check(Match() == null, "NPC funding checks include the peerage premium even with no tier difference");
+            Leaders[a].Gold = 68000;
+            check(Match() != null, "An NPC house can fund a higher-peerage match at the exact adjusted price");
+            DowryRanks.Clear();
+            AccessTools.Field(contextType, "_households").SetValue(context, Policy());
             Leaders[a].Gold = savedGold;
             CheckMarriageFundingDiagnostics(check, context, Match, bride, groom);
             _secondScore = 94;
@@ -262,11 +274,21 @@ internal static partial class MarriageHouseholdTests
 
             var npcRoll = assembly.GetType("BellumCivile.Patches.BlockVanillaNpcMarriagePatch");
             var playerRoll = assembly.GetType("BellumCivile.Patches.BlockVanillaPlayerMarriageOfferPatch");
+            var vanillaDialogue = assembly.GetType("BellumCivile.Patches.HideVanillaGenericMarriageProposalPatch");
+            var dialoguePrefix = AccessTools.Method(vanillaDialogue, "Prefix");
+            bool CheckDialoguePrefix(bool initialResult, bool runOriginal, bool expectedResult)
+            {
+                object[] args = { initialResult };
+                return (bool)dialoguePrefix.Invoke(null, args) == runOriginal && (bool)args[0] == expectedResult;
+            }
             bool NativeRuns(Type patchType) => (bool)AccessTools.Method(patchType, "Prefix").Invoke(null, null);
             check(!NativeRuns(npcRoll) && !NativeRuns(playerRoll), "Enabled strategy replaces both vanilla automatic rolls");
+            check(CheckDialoguePrefix(true, false, false), "Enabled strategy hides the native generic marriage dialogue");
             _enabled = false;
             check(NativeRuns(npcRoll) && NativeRuns(playerRoll) && _model.GetClanAfterMarriage(bride, groom) == b,
                 "Disabled strategy restores automatic rolls and ordinary unguided household placement");
+            check(CheckDialoguePrefix(true, true, true) && CheckDialoguePrefix(false, true, false),
+                "Disabled strategy leaves visibility to the native dialogue condition");
             _enabled = true;
 
             Patch(AccessTools.Method(typeof(DefaultMarriageModel), "GetEffectiveRelationIncrease"), nameof(Zero));
@@ -284,6 +306,8 @@ internal static partial class MarriageHouseholdTests
 
             check(harmony.CreateClassProcessor(npcRoll).Patch().Count > 0 && harmony.CreateClassProcessor(playerRoll).Patch().Count > 0,
                 "Both toggle prefixes patch their native automatic scheduling methods");
+            check(harmony.CreateClassProcessor(vanillaDialogue).Patch().Count == 1,
+                "Dialogue toggle patches the installed native marriage-alliance condition");
             RunPlayer(check, harmony, campaign, bride, groom, a, b, spare);
         }
         finally

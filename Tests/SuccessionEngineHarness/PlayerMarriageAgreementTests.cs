@@ -58,8 +58,6 @@ internal static partial class MarriageHouseholdTests
         __result = __instance.HeroBeingProposedTo.Clan == _player ? -45000 : -1000;
         return false;
     }
-    private static bool HalfRisk(ref float __result) { __result = .5f; return false; }
-    private static bool SameTier(ref int __result) { __result = 4; return false; }
     private static bool OfferName(Hero __instance, ref TextObject __result) { __result = new TextObject(__instance.StringId); return false; }
     private static bool HouseName(Clan __instance, ref TextObject __result) { __result = new TextObject(__instance.StringId); return false; }
     private static bool GameText(string id, ref TextObject __result) { __result = new TextObject(id); return false; }
@@ -90,12 +88,10 @@ internal static partial class MarriageHouseholdTests
             Destination = destination, Negotiated = negotiated };
         bool Valid(PlayerMarriageAgreement r) => (bool)AccessTools.Method(typeof(PlayerMarriageAgreement), "Validate")
             .Invoke(r, new object[] { null });
-        object Quote(MarriageBarterable item, PlayerMarriageAgreement agreement = null)
-        {
-            var args = agreement == null ? new object[] { item, null } : new object[] { item, agreement, null };
-            AccessTools.Method(Pricing, agreement == null ? "TryGet" : "Bind").Invoke(null, args);
-            return args[args.Length - 1];
-        }
+        void Bind(MarriageBarterable item, PlayerMarriageAgreement agreement) =>
+            AccessTools.Method(Pricing, "BindAgreement").Invoke(null, new object[] { item, agreement });
+        bool Bound(MarriageBarterable item) =>
+            (bool)AccessTools.Method(Pricing, "TryGet").Invoke(null, new object[] { item, null });
         void Reset()
         {
             Spouses.Clear(); Houses[bride] = brideHouse; Houses[groom] = groomHouse;
@@ -111,8 +107,6 @@ internal static partial class MarriageHouseholdTests
         Patch(AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "OnMarriageOfferDeclinedOnPopUp"), nameof(Decline));
         Patch(AccessTools.PropertyGetter(typeof(Hero), "Name"), nameof(OfferName));
         Patch(AccessTools.PropertyGetter(typeof(Clan), "Name"), nameof(HouseName));
-        Patch(AccessTools.PropertyGetter(typeof(Clan), "Tier"), nameof(SameTier));
-        Patch(AccessTools.Method(assembly.GetType("BellumCivile.Behaviors.BellumMarriageStrategyHelper"), "PlayerMarriageHouseRisk"), nameof(HalfRisk));
         Patch(AccessTools.Method(typeof(MarriageBarterable), "GetUnitValueForFaction"), nameof(NativePrice));
         foreach (string name in new[] { "PlayerMarriageOfferCapturePatch", "PlayerMarriageOwnEngagementPatch",
             "PlayerMarriageOfferConsequencesPatch", "PlayerMarriageOfferAcceptPatch", "PlayerMarriageOfferHourlyPatch",
@@ -159,9 +153,9 @@ internal static partial class MarriageHouseholdTests
                 check((bool)AccessTools.Method(AgreementBehavior, "Ready").Invoke(null, new object[] { agreement, null }),
                     scenario + ": the same exception survives final wedding readiness checks");
                 var item = new MarriageBarterable(groom, null, groom, bride);
-                Quote(item, agreement);
-                check(item.GetUnitValueForFaction(brideHouse) == (royal ? -170000 : -120000),
-                    scenario + ": existing heir premium and bloodline health cost remain payable");
+                Bind(item, agreement);
+                check((int)AccessTools.Method(Pricing, "NegotiatedQuote").Invoke(null, new object[] { agreement })
+                    == (royal ? 85000 : 60000), scenario + ": direct negotiation uses the shared heir premium");
                 check((bool)AccessTools.Method(guardType, "Validate").Invoke(null, new object[] { new List<Barterable> { item } }),
                     scenario + ": whole-barter preflight allows the explicitly negotiated departure");
                 item.Apply();
@@ -206,10 +200,12 @@ internal static partial class MarriageHouseholdTests
         brideHouse.Leader.Gold = brideGold;
         check(_offers.IsHeroEngaged(groom) && _model.IsCoupleSuitableForMarriage(groom, bride),
             "Own queued engagement is ignored only during that pair's wedding suitability check");
-        AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
+        _enabled = false;
+        try { AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null); }
+        finally { _enabled = true; }
         check(Spouses[groom] == bride && Houses[groom] == brideHouse && _offerRewards == 1 && waiting.Count == 0
             && brideHouse.Leader.Gold == brideGold - incomingDowry && groomHouse.Leader.Gold == groomGold + incomingDowry,
-            "Actual native hourly path completes delayed matrilineal wedding and rewards once");
+            "A saved matrilineal agreement completes at its agreed price even after the revamp is turned off");
         AccessTools.Method(typeof(MarriageOfferCampaignBehavior), "HourlyTick").Invoke(_offers, null);
         check(_offerRewards == 1 && groomHouse.Leader.Gold == groomGold + incomingDowry,
             "Later native ticks cannot repeat the accepted wedding reward or dowry");
@@ -228,44 +224,37 @@ internal static partial class MarriageHouseholdTests
 
         var normal = new MarriageBarterable(Leaders[groomHouse], null, groom, bride);
         var reverse = new MarriageBarterable(Leaders[groomHouse], null, bride, groom);
-        int firstPrice = normal.GetUnitValueForFaction(brideHouse);
-        check(firstPrice == -170000 && reverse.GetUnitValueForFaction(brideHouse) == firstPrice,
-            "Production barter patch normalizes both constructor orders and charges one Crown premium plus health cost");
-        int reads = _rosterReads, crownReads = _crownReads;
-        for (int i = 0; i < 100; i++) normal.GetUnitValueForFaction(brideHouse);
-        check(_rosterReads == reads && _crownReads == crownReads, "Barter redraws reuse quoted health and heir snapshot");
+        check(normal.GetUnitValueForFaction(brideHouse) == -45000 && !Bound(normal),
+            "Enabling the revamp does not reprice a native item before Bellum prepares a quote");
+        _enabled = false;
+        try
+        {
+            Bind(reverse, Record(true, brideHouse));
+            int reads = _nativeQuotes;
+            check(normal.GetUnitValueForFaction(brideHouse) == -45000
+                && reverse.GetUnitValueForFaction(brideHouse) == -1000 && _nativeQuotes == reads + 2
+                && !Bound(normal) && !Bound(reverse),
+                "With the revamp off, both native constructor orders keep the original value without creating a Bellum quote");
+            var data = Blank<BarterData>();
+            object[] args = { data };
+            var patch = assembly.GetType("BellumCivile.Patches.PlayerMarriageDowryBarterPatch");
+            check((bool)AccessTools.Method(patch, "Prefix").Invoke(null, args) && ReferenceEquals(data, args[0]),
+                "The disabled revamp does not replace native barter data");
+            var nativeName = new TextObject("Native marriage text");
+            object[] nameArgs = { normal, nativeName };
+            AccessTools.Method(assembly.GetType("BellumCivile.Patches.PlayerMarriageBarterNamePatch"), "Postfix")
+                .Invoke(null, nameArgs);
+            check(ReferenceEquals(nameArgs[1], nativeName), "The disabled revamp preserves the native barter label");
+        }
+        finally { _enabled = true; }
         var incoming = new MarriageBarterable(Leaders[groomHouse], null, groom, bride);
-        Quote(incoming, Record(true, brideHouse));
-        check(incoming.GetUnitValueForFaction(brideHouse) == -33750,
-            "Useful incoming husband receives health discount without an heir departure fee");
+        Bind(incoming, Record(true, brideHouse));
         incoming.Apply();
         check(Spouses[groom] == bride && Houses[groom] == brideHouse,
             "Actual marriage barter item executes the explicitly chosen household");
         Reset();
-        Patch(AccessTools.Method(assembly.GetType("BellumCivile.Behaviors.BellumMarriageStrategyHelper"), "PlayerMarriageStaffRisk"), nameof(HalfRisk));
-        foreach (bool npcLeaves in new[] { false, true })
-        foreach (bool playerFamily in new[] { false, true })
-        foreach (bool otherFamily in new[] { false, true })
-        {
-            if (playerFamily) Outsiders.Remove(groom); else Outsiders.Add(groom);
-            if (otherFamily) Outsiders.Remove(bride); else Outsiders.Add(bride);
-            int baseline = otherFamily ? npcLeaves ? 170000 : 33750 : npcLeaves ? 56250 : 39375;
-            int expected = !playerFamily && otherFamily ? (int)Math.Ceiling(baseline * 1.25)
-                : playerFamily && !otherFamily ? (int)Math.Ceiling(baseline * .75) : baseline;
-            foreach (bool reversed in new[] { false, true })
-            {
-                var priced = new MarriageBarterable(Leaders[groomHouse], null, reversed ? bride : groom, reversed ? groom : bride);
-                Quote(priced, Record(true, npcLeaves ? groomHouse : brideHouse));
-                int amount = priced.GetUnitValueForFaction(brideHouse);
-                check(amount == -expected, "Production quote applies the agreed status price in either household and constructor order: "
-                    + playerFamily + "/" + otherFamily + "/" + npcLeaves + "/" + reversed);
-                for (int i = 0; i < 10; i++)
-                    check(priced.GetUnitValueForFaction(brideHouse) == amount, "Barter redraws never compound the status adjustment");
-            }
-        }
-        Outsiders.Remove(groom); Outsiders.Remove(bride);
         var invalid = new MarriageBarterable(Leaders[groomHouse], null, groom, bride);
-        Quote(invalid, Record(true, groomHouse)); Houses[bride] = groomHouse;
+        Bind(invalid, Record(true, groomHouse)); Houses[bride] = groomHouse;
         var guard = assembly.GetType("BellumCivile.Patches.PlayerMarriageBarterGuard");
         check(!(bool)AccessTools.Method(guard, "Validate").Invoke(null, new object[] { new List<Barterable> { invalid } }),
             "Whole-barter preflight rejects invalid agreement before any item can be applied");

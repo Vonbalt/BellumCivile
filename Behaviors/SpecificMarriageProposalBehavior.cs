@@ -168,6 +168,8 @@ namespace BellumCivile.Behaviors
 
         private bool CanOpenSpecificMarriageProposal()
         {
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic) return false;
+
             Hero npc = Hero.OneToOneConversationHero;
             if (npc?.Clan == null || npc.Clan == Clan.PlayerClan)
                 return false;
@@ -287,6 +289,9 @@ namespace BellumCivile.Behaviors
 
         private void OpenBarter(Hero target, PlayerMarriageAgreement agreement)
         {
+            if (!BellumCivileOptions.EnableBellumStrategicMarriageLogic)
+            { ClearSelection(); return; }
+
             if (!PlayerMarriageAgreementBehavior.Ready(agreement, out TextObject reason))
             { PlayerMarriageAgreementBehavior.Notify(reason); ClearSelection(); return; }
 

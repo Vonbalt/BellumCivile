@@ -12,8 +12,30 @@ namespace BellumCivile
         private HashSet<Hero> _crownHeirs;
         private readonly Dictionary<Clan, Hero> _clanHeirs = new Dictionary<Clan, Hero>();
         private readonly Dictionary<Clan, HashSet<Hero>> _continuation = new Dictionary<Clan, HashSet<Hero>>();
+        private readonly Dictionary<Clan, FeudalTitleType?> _dowryPeerage = new Dictionary<Clan, FeudalTitleType?>();
+        private readonly Dictionary<Hero, bool> _displayedCrownHeirs = new Dictionary<Hero, bool>();
 
         internal void UseCrownHeirs(HashSet<Hero> heirs) => _crownHeirs = heirs;
+
+        internal FeudalTitleType? DowryPeerage(Clan clan)
+        {
+            if (!_dowryPeerage.TryGetValue(clan, out var rank))
+                _dowryPeerage[clan] = rank = FeudalPoliticalWeightHelper.GetHighestHeldTitleRank(clan);
+            return rank;
+        }
+
+        internal bool IsCrownHeirForDowry(Hero hero)
+        {
+            if (CrownHeirs.Contains(hero)) return true;
+            // Display can recognize a reigning house's dynastic heir outside a legal hereditary line.
+            // Price that status without changing the rules about who may leave their house.
+            var dynastic = DynasticHeirBehavior.Instance;
+            if (dynastic == null) return false;
+            if (!_displayedCrownHeirs.TryGetValue(hero, out bool recognized))
+                _displayedCrownHeirs[hero] = recognized = dynastic.GetReigningHeirRealmsForDisplay(hero)
+                    .Any(realm => dynastic.TryGetCachedReigningDynasticHeir(realm, out Hero heir) && heir == hero);
+            return recognized;
+        }
 
         internal HashSet<Hero> CrownHeirs
         {

@@ -422,7 +422,7 @@
     <string id="BC_MCM_ArmyPersonalFriendRelation" text="Personal Army Favor Relation" />
     <string id="BC_MCM_ArmyPersonalFriendRelation_Hint" text="Minimum relation at which a lord outside your de facto authority may answer your call for friendship's sake, either through the army menu or in person. Default: 60." />
     <string id="BC_MCM_EnableBellumMarriage" text="Enable Strategic Marriage Logic" />
-    <string id="BC_MCM_EnableBellumMarriage_Hint" text="Bellum replaces vanilla NPC matchmaking and automatic offers to the player clan with separate annual chances for family and retainer marriages. Disable this to restore vanilla matchmaking and automatic offers, subject to other mods. Direct player negotiations remain available. Bellum default: On." />
+    <string id="BC_MCM_EnableBellumMarriage_Hint" text="Enables Bellum's matchmaking, marriage negotiations, dowries and betrothals. Turn it off to use vanilla matchmaking, offers and barter for new marriages, subject to other mods. Existing agreements keep their terms. Bellum default: On." />
     <string id="BC_MCM_MarriageAcceptance" text="Strategic Marriage Acceptance Threshold" />
     <string id="BC_MCM_MarriageAcceptance_Hint" text="Minimum acceptance score for NPC houses considering a strategic match, including court-backed matches. Higher values make houses pickier; lower values make them more receptive. Does not change marriage eligibility or the price of directly negotiated marriages. Bellum default: 95." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />

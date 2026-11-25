@@ -18,7 +18,11 @@ namespace BellumCivile
         {
             if (BetrothalBehavior.BlocksParticipant(hero)) return false;
             if (CrownAccessionBehavior.Instance?.IsHouseholdReservedForMarriage(hero) == true) return false;
-            if (!MarriageParticipantPolicy.IsCompanion(hero)
+            var agreement = PlayerMarriageValidationScope.Current;
+            bool allowCompanion = (BellumCivileOptions.EnableBellumStrategicMarriageLogic
+                || agreement != null && (agreement.Player == hero || agreement.Other == hero))
+                && MarriageParticipantPolicy.IsCompanion(hero);
+            if (!allowCompanion
                 && (!MarriageProspectEvaluation.Active || BellumMarriageStrategyHelper.MarriageParticipantReady(hero)))
                 return base.IsSuitableForMarriage(hero);
             if (hero?.IsAlive != true || !(hero.IsActive || hero.IsFugitive || hero.IsPrisoner)

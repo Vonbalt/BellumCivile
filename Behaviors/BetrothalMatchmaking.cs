@@ -101,7 +101,7 @@ namespace BellumCivile.Behaviors
             {
                 if (matrilineal.HasValue && matrilineal.Value != (possible == maternalHouse)
                     || !BetrothalBehavior.CanSetDestination(first, second, possible, policy)) continue;
-                int dowry = BetrothalBehavior.BetrothalDowry(first, second, possible);
+                int dowry = BetrothalBehavior.BetrothalDowry(first, second, possible, policy);
                 int deposit = MarriagePayments.Deposit(dowry);
                 bool canPay = MarriagePayments.CanPay(possible, deposit);
                 if (!canPay && context.FundingDiagnostics == null) continue;

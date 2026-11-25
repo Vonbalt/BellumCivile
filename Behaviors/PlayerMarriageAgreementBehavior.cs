@@ -50,8 +50,7 @@ namespace BellumCivile.Behaviors
                 if (!policy.TryChoosePlayerOffer(player, other, ordinary, out destination)) return false;
             }
             var record = PlayerMarriageAgreement.Create(player, other, destination, false);
-            record.Dowry = MarriagePayments.Quote(record.Departing, policy.CrownHeirs.Contains(record.Departing),
-                policy.MustRemain(record.Departing));
+            record.Dowry = MarriagePayments.Quote(record.Departing, destination == record.PlayerHouse ? player : other, policy);
             if (!CanFund(record)) return false;
             _agreements.Add(record);
             return true;
