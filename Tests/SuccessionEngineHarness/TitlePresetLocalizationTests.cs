@@ -112,6 +112,40 @@ internal static class TitlePresetLocalizationTests
                 Translate(rhodokRoot.GetID(), "Translated Rhodok");
                 if (preset == "anglicized")
                 {
+                    var rankResolver = AccessTools.Method(display, "ResolveRankStyle");
+                    var landedName = AccessTools.Method(display, "FormatTitleName",
+                        new[] { typeof(FeudalTitleType), typeof(string), typeof(Clan), typeof(Kingdom), typeof(string) });
+                    var holderName = AccessTools.Method(display, "ResolveDisplayTitle");
+                    foreach (var (tier, nounText, maleText, femaleText) in new[]
+                    {
+                        (FeudalTitleType.Empire, "Empire", "Emperor", "Empress"),
+                        (FeudalTitleType.Kingdom, "Kingdom", "King", "Queen"),
+                        (FeudalTitleType.Duchy, "Margraviate", "Margrave", "Margravine"),
+                        (FeudalTitleType.County, "Earldom", "Earl", "Countess"),
+                        (FeudalTitleType.Barony, "Free Barony", "Freiherr", "Freifrau")
+                    })
+                    {
+                        var title = new FeudalTitleRecord("rhodok_test", "Jalen", tier, "", "", "", "", "", 0, 0,
+                            fallbackCultureRef: "rhodok");
+                        object rank = rankResolver.Invoke(null, new object[] { tier, null, null, "rhodok" });
+                        check((string)landedName.Invoke(null, new object[] { tier, title.Name, null, null, "rhodok" })
+                            == nounText + " of Jalen"
+                            && (string)holderName.Invoke(null, new object[] { title, false, null }) == maleText
+                            && (string)holderName.Invoke(null, new object[] { title, true, null }) == femaleText,
+                            "Anglicized Rhodok: " + tier + " resolves its landed and holder names");
+                        check(english[new TextObject(Field(rank, "TitleName")).GetID()] == nounText
+                            && english[new TextObject(Field(rank, "MaleRank")).GetID()] == maleText
+                            && english[new TextObject(Field(rank, "FemaleRank")).GetID()] == femaleText,
+                            "Anglicized Rhodok: " + tier + " names match the English catalog");
+                    }
+                    object barony = rankResolver.Invoke(null, new object[] { FeudalTitleType.Barony, null, null, "rhodok" });
+                    var villageFormat = new TextObject(Field(barony, "LordshipFormat"));
+                    var villageNoun = new TextObject(Field(barony, "LordshipName"));
+                    check(english[villageFormat.GetID()] == "{TITLE_NOUN} of {VILLAGE}" && english[villageNoun.GetID()] == "Lordship"
+                        && villageFormat.SetTextVariable("TITLE_NOUN", villageNoun).SetTextVariable("VILLAGE", "Calioc").ToString()
+                            == "Lordship of Calioc",
+                        "Anglicized Rhodok: villages are Lordships, distinct from Free Baronies");
+
                     var articleTitles = new[]
                     {
                         ("bc_title_kingdom_nord", FeudalTitleType.Kingdom, "Nords"),

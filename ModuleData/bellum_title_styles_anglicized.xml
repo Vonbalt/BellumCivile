@@ -110,126 +110,6 @@
   <TitleName id="county_sarapia" name="{=BC_TitleRoot_Anglicized_county_sarapia}Sarapia" />
   <TitleName id="county_zeos" name="{=BC_TitleRoot_Anglicized_county_zeos}Zeos" />
   <!-- Cultural and kingdom-specific rank terminology. change culture to rulerCulture if you want the ruler to determine the full terminology of the realm-->
-  <TitleStyle culture="Empire_n">
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRetainerRank}Dame" tier="Empire"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_titleName}Empire"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_maleRank}Emperor"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRank}Empress"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleNobleRank}Lady" />
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_titleName}Exarchate"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_maleRank}Exarch"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRank}Exarchissa"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleNobleRank}Lady" />
-    <Rank tier="Duchy"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_titleName}Duchy"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_maleRank}Doux"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_femaleRank}Doukissa" />
-    <Rank tier="County"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_titleName}Thema"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_maleRank}Strategos"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_femaleRank}Strategina" />
-    <Rank tier="Barony"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_titleName}Toparchy"
-          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipName}Lordship"
-          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_maleRank}Archon"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_femaleRank}Archontissa" />
-  </TitleStyle>
-  <TitleStyle culture="Empire_s">
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRetainerRank}Dame" tier="Empire"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_titleName}Empire"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_maleRank}Emperor"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRank}Empress"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleNobleRank}Lady" />
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_titleName}Exarchate"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_maleRank}Exarch"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRank}Exarchissa"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleNobleRank}Lady" />
-    <Rank tier="Duchy"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_titleName}Duchy"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_maleRank}Doux"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_femaleRank}Doukissa" />
-    <Rank tier="County"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_titleName}Thema"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_maleRank}Strategos"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_femaleRank}Strategina" />
-    <Rank tier="Barony"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_titleName}Toparchy"
-          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipName}Lordship"
-          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_maleRank}Archon"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_femaleRank}Archontissa" />
-  </TitleStyle>
-  <TitleStyle culture="Empire_w">
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRetainerRank}Dame" tier="Empire"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_titleName}Empire"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_maleRank}Emperor"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRank}Empress"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleNobleRank}Lady" />
-    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank}Captain"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_titleName}Exarchate"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_maleRank}Exarch"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRank}Exarchissa"
-          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_heirRank}Crown Prince"
-          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleHeirRank}Crown Princess"
-          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_childRank}Prince"
-          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleChildRank}Princess"
-          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_nobleRank}Lord"
-          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleNobleRank}Lady" />
-    <Rank tier="Duchy"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_titleName}Duchy"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_maleRank}Doux"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_femaleRank}Doukissa" />
-    <Rank tier="County"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_titleName}Thema"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_maleRank}Strategos"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_femaleRank}Strategina" />
-    <Rank tier="Barony"
-          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_titleName}Toparchy"
-          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipName}Lordship"
-          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
-          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_maleRank}Archon"
-          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_femaleRank}Archontissa" />
-  </TitleStyle>
   <TitleStyle culture="Empire">
     <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_femaleRetainerRank}Dame" tier="Empire"
           mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_Empire_mercenaryLeaderRank}Captain"
@@ -556,17 +436,170 @@
           maleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_maleRank}Chief"
           femaleRank="{=BC_TitleStyle_Anglicized_culture_Nord_Barony_femaleRank}Chieftess" />
   </TitleStyle>
+  <!-- Mod supported cultures. -->
   <TitleStyle culture="Rhodok">
-    <Rank tier="Kingdom"
-          retainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_retainerRank}Sir"
-          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank}Captain"
-          femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleRetainerRank}Dame" />
     <Rank tier="Empire"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_titleName}Empire"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_maleRank}Emperor"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRank}Empress"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleNobleRank}Lady"
           retainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_retainerRank}Sir"
+          femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRetainerRank}Dame"
           mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_mercenaryLeaderRank}Captain"
-          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleMercenaryLeaderRank}Captain"
-          femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRetainerRank}Dame" />
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleMercenaryLeaderRank}Captain" />
+    <Rank tier="Kingdom"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_titleName}Kingdom"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_maleRank}King"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleRank}Queen"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleNobleRank}Lady"
+          retainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_retainerRank}Sir"
+          femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleRetainerRank}Dame"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleMercenaryLeaderRank}Captain" />
+    <Rank tier="Duchy"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_titleName}Margraviate"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_maleRank}Margrave"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_femaleRank}Margravine" />
+    <Rank tier="County"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Rhodok_County_titleName}Earldom"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_County_maleRank}Earl"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_County_femaleRank}Countess" />
+    <Rank tier="Barony"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Rhodok_Barony_titleName}Free Barony"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Barony_maleRank}Freiherr"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Rhodok_Barony_femaleRank}Freifrau"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Rhodok_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Rhodok_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}" />
+  </TitleStyle>
+  <TitleStyle culture="Empire_n">
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRetainerRank}Dame" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_titleName}Empire"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_maleRank}Emperor"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleRank}Empress"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Empire_femaleNobleRank}Lady" />
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_titleName}Exarchate"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_maleRank}Exarch"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleRank}Exarchissa"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Kingdom_femaleNobleRank}Lady" />
+    <Rank tier="Duchy"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_titleName}Duchy"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_maleRank}Doux"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Duchy_femaleRank}Doukissa" />
+    <Rank tier="County"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_titleName}Thema"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_maleRank}Strategos"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_County_femaleRank}Strategina" />
+    <Rank tier="Barony"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_maleRank}Archon"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_n_Barony_femaleRank}Archontissa" />
+  </TitleStyle>
+  <TitleStyle culture="Empire_s">
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRetainerRank}Dame" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_titleName}Empire"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_maleRank}Emperor"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleRank}Empress"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Empire_femaleNobleRank}Lady" />
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_titleName}Exarchate"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_maleRank}Exarch"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleRank}Exarchissa"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Kingdom_femaleNobleRank}Lady" />
+    <Rank tier="Duchy"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_titleName}Duchy"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_maleRank}Doux"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Duchy_femaleRank}Doukissa" />
+    <Rank tier="County"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_titleName}Thema"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_maleRank}Strategos"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_County_femaleRank}Strategina" />
+    <Rank tier="Barony"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_maleRank}Archon"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_s_Barony_femaleRank}Archontissa" />
+  </TitleStyle>
+  <TitleStyle culture="Empire_w">
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRetainerRank}Dame" tier="Empire"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_titleName}Empire"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_maleRank}Emperor"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleRank}Empress"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Empire_femaleNobleRank}Lady" />
+    <Rank retainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_retainerRank}Sir" femaleRetainerRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRetainerRank}Dame" tier="Kingdom"
+          mercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_mercenaryLeaderRank}Captain"
+          femaleMercenaryLeaderRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleMercenaryLeaderRank}Captain"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_titleName}Exarchate"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_maleRank}Exarch"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleRank}Exarchissa"
+          heirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_heirRank}Crown Prince"
+          femaleHeirRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleHeirRank}Crown Princess"
+          childRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_childRank}Prince"
+          femaleChildRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleChildRank}Princess"
+          nobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_nobleRank}Lord"
+          femaleNobleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Kingdom_femaleNobleRank}Lady" />
+    <Rank tier="Duchy"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_titleName}Duchy"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_maleRank}Doux"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Duchy_femaleRank}Doukissa" />
+    <Rank tier="County"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_titleName}Thema"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_maleRank}Strategos"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_County_femaleRank}Strategina" />
+    <Rank tier="Barony"
+          titleName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_titleName}Toparchy"
+          lordshipName="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipName}Lordship"
+          lordshipFormat="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_lordshipFormat}{TITLE_NOUN} of {VILLAGE}"
+          maleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_maleRank}Archon"
+          femaleRank="{=BC_TitleStyle_Anglicized_culture_Empire_w_Barony_femaleRank}Archontissa" />
   </TitleStyle>
   <!-- Court terminology uses the same culture/kingdom/rulerCulture selectors as ranks. -->
   <!--<TitleStyle culture="Empire">

@@ -6251,6 +6251,33 @@
     <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_maleRank" text="Konungr" />
     <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_nobleRank" text="Lord" />
     <string id="BC_TitleStyle_Anglicized_culture_Nord_Kingdom_titleName" text="Kingdom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Barony_femaleRank" text="Freifrau" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Barony_maleRank" text="Freiherr" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Barony_titleName" text="Free Barony" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_County_femaleRank" text="Countess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_County_maleRank" text="Earl" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_County_titleName" text="Earldom" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_femaleRank" text="Margravine" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_maleRank" text="Margrave" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Duchy_titleName" text="Margraviate" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_femaleRank" text="Empress" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_maleRank" text="Emperor" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Empire_titleName" text="Empire" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_childRank" text="Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleChildRank" text="Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleHeirRank" text="Crown Princess" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleNobleRank" text="Lady" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_femaleRank" text="Queen" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_heirRank" text="Crown Prince" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_maleRank" text="King" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_nobleRank" text="Lord" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Kingdom_titleName" text="Kingdom" />
     <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_femaleRank" text="Chieftess" />
     <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_maleRank" text="Chief" />
     <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_titleName" text="Tribe" />
@@ -7637,6 +7664,8 @@
     <string id="BC_TitleStyle_Anglicized_culture_Sturgia_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
     <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipName" text="Lordship" />
     <string id="BC_TitleStyle_Anglicized_culture_Nord_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Barony_lordshipName" text="Lordship" />
+    <string id="BC_TitleStyle_Anglicized_culture_Rhodok_Barony_lordshipFormat" text="{TITLE_NOUN} of {VILLAGE}" />
     <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipName" text="Pronoia" />
     <string id="BC_TitleStyle_Immersive_culture_Empire_Barony_lordshipFormat" text="{TITLE_NOUN} tōn {VILLAGE}" />
     <string id="BC_TitleStyle_Immersive_culture_Vlandia_Barony_lordshipName" text="Feodum" />
