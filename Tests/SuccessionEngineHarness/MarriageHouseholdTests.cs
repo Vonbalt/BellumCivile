@@ -237,6 +237,20 @@ internal static partial class MarriageHouseholdTests
             check(Match() != null, "An NPC house can fund a higher-peerage match at the exact adjusted price");
             DowryRanks.Clear();
             AccessTools.Field(contextType, "_households").SetValue(context, Policy());
+            var settingsField = AccessTools.Field(assembly.GetType("BellumCivile.BellumCivileOptions"), "_settings");
+            object previousSettings = settingsField.GetValue(null);
+            var settingsType = assembly.GetType("BellumCivile.BellumCivileSettings");
+            object priceSettings = Activator.CreateInstance(settingsType, nonPublic: true);
+            try
+            {
+                AccessTools.Property(settingsType, "MarriageCostPercent").SetValue(priceSettings, 150);
+                settingsField.SetValue(null, priceSettings);
+                Leaders[a].Gold = 59999;
+                check(Match() == null, "NPC matchmaking rejects a match one denar below the scaled dowry");
+                Leaders[a].Gold = 60000;
+                check(Match() != null, "NPC matchmaking accepts the same match at exactly the scaled dowry");
+            }
+            finally { settingsField.SetValue(null, previousSettings); }
             Leaders[a].Gold = savedGold;
             CheckMarriageFundingDiagnostics(check, context, Match, bride, groom);
             _secondScore = 94;

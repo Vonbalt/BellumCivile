@@ -425,6 +425,8 @@
     <string id="BC_MCM_EnableBellumMarriage_Hint" text="Enables Bellum's matchmaking, marriage negotiations, dowries and betrothals. Turn it off to use vanilla matchmaking, offers and barter for new marriages, subject to other mods. Existing agreements keep their terms. Bellum default: On." />
     <string id="BC_MCM_MarriageAcceptance" text="Strategic Marriage Acceptance Threshold" />
     <string id="BC_MCM_MarriageAcceptance_Hint" text="Minimum acceptance score for NPC houses considering a strategic match, including court-backed matches. Higher values make houses pickier; lower values make them more receptive. Does not change marriage eligibility or the price of directly negotiated marriages. Bellum default: 95." />
+    <string id="BC_MCM_MarriageCost" text="Marriage Cost Multiplier (%)" />
+    <string id="BC_MCM_MarriageCost_Hint" text="Lower values make new dowries and betrothal deposits cheaper; higher values make them more expensive. Applies to player and NPC marriages using Bellum's strategic marriage rules. Does not change existing offers or betrothals. Bellum default: 100%." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />
     <string id="BC_MCM_MarriageMaleMinAge_Hint" text="Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years." />
     <string id="BC_MCM_MarriageFemaleMinAge" text="Female Minimum Marriage Age" />

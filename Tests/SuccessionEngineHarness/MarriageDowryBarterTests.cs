@@ -146,6 +146,34 @@ internal static partial class MarriageHouseholdTests
             }
             bool Valid(BarterData data) => (bool)guard.Invoke(null, new object[] { data.GetOfferedBarterables() });
 
+            var settingsField = AccessTools.Field(assembly.GetType("BellumCivile.BellumCivileOptions"), "_settings");
+            object previousSettings = settingsField.GetValue(null);
+            var settingsType = assembly.GetType("BellumCivile.BellumCivileSettings");
+            object settings = Activator.CreateInstance(settingsType, nonPublic: true);
+            var costSetting = AccessTools.Property(settingsType, "MarriageCostPercent");
+            try
+            {
+                settingsField.SetValue(null, settings);
+                var originalQuote = Open(player, null, null, out var originalWedding);
+                var originalGold = originalQuote.GetOfferedBarterables().OfType<GoldBarterable>().Single();
+                check((int)costSetting.GetValue(settings) == 100 && originalGold.CurrentAmount == 85000,
+                    "The default marriage price setting keeps the existing Crown quote");
+                foreach (var (multiplier, expected) in new[] { (50, 42500), (150, 127500), (-1, 21250), (300, 170000) })
+                {
+                    costSetting.SetValue(settings, multiplier);
+                    check(Quote() == expected, "New marriage quotes use and clamp the live cost multiplier: " + multiplier);
+                }
+                var adjusted = Open(other, null, null, out _);
+                check(adjusted.GetOfferedBarterables().OfType<GoldBarterable>().Single().CurrentAmount == 80000,
+                    "The multiplier also scales the NPC's dowry when the player sends a spouse");
+                check(originalGold.CurrentAmount == 85000 && originalWedding.GetUnitValueForFaction(other) == -85000 && Valid(originalQuote),
+                    "An open barter keeps its original price after changing the multiplier");
+                Outsiders.Add(bride);
+                try { check(Quote() == 12000, "Retainer quotes use the same multiplier"); }
+                finally { Outsiders.Remove(bride); }
+            }
+            finally { settingsField.SetValue(null, previousSettings); }
+
             var ordinary = new BarterData(player.Leader, other.Leader, null, null);
             var ordinaryGold = new GoldBarterable(player.Leader, other.Leader, null, null, 100);
             ordinary.AddBarterable<GoldBarterGroup>(ordinaryGold);

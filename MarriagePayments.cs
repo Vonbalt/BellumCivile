@@ -11,15 +11,18 @@ namespace BellumCivile
             Clan sending = departing.Clan;
             int tier = ClampTier(sending.Tier);
             if (!HouseholdMembership.IsFamily(departing))
-                return 4000 + tier * 500;
+                return ScaleQuote(4000 + tier * 500);
 
             int ordinary = 20000 + tier * 5000;
             if (HouseholdMembership.IsFamily(receiving))
                 ordinary = ApplyPrestigePremium(ordinary, tier, receiving.Clan.Tier,
                     policy.DowryPeerage(sending), policy.DowryPeerage(receiving.Clan));
 
-            return ordinary + (policy.IsCrownHeirForDowry(departing) ? 45000 : policy.MustRemain(departing) ? 20000 : 0);
+            int premium = policy.IsCrownHeirForDowry(departing) ? 45000 : policy.MustRemain(departing) ? 20000 : 0;
+            return ScaleQuote(ordinary + premium);
         }
+
+        private static int ScaleQuote(int quote) => (quote * BellumCivileOptions.MarriageCostPercent + 99) / 100;
 
         private static int ClampTier(int tier) => Math.Min(6, Math.Max(0, tier));
 

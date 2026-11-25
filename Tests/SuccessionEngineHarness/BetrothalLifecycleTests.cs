@@ -107,6 +107,27 @@ internal static partial class MarriageHouseholdTests
             Call("End", olderQuote, "fixture_previous_price", null);
             check(payer.Gold == 10000 && payee.Gold == payeeStart, "Refunds also use the previously quoted deposit");
 
+            var settingsField = AccessTools.Field(assembly.GetType("BellumCivile.BellumCivileOptions"), "_settings");
+            object previousSettings = settingsField.GetValue(null);
+            var settingsType = assembly.GetType("BellumCivile.BellumCivileSettings");
+            object settings = Activator.CreateInstance(settingsType, nonPublic: true);
+            var costSetting = AccessTools.Property(settingsType, "MarriageCostPercent");
+            try
+            {
+                settingsField.SetValue(null, settings);
+                costSetting.SetValue(settings, 50);
+                payer.Gold = 5000;
+                check(Creation(true) && (int)AccessTools.Field(recordType, "Dowry").GetValue(Pledge()) == 20000,
+                    "A new betrothal scales the full dowry and its deposit");
+                var discountedOffer = Pledge();
+                costSetting.SetValue(settings, 200);
+                Call("ResolveIncomingOffer", discountedOffer, true);
+                check(Accepted() && payer.Gold == 0 && (int)AccessTools.Field(recordType, "HeldDeposit").GetValue(discountedOffer) == 5000,
+                    "Changing the MCM multiplier does not reprice a previously offered betrothal");
+                Call("End", discountedOffer, "fixture_previous_multiplier", null);
+            }
+            finally { settingsField.SetValue(null, previousSettings); }
+
             payer.Gold = payerStart;
             check(Creation(true) && !Accepted() && Reserved(first) && Reserved(second) && !Creation(),
                 "An unanswered incoming offer reserves its candidates without becoming a pledge or permitting a duplicate");

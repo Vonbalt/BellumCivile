@@ -315,6 +315,10 @@ namespace BellumCivile
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageAcceptanceThreshold { get; set; } = (int)C.MarriageStrategyMinimumScore;
 
+        [SettingPropertyInteger("{=BC_MCM_MarriageCost}Marriage Cost Multiplier (%)", C.MarriageCostPercentMin, C.MarriageCostPercentMax, Order = 15, RequireRestart = false, HintText = "{=BC_MCM_MarriageCost_Hint}Lower values make new dowries and betrothal deposits cheaper; higher values make them more expensive. Applies to player and NPC marriages using Bellum's strategic marriage rules. Does not change existing offers or betrothals. Bellum default: 100%.")]
+        [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
+        public int MarriageCostPercent { get; set; } = C.MarriageCostPercentDefault;
+
         [SettingPropertyInteger("{=BC_MCM_MarriageMaleMinAge}Male Minimum Marriage Age", 16, 80, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_MarriageMaleMinAge_Hint}Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageMaleMinimumAge { get; set; } = C.MarriageMaleMinimumAge;

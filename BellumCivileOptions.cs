@@ -142,6 +142,8 @@ namespace BellumCivile
         public static bool EnableBellumStrategicMarriageLogic => Settings?.EnableBellumStrategicMarriageLogic ?? true;
         public static int MarriageAcceptanceThreshold => Math.Max(C.MarriageAcceptanceSliderMin,
             Math.Min(C.MarriageAcceptanceSliderMax, Settings?.MarriageAcceptanceThreshold ?? (int)C.MarriageStrategyMinimumScore));
+        public static int MarriageCostPercent => Math.Max(C.MarriageCostPercentMin,
+            Math.Min(C.MarriageCostPercentMax, Settings?.MarriageCostPercent ?? C.MarriageCostPercentDefault));
         public static int MarriageMaleMinimumAge => Math.Max(AdulthoodAge, Settings?.MarriageMaleMinimumAge ?? C.MarriageMaleMinimumAge);
         public static int MarriageFemaleMinimumAge => Math.Max(AdulthoodAge, Settings?.MarriageFemaleMinimumAge ?? C.MarriageFemaleMinimumAge);
         public static int MarriageFemaleMaximumAge => Math.Max(MarriageFemaleMinimumAge, Settings?.MarriageFemaleMaximumAge ?? C.MarriageFemaleMaximumAge);
