@@ -7,6 +7,25 @@ namespace BellumCivile
     internal static class CourtTermScheduler
     {
         internal const int DailyRealmBudget = 5;
+        private const int HoursPerDay = 24;
+
+        internal static long HourSlot(double now)
+        {
+            double day = Math.Floor(now);
+            return (long)day * HoursPerDay + Math.Min(HoursPerDay - 1, (int)Math.Floor((now - day) * HoursPerDay + 1e-6));
+        }
+
+        internal static int OpeningsThisTick(IReadOnlyList<CourtTermPreparationRecord> batch, double now, bool daily)
+        {
+            int hoursAfterThis = HoursPerDay - 1 - (int)(HourSlot(now) % HoursPerDay);
+            int budget = daily && batch.Count <= hoursAfterThis ? 0
+                : (int)Math.Ceiling((double)batch.Count / (hoursAfterThis + 1));
+            // Never defer a job past its last usable preparation window, including short terms.
+            double nextHour = now + 1d / HoursPerDay;
+            for (int i = budget; i < batch.Count; i++)
+                if (!batch[i].HasPreparationWindow(nextHour)) budget = i + 1;
+            return budget;
+        }
 
         internal static CourtTermPreparationRecord Create(string realmId, double due, double now,
             float termDays, int deliberationDays)

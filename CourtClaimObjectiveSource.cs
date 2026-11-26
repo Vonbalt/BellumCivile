@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BellumCivile.Behaviors;
@@ -15,14 +16,19 @@ namespace BellumCivile
         internal static FeudalTitleRecord FindClaimTitle(Clan clan, Settlement fief)
         {
             var titles = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
-            if (clan == null || titles == null || !titles.TryGetBarony(fief, out var title)) return null;
+            return clan == null ? null : ActiveLineage(titles, fief)
+                .FirstOrDefault(title => title.DeJureHolderClanId == clan.StringId || titles.HasActiveClaim(clan, title));
+        }
+
+        private static IEnumerable<FeudalTitleRecord> ActiveLineage(FeudalTitleBehavior titles, Settlement fief)
+        {
+            if (titles == null || !titles.TryGetBarony(fief, out var title)) yield break;
             var visited = new HashSet<string>();
             while (title != null && title.IsActive && visited.Add(title.TitleId))
             {
-                if (title.DeJureHolderClanId == clan.StringId || titles.HasActiveClaim(clan, title)) return title;
+                yield return title;
                 title = titles.GetTitle(title.ParentTitleId);
             }
-            return null;
         }
 
         internal static bool ValidClaim(CourtClaimRecord plan)
@@ -51,7 +57,12 @@ namespace BellumCivile
             var result = new List<CourtObjectiveCandidate>();
             var members = faction.Members.Where(c => CourtAgendaBehavior.Eligible(c, context.Realm)
                 && c != context.Realm.RulingClan).Distinct().ToList();
+            var titles = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
+            if (titles == null || members.Count == 0) return result;
             var wars = Campaign.Current?.GetCampaignBehavior<WarScoreBehavior>();
+            var claimIds = new Dictionary<Clan, HashSet<string>>();
+            var overCeilingByClan = new Dictionary<Clan, bool>();
+            var calendar = CourtAgendaBehavior.Current;
             foreach (var fief in Settlement.All.Where(s => s.Town != null && s.OwnerClan?.Kingdom != context.Realm))
             {
                 var target = fief.OwnerClan?.Kingdom;
@@ -60,11 +71,17 @@ namespace BellumCivile
                 bool war = context.Realm.IsAtWarWith(target);
                 if (war ? !CourtPeaceObjectiveSource.EligibleWar(context.Realm, target, wars?.GetActiveWar(context.Realm, target))
                     : !context.CanSupportCampaign(target)) continue;
+                var lineage = ActiveLineage(titles, fief).ToList();
+                if (lineage.Count == 0) continue;
                 foreach (var clan in members)
                 {
-                    if (CourtAgendaBehavior.Current?.HasPendingClaimObjective(context.Realm, fief, clan) == true) continue;
-                    if (!FiefNominationHelper.IsWithinOrdinaryOwnershipCeiling(clan) && !FiefNominationHelper.IsDirectDeJureHolder(clan, fief)) continue;
-                    if (FindClaimTitle(clan, fief) == null) continue;
+                    if (!claimIds.TryGetValue(clan, out var claims))
+                        claimIds[clan] = claims = new HashSet<string>(titles.GetActiveClaimsByClan(clan).Select(c => c.TargetTitleId), StringComparer.Ordinal);
+                    if (!lineage.Any(t => t.DeJureHolderClanId == clan.StringId || claims.Contains(t.TitleId))) continue;
+                    if (calendar?.HasPendingClaimObjective(context.Realm, fief, clan) == true) continue;
+                    if (!overCeilingByClan.TryGetValue(clan, out bool overCeiling))
+                        overCeilingByClan[clan] = overCeiling = !FiefNominationHelper.IsWithinOrdinaryOwnershipCeiling(clan);
+                    if (overCeiling && !FiefNominationHelper.IsDirectDeJureHolder(clan, fief)) continue;
                     if (!war && !context.CampaignTargets(clan).Any(t => t.TargetKingdom == target && !t.IsActiveWar && !t.IsLiberationTarget)) continue;
                     result.Add(new CourtObjectiveCandidate(fief.StringId, "restore_claim", clan.StringId));
                 }

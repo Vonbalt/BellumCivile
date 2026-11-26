@@ -48,10 +48,10 @@ internal static class CourtAgendaTimingTests
                 prefix: new HarmonyMethod(typeof(CourtAgendaTimingTests), nameof(Report)));
             debugField.SetValue(null, false);
 
-            Sample("BeginDay", 1085);
+            Sample("BeginPass", 1085);
             Sample("EndDay", 84.0, Ms(8));
             check(Daily.Count == 0 && Yearly.Count == 0, "An ordinary maintenance day produces no extra log line");
-            Sample("BeginDay", 1085);
+            Sample("BeginPass", 1085);
             Sample("RecordSelection", Ms(6));
             Sample("RecordRealm", "east", Ms(13));
             Sample("RecordRealm", "west", Ms(5));
@@ -61,14 +61,22 @@ internal static class CourtAgendaTimingTests
                 "With debug off a prepared batch records separate maintenance, queue and preparation times");
             check(Daily[0].Contains("east:term_ms=13,selection_ms=6 | west:term_ms=5,selection_ms=0"),
                 "Each realm reports its own elapsed and selection times without carrying another realm's selection cost");
-            Sample("BeginDay", 1086);
+            Sample("BeginPass", 1085);
+            Sample("RecordSelection", Ms(4));
+            Sample("RecordRealm", "south", Ms(10));
+            Sample("EndHour", 85.6, Ms(12));
+            check(Daily.Count == 2 && Daily[1].Contains("day=85.6; source=hourly; preparation_ms=12; queue_ms=2; prepared=1")
+                && Daily[1].Contains("south:term_ms=10,selection_ms=4") && !Daily[1].Contains("maintenance_ms"),
+                "Hourly preparation does not masquerade as a daily maintenance sample");
+            Sample("BeginPass", 1086);
             check(Yearly.Count == 1 && Yearly[0].Contains("daily:count=2,total_ms=58,peak_ms=50; maintenance:count=2,total_ms=38,peak_ms=30")
-                && Yearly[0].Contains("realm:count=2,total_ms=18,peak_ms=13,peak_realm=east"),
-                "The yearly rollup includes quiet days and identifies the slowest prepared realm");
+                && Yearly[0].Contains("preparation:count=2,total_ms=32,peak_ms=20")
+                && Yearly[0].Contains("realm:count=3,total_ms=28,peak_ms=13,peak_realm=east"),
+                "The yearly rollup includes separate hourly preparation and daily maintenance");
             Sample("EndDay", 86.0, Ms(9));
-            Sample("BeginDay", 1087);
+            Sample("BeginPass", 1087);
             check(Yearly.Count == 2 && Yearly[1].Contains("daily:count=1,total_ms=9,peak_ms=9")
-                && Yearly[1].Contains("realm:count=0,total_ms=0,peak_ms=0,peak_realm=none") && Daily.Count == 1,
+                && Yearly[1].Contains("realm:count=0,total_ms=0,peak_ms=0,peak_realm=none") && Daily.Count == 2,
                 "Year rollover clears peak realm and batch data without replaying a prior report");
 
             var realm = (Kingdom)FormatterServices.GetUninitializedObject(typeof(Kingdom)); realm.StringId = "test_realm";

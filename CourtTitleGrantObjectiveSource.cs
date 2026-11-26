@@ -44,8 +44,9 @@ namespace BellumCivile
             if (!CourtAgendaBehavior.ValidRealm(c.Realm) || Titles == null) return result;
             var titles = Titles.GetTitlesHeldByClan(c.Realm.RulingClan).Concat(Titles.GetTitlesHeldByClan(c.Realm.RulingClan, false))
                 .GroupBy(t => t.TitleId).Select(g => g.First()).Where(t => t.TitleType > FeudalTitleType.Barony).OrderBy(t => t.TitleId);
+            var recipients = c.Voters.Where(v => v != c.Realm.RulingClan).OrderBy(v => v.StringId).ToList();
             foreach (var title in titles)
-                foreach (var recipient in c.Voters.Where(v => v != c.Realm.RulingClan).OrderBy(v => v.StringId))
+                foreach (var recipient in recipients)
                     if (Eligible(c.Realm, title, recipient)) result.Add(new CourtObjectiveCandidate(title.TitleId, "grant", recipient.StringId));
             return result;
         }
@@ -53,10 +54,10 @@ namespace BellumCivile
             ? o.Faction == null && o.Sponsor == c.Realm.RulingClan
             : o.Faction?.Type == FactionType.Nobility && o.Faction.ParentKingdom == c.Realm && o.Faction.Mood > -60 && CourtAgendaBehavior.MemberCount(o.Faction) >= 2;
         public IEnumerable<CourtObjectiveCandidate> FindCandidates(CourtTermContext c, CourtObjectiveOwner o) => Owner(c, o)
-            ? c.TitleGrantCandidates.Where(x => o.Faction == null || o.Faction.Members.Contains(ClanById(x.BeneficiaryId))) : Enumerable.Empty<CourtObjectiveCandidate>();
+            ? c.TitleGrantCandidates.Where(x => o.Faction == null || o.Faction.Members.Contains(c.FindClan(x.BeneficiaryId))) : Enumerable.Empty<CourtObjectiveCandidate>();
         public CourtObjectiveEvaluation EvaluateCandidate(CourtTermContext c, CourtObjectiveOwner o, CourtObjectiveCandidate candidate)
         {
-            var title = Title(candidate.TargetId); var recipient = ClanById(candidate.BeneficiaryId);
+            var title = Title(candidate.TargetId); var recipient = c.FindClan(candidate.BeneficiaryId ?? string.Empty);
             bool eligible = Owner(c, o) && c.TitleGrantCandidates.Any(x => x.TargetId == candidate.TargetId && x.BeneficiaryId == candidate.BeneficiaryId)
                 && (o.Faction == null || o.Faction.Members.Contains(recipient))
                 && CourtAgendaBehavior.Current?.ConflictingTitleMotion(c.Realm, candidate.TargetId, recipient, c.PlayerAgenda) != true;

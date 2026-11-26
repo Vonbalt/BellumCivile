@@ -30,7 +30,7 @@ namespace BellumCivile
             if (eligible)
             {
                 var decision = new MandateReformDecision(o.Sponsor, candidate.ActionId, candidate.TargetId, Direction(o.Faction), o.Faction.Type);
-                viable = CourtPolicyForecast.Calculate(decision, Cost(o.Sponsor), decision.Outcome(true), decision.Outcome(false), c.Voters).Viable;
+                viable = c.Forecast(decision, Cost(o.Sponsor), decision.Outcome(true), decision.Outcome(false)).Viable;
             }
             return new CourtObjectiveEvaluation(eligible, viable, new CourtObjectiveWeight(.5), "adjacent_mandate_reform; next_mandate_only");
         }

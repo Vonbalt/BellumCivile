@@ -8,13 +8,17 @@ $scheduler = Read 'CourtTermScheduler.cs'
 $tick = $behavior.Substring($behavior.IndexOf('private void Tick()'),
     $behavior.IndexOf('private void OpenTerm(') - $behavior.IndexOf('private void Tick()'))
 Check ($tick.Contains('realms.Where(QueueCourtTerm)') -and !$tick.Contains('OpenTerm(realm, manager, ideology)')) 'Daily coordination queues due realms instead of opening every court synchronously.'
-$batch = $tick.IndexOf('PrepareQueuedCourtTerms(realms, manager, ideology);')
+$batch = $tick.IndexOf('ScheduleCourtPreparation(realms, manager, ideology);')
 foreach ($daily in @('CheckMandate(realm)', 'Maintain(realm, renewal: true)', 'HereditaryLoyaltyBehavior.Instance?.Maintain(realm)',
     'ScanDecreeCases(realm, ideology)', 'MaintainCouncilVacancyPriority(realm)', 'ideology.TryLaunchCourtChallenge(faction, realm)', 'Advance(agenda, ideology)')) {
     Check ($tick.IndexOf($daily) -ge 0 -and $tick.IndexOf($daily) -lt $batch) "Daily political maintenance remains outside the preparation budget: $daily"
 }
 Check ($behavior.Contains('SyncTermPreparationData(dataStore);') -and $preparation.Contains('store.SyncData("BC_CourtPendingTerms"') -and
-    $preparation.Contains('store.SyncData("BC_CourtLastPreparationDay"')) 'The pending queue and same-day guard are part of campaign persistence.'
+    $preparation.Contains('store.SyncData("BC_CourtLastPreparationDay"') -and
+    $preparation.Contains('store.SyncData("BC_CourtTermsScheduledToday"') -and
+    $preparation.Contains('store.SyncData("BC_CourtLastPreparationHour"')) 'Pending terms, the daily allotment and both guards survive saving.'
+Check ($behavior.Contains('HourlyTickEvent.AddNonSerializedListener(this, PrepareCourtTermsHourly)') -and
+    $preparation.Contains('if (_courtTermsScheduledToday.Count == 0) return;')) 'Hourly preparation is registered and does no work with an empty allotment.'
 Check ($preparation.Contains('CampaignTime.Days((float)term.EndDay)') -and !$preparation.Contains('CampaignTime.Now +')) 'The next official boundary comes from the calendar snapshot, not the processing day.'
 Check ($preparation.Contains('if (next.ToDays > now) return false;') -and
     $preparation.Contains('if (_pendingCourtTerms.Count == 0) return;')) 'Idle days avoid settings reads for future terms and realm-index construction for an empty queue.'

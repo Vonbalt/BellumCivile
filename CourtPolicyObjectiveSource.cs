@@ -92,6 +92,9 @@ namespace BellumCivile
         }
         private readonly Dictionary<string, Clan> _clansById;
         private readonly Dictionary<string, Settlement> _settlementsById;
+        private readonly Dictionary<Clan, float> _roleReserves = new Dictionary<Clan, float>();
+        private readonly Dictionary<Settlement, bool> _availableLand = new Dictionary<Settlement, bool>();
+        private HashSet<Settlement> _decisionsOnLand;
         private readonly Dictionary<Settlement, IReadOnlyList<FeudalClaimRecord>> _claims = new Dictionary<Settlement, IReadOnlyList<FeudalClaimRecord>>();
         private readonly Dictionary<string, PolicyObject> _policiesById;
         private readonly HashSet<PolicyObject> _proposable;
@@ -115,20 +118,56 @@ namespace BellumCivile
         internal bool CanPropose(PolicyObject policy) => _proposable.Contains(policy);
         internal Clan FindClan(string id) => _clansById.TryGetValue(id, out var clan) ? clan : null;
         internal Settlement FindSettlement(string id) => _settlementsById.TryGetValue(id, out var settlement) ? settlement : null;
+        internal bool LandAvailable(Settlement settlement)
+        {
+            if (settlement?.Town == null) return false;
+            if (_availableLand.TryGetValue(settlement, out bool available)) return available;
+            if (_decisionsOnLand == null)
+            {
+                _decisionsOnLand = new HashSet<Settlement>();
+                foreach (var decision in Realm.UnresolvedDecisions)
+                    if (decision is SettlementClaimantDecision claim) _decisionsOnLand.Add(claim.Settlement);
+                    else if (decision is SettlementClaimantPreliminaryDecision revoke) _decisionsOnLand.Add(revoke.Settlement);
+            }
+            return _availableLand[settlement] = CourtAgendaBehavior.Eligible(settlement.OwnerClan, Realm)
+                && !_decisionsOnLand.Contains(settlement)
+                && Campaign.Current?.GetCampaignBehavior<FiefDeliberationBehavior>()?.HasPendingFiefVoteForSettlement(Realm, settlement) != true;
+        }
+
         internal IReadOnlyList<FeudalClaimRecord> Claims(Settlement settlement)
         {
             if (!_claims.TryGetValue(settlement, out var claims))
-                _claims.Add(settlement, claims = CourtExecutiveObjectiveSource.Claims(Realm, settlement).ToList());
+            {
+                var titles = Campaign.Current?.GetCampaignBehavior<FeudalTitleBehavior>();
+                var holder = settlement.OwnerClan;
+                claims = titles != null && titles.TryGetBarony(settlement, out var title) && title.DeFactoHolderClanId == holder?.StringId
+                    ? (IReadOnlyList<FeudalClaimRecord>)titles.GetActiveClaimsByTitle(title).Where(c =>
+                        FindClan(c.ClaimantClanId) is Clan claimant && claimant != holder
+                        && (c.Strength == FeudalClaimStrength.Weak || c.Strength == FeudalClaimStrength.Strong)).ToList()
+                    : Array.Empty<FeudalClaimRecord>();
+                _claims.Add(settlement, claims);
+            }
             return claims;
         }
+
+        private float RoleReserve(Clan clan)
+        {
+            if (!_roleReserves.TryGetValue(clan, out float reserve))
+                _roleReserves.Add(clan, reserve = NpcInfluenceBudgetService.GetRoleReserve(clan));
+            return reserve;
+        }
+
         internal PolicyObject FindPolicy(string id) => _policiesById.TryGetValue(id, out var policy) ? policy : null;
         internal CourtPolicyForecast Forecast(KingdomPolicyDecision decision, bool abolish, int cost)
         {
             var key = Tuple.Create(decision.ProposerClan, decision.Policy, abolish, cost);
             if (!_forecasts.TryGetValue(key, out var forecast))
-                _forecasts.Add(key, forecast = CourtPolicyForecast.Calculate(decision, cost, Voters));
+                _forecasts.Add(key, forecast = CourtPolicyForecast.Calculate(decision, cost, Voters, RoleReserve));
             return forecast;
         }
+
+        internal CourtPolicyForecast Forecast(KingdomDecision decision, int cost, DecisionOutcome yes, DecisionOutcome no) =>
+            CourtPolicyForecast.Calculate(decision, cost, yes, no, Voters, RoleReserve);
     }
 
     internal interface ICourtAgendaObjectiveSource : ICourtObjectiveSource<CourtTermContext, CourtObjectiveOwner>

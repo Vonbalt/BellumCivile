@@ -9,13 +9,20 @@ namespace BellumCivile.Behaviors
     public sealed partial class CourtAgendaBehavior
     {
         private Dictionary<string, CourtTermPreparationRecord> _pendingCourtTerms = new Dictionary<string, CourtTermPreparationRecord>();
+        private List<string> _courtTermsScheduledToday = new List<string>();
         private double _lastTermPreparationDay = -1;
+        private long _lastTermPreparationHour = -1;
+        private Dictionary<string, Kingdom> _courtPreparationRealms;
 
         private void SyncTermPreparationData(IDataStore store)
         {
             store.SyncData("BC_CourtPendingTerms", ref _pendingCourtTerms);
             store.SyncData("BC_CourtLastPreparationDay", ref _lastTermPreparationDay);
+            store.SyncData("BC_CourtTermsScheduledToday", ref _courtTermsScheduledToday);
+            store.SyncData("BC_CourtLastPreparationHour", ref _lastTermPreparationHour);
             _pendingCourtTerms = _pendingCourtTerms ?? new Dictionary<string, CourtTermPreparationRecord>();
+            _courtTermsScheduledToday = _courtTermsScheduledToday ?? new List<string>();
+            if (store.IsLoading) _courtPreparationRealms = null;
         }
 
         private bool QueueCourtTerm(Kingdom realm)
@@ -35,22 +42,76 @@ namespace BellumCivile.Behaviors
             return true;
         }
 
-        private void PrepareQueuedCourtTerms(IReadOnlyList<Kingdom> realms, FactionManagerBehavior manager, IdeologyBehavior ideology)
+        private void ScheduleCourtPreparation(IReadOnlyList<Kingdom> realms, FactionManagerBehavior manager, IdeologyBehavior ideology)
         {
             if (_pendingCourtTerms.Count == 0) return;
             double now = CampaignTime.Now.ToDays;
-            var byId = realms.Where(ValidRealm).ToDictionary(r => r.StringId, StringComparer.Ordinal);
-            foreach (var key in _pendingCourtTerms.Keys.ToList())
-                if (!byId.ContainsKey(key) || _pendingCourtTerms[key]?.RealmId != key
-                    || !_pendingCourtTerms[key].IsCurrent(now)) _pendingCourtTerms.Remove(key);
             if (_lastTermPreparationDay == Math.Floor(now)) return;
             _lastTermPreparationDay = Math.Floor(now);
+            _lastTermPreparationHour = CourtTermScheduler.HourSlot(now);
+            _courtPreparationRealms = IndexPreparationRealms(realms);
+            foreach (var key in _pendingCourtTerms.Keys.ToList())
+                if (!_courtPreparationRealms.ContainsKey(key) || _pendingCourtTerms[key]?.RealmId != key
+                    || !_pendingCourtTerms[key].IsCurrent(now)) _pendingCourtTerms.Remove(key);
             var batch = CourtTermScheduler.Batch(_pendingCourtTerms.Values.Where(p =>
-                TryGetCourtRuler(byId[p.RealmId], out _, out _)), now, Clan.PlayerClan?.Kingdom?.StringId);
+                TryGetCourtRuler(_courtPreparationRealms[p.RealmId], out _, out _)), now, Clan.PlayerClan?.Kingdom?.StringId);
+            _courtTermsScheduledToday.Clear();
+            _courtTermsScheduledToday.AddRange(batch.Select(p => p.RealmId));
+            OpenScheduledCourtTerms(batch, now, manager, ideology, daily: true);
+        }
+
+        private static Dictionary<string, Kingdom> IndexPreparationRealms(IEnumerable<Kingdom> realms) =>
+            realms.Where(ValidRealm).ToDictionary(r => r.StringId, StringComparer.Ordinal);
+
+        private void PrepareCourtTermsHourly()
+        {
+            if (_courtTermsScheduledToday.Count == 0) return;
+            var manager = Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>();
+            var ideology = Campaign.Current?.GetCampaignBehavior<IdeologyBehavior>();
+            if (manager == null || ideology == null) return;
+            PrepareScheduledCourtTerms(CampaignTime.Now.ToDays, manager, ideology);
+        }
+
+        private void PrepareScheduledCourtTerms(double now, FactionManagerBehavior manager, IdeologyBehavior ideology)
+        {
+            long hour = CourtTermScheduler.HourSlot(now);
+            if (_courtTermsScheduledToday.Count == 0 || _lastTermPreparationDay != Math.Floor(now) || hour <= _lastTermPreparationHour) return;
+            _lastTermPreparationHour = hour;
+            _agendaTiming.BeginPass(CourtTimingYear(now));
+            long started = Stopwatch.GetTimestamp();
+            try
+            {
+                if (_courtPreparationRealms == null) _courtPreparationRealms = IndexPreparationRealms(Kingdom.All);
+                var batch = new List<CourtTermPreparationRecord>(_courtTermsScheduledToday.Count);
+                for (int i = 0; i < _courtTermsScheduledToday.Count;)
+                {
+                    if (_pendingCourtTerms.TryGetValue(_courtTermsScheduledToday[i], out var term) && term?.IsCurrent(now) == true)
+                    {
+                        batch.Add(term);
+                        i++;
+                    }
+                    else _courtTermsScheduledToday.RemoveAt(i);
+                }
+                OpenScheduledCourtTerms(batch, now, manager, ideology, daily: false);
+            }
+            finally { _agendaTiming.EndHour(now, Stopwatch.GetTimestamp() - started); }
+        }
+
+        private void OpenScheduledCourtTerms(IReadOnlyList<CourtTermPreparationRecord> batch, double now,
+            FactionManagerBehavior manager, IdeologyBehavior ideology, bool daily)
+        {
+            int openings = CourtTermScheduler.OpeningsThisTick(batch, now, daily);
             foreach (var term in batch)
             {
-                Kingdom realm = byId[term.RealmId];
+                if (openings == 0) break;
+                _courtTermsScheduledToday.Remove(term.RealmId);
+                if (!_courtPreparationRealms.TryGetValue(term.RealmId, out var realm) || !ValidRealm(realm))
+                {
+                    _pendingCourtTerms.Remove(term.RealmId);
+                    continue;
+                }
                 if (!TryGetCourtRuler(realm, out _, out _)) continue;
+                openings--;
                 // Claim the opening before callbacks can inspect the new term or save the campaign.
                 _pendingCourtTerms.Remove(term.RealmId);
                 if (!term.HasPreparationWindow(now))

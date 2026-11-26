@@ -21,12 +21,13 @@ namespace BellumCivile
             internal bool Pass => Yes > No;
         }
 
-        internal static CourtPolicyForecast Calculate(KingdomPolicyDecision decision, int filingCost, IEnumerable<Clan> voters = null)
+        internal static CourtPolicyForecast Calculate(KingdomPolicyDecision decision, int filingCost,
+            IEnumerable<Clan> voters = null, Func<Clan, float> roleReserve = null)
             => Calculate(decision, filingCost, new KingdomPolicyDecision.PolicyDecisionOutcome(true),
-                new KingdomPolicyDecision.PolicyDecisionOutcome(false), voters);
+                new KingdomPolicyDecision.PolicyDecisionOutcome(false), voters, roleReserve);
 
         internal static CourtPolicyForecast Calculate(KingdomDecision decision, int filingCost,
-            DecisionOutcome yes, DecisionOutcome no, IEnumerable<Clan> voters = null)
+            DecisionOutcome yes, DecisionOutcome no, IEnumerable<Clan> voters = null, Func<Clan, float> roleReserve = null)
         {
             var forecast = new CourtPolicyForecast();
             Clan proposer = decision.ProposerClan;
@@ -38,7 +39,8 @@ namespace BellumCivile
             {
                 if (clan.IsEliminated || (clan.IsMinorFaction && clan != Clan.PlayerClan) || clan.IsUnderMercenaryService || clan.Leader == null) continue;
                 votes.Add(new Vote { Clan = clan, Yes = decision.DetermineSupport(clan, yes), No = decision.DetermineSupport(clan, no),
-                    Balance = clan.Influence - (clan == proposer ? filingCost : 0), Reserve = NpcInfluenceBudgetService.GetRoleReserve(clan) });
+                    Balance = clan.Influence - (clan == proposer ? filingCost : 0),
+                    Reserve = roleReserve?.Invoke(clan) ?? NpcInfluenceBudgetService.GetRoleReserve(clan) });
             }
             float initialYes = votes.Sum(v => Clamp(v.Yes, 0, 100));
             float initialNo = votes.Sum(v => Clamp(v.No, 0, 100));

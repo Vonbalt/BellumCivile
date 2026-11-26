@@ -30,7 +30,7 @@ namespace BellumCivile
         private int? _year;
         private long _preparationTicks, _selectionTicks;
 
-        internal void BeginDay(int year)
+        internal void BeginPass(int year)
         {
             if (year != _year)
             {
@@ -68,12 +68,22 @@ namespace BellumCivile
             _daily.Add(ticks);
             _maintenance.Add(maintenance);
             if (_preparationTicks > 0) _preparation.Add(_preparationTicks);
-            if (_realms.Count == 0) return;
+            if (_realms.Count > 0)
+                ReportPreparation(day, _preparationTicks, $"daily_ms={Ms(ticks)}; maintenance_ms={Ms(maintenance)}; ");
+        }
 
+        internal void EndHour(double day, long ticks)
+        {
+            _preparation.Add(ticks);
+            if (_realms.Count > 0) ReportPreparation(day, ticks, "source=hourly; ");
+        }
+
+        private void ReportPreparation(double day, long ticks, string tickInfo)
+        {
             string realms = string.Join(" | ", _realms.Select(r => $"{r.RealmId}:term_ms={Ms(r.Total)},selection_ms={Ms(r.Selection)}"));
-            BellumCivileLogger.Log($"Court timing; day={day.ToString("0.###", CultureInfo.InvariantCulture)}; daily_ms={Ms(ticks)}; "
-                + $"maintenance_ms={Ms(maintenance)}; preparation_ms={Ms(_preparationTicks)}; "
-                + $"queue_ms={Ms(Math.Max(0, _preparationTicks - _realms.Sum(r => r.Total)))}; prepared={_realms.Count}; {realms}");
+            BellumCivileLogger.Log($"Court timing; day={day.ToString("0.###", CultureInfo.InvariantCulture)}; {tickInfo}"
+                + $"preparation_ms={Ms(ticks)}; "
+                + $"queue_ms={Ms(Math.Max(0, ticks - _realms.Sum(r => r.Total)))}; prepared={_realms.Count}; {realms}");
         }
 
         private static string Ms(long ticks) => (ticks * 1000d / Stopwatch.Frequency).ToString("0.###", CultureInfo.InvariantCulture);

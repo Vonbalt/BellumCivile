@@ -6,6 +6,7 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
 internal static class CourtTermPreparationTests
@@ -22,6 +23,7 @@ internal static class CourtTermPreparationTests
                 Data[key] = terms.ToDictionary(p => p.Key, p => p.Value == null ? null : new CourtTermPreparationRecord {
                     RealmId = p.Value.RealmId, StartDay = p.Value.StartDay, EndDay = p.Value.EndDay,
                     TermDays = p.Value.TermDays, DeliberationDays = p.Value.DeliberationDays });
+            else if (value is List<string> ids) Data[key] = ids.ToList();
             else Data[key] = value;
             return true;
         }
@@ -45,6 +47,7 @@ internal static class CourtTermPreparationTests
     private static Dictionary<string, CourtTermPreparationRecord> Queue(CourtAgendaBehavior behavior) =>
         (Dictionary<string, CourtTermPreparationRecord>)AccessTools.Field(typeof(CourtAgendaBehavior), "_pendingCourtTerms").GetValue(behavior);
     private static bool Now(ref CampaignTime __result) { __result = CampaignTime.Days((float)_day); return false; }
+    private static bool All(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(Realms); return false; }
     private static bool DateLabel(ref string __result) { __result = "Winter 6, 1085"; return false; }
     private static bool Term(ref float __result) { __result = _term; return false; }
     private static bool Deliberation(ref int __result) { __result = _deliberation; return false; }
@@ -70,7 +73,10 @@ internal static class CourtTermPreparationTests
         void Patch(Type target, string member, string prefix, bool getter = false) => harmony.Patch(
             getter ? AccessTools.PropertyGetter(target, member) : AccessTools.Method(target, member),
             prefix: new HarmonyMethod(typeof(CourtTermPreparationTests), prefix));
-        void Prepare(CourtAgendaBehavior b) => Call(b, "PrepareQueuedCourtTerms", Realms, null, null);
+        void Schedule(CourtAgendaBehavior b) => Call(b, "ScheduleCourtPreparation", Realms, null, null);
+        void Hour(CourtAgendaBehavior b) => Call(b, "PrepareScheduledCourtTerms", _day, null, null);
+        void NextHour(CourtAgendaBehavior b) { _day += 1d / 24; Hour(b); }
+        void DrainDay(CourtAgendaBehavior b) { Schedule(b); for (int i = 0; i < 6; i++) NextHour(b); }
         try
         {
             ticks.SetValue(null, 24000L);
@@ -83,6 +89,7 @@ internal static class CourtTermPreparationTests
             Patch(typeof(Clan), "PlayerClan", nameof(Player), true);
             Patch(typeof(Clan), "Kingdom", nameof(Realm), true);
             Patch(typeof(Kingdom), "RulingClan", nameof(Ruler), true);
+            Patch(typeof(Kingdom), "All", nameof(All), true);
             Patch(type, "ValidRealm", nameof(Valid));
             Patch(type, "TryGetCourtRuler", nameof(Available));
             Patch(type, "OpenTerm", nameof(Open));
@@ -100,19 +107,26 @@ internal static class CourtTermPreparationTests
             var queued = Queue(behavior)[Realms[0].StringId];
             check(!(bool)Call(behavior, "QueueCourtTerm", Realms[0]) && ReferenceEquals(queued, Queue(behavior)[Realms[0].StringId]),
                 "Repeated inspection cannot replace or duplicate pending term work");
-            Prepare(behavior);
-            check(Opened.Count == 5 && Opened[0].RealmId == _playerRealm.StringId && Queue(behavior).Count == 55 && _claimedBeforeOpen,
-                "The player court opens first, using one of five slots, and each job is claimed before callbacks");
-            Prepare(behavior);
-            check(Opened.Count == 5, "Repeated daily ticks cannot drain extra batches on the same day");
+            Schedule(behavior); Hour(behavior);
+            check(Opened.Count == 0, "The daily tick schedules ordinary preparation; the same hour cannot drain it");
+            NextHour(behavior);
+            check(Opened.Count == 1 && Opened[0].RealmId == _playerRealm.StringId && Queue(behavior).Count == 59 && _claimedBeforeOpen,
+                "The first hourly slot opens only the player court and claims it before callbacks");
+            Hour(behavior); Schedule(behavior);
+            check(Opened.Count == 1, "Repeated ticks cannot spend additional slots in the same hour");
             var store = new Store(); behavior.SyncData(store); store.IsLoading = true;
             var restored = new CourtAgendaBehavior(); restored.SyncData(store);
-            check(Queue(restored).Count == 55 && Queue(restored).Values.All(t => t.StartDay == 84 && t.EndDay == 168
+            check(Queue(restored).Count == 59 && Queue(restored).Values.All(t => t.StartDay == 84 && t.EndDay == 168
                 && t.TermDays == 84 && t.DeliberationDays == 5), "Pending work and its fixed timing snapshots survive save/load");
-            Prepare(restored);
-            check(Opened.Count == 5, "Loading a save does not reset the daily batch guard or replay completed openings");
+            Hour(restored); Schedule(restored);
+            check(Opened.Count == 1, "Loading a save does not reset the hourly or daily guards");
+            for (int i = 2; i <= 6; i++)
+            {
+                NextHour(restored);
+                check(Opened.Count == Math.Min(i, 5), "The remaining daily allotment survives loading and opens one court per hour");
+            }
             _day = 85.5; _term = 21; _deliberation = 30;
-            Prepare(restored);
+            DrainDay(restored);
             check(Opened.Count == 10 && Opened.All(t => t.EndDay == 168 && t.TermDays == 84 && t.DeliberationDays == 5),
                 "New MCM timing settings do not rewrite terms already waiting in the queue");
 
@@ -131,17 +145,17 @@ internal static class CourtTermPreparationTests
             var originalRuler = Rulers[waiting]; Rulers[waiting] = _player;
             check(!Pending(null) && Pending(null, faction), "Player Crown actions are not replaced by an automatic agenda placeholder");
             Rulers[waiting] = originalRuler;
-            Blocked.Add(waiting); _day = 86.5; Prepare(restored);
+            _day = 86.5; Schedule(restored); Blocked.Add(waiting); NextHour(restored);
             check(Queue(restored).ContainsKey(waiting.StringId), "A realm awaiting a safe succession or transfer remains queued");
-            Rulers[waiting] = Blank<Clan>(); Blocked.Clear(); _day = 87.5; Prepare(restored);
+            Rulers[waiting] = Blank<Clan>(); Blocked.Clear(); _day = 87.5; DrainDay(restored);
             check(!Queue(restored).ContainsKey(waiting.StringId), "Queued work revalidates and follows the current ruler after succession");
             var gone = Realms.First(r => Queue(restored).ContainsKey(r.StringId));
-            Removed.Add(gone); _day = 88.5; Prepare(restored);
+            _day = 88.5; Schedule(restored); Removed.Add(gone); NextHour(restored);
             check(!Queue(restored).ContainsKey(gone.StringId) && Opened.All(t => t.RealmId != gone.StringId),
                 "Eliminated realms are pruned without opening their agendas");
             var unavailable = Realms.First(r => Queue(restored).ContainsKey(r.StringId));
             foreach (var realm in Realms) if (realm != unavailable) Removed.Add(realm);
-            _day = 167.5; int before = Opened.Count; Prepare(restored);
+            _day = 167.5; int before = Opened.Count; DrainDay(restored);
             check(Queue(restored).Count == 0 && Opened.Count == before,
                 "A court unavailable until its decision window is gone skips ordinary preparation without fabricating an immediate failure");
             var legacy = new CourtAgendaBehavior(); legacy.SyncData(new Store { IsLoading = true });

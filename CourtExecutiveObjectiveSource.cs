@@ -53,10 +53,7 @@ namespace BellumCivile
             {
                 var settlement = context.FindSettlement(candidate.TargetId);
                 var holder = settlement?.OwnerClan;
-                if (settlement?.Town == null || !CourtAgendaBehavior.Eligible(holder, realm)
-                    || Campaign.Current.GetCampaignBehavior<FiefDeliberationBehavior>()?.HasPendingFiefVoteForSettlement(realm, settlement) == true
-                    || realm.UnresolvedDecisions.Any(d => d is SettlementClaimantDecision claim && claim.Settlement == settlement
-                        || d is SettlementClaimantPreliminaryDecision revoke && revoke.Settlement == settlement)) return Reject("land_unavailable");
+                if (!context.LandAvailable(settlement)) return Reject("land_unavailable");
                 var claims = context.Claims(settlement);
                 if (Kind == CourtExecutiveRules.Grant)
                 {
@@ -84,7 +81,7 @@ namespace BellumCivile
                 var yes = outcomes.FirstOrDefault(supports);
                 var no = outcomes.FirstOrDefault(o => !supports(o));
                 if (yes == null || no == null) return Reject("missing_outcomes");
-                var forecast = CourtPolicyForecast.Calculate(decision, decision.GetProposalInfluenceCost(), yes, no, context.Voters);
+                var forecast = context.Forecast(decision, decision.GetProposalInfluenceCost(), yes, no);
                 return new CourtObjectiveEvaluation(true, forecast.Viable, new CourtObjectiveWeight(weight),
                     $"support={forecast.For}/{forecast.For + forecast.Against}; affordable={forecast.Affordable}");
             }
@@ -92,16 +89,6 @@ namespace BellumCivile
             {
                 return Reject("forecast_exception:" + ex.GetType().Name);
             }
-        }
-
-        internal static IEnumerable<FeudalClaimRecord> Claims(Kingdom realm, Settlement settlement)
-        {
-            var titles = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>();
-            if (titles == null || !titles.TryGetBarony(settlement, out var title)
-                || title.DeFactoHolderClanId != settlement.OwnerClan?.StringId) return Enumerable.Empty<FeudalClaimRecord>();
-            var eligible = new HashSet<string>(realm.Clans.Where(c => c != settlement.OwnerClan && CourtAgendaBehavior.Eligible(c, realm)).Select(c => c.StringId));
-            return titles.GetActiveClaimsByTitle(title).Where(c => eligible.Contains(c.ClaimantClanId)
-                && (c.Strength == FeudalClaimStrength.Weak || c.Strength == FeudalClaimStrength.Strong));
         }
 
         public void ApplySelection(CourtAgendaRecord agenda, CourtObjectiveChoice choice)

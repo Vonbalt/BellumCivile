@@ -500,6 +500,7 @@ internal static class Program
             {
                 CourtTermPreparationTests.Run(Check);
                 CourtAgendaTimingTests.Run(Check);
+                CourtSelectionOptimizationTests.Run(Check);
                 PlayerCrownBusinessTests.Run(Check);
                 IntegrationSaveDefinitionTests.Run(Check);
                 Console.WriteLine($"{_checks} court term preparation checks passed.");

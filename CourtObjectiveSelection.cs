@@ -112,12 +112,13 @@ namespace BellumCivile
             var choices = new List<CourtObjectiveChoice>();
             foreach (var source in _sources)
             {
-                var seen = new HashSet<Tuple<string, string>>();
+                var seen = new HashSet<(string Target, string Action)>();
                 foreach (var candidate in source.FindCandidates(context, owner))
                 {
-                    if (!seen.Add(Tuple.Create(candidate.TargetId, candidate.ActionId))) continue;
-                    var choice = new CourtObjectiveChoice(source.Kind, candidate,
-                        source.EvaluateCandidate(context, owner, candidate), _families[source.Kind]);
+                    if (!seen.Add((candidate.TargetId, candidate.ActionId))) continue;
+                    var evaluation = source.EvaluateCandidate(context, owner, candidate);
+                    if (diagnostic == null && !evaluation.Selectable) continue;
+                    var choice = new CourtObjectiveChoice(source.Kind, candidate, evaluation, _families[source.Kind]);
                     diagnostic?.Invoke(choice);
                     if (choice.Evaluation.Selectable) choices.Add(choice);
                 }

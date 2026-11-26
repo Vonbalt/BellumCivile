@@ -31,6 +31,16 @@ internal static class CourtTermSchedulerTests
         var urgent = Realms(6, 7, 5); urgent.Add(CourtTermScheduler.Create("player", 0, 0, 84, 5));
         check(CourtTermScheduler.Batch(urgent, 0, "player").Count == 7,
             "Player priority cannot consume an urgent realm's last preparation slot");
+        check(CourtTermScheduler.OpeningsThisTick(urgent, 0, daily: true) == 6
+            && CourtTermScheduler.OpeningsThisTick(CourtTermScheduler.Batch(urgent, 0, "player"), 0, daily: true) == 7,
+            "At the last viable hour, preparation does not delay urgent courts or bypass player priority");
+        check(CourtTermScheduler.OpeningsThisTick(first, 0.4, daily: true) == 0
+            && CourtTermScheduler.OpeningsThisTick(first, 0.45, daily: false) == 1,
+            "Ordinary daily batches wait for hourly preparation, one realm per tick");
+        check(CourtTermScheduler.OpeningsThisTick(first, 23d / 24, daily: true) == 5,
+            "A late daily tick uses the last available slot before midnight");
+        check(CourtTermScheduler.HourSlot(26040 + 9d / 24) == 26040L * 24 + 9,
+            "Hourly boundaries remain stable at campaign-scale absolute dates");
 
         foreach (int count in new[] { 8, 60, 100, 300 })
         foreach (float length in new[] { 6f, 21f, 84f, 336f })
@@ -43,18 +53,26 @@ internal static class CourtTermSchedulerTests
             {
                 var batch = CourtTermScheduler.Batch(pending, day, "realm_007");
                 check(batch.Count > 0, "A waiting court queue always makes progress");
-                foreach (var term in batch)
+                var scheduled = batch.ToList();
+                for (int hour = 0; hour < 24 && scheduled.Count > 0; hour++)
                 {
-                    check(completed.Add(term.RealmId) && term.HasPreparationWindow(day),
-                        "Every realm opens at most once and retains a usable preparation window");
-                    CourtTermScheduler.SessionOffsets(term, day, out int earliest, out int latest);
-                    check(earliest == term.NominationDays + 1 && latest >= earliest && term.EndDay == length,
-                        "Staggering preserves nomination time and the original term end");
-                    if (term.NominationDays + 1 + deliberation <= length)
-                        check(day + latest + deliberation <= term.EndDay,
-                            "New session and deliberation dates fit within the fixed term");
-                    pending.Remove(term);
+                    double now = day + hour / 24d;
+                    int openings = CourtTermScheduler.OpeningsThisTick(scheduled, now, daily: hour == 0);
+                    foreach (var term in scheduled.Take(openings))
+                    {
+                        check(completed.Add(term.RealmId) && term.HasPreparationWindow(now),
+                            "Every realm opens at most once and retains a usable preparation window");
+                        CourtTermScheduler.SessionOffsets(term, now, out int earliest, out int latest);
+                        check(earliest == term.NominationDays + 1 && latest >= earliest && term.EndDay == length,
+                            "Staggering preserves nomination time and the original term end");
+                        if (term.NominationDays + 1 + deliberation <= length)
+                            check(now + latest + deliberation <= term.EndDay + 1e-6,
+                                "New session and deliberation dates fit within the fixed term");
+                        pending.Remove(term);
+                    }
+                    scheduled.RemoveRange(0, openings);
                 }
+                check(scheduled.Count == 0, "Hourly pacing completes the assigned daily allotment");
                 lastDay = day;
             }
             check(pending.Count == 0 && completed.Count == count, "Large and short-term realm queues drain before their preparation deadlines");

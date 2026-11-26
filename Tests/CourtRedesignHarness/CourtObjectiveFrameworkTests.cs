@@ -111,6 +111,12 @@ internal static class CourtObjectiveFrameworkTests
         peace.Eligible = false;
         peace.Weight = 1000;
         check(selector.Select(0, 0, () => .999).Kind == "policy", "Weight never overrides eligibility");
+        var traced = new List<CourtObjectiveChoice>();
+        var traceResult = selector.Select(0, 0, () => .999, traced.Add);
+        var quietResult = selector.Select(0, 0, () => .999);
+        check(traced.Any(c => c.Kind == "peace" && !c.Evaluation.Eligible)
+            && traceResult.Kind == quietResult.Kind && traceResult.Candidate.TargetId == quietResult.Candidate.TargetId,
+            "Debug tracing reports rejected candidates without changing the lottery");
         peace.Eligible = true;
         peace.Viable = false;
         check(selector.Select(0, 0, () => .999).Kind == "policy", "Weight never overrides viability");

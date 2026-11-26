@@ -85,6 +85,7 @@ namespace BellumCivile.Behaviors
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainTradeObjectives);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainTitleGrants);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MaintainRallies);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, PrepareCourtTermsHourly);
             CampaignEvents.OnTradeAgreementSignedEvent.AddNonSerializedListener(this, OnCourtTradeSigned);
             CampaignEvents.KingdomDecisionAdded.AddNonSerializedListener(this, OnCourtTradeDecisionAdded);
             CampaignEvents.KingdomDecisionConcluded.AddNonSerializedListener(this, OnCourtTradeDecisionConcluded);
@@ -340,10 +341,12 @@ namespace BellumCivile.Behaviors
             }
         }
 
+        private static int CourtTimingYear(double day) => (int)(day / Math.Max(1, CampaignTime.DaysInYear));
+
         private void Tick()
         {
             double day = CampaignTime.Now.ToDays;
-            _agendaTiming.BeginDay((int)(day / Math.Max(1, CampaignTime.DaysInYear)));
+            _agendaTiming.BeginPass(CourtTimingYear(day));
             long started = Stopwatch.GetTimestamp();
             try { RunDailyCourtTick(); }
             finally { _agendaTiming.EndDay(day, Stopwatch.GetTimestamp() - started); }
@@ -417,7 +420,7 @@ namespace BellumCivile.Behaviors
             if (_pendingCourtTerms.Count > 0)
             {
                 long started = Stopwatch.GetTimestamp();
-                try { PrepareQueuedCourtTerms(realms, manager, ideology); }
+                try { ScheduleCourtPreparation(realms, manager, ideology); }
                 finally { _agendaTiming.RecordPreparation(Stopwatch.GetTimestamp() - started); }
             }
             foreach (string key in _reconsiderAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _reconsiderAfter.Remove(key);
