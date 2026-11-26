@@ -8,6 +8,8 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -35,13 +37,19 @@ internal static class WarTargetPerformanceTests
     private static Hero _leader;
     private static Type _motiveType;
     private static bool _legacy;
+    private static bool _openingEnabled;
+    private static FactionType? _openingIdeology;
     private static float _day;
     private static int _registryRequests, _claimRequests, _heldTitleRequests, _legacyVisits;
+    private static int _targetVisits;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool AllClans(ref MBReadOnlyList<Clan> __result) { __result = new MBReadOnlyList<Clan>(Homes.Keys.ToList()); return false; }
     private static bool AllRealms(ref MBReadOnlyList<Kingdom> __result) { __result = new MBReadOnlyList<Kingdom>(Realms.AsEnumerable().Reverse().ToList()); return false; }
     private static bool Home(Clan __instance, ref Kingdom __result) { __result = Homes[__instance]; return false; }
     private static bool Ruler(Kingdom __instance, ref Clan __result) { __result = Rulers[__instance]; return false; }
+    private static bool RealmClans(Kingdom __instance, ref MBReadOnlyList<Clan> __result)
+    { __result = new MBReadOnlyList<Clan>(Homes.Where(p => p.Value == __instance).Select(p => p.Key).ToList()); return false; }
+    private static bool NoStance(ref StanceLink __result) { __result = null; return false; }
     private static bool Leader(ref Hero __result) { __result = _leader; return false; }
     private static bool Name(Kingdom __instance, ref TextObject __result) { __result = new TextObject(__instance.StringId); return false; }
     private static bool Enemies(ref MBReadOnlyList<IFaction> __result) { __result = new MBReadOnlyList<IFaction>(new List<IFaction>()); return false; }
@@ -50,6 +58,10 @@ internal static class WarTargetPerformanceTests
     private static bool IsAtWar(IFaction __0, ref bool __result) { __result = __0?.StringId == "realm_09"; return false; }
     private static bool Neutral(ref float __result) { __result = 0f; return false; }
     private static bool Strength(ref float __result) { __result = 100f; return false; }
+    private static bool Trait(ref TraitObject __result) { __result = null; return false; }
+    private static bool TraitLevel(ref int __result) { __result = 0; return false; }
+    private static bool OpeningEnabled(ref bool __result) { __result = _openingEnabled; return false; }
+    private static bool OpeningIdeology(ref FactionType? __result) { __result = _openingIdeology; return false; }
     private static bool RealmStrength(Kingdom __instance, ref float __result)
     { __result = __instance.StringId == "realm_07" || __instance.StringId == "realm_08" ? 70f : 100f; return false; }
     private static bool CurrentDay(ref float __result) { __result = _day; return false; }
@@ -60,6 +72,7 @@ internal static class WarTargetPerformanceTests
     private static void CountRegistry() => _registryRequests++;
     private static void CountClaims() => _claimRequests++;
     private static void CountHeldTitles() => _heldTitleRequests++;
+    private static void CountTarget() => _targetVisits++;
 
     // Reference implementation: the former per-realm full scan, injected into the otherwise unchanged ranker.
     private static bool LegacyClaimScore(Kingdom targetKingdom, List<string> reasons, IList motives, ref float __result)
@@ -259,6 +272,67 @@ internal static class WarTargetPerformanceTests
             indexed = Rank(false);
             check(indexed.Select(Signature).SequenceEqual(Rank(true).Select(Signature))
                 && !Reasons(First(6)).Any(reason => reason.Contains("occupied_before_claim")), "Transferring legal ownership removes the old owner's reclamation motive");
+
+            _legacy = false;
+            var warType = typeof(WarPeaceRevampBehavior);
+            var royalist = House("royalist_vassal", Realms[0]);
+            Patch(AccessTools.Method(warType, "GetIdeology"), nameof(OpeningIdeology));
+            Patch(AccessTools.Method(warType, "IsRevampEnabled"), nameof(OpeningEnabled));
+            Patch(AccessTools.Method(warType, "IsValidEvaluatedClan"), nameof(Yes));
+            Patch(AccessTools.Method(mod.GetType("BellumCivile.StorylineWarProtectionHelper", true), "IsPeaceBlocked"), nameof(No));
+            Patch(AccessTools.Method(scorer, "ScoreTarget"), nameof(CountTarget));
+            Getter(typeof(Kingdom), "Clans", nameof(RealmClans));
+            Patch(AccessTools.Method(typeof(Kingdom), "GetStanceWith"), nameof(NoStance));
+            foreach (string trait in new[] { "Valor", "Mercy", "Honor" }) Getter(typeof(DefaultTraits), trait, nameof(Trait));
+            Patch(AccessTools.Method(typeof(Hero), "GetTraitLevel"), nameof(TraitLevel));
+            object WarCall(WarPeaceRevampBehavior war, string name, params object[] args) => AccessTools.Method(warType, name).Invoke(war, args);
+            bool Near(float expected, object result) => Math.Abs(expected - (float)result) < .001f;
+            var target = Realms[4];
+            foreach (var (bloc, attack, defense, multi, ranks) in new (FactionType?, float, float, float, int)[]
+            {
+                (FactionType.Nobility, 12f, 27.5f, -15f, 1),
+                (FactionType.Glory, 12.5f, 27.5f, -8f, 0),
+                (FactionType.Liberty, 5f, 28.75f, -30f, 0),
+                (FactionType.Royalists, 13f, 28.75f, -15f, 2),
+                (null, 10f, 25f, -20f, 0)
+            })
+            {
+                _openingIdeology = bloc;
+                Clan clan = bloc == FactionType.Royalists ? royalist : _source;
+                var war = new WarPeaceRevampBehavior();
+                _claimRequests = 0;
+                check(Near(attack, WarCall(war, "CalculateWarStartShock", clan, target, false))
+                    && Near(defense, WarCall(war, "CalculateWarStartShock", clan, target, true))
+                    && Near(multi, WarCall(war, "CalculateMultipleFrontShock", clan, target, 2f))
+                    && _claimRequests == ranks,
+                    "Opening and multiple-front shocks preserve values and only rank necessary claimants: " + bloc);
+            }
+            _openingIdeology = FactionType.Nobility;
+            check(Near(10f, WarCall(new WarPeaceRevampBehavior(), "CalculateWarStartShock", royalist, target, false)),
+                "Nobility still requires the voting clan's own claim, not the ruling clan's claim");
+
+            _openingEnabled = true; _openingIdeology = FactionType.Glory;
+            var declaration = new WarPeaceRevampBehavior();
+            var will = (Dictionary<string, float>)AccessTools.Field(warType, "_warWillByClanId").GetValue(declaration);
+            foreach (var clan in new[] { _source, royalist, Rulers[target] }) will[clan.StringId] = 50f;
+            WarCall(declaration, "GetRankedTargets", _source, false);
+            _claimRequests = _targetVisits = 0;
+            WarCall(declaration, "OnWarDeclared", Realms[0], target, DeclareWarAction.DeclareWarDetail.Default);
+            object[] voter = { _source, target, 0f };
+            check(declaration.GetWarWill(_source) == 62.5f && declaration.GetWarWill(Rulers[target]) == 77.5f
+                && !(bool)WarCall(declaration, "TryGetCachedTargetScore", voter) && _claimRequests == 0,
+                "A real declaration invalidates stale rankings and still applies both sides' enthusiasm shocks without ranking unrelated blocs");
+            object[] unrelatedVoter = { Rulers[Realms[3]], target, 0f };
+            check(!(bool)WarCall(declaration, "TryGetPactVoterTargetScore", unrelatedVoter) && _claimRequests == 0,
+                "Pact previews do not rank a clan on an ordinary cache miss");
+            check((bool)WarCall(declaration, "TryGetPactVoterTargetScore", voter)
+                && Near((float)Read(First(4), "Score"), voter[2]) && _claimRequests == 1 && _targetVisits == 1
+                && (bool)WarCall(declaration, "TryGetPactVoterTargetScore", voter) && _targetVisits == 1,
+                "The first pact vote recovers exactly its own ranked score, then reuses it without scoring other realms");
+            object[] defender = { Rulers[target], Realms[0], 0f };
+            WarCall(declaration, "InvalidateKingdom", target);
+            check(!(bool)WarCall(declaration, "TryGetPactVoterTargetScore", defender) && _claimRequests == 1,
+                "A later invalidation clears a deferred war ranking as well as an existing cache entry");
 
             var clients = new ClientKingdomBehavior();
             var records = (List<ClientKingdomRecord>)AccessTools.Field(typeof(ClientKingdomBehavior), "_clients").GetValue(clients);

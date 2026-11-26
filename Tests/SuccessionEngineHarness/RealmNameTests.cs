@@ -455,7 +455,7 @@ internal static class RealmNameTests
                 "Generated native realm names recover their stored root without string stripping");
             check(((TextObject)Call("DynamicKingdomTitleNameHelper", "GetRanklessNameText", new object[] { null })).IsEmpty(),
                 "Missing parent realm has a safe empty naming fallback");
-            check(PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(IdeologyBehavior), "TriggerGrandCoalition"))
+            check(PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(IdeologyBehavior), "AssembleAndLaunchGrandCoalition"))
                 .Any(i => i.Calls(AccessTools.Method(Type("DynamicKingdomTitleNameHelper"), "GetRanklessNameText"))),
                 "New coalition records use the same rank-free root as their localized display");
         }

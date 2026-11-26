@@ -54,6 +54,7 @@ internal static class CourtTermPreparationTests
     private static bool Player(ref Clan __result) { __result = _player; return false; }
     private static bool Realm(Clan __instance, ref Kingdom __result) { __result = __instance == _player ? _playerRealm : null; return false; }
     private static bool Ruler(Kingdom __instance, ref Clan __result) { Rulers.TryGetValue(__instance, out __result); return false; }
+    private static bool SkipLog() => false;
     private static bool Valid(Kingdom realm, ref bool __result) { __result = realm != null && Rulers.ContainsKey(realm) && !Removed.Contains(realm); return false; }
     private static bool Available(Kingdom realm, out Clan house, out Hero ruler, ref bool __result)
     { house = Rulers[realm]; ruler = _head; __result = !Removed.Contains(realm) && !Blocked.Contains(realm); return false; }
@@ -93,6 +94,7 @@ internal static class CourtTermPreparationTests
             Patch(type, "ValidRealm", nameof(Valid));
             Patch(type, "TryGetCourtRuler", nameof(Available));
             Patch(type, "OpenTerm", nameof(Open));
+            Patch(type.Assembly.GetType("BellumCivile.BellumCivileLogger", true), "Log", nameof(SkipLog));
             var behavior = new CourtAgendaBehavior();
             var dates = (Dictionary<string, CampaignTime>)AccessTools.Field(type, "_nextTerms").GetValue(behavior);
             for (int i = 0; i < 60; i++)

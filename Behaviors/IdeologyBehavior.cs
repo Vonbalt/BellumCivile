@@ -15,6 +15,7 @@ using TaleWorlds.Localization;
 using BellumCivile.Patches;
 using C = BellumCivile.BellumCivileConstants;
 using O = BellumCivile.BellumCivileOptions;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace BellumCivile.Behaviors
 {
@@ -375,11 +376,13 @@ namespace BellumCivile.Behaviors
             }
 
             if (!advanceMood) return;
+            CourtMoodRealmFacts moodFacts = null;
             foreach (FactionObject faction in kingdomFactions.Where(f => f.IsIdeology))
             {
                 if (faction.Members.Count == 0 || _isInSessionLaunch) continue;
 
-                float baseThreshold = CalculateTargetBaseline(faction, kingdom, factionManager);
+                moodFacts = moodFacts ?? new CourtMoodRealmFacts(kingdom, factionManager);
+                float baseThreshold = EvaluateMoodBaseline(faction, moodFacts);
 
                 if (faction.UnderlyingMood < baseThreshold) faction.UnderlyingMood = MathF.Min(faction.UnderlyingMood + 1f, baseThreshold);
                 else if (faction.UnderlyingMood > baseThreshold) faction.UnderlyingMood = MathF.Max(faction.UnderlyingMood - 1f, baseThreshold);
@@ -388,10 +391,8 @@ namespace BellumCivile.Behaviors
 
 
 
-                 if (faction.Mood >= 100f)
-                {
-                    PacifyIdeologyMembers(faction, kingdom, factionManager, false);
-                }
+                if (faction.Mood >= 100f && PacifyIdeologyMembers(faction, kingdom, factionManager, false))
+                    moodFacts = null;
 
             }
         }
@@ -484,18 +485,14 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        // Calculates the static target baseline mood for a political party based on active policies, prolonged war, and their three specific geopolitical pillars (e.g., Militarists evaluating realm strength).
-        private float CalculateTargetBaseline(FactionObject faction, Kingdom kingdom, FactionManagerBehavior factionManager)
-        {
-            return MathF.Clamp(GetMoodConditions(faction, kingdom, factionManager).Sum(c => c.Value), -100f, 100f);
-        }
-
         public (float, string) GetTargetBaselineBreakdown(FactionObject faction, Kingdom kingdom, FactionManagerBehavior factionManager)
         {
-            var conditions = GetMoodConditions(faction, kingdom, factionManager);
-            return (MathF.Clamp(conditions.Sum(c => c.Value), -100f, 100f),
-                string.Join("\n", conditions.Where(c => c.Value != 0).Select(c => c.Label + ": " + c.Value.ToString("+0;-0;0"))));
+            var conditions = GetMoodConditions(faction, kingdom, factionManager, out float baseline);
+            return (baseline, FormatMoodBreakdown(conditions));
         }
+
+        internal static string FormatMoodBreakdown(IEnumerable<MoodCondition> conditions) =>
+            string.Join("\n", conditions.Where(c => c.Value != 0).Select(c => c.Label + ": " + c.Value.ToString("+0;-0;0")));
 
         public sealed class MoodCondition
         {
@@ -506,13 +503,27 @@ namespace BellumCivile.Behaviors
             public string Rule;
         }
 
-        public List<MoodCondition> GetMoodConditions(FactionObject faction, Kingdom kingdom, FactionManagerBehavior manager)
+        public List<MoodCondition> GetMoodConditions(FactionObject faction, Kingdom kingdom, FactionManagerBehavior manager) =>
+            GetMoodConditions(faction, kingdom, manager, out _);
+
+        internal List<MoodCondition> GetMoodConditions(FactionObject faction, Kingdom kingdom, FactionManagerBehavior manager, out float baseline)
         {
             var result = new List<MoodCondition>();
-            if (faction == null || kingdom == null || !faction.IsIdeology) return result;
+            baseline = EvaluateMoodBaseline(faction, new CourtMoodRealmFacts(kingdom, manager), result);
+            return result;
+        }
+
+        private float EvaluateMoodBaseline(FactionObject faction, CourtMoodRealmFacts facts, List<MoodCondition> conditions = null)
+        {
+            Kingdom kingdom = facts.Kingdom;
+            FactionManagerBehavior manager = facts.Manager;
+            if (faction == null || kingdom == null || !faction.IsIdeology) return 0f;
+            double total = 0d;
             void Add(string id, string label, float value, bool positive, string rule)
             {
-                result.Add(new MoodCondition { Id = id, Label = CourtMoodPresentation.Name(id, faction.Type, new TextObject("{=" + id + "}" + label).ToString()),
+                total += value;
+                if (conditions == null) return;
+                conditions.Add(new MoodCondition { Id = id, Label = CourtMoodPresentation.Name(id, faction.Type, new TextObject("{=" + id + "}" + label).ToString()),
                     Value = value, Positive = positive, Rule = new TextObject("{=" + id + "_Rule}" + rule).ToString() });
             }
             int support = 0, opposition = 0, centralization = 0;
@@ -578,43 +589,82 @@ namespace BellumCivile.Behaviors
             }
             if (faction.Type != FactionType.Glory)
             {
-                var holdings = kingdom.Clans.Where(c => c != kingdom.RulingClan && CourtAgendaBehavior.Eligible(c, kingdom))
-                    .Select(c => c.Fiefs.Count).OrderByDescending(n => n).ToList();
-                int total = holdings.Sum(), topCount = (holdings.Count + 2) / 3;
-                bool broad = false, concentrated = false;
-                if (holdings.Count >= 3 && total > 0)
-                {
-                    // Compare cross-products; equality belongs to the stated thresholds.
-                    int concentration = CourtAgendaRules.LandConcentration(holdings.Count, total, holdings.Take(topCount).Sum());
-                    broad = concentration < 0;
-                    concentrated = concentration > 0;
-                }
+                int concentration = facts.LandConcentration;
                 bool nobility = faction.Type == FactionType.Nobility;
-                Add("BC_CourtConcentratedLand", "Concentrated Landownership", concentrated ? (nobility ? 10 : -10) : 0, nobility,
+                Add("BC_CourtConcentratedLand", "Concentrated Landownership", concentration > 0 ? (nobility ? 10 : -10) : 0, nobility,
                     "The largest third of non-ruling noble houses holds at least 1.8 times its proportionate share of fiefs. Requires at least three houses.");
-                Add("BC_CourtBroadLand", "Broad Landownership", broad ? (nobility ? -10 : 10) : 0, !nobility,
+                Add("BC_CourtBroadLand", "Broad Landownership", concentration < 0 ? (nobility ? -10 : 10) : 0, !nobility,
                     "The largest third of non-ruling noble houses holds no more than 1.2 times its proportionate share of fiefs. Landless houses count; the ruler does not.");
             }
-            var council = Campaign.Current.GetCampaignBehavior<PrivyCouncilBehavior>();
-            int own = 0, others = 0;
-            if (council != null)
-                foreach (var office in council.GetOfficeRecords(kingdom))
-                {
-                    if (!council.IsOfficeUnlocked(kingdom, office.Office)) continue;
-                    Clan holder = council.GetOfficeHolder(kingdom, office.Office);
-                    if (!CourtAgendaBehavior.Eligible(holder, kingdom)) continue;
-                    var bloc = manager.GetIdeologicalFaction(holder);
-                    if (bloc == null) continue;
-                    if (bloc == faction) own += 5; else others -= 5;
-                }
-            Add("BC_CourtOwnSeats", "Council Representation", own, true, "+5 per occupied council office held by a member of this faction.");
-            Add("BC_CourtOtherSeats", "Competing Council Representation", others, false, "-5 per occupied council office held by another court faction. These penalties stack.");
-            Add("BC_CourtAdvisorRepresentation", "Advisor Representation", council?.GetRepresentedFactionMoodBaseline(faction) ?? 0, true,
+            var (own, others) = facts.CouncilSeats(faction);
+            Add("BC_CourtOwnSeats", "Council Representation", own * 5, true, "+5 per occupied council office held by a member of this faction.");
+            Add("BC_CourtOtherSeats", "Competing Council Representation", others * -5, false, "-5 per occupied council office held by another court faction. These penalties stack.");
+            Add("BC_CourtAdvisorRepresentation", "Advisor Representation", facts.Council?.GetRepresentedFactionMoodBaseline(faction) ?? 0, true,
                 "Additional baseline support from advisors assigned to represent this faction.");
             int crownFavor = CourtAgendaBehavior.Current?.GetFavorMood(faction) ?? 0;
             Add("BC_CourtCrownFavor", "Favored by the Crown", Math.Max(0, crownFavor), true, "The Crown favors this faction for the current court term.");
             Add("BC_CourtCrownFavorsOthers", "Crown Favors Another Faction", Math.Min(0, crownFavor), false, "The Crown favors another faction for the current court term.");
-            return result;
+            return MathF.Clamp((float)total, -100f, 100f);
+        }
+
+        // Shared only during one realm's mood update, or one UI evaluation.
+        private sealed class CourtMoodRealmFacts
+        {
+            private int? _landConcentration;
+            private Dictionary<FactionObject, int> _councilSeatsByFaction;
+            private int _totalAffiliatedSeats;
+
+            internal CourtMoodRealmFacts(Kingdom kingdom, FactionManagerBehavior manager)
+            {
+                Kingdom = kingdom;
+                Manager = manager;
+                Council = Campaign.Current?.GetCampaignBehavior<PrivyCouncilBehavior>();
+            }
+
+            internal Kingdom Kingdom { get; }
+            internal FactionManagerBehavior Manager { get; }
+            internal PrivyCouncilBehavior Council { get; }
+
+            internal int LandConcentration
+            {
+                get
+                {
+                    if (!_landConcentration.HasValue) _landConcentration = ReadLandConcentration();
+                    return _landConcentration.Value;
+                }
+            }
+
+            private int ReadLandConcentration()
+            {
+                var holdings = Kingdom.Clans.Where(c => c != Kingdom.RulingClan && CourtAgendaBehavior.Eligible(c, Kingdom))
+                    .Select(c => c.Fiefs.Count).OrderByDescending(n => n).ToList();
+                int total = holdings.Sum(), topCount = (holdings.Count + 2) / 3;
+                return holdings.Count >= 3 && total > 0
+                    ? CourtAgendaRules.LandConcentration(holdings.Count, total, holdings.Take(topCount).Sum()) : 0;
+            }
+
+            internal (int Own, int Others) CouncilSeats(FactionObject faction)
+            {
+                if (Council == null) return (0, 0);
+                if (_councilSeatsByFaction == null)
+                {
+                    _councilSeatsByFaction = new Dictionary<FactionObject, int>();
+                    foreach (var office in Council.GetOfficeRecords(Kingdom))
+                    {
+                        if (!Council.IsOfficeUnlocked(Kingdom, office.Office)) continue;
+                        Clan holder = Council.GetOfficeHolder(Kingdom, office.Office);
+                        if (!CourtAgendaBehavior.Eligible(holder, Kingdom)) continue;
+                        var bloc = Manager.GetIdeologicalFaction(holder);
+                        if (bloc == null) continue;
+                        _councilSeatsByFaction.TryGetValue(bloc, out int seats);
+                        _councilSeatsByFaction[bloc] = seats + 1;
+                        _totalAffiliatedSeats++;
+                    }
+                }
+
+                _councilSeatsByFaction.TryGetValue(faction, out int own);
+                return (own, _totalAffiliatedSeats - own);
+            }
         }
 
         private static bool DoGreatHousesControlMajority(Kingdom kingdom)
@@ -874,6 +924,19 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
+            var timing = new CourtCoalitionTiming(CampaignTime.Now.ToDays, kingdom.StringId, triggeringFaction.Type, coalitionLeader.StringId);
+            try
+            {
+                return AssembleAndLaunchGrandCoalition(triggeringFaction, kingdom, factionManager, showFailureMessage,
+                    committedCrisis, isPlayerKingdom, coalitionLeader, timing);
+            }
+            finally { timing.Report(); }
+        }
+
+        private bool AssembleAndLaunchGrandCoalition(FactionObject triggeringFaction, Kingdom kingdom, FactionManagerBehavior factionManager,
+            bool showFailureMessage, bool committedCrisis, bool isPlayerKingdom, Clan coalitionLeader, CourtCoalitionTiming timing)
+        {
+            long started = Stopwatch.GetTimestamp();
             List<FactionObject> ideologicalFactions = factionManager.GetFactionsInKingdom(kingdom).Where(f => f.IsIdeology).ToList();
             HashSet<Clan> coalitionMembers = BuildGrandCoalitionMembers(
                 triggeringFaction,
@@ -882,13 +945,19 @@ namespace BellumCivile.Behaviors
                 ideologicalFactions,
                 coalitionLeader,
                 out bool playerWasPulled,
-                out FactionObject playerIdFaction);
+                out _);
+            timing.Finish(CourtCoalitionTiming.Phase.Assembly, started);
+            timing.AssembledHouses = coalitionMembers.Count;
 
-            if (!CanGrandCoalitionChallengeCrown(triggeringFaction, kingdom, coalitionLeader, coalitionMembers, isPlayerKingdom && showFailureMessage))
+            if (!CanGrandCoalitionChallengeCrown(triggeringFaction, kingdom, coalitionLeader, coalitionMembers, isPlayerKingdom && showFailureMessage, timing))
+            {
+                timing.BlockedReason = coalitionMembers.Count == 0 ? "no_members" : "power";
                 return false;
+            }
 
             if (FactionObject.IsLeaderUnsafeForRebellion(coalitionLeader, kingdom, coalitionMembers, out Settlement unsafeSettlement))
             {
+                timing.BlockedReason = "unsafe_leader";
                 triggeringFaction.Mood = -100f;
                 BellumCivileLogger.Log(
                     $"Delayed grand coalition for {GetFactionDisplayName(triggeringFaction)} of {kingdom.StringId}; leader={coalitionLeader.StringId} is inside hostile-on-rebellion settlement {unsafeSettlement?.StringId ?? "null"}.");
@@ -903,6 +972,7 @@ namespace BellumCivile.Behaviors
                 Msg(text.ToString(), Colors.Red);
             }
 
+            started = Stopwatch.GetTimestamp();
             FactionType blueprint = FactionType.Abdication;
             string sourceFactionName = triggeringFaction.GetDisplayName().ToString();
             string coalitionName = $"{DynamicKingdomTitleNameHelper.GetRanklessNameText(kingdom)} {sourceFactionName} Grand Coalition";
@@ -922,11 +992,15 @@ namespace BellumCivile.Behaviors
 
                 grandCoalition.AddMember(member);
             }
+            timing.Finish(CourtCoalitionTiming.Phase.Registration, started);
 
             CivilWarPlayerCallContext playerCallContext = playerWasPulled
                 ? new CivilWarPlayerCallContext(CivilWarPlayerCallReason.CourtFactionMember, coalitionLeader)
                 : null;
-            bool ultimatumTriggered = grandCoalition.TriggerUltimatum(playerCallContext, suppressAutomaticPlayerChoice: false);
+            started = Stopwatch.GetTimestamp();
+            timing.Result = grandCoalition.TriggerCourtUltimatum(playerCallContext, timing);
+            timing.Finish(CourtCoalitionTiming.Phase.Ultimatum, started);
+            bool ultimatumTriggered = timing.Result != UltimatumResolution.Failed;
             if (ultimatumTriggered)
             {
                 triggeringFaction.Mood = -20f;
@@ -998,17 +1072,20 @@ namespace BellumCivile.Behaviors
                 && !factionManager.IsClanPacified(clan);
         }
 
-        private bool CanGrandCoalitionChallengeCrown(FactionObject triggeringFaction, Kingdom kingdom, Clan coalitionLeader, HashSet<Clan> coalitionMembers, bool isPlayerKingdom)
+        private bool CanGrandCoalitionChallengeCrown(FactionObject triggeringFaction, Kingdom kingdom, Clan coalitionLeader,
+            HashSet<Clan> coalitionMembers, bool isPlayerKingdom, CourtCoalitionTiming timing)
         {
             if (coalitionMembers == null || coalitionMembers.Count == 0)
                 return false;
 
+            long started = Stopwatch.GetTimestamp();
             RebellionPowerProjection projection = RebellionPowerHelper.CalculateProjectedConflictPower(
                 kingdom,
                 coalitionMembers,
                 coalitionLeader,
                 rebelFaction: null,
                 includeProjectedSupport: true);
+            timing.Finish(CourtCoalitionTiming.Phase.CoalitionForecast, started);
             float coalitionPower = projection.FactionPower;
             float loyalistPower = projection.LoyalistPower;
             bool desperate = triggeringFaction.Mood <= -100f;

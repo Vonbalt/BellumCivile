@@ -346,31 +346,53 @@ namespace BellumCivile.Behaviors
         private void Tick()
         {
             double day = CampaignTime.Now.ToDays;
-            _agendaTiming.BeginPass(CourtTimingYear(day));
+            _agendaTiming.BeginDay(CourtTimingYear(day));
             long started = Stopwatch.GetTimestamp();
             try { RunDailyCourtTick(); }
             finally { _agendaTiming.EndDay(day, Stopwatch.GetTimestamp() - started); }
         }
 
+        private long FinishMaintenanceStep(CourtMaintenanceStep step, long started, string realmId = null)
+        {
+            long now = Stopwatch.GetTimestamp();
+            _agendaTiming.RecordMaintenanceStep(step, now - started, realmId);
+            return now;
+        }
+
         private void RunDailyCourtTick()
         {
+            long phase = Stopwatch.GetTimestamp();
             MigratePlayerCrownBusiness();
             _recentResults.RemoveAll(a => a == null || !a.ResultVisibleUntil.IsFuture || !ReactionApproval(a).HasValue);
             FreezeExistingSchedules();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.ExistingBusiness, phase);
             // Resolve expired objectives before OpenTerm cleans up or selects replacement business.
             MaintainPeaceObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.PeaceObjectives, phase);
             MaintainLiberationObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.LiberationObjectives, phase);
             MaintainCampaignObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.CampaignObjectives, phase);
             MaintainSubjugationObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.SubjugationObjectives, phase);
             MaintainClaimObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.ClaimObjectives, phase);
             MaintainDynasticObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.DynasticObjectives, phase);
             MaintainTradeObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.TradeObjectives, phase);
             MaintainTitleGrants();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.TitleGrants, phase);
             MaintainClientGrants();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.ClientGrants, phase);
             MaintainRallies();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.Rallies, phase);
             MaintainProtectionOffers();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.ProtectionOffers, phase);
             ReconcileCrowns();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.CrownReconciliation, phase);
             MaintainRoyalPeaceCases();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.RoyalPeaceCases, phase);
             var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
             var ideology = Campaign.Current.GetCampaignBehavior<IdeologyBehavior>();
             if (manager == null || ideology == null) return;
@@ -379,19 +401,35 @@ namespace BellumCivile.Behaviors
 
             var realms = Kingdom.All.Where(ValidRealm).ToList();
             var renewed = new HashSet<string>(realms.Where(QueueCourtTerm).Select(r => r.StringId));
+            FinishMaintenanceStep(CourtMaintenanceStep.RealmRoster, phase);
             foreach (Kingdom realm in realms)
             {
                 if (!TryGetCourtRuler(realm, out Clan house, out Hero ruler)) continue;
+                string realmId = realm.StringId;
+                phase = Stopwatch.GetTimestamp();
                 ElectiveSuccessionBehavior.Instance?.CheckMandate(realm);
+                FinishMaintenanceStep(CourtMaintenanceStep.MandateCheck, phase, realmId);
                 if (!CourtRulerUnchanged(realm, house, ruler)) continue;
-                if (renewed.Contains(realm.StringId)) ElectiveSuccessionBehavior.Instance?.Maintain(realm, renewal: true);
+                if (renewed.Contains(realmId))
+                {
+                    phase = Stopwatch.GetTimestamp();
+                    ElectiveSuccessionBehavior.Instance?.Maintain(realm, renewal: true);
+                    FinishMaintenanceStep(CourtMaintenanceStep.MandateRenewal, phase, realmId);
+                }
                 if (!CourtRulerUnchanged(realm, house, ruler)) continue;
+                phase = Stopwatch.GetTimestamp();
                 HereditaryLoyaltyBehavior.Instance?.Maintain(realm);
+                FinishMaintenanceStep(CourtMaintenanceStep.HereditaryLoyalty, phase, realmId);
                 if (!CourtRulerUnchanged(realm, house, ruler)) continue;
+                phase = Stopwatch.GetTimestamp();
                 ScanDecreeCases(realm, ideology);
+                FinishMaintenanceStep(CourtMaintenanceStep.DecreeCases, phase, realmId);
                 if (!CourtRulerUnchanged(realm, house, ruler)) continue;
+                phase = Stopwatch.GetTimestamp();
                 MaintainCouncilVacancyPriority(realm);
+                FinishMaintenanceStep(CourtMaintenanceStep.CouncilPriority, phase, realmId);
                 if (!CourtRulerUnchanged(realm, house, ruler)) continue;
+                phase = Stopwatch.GetTimestamp();
                 foreach (var faction in manager.GetFactionsInKingdom(realm).Where(f => f.IsIdeology).ToList())
                 {
                     if (!CourtRulerUnchanged(realm, house, ruler)) break;
@@ -410,12 +448,14 @@ namespace BellumCivile.Behaviors
                         }
                     }
                 }
+                phase = FinishMaintenanceStep(CourtMaintenanceStep.EmergencyChallenges, phase, realmId);
 
                 foreach (var agenda in _agendas.Where(a => a.Realm == realm && (a.IsUnopened || a.IsFiled)).ToList())
                 {
                     if (!CourtRulerUnchanged(realm, house, ruler)) break;
                     Advance(agenda, ideology);
                 }
+                FinishMaintenanceStep(CourtMaintenanceStep.AgendaAdvance, phase, realmId);
             }
             if (_pendingCourtTerms.Count > 0)
             {
@@ -423,6 +463,7 @@ namespace BellumCivile.Behaviors
                 try { ScheduleCourtPreparation(realms, manager, ideology); }
                 finally { _agendaTiming.RecordPreparation(Stopwatch.GetTimestamp() - started); }
             }
+            phase = Stopwatch.GetTimestamp();
             foreach (string key in _reconsiderAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _reconsiderAfter.Remove(key);
             foreach (string key in _mandateSettledUntil.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _mandateSettledUntil.Remove(key);
             foreach (string key in _emergencyAfter.Where(p => p.Value.IsPast).Select(p => p.Key).ToList()) _emergencyAfter.Remove(key);
@@ -430,8 +471,11 @@ namespace BellumCivile.Behaviors
             PruneChallengeWindows(livingRealms);
             foreach (string key in _nextTerms.Keys.Where(k => !livingRealms.Contains(k)).ToList()) _nextTerms.Remove(key);
             _agendas.RemoveAll(a => !ValidRealm(a.Realm) && !a.IsFiled && !a.IsUnopened);
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.PruneState, phase);
             SettleClosedExecutiveObjectives();
+            phase = FinishMaintenanceStep(CourtMaintenanceStep.ExecutiveResults, phase);
             foreach (var agenda in _agendas) agenda.GetObjective();
+            FinishMaintenanceStep(CourtMaintenanceStep.SyncObjectiveRecords, phase);
         }
 
         private void OpenTerm(Kingdom realm, FactionManagerBehavior manager, IdeologyBehavior ideology, CourtTermPreparationRecord term)

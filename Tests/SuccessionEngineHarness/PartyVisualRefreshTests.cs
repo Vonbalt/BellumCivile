@@ -20,8 +20,10 @@ internal static class PartyVisualRefreshTests
     private static readonly HashSet<PartyBase> Dirty = new HashSet<PartyBase>();
     private static readonly List<Settlement> Holdings = new List<Settlement>();
     private static int _settlementOwnerReads;
+    private static int _partyPasses;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
-    private static bool All(ref MBReadOnlyList<MobileParty> __result) { __result = new MBReadOnlyList<MobileParty>(Parties); return false; }
+    private static bool All(ref MBReadOnlyList<MobileParty> __result)
+    { _partyPasses++; __result = new MBReadOnlyList<MobileParty>(Parties); return false; }
     private static bool Base(MobileParty __instance, ref PartyBase __result) { Bases.TryGetValue(__instance, out __result); return false; }
     private static bool Mobile(PartyBase __instance, ref MobileParty __result) { __result = Bases.FirstOrDefault(p => p.Value == __instance).Key; return false; }
     private static bool Owner(Town __instance, ref Clan __result) { Owners.TryGetValue(__instance, out __result); return false; }
@@ -130,6 +132,18 @@ internal static class PartyVisualRefreshTests
             Dirty.Clear(); Refresh("MarkClanVisualsDirty", house);
             check(expected.All(p => Dirty.Contains(Bases[p])) && Dirty.Count == expected.Length && _settlementOwnerReads == 0,
                 "Clan refresh uses the same guarded ownership path without reading a leader from incomplete settlement data");
+
+            var unaffectedLord = Party("neutral_lord", Blank<LordPartyComponent>(), House("third_house", rival));
+            _partyPasses = 0;
+            Dirty.Clear(); Refresh("MarkClanVisualsDirty", house); Refresh("MarkClanVisualsDirty", other);
+            var expectedBatch = Dirty.ToArray();
+            check(_partyPasses == 2, "Separate clan invalidations each scan the campaign party list");
+            _partyPasses = 0;
+            Dirty.Clear(); Refresh("RefreshQueuedClanVisuals", new HashSet<Clan> { house, other, house });
+            check(_partyPasses == 1 && Dirty.SetEquals(expectedBatch) && !Dirty.Contains(Bases[unaffectedLord]) && _settlementOwnerReads == 0,
+                "A rebellion batch refreshes exactly the same affected parties in one scan, using guarded ownership");
+            Dirty.Clear(); Refresh("RefreshQueuedClanVisuals", new HashSet<Clan>());
+            check(_partyPasses == 1 && Dirty.Count == 0, "An empty rebellion batch skips the campaign party list entirely");
 
             Owners[Towns[town]] = other; Dirty.Clear(); Refresh("MarkKingdomVisualsDirty", realm);
             check(!Dirty.Contains(Bases[goodMilitia]) && !Dirty.Contains(Bases[goodGarrison]) && !Dirty.Contains(Bases[goodVillager])

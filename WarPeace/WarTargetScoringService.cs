@@ -36,9 +36,7 @@ namespace BellumCivile.WarPeace
         public IReadOnlyList<WarTargetScore> RankTargets(Clan clan)
         {
             Kingdom sourceKingdom = clan?.Kingdom;
-            if (!IsValidClan(clan)
-                || !IsValidKingdom(sourceKingdom)
-                || BellumKingdomVisibilityHelper.IsTemporaryFeudKingdom(sourceKingdom))
+            if (!CanRankFrom(clan, sourceKingdom))
                 return new List<WarTargetScore>();
 
             ScoringContext context = BuildScoringContext(clan, sourceKingdom);
@@ -46,16 +44,8 @@ namespace BellumCivile.WarPeace
             List<WarTargetScore> scores = new List<WarTargetScore>();
             foreach (Kingdom target in Kingdom.All)
             {
-                if (!IsValidKingdom(target)
-                    || target == sourceKingdom
-                    || BellumKingdomVisibilityHelper.IsTemporaryFeudKingdom(target)
-                    || (suzerain != null && target != suzerain))
-                {
-                    continue;
-                }
-
-                WarTargetScore score = ScoreTarget(context, BuildTargetContext(target));
-                if (score != null && score.Score >= BellumCivileOptions.WarTargetMinimumScore)
+                WarTargetScore score = ScoreRankedCandidate(context, target, suzerain);
+                if (score != null)
                     scores.Add(score);
             }
 
@@ -70,6 +60,27 @@ namespace BellumCivile.WarPeace
                         StringComparison.Ordinal);
             });
             return scores;
+        }
+
+        internal WarTargetScore ScoreRankedCandidate(Clan clan, Kingdom target)
+        {
+            Kingdom source = clan?.Kingdom;
+            if (target == null || !CanRankFrom(clan, source)) return null;
+            ScoringContext context = BuildScoringContext(clan, source);
+            return ScoreRankedCandidate(context, target, context.ClientKingdoms?.GetSuzerain(source));
+        }
+
+        private static bool CanRankFrom(Clan clan, Kingdom source) =>
+            IsValidClan(clan) && IsValidKingdom(source) && !BellumKingdomVisibilityHelper.IsTemporaryFeudKingdom(source);
+
+        private WarTargetScore ScoreRankedCandidate(ScoringContext context, Kingdom target, Kingdom suzerain)
+        {
+            if (!IsValidKingdom(target) || target == context.SourceKingdom
+                || BellumKingdomVisibilityHelper.IsTemporaryFeudKingdom(target)
+                || (suzerain != null && target != suzerain)) return null;
+
+            WarTargetScore score = ScoreTarget(context, BuildTargetContext(target));
+            return score != null && score.Score >= BellumCivileOptions.WarTargetMinimumScore ? score : null;
         }
 
         internal WarTargetScore ScoreLiberationTarget(Clan clan, ClientLibertyAssessment liberty)

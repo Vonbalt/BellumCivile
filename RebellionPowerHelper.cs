@@ -49,6 +49,11 @@ namespace BellumCivile
 
     internal sealed class RebellionPowerProjection
     {
+        private readonly List<ProjectedRebellionSupport> _projectedSupporters;
+        private readonly List<ProjectedLoyalistContribution> _loyalistContributions;
+        private IReadOnlyList<ProjectedRebellionSupport> _sortedSupporters;
+        private IReadOnlyList<ProjectedLoyalistContribution> _sortedLoyalists;
+
         public RebellionPowerProjection(
             Kingdom kingdom,
             List<Clan> committedRebels,
@@ -58,17 +63,19 @@ namespace BellumCivile
         {
             Kingdom = kingdom;
             CommittedRebels = committedRebels ?? new List<Clan>();
-            ProjectedSupporters = projectedSupporters ?? new List<ProjectedRebellionSupport>();
-            LoyalistContributions = loyalistContributions ?? new List<ProjectedLoyalistContribution>();
+            _projectedSupporters = projectedSupporters ?? new List<ProjectedRebellionSupport>();
+            _loyalistContributions = loyalistContributions ?? new List<ProjectedLoyalistContribution>();
             PledgedPower = pledgedPower;
-            ExpectedSupportPower = ProjectedSupporters.Sum(support => support.CreditedPower);
-            LoyalistPower = LoyalistContributions.Sum(entry => entry.CreditedPower);
+            ExpectedSupportPower = _projectedSupporters.Sum(support => support.CreditedPower);
+            LoyalistPower = _loyalistContributions.Sum(entry => entry.CreditedPower);
         }
 
         public Kingdom Kingdom { get; }
         public IReadOnlyList<Clan> CommittedRebels { get; }
-        public IReadOnlyList<ProjectedRebellionSupport> ProjectedSupporters { get; }
-        public IReadOnlyList<ProjectedLoyalistContribution> LoyalistContributions { get; }
+        public IReadOnlyList<ProjectedRebellionSupport> ProjectedSupporters =>
+            _sortedSupporters ?? (_sortedSupporters = _projectedSupporters.OrderByDescending(support => support.CreditedPower).ToList());
+        public IReadOnlyList<ProjectedLoyalistContribution> LoyalistContributions =>
+            _sortedLoyalists ?? (_sortedLoyalists = _loyalistContributions.OrderByDescending(entry => entry.CreditedPower).ToList());
         public float PledgedPower { get; }
         public float ExpectedSupportPower { get; }
         public float FactionPower => PledgedPower + ExpectedSupportPower;
@@ -82,7 +89,7 @@ namespace BellumCivile
 
             // Discount the same share on both sides of the concession calculation.
             float restoreShare = 1f - cappedSupport / ExpectedSupportPower;
-            float restoredLoyalists = LoyalistContributions.Sum(entry =>
+            float restoredLoyalists = _loyalistContributions.Sum(entry =>
                 entry.RebelCreditedPower * entry.LoyalistCommitment * restoreShare);
             return (PledgedPower + cappedSupport, LoyalistPower + restoredLoyalists);
         }
@@ -207,8 +214,8 @@ namespace BellumCivile
             return new RebellionPowerProjection(
                 parentKingdom,
                 committed,
-                projectedSupporters.OrderByDescending(support => support.CreditedPower).ToList(),
-                loyalistContributions.OrderByDescending(entry => entry.CreditedPower).ToList(),
+                projectedSupporters,
+                loyalistContributions,
                 pledgedPower);
         }
 

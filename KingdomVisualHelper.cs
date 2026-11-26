@@ -271,19 +271,23 @@ namespace BellumCivile
         }
 
         public static void ApplyJoinToKingdomWithBannerPolicy(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner, bool showNotification = true)
+            => JoinWithBannerPolicy(clan, targetKingdom, preserveCustomBanner, showNotification, null);
+
+        internal static void JoinWithBannerPolicy(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner,
+            bool showNotification, HashSet<Clan> pendingVisualRefresh)
         {
             // A vanilla founder's palette must not decide the fate of another house's custom artwork.
             if (!preserveCustomBanner && !ShouldPreserveClanBanner(clan))
             {
                 ChangeKingdomAction.ApplyByJoinToKingdom(clan, targetKingdom, showNotification: showNotification);
                 InvokeClanBannerSync(clan);
-                MarkClanVisualsDirty(clan);
+                RefreshOrQueueClanVisuals(clan, pendingVisualRefresh);
                 return;
             }
 
             Banner preservedBanner = CaptureClanBannerToPreserve(clan);
             ChangeKingdomAction.ApplyByJoinToKingdom(clan, targetKingdom, showNotification: showNotification);
-            RestoreClanBanner(clan, preservedBanner);
+            RestoreClanBanner(clan, preservedBanner, pendingVisualRefresh);
         }
 
         public static Dictionary<Clan, Banner> CaptureClanBannersToPreserve(IEnumerable<Clan> clans)
@@ -303,12 +307,15 @@ namespace BellumCivile
         }
 
         public static void RestoreClanBanners(Dictionary<Clan, Banner> preservedBanners)
+            => RestoreClanBannersAndQueueVisualRefresh(preservedBanners, null);
+
+        internal static void RestoreClanBannersAndQueueVisualRefresh(Dictionary<Clan, Banner> preservedBanners, HashSet<Clan> pendingVisualRefresh)
         {
             if (preservedBanners == null)
                 return;
 
             foreach (KeyValuePair<Clan, Banner> preserved in preservedBanners)
-                RestoreClanBanner(preserved.Key, preserved.Value);
+                RestoreClanBanner(preserved.Key, preserved.Value, pendingVisualRefresh);
         }
 
         internal static void RefreshClanBannerAfterInheritance(Clan clan)
@@ -347,7 +354,7 @@ namespace BellumCivile
             return CloneBanner(clan.ClanOriginalBanner ?? clan.Banner);
         }
 
-        private static void RestoreClanBanner(Clan clan, Banner preservedBanner)
+        private static void RestoreClanBanner(Clan clan, Banner preservedBanner, HashSet<Clan> pendingVisualRefresh)
         {
             if (clan == null || preservedBanner == null)
                 return;
@@ -355,7 +362,13 @@ namespace BellumCivile
                 return;
 
             clan.Banner = CloneBanner(preservedBanner);
-            MarkClanVisualsDirty(clan);
+            RefreshOrQueueClanVisuals(clan, pendingVisualRefresh);
+        }
+
+        private static void RefreshOrQueueClanVisuals(Clan clan, HashSet<Clan> pendingVisualRefresh)
+        {
+            if (pendingVisualRefresh == null) MarkClanVisualsDirty(clan);
+            else pendingVisualRefresh.Add(clan);
         }
 
         internal static bool ShouldPreserveClanBanner(Clan clan)
@@ -819,6 +832,25 @@ namespace BellumCivile
                     party.SetVisualAsDirty();
             }
 
+            MarkClanFiefVisualsDirty(clan);
+        }
+
+        internal static void RefreshQueuedClanVisuals(HashSet<Clan> clans)
+        {
+            if (clans.Count == 0) return;
+            foreach (MobileParty mobileParty in MobileParty.All)
+            {
+                var party = mobileParty?.Party;
+                Clan clan = party != null ? GetPartyVisualClan(mobileParty) : null;
+                if (clan != null && clans.Contains(clan))
+                    party.SetVisualAsDirty();
+            }
+            foreach (Clan clan in clans)
+                if (clan != null) MarkClanFiefVisualsDirty(clan);
+        }
+
+        private static void MarkClanFiefVisualsDirty(Clan clan)
+        {
             foreach (Town fief in clan.Fiefs)
             {
                 fief?.Settlement?.Party?.SetVisualAsDirty();

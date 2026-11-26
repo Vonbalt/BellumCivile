@@ -12,6 +12,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.Election;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
@@ -52,6 +53,9 @@ internal static class CrownRebellionSafetyTests
     private static readonly HashSet<(Hero, Hero)> Friendships = new HashSet<(Hero, Hero)>();
     private static readonly HashSet<(Clan, Clan)> Marriages = new HashSet<(Clan, Clan)>();
     private static IReadOnlyList<PrivyCouncilOfficeRecord> _offices;
+    private static readonly Dictionary<Clan, int> MoodHoldings = new Dictionary<Clan, int>();
+    private static readonly Dictionary<PrivyCouncilOffice, Clan> MoodHolders = new Dictionary<PrivyCouncilOffice, Clan>();
+    private static int _officeReads, _holdingReads, _moodRows, _forecasts, _refusedUltimata;
     private static Clan _player, _eventOldHouse;
     private static Hero _dynasticCandidate;
     private static bool _pending, _transfer, _war;
@@ -92,7 +96,22 @@ internal static class CrownRebellionSafetyTests
     private static bool Move(Clan clan, Kingdom targetKingdom)
     { Moves.Add(clan); Realms[clan] = targetKingdom; _onMove?.Invoke(); return false; }
     private static void Event(Kingdom kingdom, Clan oldRulingClan) { _eventOldHouse = oldRulingClan; }
-    private static bool Offices(ref IReadOnlyList<PrivyCouncilOfficeRecord> __result) { __result = _offices; return false; }
+    private static bool Offices(ref IReadOnlyList<PrivyCouncilOfficeRecord> __result) { _officeReads++; __result = _offices; return false; }
+    private static bool ActivePolicies(ref IList<PolicyObject> __result) { __result = Array.Empty<PolicyObject>(); return false; }
+    private static bool EmptyFiefs(ref MBReadOnlyList<Town> __result)
+    { __result = new MBReadOnlyList<Town>(Array.Empty<Town>()); return false; }
+    private static bool ClanFiefs(Clan __instance, ref MBReadOnlyList<Town> __result)
+    { _holdingReads++; __result = new MBReadOnlyList<Town>(new Town[MoodHoldings[__instance]]); return false; }
+    private static bool NoStance(ref StanceLink __result) { __result = null; return false; }
+    private static bool OfficeHolder(PrivyCouncilOffice office, ref Clan __result) { MoodHolders.TryGetValue(office, out __result); return false; }
+    private static bool OfficeUnlocked(PrivyCouncilOffice office, ref bool __result) { __result = office != PrivyCouncilOffice.Spymaster; return false; }
+    private static bool CountMoodRow() { _moodRows++; return true; }
+    private static bool CountForecast() { _forecasts++; return true; }
+    private static bool MoodAdvisor(ref float __result) { __result = .25f; return false; }
+    private static bool Year(ref int __result) { __result = 84; return false; }
+    private static bool UltimatumPreflight(out Settlement unsafeSettlement, ref bool __result) { unsafeSettlement = null; __result = true; return false; }
+    private static bool RefusedUltimatum(ref UltimatumResolution __result) { _refusedUltimata++; __result = UltimatumResolution.Failed; return false; }
+    private static bool PowerThreshold(ref float __result) { __result = .5f; return false; }
     private static bool Tracked(out Hero hero, ref bool __result) { hero = _dynasticCandidate; __result = true; return false; }
     private static bool Candidate(ref Hero __result) { __result = _dynasticCandidate; return false; }
     private static bool Trace() { _traces++; return false; }
@@ -316,6 +335,7 @@ internal static class CrownRebellionSafetyTests
                 "An already-led rebellion keeps its demands instead of creating a second faction");
 
             TestPowerForecast(check, behaviors, Patch, House);
+            TestCourtMood(check, behaviors, Patch, House);
         }
         finally
         {
@@ -323,6 +343,7 @@ internal static class CrownRebellionSafetyTests
             AccessTools.PropertySetter(typeof(Campaign), "Current").Invoke(null, new object[] { previous });
             Kingdoms.Clear(); Rulers.Clear(); Realms.Clear(); Heads.Clear(); Gone.Clear(); Moves.Clear();
             Friendships.Clear(); Marriages.Clear();
+            MoodHoldings.Clear(); MoodHolders.Clear();
         }
     }
 
@@ -480,5 +501,96 @@ internal static class CrownRebellionSafetyTests
             && rows.Any(row => row.ValueLabel.Contains("vassal of Founding House"))
             && rows.Any(row => row.DefinitionLabel.Trim() == "Other houses (4)"),
             "The tooltip shows the cap, willingness, real sponsor and contributor overflow");
+
+        var lazyProjection = Forecast(new[] { founder });
+        check(AccessTools.Field(lazyProjection.GetType(), "_sortedSupporters").GetValue(lazyProjection) == null
+            && AccessTools.Field(lazyProjection.GetType(), "_sortedLoyalists").GetValue(lazyProjection) == null,
+            "Building a power projection does not sort either tooltip breakdown");
+        Call(lazyProjection, "GetConcessionPower");
+        check(AccessTools.Field(lazyProjection.GetType(), "_sortedLoyalists").GetValue(lazyProjection) == null,
+            "NPC concession power also leaves the tooltip breakdown unsorted");
+        var supporters = Supporters(lazyProjection).Select(x => Number(x, "CreditedPower")).ToArray();
+        var loyalists = ((IEnumerable)Get(lazyProjection, "LoyalistContributions")).Cast<object>().Select(x => Number(x, "CreditedPower")).ToArray();
+        check(supporters.SequenceEqual(supporters.OrderByDescending(x => x)) && loyalists.SequenceEqual(loyalists.OrderByDescending(x => x)),
+            "The UI still receives both breakdowns in descending power order");
+
+        patch(calculate, nameof(CountForecast));
+        patch(AccessTools.Method(typeof(FactionObject), "CanTriggerUltimatum"), nameof(UltimatumPreflight));
+        patch(AccessTools.Method(typeof(FactionObject), "ResolveRefusedUltimatum"), nameof(RefusedUltimatum));
+        patch(AccessTools.Method(mod.GetType("BellumCivile.RebellionPowerHelper"), "CalculateRebellionPowerThreshold"), nameof(PowerThreshold));
+        _forecasts = _refusedUltimata = 0;
+        Set(coalition, "_ultimatumPending", false);
+        Set(coalition, "_leader", null);
+        coalition.DailyTick();
+        check(_forecasts == 0, "A discontent tick without a leader skips the power forecast");
+        Set(coalition, "_leader", founder);
+        coalition.DailyTick();
+        check(_forecasts == 1 && coalition.Discontent > 0 && coalition.Discontent < 100,
+            "Discontent still rises from current projected power when there is enough support");
+        Set(coalition, "_discontent", 99f);
+        coalition.DailyTick();
+        check(_forecasts == 2 && _refusedUltimata == 1 && Near(coalition.Discontent, 100),
+            "A daily ultimatum reuses one forecast and the NPC ruler still refuses when concession power is insufficient");
+        Set(coalition, "_ultimatumPending", false);
+        Call(coalition, "TriggerUltimatumDetailed", null, false, null, null, null);
+        check(_forecasts == 3 && _refusedUltimata == 2, "An ultimatum triggered outside the daily tick reads fresh power");
+        Set(coalition, "_ultimatumPending", false);
+        Set(crown, "<CurrentTotalStrength>k__BackingField", 10000f);
+        Set(coalition, "_discontent", 2f);
+        coalition.DailyTick();
+        check(_forecasts == 4 && Near(coalition.Discontent, 1), "Discontent decays when today's fresh power falls below the threshold");
+        Set(coalition, "_discontent", .5f);
+        coalition.DailyTick();
+        check(Near(coalition.Discontent, 0) && _refusedUltimata == 2, "Discontent decay stops at zero and does not issue an ultimatum");
+    }
+
+    private static void TestCourtMood(Action<bool, string> check, Manager behaviors,
+        Action<MethodBase, string> patch, Func<string, Kingdom, Clan> house)
+    {
+        var manager = behaviors.GetBehavior<FactionManagerBehavior>();
+        var ideology = behaviors.GetBehavior<IdeologyBehavior>();
+        var realm = Blank<Kingdom>(); realm.StringId = "mood_test";
+        var crown = Rulers[realm] = house("mood_crown", realm);
+        var nobility = new FactionObject("Nobility", realm, house("mood_nobility", realm), FactionType.Nobility);
+        var liberty = new FactionObject("Liberty", realm, house("mood_liberty", realm), FactionType.Liberty);
+        var glory = new FactionObject("Glory", realm, house("mood_glory", realm), FactionType.Glory);
+        var factions = new[] { nobility, liberty, glory };
+        foreach (var faction in factions) manager.RegisterNewFaction(faction);
+        MoodHoldings[nobility.Leader] = 6; MoodHoldings[liberty.Leader] = 1; MoodHoldings[glory.Leader] = 1;
+        behaviors.Items.Add(new PrivyCouncilBehavior());
+        MoodHolders[PrivyCouncilOffice.Marshal] = nobility.Leader;
+        MoodHolders[PrivyCouncilOffice.Chancellor] = liberty.Leader;
+        MoodHolders[PrivyCouncilOffice.Spymaster] = liberty.Leader;
+        _offices = MoodHolders.Keys.Select(o => new PrivyCouncilOfficeRecord(realm.StringId, o, 0)).ToArray();
+        patch(AccessTools.PropertyGetter(typeof(CampaignTime), "DaysInYear"), nameof(Year));
+        patch(AccessTools.PropertyGetter(typeof(Kingdom), "ActivePolicies"), nameof(ActivePolicies));
+        patch(AccessTools.PropertyGetter(typeof(Kingdom), "Fiefs"), nameof(EmptyFiefs));
+        patch(AccessTools.Method(typeof(Kingdom), "GetStanceWith"), nameof(NoStance));
+        patch(AccessTools.PropertyGetter(typeof(Clan), "Fiefs"), nameof(ClanFiefs));
+        patch(AccessTools.Method(typeof(PrivyCouncilBehavior), "GetOfficeHolder"), nameof(OfficeHolder));
+        patch(AccessTools.Method(typeof(PrivyCouncilBehavior), "IsOfficeUnlocked"), nameof(OfficeUnlocked));
+        patch(AccessTools.Method(typeof(PrivyCouncilBehavior), "GetRepresentedFactionMoodBaseline"), nameof(MoodAdvisor));
+        patch(AccessTools.Method(typeof(FactionObject).Assembly.GetType("BellumCivile.CourtMoodPresentation"), "Name"), nameof(CountMoodRow));
+
+        var expected = factions.Select(f => ideology.GetTargetBaselineBreakdown(f, realm, manager)).ToArray();
+        check(expected.Select(x => x.Item1).SequenceEqual(new[] { 10.25f, -19.75f, -9.75f }),
+            "Mood breakdown retains the different land and council effects and the fractional advisor contribution");
+        var libertyRows = ideology.GetMoodConditions(liberty, realm, manager).ToDictionary(row => row.Id, row => row.Value);
+        check(libertyRows["BC_CourtOwnSeats"] == 5 && libertyRows["BC_CourtOtherSeats"] == -5 && libertyRows["BC_CourtConcentratedLand"] == -10,
+            "The explanatory rows still exclude the locked office and distinguish own seats, other seats and land concentration");
+
+        _holdingReads = _officeReads = _moodRows = 0;
+        for (int i = 0; i < factions.Length; i++) factions[i].Mood = expected[i].Item1 - .5f;
+        Call(ideology, "ProcessKingdomIdeologies", realm, manager, true);
+        check(_holdingReads == 3 && _officeReads == 1 && _moodRows == 0,
+            "The daily mood tick shares land and council reads without constructing localized tooltip rows");
+        check(factions.Select(f => f.Mood).SequenceEqual(expected.Select(x => x.Item1)),
+            "Numeric-only mood converges exactly to the displayed baseline without overshooting");
+
+        MoodHoldings[nobility.Leader] = 1;
+        MoodHolders[PrivyCouncilOffice.Chancellor] = crown;
+        Call(ideology, "ProcessKingdomIdeologies", realm, manager, true);
+        check(_holdingReads == 6 && _officeReads == 2 && nobility.Mood == 9.25f && liberty.Mood == -18.75f,
+            "The next realm pass reads changed land and council facts and drifts by exactly one point");
     }
 }

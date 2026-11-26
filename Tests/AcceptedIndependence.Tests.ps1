@@ -37,8 +37,12 @@ foreach ($forbidden in @('PromoteRebelKingdomToIndependentKingdom(', 'DrainAndDe
 Check ($accepted.Contains('DestroyKingdomAction.Apply(entry.Realm)') -and
     !$accepted.Contains('DestroyKingdomAction.Apply(parent)')) 'Only newly prepared empty destinations can be retired, never the parent realm.'
 $startup = MethodBody $faction 'private bool StartOpenRebellion('
-Check ($startup.IndexOf('SetRebelKingdom(rebelKingdom);') -lt $startup.IndexOf('MoveClanToKingdomPreservingCivilWarInfluence(Leader,') -and
+$transfer = $startup.IndexOf('TransferCivilWarClan(Leader,')
+Check ($transfer -gt 0 -and $startup.IndexOf('SetRebelKingdom(rebelKingdom);') -lt $transfer -and
     $membership.Contains('if (movingToRebel || returningFromRebel)')) 'Refused ultimatums retain their pre-transfer rebel identity and membership exemption.'
+$refresh = $startup.IndexOf('KingdomVisualHelper.RefreshQueuedClanVisuals(pendingVisualRefresh);')
+Check ($refresh -gt $transfer -and $refresh -lt $startup.IndexOf('DeclareWarAction.ApplyByDefault') -and
+    $startup.Substring($transfer, $refresh - $transfer).Contains('finally')) 'Refreshes run once after clan moves and before war declaration, even on an aborted transition.'
 foreach ($signature in @('private void ResolveRecognizedIndependence(', 'internal void ResolveWhitePeace(')) {
     $body = MethodBody $settlement $signature
     Check ($body.IndexOf('RemoveFaction(faction);') -ge 0 -and

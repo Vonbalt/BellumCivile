@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using BellumCivile.Behaviors;
 using Helpers;
@@ -13,6 +14,7 @@ using TaleWorlds.Localization;
 using TaleWorlds.SaveSystem;
 using C = BellumCivile.BellumCivileConstants;
 using O = BellumCivile.BellumCivileOptions;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace BellumCivile
 {
@@ -715,12 +717,12 @@ namespace BellumCivile
             }
             if (Campaign.Current?.GetCampaignBehavior<FactionManagerBehavior>()?.IsCivilWarGraceBlocked(this) == true) return;
 
+            Hero factionLeader = Leader?.Leader;
+            if (factionLeader == null) return;
+
             RebellionPowerProjection projection = CalculatePowerProjection(forceRefresh: true);
             float factionPower = projection.FactionPower;
             float loyalistPower = projection.LoyalistPower;
-
-            Hero factionLeader = Leader?.Leader;
-            if (factionLeader == null) return;
 
             float dynamicThreshold = RebellionPowerHelper.CalculateRebellionPowerThreshold(factionLeader);
 
@@ -737,7 +739,7 @@ namespace BellumCivile
                 {
                     Discontent = C.DiscontentTrigger;
                     _peakDiscontent = TaleWorlds.Library.MathF.Max(_peakDiscontent, Discontent);
-                    TriggerUltimatum();
+                    ResolveUltimatum(null, false, null, null, null, timing: null, dailyProjection: projection);
                 }
             }
             else
@@ -766,7 +768,21 @@ namespace BellumCivile
             bool suppressAutomaticPlayerChoice,
             Action<UltimatumResolution> deferredCompletion = null,
             Clan committedRevocationDefier = null,
-            Func<bool> revocationStillCurrent = null)
+            Func<bool> revocationStillCurrent = null) =>
+            ResolveUltimatum(playerCallContext, suppressAutomaticPlayerChoice, deferredCompletion,
+                committedRevocationDefier, revocationStillCurrent, timing: null);
+
+        internal UltimatumResolution TriggerCourtUltimatum(CivilWarPlayerCallContext playerCallContext, CourtCoalitionTiming timing) =>
+            ResolveUltimatum(playerCallContext, false, null, null, null, timing);
+
+        private UltimatumResolution ResolveUltimatum(
+            CivilWarPlayerCallContext playerCallContext,
+            bool suppressAutomaticPlayerChoice,
+            Action<UltimatumResolution> deferredCompletion,
+            Clan committedRevocationDefier,
+            Func<bool> revocationStillCurrent,
+            CourtCoalitionTiming timing,
+            RebellionPowerProjection dailyProjection = null)
         {
             if (!CanTriggerUltimatum(out Settlement unsafeSettlement))
             {
@@ -794,11 +810,12 @@ namespace BellumCivile
                     this,
                     () => CompleteDeferredUltimatum(
                         revocationStillCurrent == null || revocationStillCurrent()
-                            ? AcceptDemands() : UltimatumResolution.Failed,
+                            ? ResolvePlayerUltimatum(true, playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing)
+                            : UltimatumResolution.Failed,
                         deferredCompletion),
                     () => CompleteDeferredUltimatum(
                         revocationStillCurrent == null || revocationStillCurrent()
-                            ? RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier)
+                            ? ResolvePlayerUltimatum(false, playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing)
                             : UltimatumResolution.Failed,
                         deferredCompletion));
                 return UltimatumResolution.PendingPlayerChoice;
@@ -807,13 +824,16 @@ namespace BellumCivile
             {
                 Hero ruler = ParentKingdom.RulingClan?.Leader;
                 if (ruler == null)
-                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
+                    return ResolveRefusedUltimatum(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing);
 
-                RebellionPowerProjection projection = CalculatePowerProjection(forceRefresh: true);
+                long started = timing != null ? Stopwatch.GetTimestamp() : 0;
+                // The daily tick reaches this NPC response synchronously, after preflight but before any war changes.
+                RebellionPowerProjection projection = dailyProjection ?? CalculatePowerProjection(forceRefresh: true);
                 var (factionStrength, liegeStrength) = projection.GetConcessionPower();
+                timing?.Finish(CourtCoalitionTiming.Phase.RulerForecast, started);
 
                 if (factionStrength < liegeStrength)
-                    return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
+                    return ResolveRefusedUltimatum(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing);
 
                 double acceptanceChance = UltimatumAcceptanceRules.Calculate(factionStrength, liegeStrength,
                     Kingdom.All.Any(k => k != ParentKingdom && k.IsAtWarWith(ParentKingdom)),
@@ -821,10 +841,32 @@ namespace BellumCivile
                     ruler.GetTraitLevel(DefaultTraits.Mercy));
 
                 if (MBRandom.RandomFloat < acceptanceChance)
-                    return AcceptDemands();
+                    return ResolveAcceptedUltimatum(timing);
 
-                return RefuseDemandsAndRebel(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier);
+                return ResolveRefusedUltimatum(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing);
             }
+        }
+
+        private UltimatumResolution ResolvePlayerUltimatum(bool accepts, CivilWarPlayerCallContext playerCallContext,
+            bool suppressAutomaticPlayerChoice, Clan committedRevocationDefier, CourtCoalitionTiming launchTiming)
+        {
+            var timing = launchTiming?.ForPlayerResponse(CampaignTime.Now.ToDays);
+            try
+            {
+                var result = accepts ? ResolveAcceptedUltimatum(timing)
+                    : ResolveRefusedUltimatum(playerCallContext, suppressAutomaticPlayerChoice, committedRevocationDefier, timing);
+                if (timing != null) timing.Result = result;
+                return result;
+            }
+            finally { timing?.Report(); }
+        }
+
+        private UltimatumResolution ResolveAcceptedUltimatum(CourtCoalitionTiming timing)
+        {
+            if (timing == null) return AcceptDemands();
+            long started = Stopwatch.GetTimestamp();
+            try { return AcceptDemands(); }
+            finally { timing.Finish(CourtCoalitionTiming.Phase.Concession, started); }
         }
 
         private static void CompleteDeferredUltimatum(
@@ -1083,7 +1125,11 @@ namespace BellumCivile
         }
 
         private UltimatumResolution RefuseDemandsAndRebel(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice,
-            Clan committedRevocationDefier = null)
+            Clan committedRevocationDefier = null) =>
+            ResolveRefusedUltimatum(explicitPlayerCall, suppressAutomaticPlayerChoice, committedRevocationDefier, timing: null);
+
+        private UltimatumResolution ResolveRefusedUltimatum(CivilWarPlayerCallContext explicitPlayerCall, bool suppressAutomaticPlayerChoice,
+            Clan committedRevocationDefier, CourtCoalitionTiming timing)
         {
             if (Type == FactionType.CrownTitleClaim && CrownClaimState() != CrownTitleClaimState.Valid)
             {
@@ -1102,13 +1148,18 @@ namespace BellumCivile
             if (playerWasRebelFactionMember)
                 RemoveMember(Clan.PlayerClan);
 
+            long started = timing != null ? Stopwatch.GetTimestamp() : 0;
             RallyAiSupportersOnce();
+            timing?.Finish(CourtCoalitionTiming.Phase.Rally, started);
             CivilWarPlayerCallContext playerCall = suppressAutomaticPlayerChoice
                 || (committedRevocationDefier != null && Clan.PlayerClan == committedRevocationDefier)
                 ? null
                 : CivilWarSolidarityHelper.BuildPlayerCallContext(this, playerWasRebelFactionMember, explicitPlayerCall);
 
-            if (StartOpenRebellion(playerCall, clearStandaloneLeaderWar: false, out string failureReason))
+            started = timing != null ? Stopwatch.GetTimestamp() : 0;
+            bool warStarted = StartOpenRebellion(playerCall, clearStandaloneLeaderWar: false, out string failureReason);
+            timing?.Finish(CourtCoalitionTiming.Phase.WarCreation, started);
+            if (warStarted)
                 return UltimatumResolution.RebellionStarted;
 
             BellumCivileLogger.Log(
@@ -1222,6 +1273,7 @@ namespace BellumCivile
             if (!TryGetRebellionCrown(out Clan crown, out failureReason)) return false;
             if (!resumeChallenge && !FactionManagerBehavior.SuccessionOpportunityReady(ParentKingdom))
             { failureReason = "the crown transition is still pending"; return false; }
+            long startupStarted = Stopwatch.GetTimestamp();
             if (Members.Contains(crown)) RemoveMember(crown);
             TextObject rebelName;
 
@@ -1277,6 +1329,7 @@ namespace BellumCivile
             KingdomVisualHelper.ApplyKingdomPalette(rebelKingdom, rebelVisuals);
             RebelPolicyHelper.ApplyIndependencePolicyProfile(this, rebelKingdom);
             SetRebelKingdom(rebelKingdom);
+            long shellReady = Stopwatch.GetTimestamp();
             CaptureCrownClaimStartingFiefs();
             CaptureCivilWarStartFiefCounts(ParentKingdom.Clans);
             CaptureCivilWarStartFiefCounts(Members);
@@ -1288,7 +1341,7 @@ namespace BellumCivile
             bool preserveRebelClanBanners = !rebelVisuals.RecolorMemberClans;
             Dictionary<Clan, Banner> preservedRebelBanners = preserveRebelClanBanners
                 ? KingdomVisualHelper.CaptureClanBannersToPreserve(Members)
-                : new Dictionary<Clan, Banner>();
+                : null;
 
             if (clearStandaloneLeaderWar && Leader.IsAtWarWith(ParentKingdom))
             {
@@ -1299,32 +1352,53 @@ namespace BellumCivile
                 FactionHelper.FinishAllRelatedHostileActionsOfFactionToFaction(ParentKingdom, Leader);
             }
 
-            if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
-            if (Leader.Kingdom != rebelKingdom)
-                MoveClanToKingdomPreservingCivilWarInfluence(Leader, rebelKingdom, preserveRebelClanBanners, showNotification: false);
-            rebelKingdom.RulingClan = Leader;
-            Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()
-                ?.ValidateTransitionRulerOnce(rebelKingdom, Leader, $"civil war creation against {ParentKingdom.StringId}");
-
-            foreach (Clan member in Members.ToList())
+            int transferCalls = 0;
+            long prepared = Stopwatch.GetTimestamp();
+            long transferred;
+            var pendingVisualRefresh = new HashSet<Clan>();
+            try
             {
                 if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
-                if (member != null && member != Leader && member != crown && !member.IsEliminated && member.Kingdom == ParentKingdom)
-                    MoveClanToKingdomPreservingCivilWarInfluence(member, rebelKingdom, preserveRebelClanBanners, showNotification: false);
-            }
-
-            if (Leader?.Kingdom == rebelKingdom && rebelKingdom.RulingClan != Leader)
+                if (Leader.Kingdom != rebelKingdom)
+                {
+                    TransferCivilWarClan(Leader, rebelKingdom, preserveRebelClanBanners, showNotification: false, pendingVisualRefresh);
+                    transferCalls++;
+                }
                 rebelKingdom.RulingClan = Leader;
+                Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>()
+                    ?.ValidateTransitionRulerOnce(rebelKingdom, Leader, $"civil war creation against {ParentKingdom.StringId}");
 
-            if (preserveRebelClanBanners)
-                KingdomVisualHelper.RestoreClanBanners(preservedRebelBanners);
-            else
-                KingdomVisualHelper.ReapplyKingdomPaletteAfterClanChanges(rebelKingdom, rebelVisuals);
+                foreach (Clan member in Members.ToList())
+                {
+                    if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
+                    if (member != null && member != Leader && member != crown && !member.IsEliminated && member.Kingdom == ParentKingdom)
+                    {
+                        TransferCivilWarClan(member, rebelKingdom, preserveRebelClanBanners, showNotification: false, pendingVisualRefresh);
+                        transferCalls++;
+                    }
+                }
+
+                if (Leader?.Kingdom == rebelKingdom && rebelKingdom.RulingClan != Leader)
+                    rebelKingdom.RulingClan = Leader;
+
+                transferred = Stopwatch.GetTimestamp();
+                if (preserveRebelClanBanners)
+                    KingdomVisualHelper.RestoreClanBannersAndQueueVisualRefresh(preservedRebelBanners, pendingVisualRefresh);
+                else
+                    KingdomVisualHelper.ReapplyKingdomPaletteAfterClanChanges(rebelKingdom, rebelVisuals);
+            }
+            finally
+            {
+                // Membership and banner changes are immediate. Only the visual dirty flags are combined.
+                KingdomVisualHelper.RefreshQueuedClanVisuals(pendingVisualRefresh);
+            }
+            long visualsReady = Stopwatch.GetTimestamp();
 
             if (!RebellionCrownUnchanged(crown, out failureReason)) return false;
             if (!rebelKingdom.IsAtWarWith(ParentKingdom))
                 ModIntegrationHelper.ExecuteWithAIInfluenceDiplomacyBypass(
                     () => DeclareWarAction.ApplyByDefault(rebelKingdom, ParentKingdom));
+            long declared = Stopwatch.GetTimestamp();
 
             if (!RebellionCrownUnchanged(crown, out failureReason)
                 || !TryValidateActiveRebellion(out _, out failureReason))
@@ -1357,8 +1431,21 @@ namespace BellumCivile
             if (playerCall != null)
                 NotificationHelper.ShowCivilWarSolidarityChoiceToPlayer(this, playerCall);
 
+            long completed = Stopwatch.GetTimestamp();
+            if (completed - startupStarted >= Stopwatch.Frequency / 100)
+            {
+                string day = CampaignTime.Now.ToDays.ToString("0.###", CultureInfo.InvariantCulture);
+                BellumCivileLogger.Log($"Rebellion startup timing; day={day}; realm={ParentKingdom?.StringId}; rebel={rebelKingdom.StringId}; "
+                    + $"transfer_calls={transferCalls}; refreshed_clans={pendingVisualRefresh.Count}; total_ms={StartupMs(completed - startupStarted)}; "
+                    + $"shell_ms={StartupMs(shellReady - startupStarted)}; prepare_ms={StartupMs(prepared - shellReady)}; "
+                    + $"transfer_ms={StartupMs(transferred - prepared)}; visuals_ms={StartupMs(visualsReady - transferred)}; "
+                    + $"declare_ms={StartupMs(declared - visualsReady)}; finalize_ms={StartupMs(completed - declared)}");
+            }
+
             return true;
         }
+
+        private static string StartupMs(long ticks) => (ticks * 1000d / Stopwatch.Frequency).ToString("0.###", CultureInfo.InvariantCulture);
 
         private bool TryGetRebellionCrown(out Clan crown, out string failureReason)
         {
@@ -1498,13 +1585,19 @@ namespace BellumCivile
         }
 
         public void MoveClanToKingdomPreservingCivilWarInfluence(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner = true, bool showNotification = false)
+            => TransferCivilWarClan(clan, targetKingdom, preserveCustomBanner, showNotification, null);
+
+        private void TransferCivilWarClan(Clan clan, Kingdom targetKingdom, bool preserveCustomBanner, bool showNotification,
+            HashSet<Clan> pendingVisualRefresh)
         {
             if (clan == null || targetKingdom == null || clan.IsUnderMercenaryService)
                 return;
 
             CaptureCivilWarStartInfluence(clan);
 
-            if (preserveCustomBanner)
+            if (pendingVisualRefresh != null)
+                KingdomVisualHelper.JoinWithBannerPolicy(clan, targetKingdom, preserveCustomBanner, showNotification, pendingVisualRefresh);
+            else if (preserveCustomBanner)
                 KingdomVisualHelper.ApplyJoinToKingdomPreservingCustomBanner(clan, targetKingdom, showNotification);
             else
                 KingdomVisualHelper.ApplyJoinToKingdomWithBannerPolicy(clan, targetKingdom, preserveCustomBanner: false, showNotification: showNotification);

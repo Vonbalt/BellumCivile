@@ -791,7 +791,7 @@ namespace BellumCivile.UI
 
                     var ideologyBehavior = Campaign.Current.GetCampaignBehavior<IdeologyBehavior>();
                     var shockBehavior = Campaign.Current.GetCampaignBehavior<IdeologyEventShockBehavior>();
-                    string breakdownText = "";
+                    List<IdeologyBehavior.MoodCondition> moodConditions = null;
                     List<TooltipProperty> moodProperties = CreateTooltipWithTitle(new TextObject("{=BC_UI_FactionMoodTooltipTitle}Faction Mood"));
                     AddTooltipRow(moodProperties, new TextObject("{=BC_UI_MoodCurrentLabel}Current Mood"), rawMood.ToString());
                     if (selectedBackendFaction.AccommodationBonus > 0)
@@ -804,11 +804,10 @@ namespace BellumCivile.UI
                     
                     if (ideologyBehavior != null && factionManager != null)
                     {
-                        var (targetBaseline, breakdown) = ideologyBehavior.GetTargetBaselineBreakdown(selectedBackendFaction, selectedBackendFaction.ParentKingdom, factionManager);
-                        breakdownText = breakdown;
+                        moodConditions = ideologyBehavior.GetMoodConditions(selectedBackendFaction, selectedBackendFaction.ParentKingdom, factionManager, out float targetBaseline);
                         AddTooltipRow(moodProperties, new TextObject("{=BC_UI_MoodBaselineLabel}Target Baseline"), targetBaseline.ToString("0.#"));
                         AddTooltipSeparator(moodProperties);
-                        foreach (string line in SplitTooltipLines(breakdown))
+                        foreach (string line in SplitTooltipLines(IdeologyBehavior.FormatMoodBreakdown(moodConditions)))
                             AddTooltipBreakdownLine(moodProperties, line);
                     }
                     AddTooltipSeparator(moodProperties);
@@ -843,7 +842,7 @@ namespace BellumCivile.UI
                     bool hasRecentCouncilOverride = shockBehavior?.HasRecentCouncilOverride(selectedBackendFaction) ?? false;
                     bool hasRecentCouncilDismissal = shockBehavior?.HasRecentCouncilDismissal(selectedBackendFaction) ?? false;
 
-                    foreach (var condition in ideologyBehavior.GetMoodConditions(selectedBackendFaction, selectedBackendFaction.ParentKingdom, factionManager))
+                    foreach (var condition in moodConditions ?? Enumerable.Empty<IdeologyBehavior.MoodCondition>())
                     {
                         var list = condition.Positive ? FactionLikesList : FactionDislikesList;
                         list.Add(new AgendaItemVM(condition.Label, condition.Value == 0 ? neutralColor : condition.Positive ? greenColor : redColor,

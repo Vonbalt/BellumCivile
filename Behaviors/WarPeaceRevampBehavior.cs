@@ -29,6 +29,8 @@ namespace BellumCivile.Behaviors
 
         private readonly Dictionary<string, List<WarTargetScore>> _targetScoresByClanId =
             new Dictionary<string, List<WarTargetScore>>();
+        private readonly Dictionary<string, Dictionary<Kingdom, float>> _deferredOpeningRankings =
+            new Dictionary<string, Dictionary<Kingdom, float>>(StringComparer.Ordinal);
 
         private readonly WarTargetScoringService _targetScoring = new WarTargetScoringService();
 
@@ -138,6 +140,7 @@ namespace BellumCivile.Behaviors
                 scores = _targetScoring.RankTargets(clan).ToList();
                 _targetScoresByClanId[clan.StringId] = scores;
                 _preferredTargetByClanId[clan.StringId] = scores.FirstOrDefault()?.TargetKingdom?.StringId ?? string.Empty;
+                _deferredOpeningRankings.Remove(clan.StringId);
             }
 
             return scores;
@@ -150,6 +153,21 @@ namespace BellumCivile.Behaviors
                 || _targetScoresByClanId == null || !_targetScoresByClanId.TryGetValue(clan.StringId, out var scores)
                 || scores == null) return false;
             score = scores.FirstOrDefault(item => item?.TargetKingdom == target)?.Score ?? 0f;
+            return !float.IsNaN(score) && !float.IsInfinity(score);
+        }
+
+        internal bool TryGetPactVoterTargetScore(Clan clan, Kingdom target, out float score)
+        {
+            if (TryGetCachedTargetScore(clan, target, out score)) return true;
+            string clanId = clan?.StringId;
+            if (string.IsNullOrWhiteSpace(clanId) || target == null || !_deferredOpeningRankings.TryGetValue(clanId, out var scores))
+                return false;
+
+            // A war-opening ranking that was deliberately deferred is not an ordinary cache miss.
+            // Score just this pact's counterpart rather than pulling a full realm scan into the ballot.
+            if (scores == null) _deferredOpeningRankings[clanId] = scores = new Dictionary<Kingdom, float>();
+            if (!scores.TryGetValue(target, out score))
+                scores.Add(target, score = _targetScoring.ScoreRankedCandidate(clan, target)?.Score ?? 0f);
             return !float.IsNaN(score) && !float.IsInfinity(score);
         }
 
@@ -1117,7 +1135,7 @@ namespace BellumCivile.Behaviors
                 return 0f;
 
             FactionType? ideology = GetIdeology(clan);
-            bool claimTarget = GetRankedTargets(clan).Any(score => score.TargetKingdom == target && score.IsClaimTarget);
+            bool claimTarget = OpeningShockClaimTarget(clan, target, ideology);
             float multiplier = 1f;
             if (ideology == FactionType.Glory)
                 multiplier = 0.40f;
@@ -1160,7 +1178,7 @@ namespace BellumCivile.Behaviors
 
             FactionType? ideology = GetIdeology(clan);
             float multiplier = 1f;
-            bool claimTarget = GetRankedTargets(clan).Any(score => score.TargetKingdom == target && score.IsClaimTarget);
+            bool claimTarget = OpeningShockClaimTarget(clan, target, ideology);
 
             switch (ideology)
             {
@@ -1191,6 +1209,18 @@ namespace BellumCivile.Behaviors
 
             traitMultiplier = Math.Max(0.25f, Math.Min(1.75f, traitMultiplier));
             return baseShock * multiplier * traitMultiplier;
+        }
+
+        private bool OpeningShockClaimTarget(Clan clan, Kingdom target, FactionType? ideology)
+        {
+            if (ideology == FactionType.Nobility)
+                return GetRankedTargets(clan).Any(score => score.TargetKingdom == target && score.IsClaimTarget);
+
+            string clanId = clan?.StringId;
+            if (!string.IsNullOrWhiteSpace(clanId) && !_targetScoresByClanId.ContainsKey(clanId)
+                && !_deferredOpeningRankings.ContainsKey(clanId))
+                _deferredOpeningRankings.Add(clanId, null);
+            return false;
         }
 
         private bool RulingClanHasClaimAgainst(Kingdom sourceKingdom, Kingdom targetKingdom)
@@ -1407,7 +1437,10 @@ namespace BellumCivile.Behaviors
                 return;
 
             foreach (Clan clan in kingdom.Clans)
+            {
                 _targetScoresByClanId.Remove(clan.StringId);
+                _deferredOpeningRankings.Remove(clan.StringId);
+            }
         }
 
         private void ApplyWarWillShock(
@@ -1459,9 +1492,9 @@ namespace BellumCivile.Behaviors
 
             // Tiny casualty shares are numerous in large late-game battles and add little diagnostic
             // value individually. Their pressure records remain intact; only the repetitive trace is skipped.
-            if (reasonType != WarWillReasonType.BattleCasualties || Math.Abs(applied) >= 1f)
+            if ((reasonType != WarWillReasonType.BattleCasualties || Math.Abs(applied) >= 1f) && BellumCivileDebug.ShowInGameMessages)
             {
-                BellumCivileDebug.TraceIfEnabled(
+                BellumCivileDebug.Trace(
                     "war will",
                     $"clan={clan.StringId}; target={target.StringId}; delta={applied:+0.0;-0.0;0.0}; value={after:0.0}; reason={reason}",
                     requestInGameDisplay: false);

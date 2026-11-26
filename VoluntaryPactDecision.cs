@@ -80,7 +80,7 @@ namespace BellumCivile
                 ? clan.Leader.GetRelation(otherRuler) - ruler.GetRelation(otherRuler) : 0;
             float adjustment = Math.Max(-10f, Math.Min(10f, relationDifference * .1f));
             var war = Campaign.Current?.GetCampaignBehavior<WarPeaceRevampBehavior>();
-            if (clan != Kingdom?.RulingClan && war?.TryGetCachedTargetScore(clan, other, out float clanWarScore) == true)
+            if (clan != Kingdom?.RulingClan && war?.TryGetPactVoterTargetScore(clan, other, out float clanWarScore) == true)
                 adjustment += (float)(PeacetimeHostagePactRules.WarTargetPenalty(RulerWarTargetScore)
                     - PeacetimeHostagePactRules.WarTargetPenalty(clanWarScore));
             float support = Math.Max(0f, Math.Min(100f, StrategicSupport + adjustment));
