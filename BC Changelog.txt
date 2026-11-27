@@ -887,6 +887,8 @@ Fixed a crash caused by background patrol calculations accessing the Privy Counc
 Improved strategic marriage matchmaking and spread its checks across campaign hours to reduce stutter.
 Added dynastic betrothals, allowing noble houses to promise a future marriage before both heirs come of age.
 Rebalanced marriage dowries so the receiving clan pays and restricted new matches to nobles of the same standing or to two retainers.
-Added MCM option to adjust dowry cost as it applies equally to player and npc marriages now.
+Added MCM option to adjust dowry cost as it applies equally to player and npc marriages now with bellum marriage logic enabled.
 Fixed article issue on anglicized preset with repeated "the the" realm names.
-Updated and improved compatibility with Rise of the Rhodoks mod.
+Fixed compatibility with Rise of the Rhodoks mod and added missing titles for them on the anglicized preset.
+General performance improvements.
+Fixed RBM compatibility so routine caravan removals no longer raise marshal controversy, while actual caravan attacks still count.

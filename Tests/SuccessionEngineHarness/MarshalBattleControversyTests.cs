@@ -61,13 +61,14 @@ internal static class MarshalBattleControversyTests
     private static readonly Dictionary<Hero, MobileParty> HeroParties = new Dictionary<Hero, MobileParty>();
     private static readonly Dictionary<MobileParty, MapEvent> HeroBattles = new Dictionary<MobileParty, MapEvent>();
     private static readonly Dictionary<PartyBase, MapEvent> PartyBattles = new Dictionary<PartyBase, MapEvent>();
-    private static readonly Dictionary<PartyBase, Kingdom> PartyRealms = new Dictionary<PartyBase, Kingdom>();
+    private static readonly Dictionary<PartyBase, IFaction> PartyFactions = new Dictionary<PartyBase, IFaction>();
     private static readonly Dictionary<MBObjectBase, MBGUID> Ids = new Dictionary<MBObjectBase, MBGUID>(new ReferenceComparer<MBObjectBase>());
     private static readonly Dictionary<Kingdom, PrivyCouncilOfficeRecord> Seats = new Dictionary<Kingdom, PrivyCouncilOfficeRecord>();
     private static readonly List<string> Logs = new List<string>();
     private static ControversyBehavior _behavior;
     private static MapEventManager _mapManager;
     private static MapEvent _playerBattle;
+    private static Kingdom _caravanRealm;
     private static float _competence;
     private static PartyBase _deferredParty;
     private static Hero _deferredVictim;
@@ -86,7 +87,8 @@ internal static class MarshalBattleControversyTests
     private static bool HeroBattle(MobileParty __instance, ref MapEvent __result) { HeroBattles.TryGetValue(__instance, out __result); return false; }
     private static bool PartyBattle(PartyBase __instance, ref MapEvent __result) { PartyBattles.TryGetValue(__instance, out __result); return false; }
     private static bool Faction(PartyBase __instance, ref IFaction __result)
-    { __result = PartyRealms.TryGetValue(__instance, out var realm) ? realm : null; return false; }
+    { PartyFactions.TryGetValue(__instance, out __result); return false; }
+    private static bool CaravanFaction(ref IFaction __result) { __result = _caravanRealm; return false; }
     private static bool ObjectId(MBObjectBase __instance, ref MBGUID __result)
     { if (!Ids.TryGetValue(__instance, out __result)) return true; return false; }
     private static bool Seat(Kingdom kingdom, PrivyCouncilOffice office, ref PrivyCouncilOfficeRecord __result)
@@ -170,7 +172,7 @@ internal static class MarshalBattleControversyTests
         bool Near(float a, float b) => Math.Abs(a - b) < 0.0001f;
         try
         {
-            Houses.Clear(); Realms.Clear(); HeroParties.Clear(); HeroBattles.Clear(); PartyBattles.Clear(); PartyRealms.Clear(); Ids.Clear(); Seats.Clear();
+            Houses.Clear(); Realms.Clear(); HeroParties.Clear(); HeroBattles.Clear(); PartyBattles.Clear(); PartyFactions.Clear(); Ids.Clear(); Seats.Clear();
             _nextId = 0; ticks.SetValue(null, 1000L);
             _mapManager = Blank<MapEventManager>();
             AccessTools.Field(typeof(MapEventManager), "_mapEvents").SetValue(_mapManager, new MBList<MapEvent>());
@@ -249,7 +251,7 @@ internal static class MarshalBattleControversyTests
 
             Reset(); battle = Battle();
             for (int i = 0; i < 5; i++) Capture(realm, battle);
-            var captor = Blank<PartyBase>(); PartyRealms[captor] = realm; PartyBattles[captor] = battle;
+            var captor = Blank<PartyBase>(); PartyFactions[captor] = realm; PartyBattles[captor] = battle;
             Capture(ally, battle, captor);
             check(Near(Seats[realm].Controversy, 12), "Enemy captures retain their existing controversy reduction");
             Death(realm, battle);
@@ -298,6 +300,28 @@ internal static class MarshalBattleControversyTests
             try { Capture(realm, Battle()); } catch (InvalidOperationException) { }
             check(Current == null, "Exceptions propagate while restoring the native action context");
             _throwCapture = false;
+
+            Reset();
+            _caravanRealm = realm;
+            Patch(AccessTools.PropertyGetter(typeof(MobileParty), "MapFaction"), nameof(CaravanFaction));
+            var caravan = Blank<MobileParty>();
+            AccessTools.PropertySetter(typeof(MobileParty), "IsCaravan").Invoke(caravan, new object[] { true });
+            var enemyParty = Blank<PartyBase>(); PartyFactions[enemyParty] = ally;
+            var banditParty = Blank<PartyBase>(); PartyFactions[banditParty] = Blank<Clan>();
+            Seats[ally].SetControversy(10, "test", 100);
+            Call("OnMobilePartyDestroyed", caravan, null);
+            check(Near(Seats[realm].Controversy, 0) && Near(Seats[ally].Controversy, 10),
+                "Removing a completed caravan without a destroyer does not affect marshal controversy");
+            Call("OnMobilePartyDestroyed", caravan, enemyParty);
+            check(Near(Seats[realm].Controversy, 1) && Near(Seats[ally].Controversy, 9),
+                "An enemy realm destroying a caravan still penalizes the victim and rewards the attacker");
+            Call("OnMobilePartyDestroyed", caravan, banditParty);
+            check(Near(Seats[realm].Controversy, 2) && Near(Seats[ally].Controversy, 9) && Budget.Count == 0,
+                "An attacker outside a kingdom still causes a caravan loss without awarding credit or spending the battle casualty budget");
+            Call("OnMobilePartyDestroyed", Blank<MobileParty>(), enemyParty);
+            Call("OnMobilePartyDestroyed", null, enemyParty);
+            check(Near(Seats[realm].Controversy, 2) && Near(Seats[ally].Controversy, 9),
+                "Other party types and missing parties do not count as caravan losses");
 
             Reset(); battle = Battle(); manager.Items.Clear();
             for (int i = 0; i < 10; i++) { Capture(realm, battle); Death(realm, battle); }

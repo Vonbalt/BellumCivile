@@ -192,11 +192,11 @@ namespace BellumCivile.Behaviors
 
         private void OnMobilePartyDestroyed(MobileParty mobileParty, PartyBase destroyerParty)
         {
-            if (mobileParty != null && mobileParty.IsCaravan)
-            {
-                if (mobileParty.MapFaction is Kingdom victimKingdom) AddControversy(victimKingdom, 1, "own caravan destroyed");
-                if (destroyerParty?.MapFaction is Kingdom attackerKingdom) AddControversy(attackerKingdom, -1, "enemy caravan destroyed");
-            }
+            // Caravan retirement and other cleanup also fire this event, but have no destroyer.
+            if (destroyerParty == null || mobileParty?.IsCaravan != true) return;
+
+            if (mobileParty.MapFaction is Kingdom victimKingdom) AddControversy(victimKingdom, 1, "own caravan destroyed");
+            if (destroyerParty.MapFaction is Kingdom attackerKingdom) AddControversy(attackerKingdom, -1, "enemy caravan destroyed");
         }
 
         private void OnVillageLooted(Village village)
