@@ -8,6 +8,7 @@ using BellumCivile;
 using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
@@ -25,6 +26,9 @@ internal static class MarriageRevisionTests
     private static Clan _a, _b;
     private static LordshipBehavior _registry;
     private static int _vacancies, _reads, _vacancyReads;
+    private static Hero _deadTruceSpouse;
+    private static double _weddingClock;
+    private static int _truceYears;
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
     private static bool No(ref bool __result) { __result = false; return false; }
     private static bool Yes(ref bool __result) { __result = true; return false; }
@@ -42,6 +46,24 @@ internal static class MarriageRevisionTests
     private static bool FindClan(string clanId, ref Clan __result) { __result = clanId == _a.StringId ? _a : clanId == _b.StringId ? _b : null; return false; }
     private static bool FindHero(string heroId, ref Hero __result) { __result = Roster.FirstOrDefault(h => h.StringId == heroId); return false; }
     private static bool Living(ref MBReadOnlyList<Hero> __result) { __result = new MBReadOnlyList<Hero>(Roster.Where(h => h.IsAlive).ToList()); return false; }
+    private static bool AliveForTruce(Hero __instance, ref bool __result) { __result = __instance != _deadTruceSpouse; return false; }
+    private static bool TruceNow(ref CampaignTime __result) { __result = CampaignTime.Days((float)_weddingClock); return false; }
+    private static bool TruceYear(ref int __result) { __result = 84; return false; }
+    private static bool TruceYears(ref int __result) { __result = _truceYears; return false; }
+
+    private sealed class TruceStore : IDataStore
+    {
+        private readonly Dictionary<string, object> _data = new Dictionary<string, object>();
+        public bool IsLoading { get; set; }
+        public bool IsSaving => !IsLoading;
+        public bool SyncData<T>(string key, ref T data)
+        {
+            if (IsLoading) { if (_data.TryGetValue(key, out object value)) data = (T)value; }
+            else if (data is Dictionary<string, CampaignTime> dates) _data[key] = new Dictionary<string, CampaignTime>(dates);
+            else if (data is List<string> alliances) _data[key] = new List<string>(alliances);
+            return true;
+        }
+    }
 
     internal static void Run(Action<bool, string> check)
     {
@@ -174,6 +196,8 @@ internal static class MarriageRevisionTests
         var h = new Harmony("bellum.test.marriage_revision_alliances");
         void Patch(MethodBase target, string method) => h.Patch(target, prefix: new HarmonyMethod(typeof(MarriageRevisionTests), method));
         var previous = MarriageAllianceBehavior.Instance;
+        var ticks = AccessTools.Field(typeof(CampaignTime), "TimeTicksPerDay");
+        object oldTicks = ticks.GetValue(null);
         var behavior = new MarriageAllianceBehavior();
         var type = typeof(MarriageAllianceBehavior);
         var records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
@@ -191,15 +215,27 @@ internal static class MarriageRevisionTests
         AccessTools.Field(typeof(Hero), "_clan").SetValue(father, _b);
         second.Father = father;
         Roster.Add(first); Roster.Add(second);
-        void Observe() => AccessTools.Method(type, "OnBeforeHeroesMarried").Invoke(behavior, new object[] { first, second, false });
+        void Observe(Hero a = null, Hero b = null) => AccessTools.Method(type, "OnBeforeHeroesMarried").Invoke(behavior, new object[] { a ?? first, b ?? second, false });
         void Dirty() => AccessTools.Field(type, "_activeAllianceCacheDirty").SetValue(behavior, true);
         (Hero First, Hero Second) Source(Clan a, Clan b) => ((Hero, Hero))AccessTools.Method(type, "GetMarriageAllianceSpouses")
             .Invoke(behavior, new object[] { a, b });
+        (bool Active, int Days, bool Lifetime) Truce(Clan a, Clan b, MarriageAllianceBehavior owner = null)
+        {
+            object status = AccessTools.Method(type, "GetMarriageTruce").Invoke(owner ?? behavior, new object[] { a, b });
+            return ((bool)AccessTools.Property(status.GetType(), "IsActive").GetValue(status),
+                (int)AccessTools.Property(status.GetType(), "RemainingDays").GetValue(status),
+                (bool)AccessTools.Property(status.GetType(), "IsLifetime").GetValue(status));
+        }
         try
         {
+            ticks.SetValue(null, 1000L);
+            _weddingClock = 100; _truceYears = 5; _deadTruceSpouse = null;
             Patch(AccessTools.Method(Membership, "IsFamily"), nameof(IsFamily));
             Patch(AccessTools.Method(Membership, "Supports"), nameof(Yes));
-            Patch(AccessTools.PropertyGetter(typeof(Hero), "IsAlive"), nameof(Yes));
+            Patch(AccessTools.PropertyGetter(typeof(Hero), "IsAlive"), nameof(AliveForTruce));
+            Patch(AccessTools.PropertyGetter(typeof(CampaignTime), "Now"), nameof(TruceNow));
+            Patch(AccessTools.PropertyGetter(typeof(CampaignTime), "DaysInYear"), nameof(TruceYear));
+            Patch(AccessTools.PropertyGetter(Mod.GetType("BellumCivile.BellumCivileOptions", true), "MarriageTruceYears"), nameof(TruceYears));
             Patch(AccessTools.PropertyGetter(typeof(Hero), "AllAliveHeroes"), nameof(Living));
             Patch(AccessTools.Method(type, "CanResolveCampaignObjects"), nameof(Yes));
             Patch(AccessTools.Method(type, "FindClan"), nameof(FindClan));
@@ -209,6 +245,7 @@ internal static class MarriageRevisionTests
             Observe(); Family.Add(first); Observe();
             check(records.Count == 1 && records[0].StartsWith("v3h|") && !behavior.AreClansIntermarried(_a, _b),
                 "Retainer/Retainer and mixed weddings record exclusion without a political employer alliance");
+            check(!Truce(_a, _b).Active, "Household weddings do not create a truce");
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
             Family.Add(second); Observe(); Observe();
             check(records.Count == 2 && records.Count(r => r.StartsWith("v3|")) == 1,
@@ -219,9 +256,46 @@ internal static class MarriageRevisionTests
                 "A qualifying original-house tie survives household transfer or later family reclassification");
             check(Source(_a, _b).Equals((first, second)) && Source(_b, _a).Equals((first, second)),
                 "Either original house can name the spouses who made the alliance after one moves clan");
+            check(Truce(_a, _b) == (true, 420, false) && Truce(_b, _a) == Truce(_a, _b),
+                "A family wedding establishes five full campaign years of bilateral peace between the original houses");
+            _weddingClock = 142.5;
+            check(Truce(_a, _b).Days == 378, "The truce countdown rounds a partial day up");
+            var save = new TruceStore(); behavior.SyncData(save);
+            var loaded = new MarriageAllianceBehavior(); save.IsLoading = true; loaded.SyncData(save);
+            check(Truce(_a, _b, loaded) == Truce(_a, _b), "Reloading preserves the wedding date rather than restarting the truce");
+            AccessTools.Field(type, "<Instance>k__BackingField").SetValue(null, behavior);
+            _truceYears = 0;
+            check(!Truce(_a, _b).Active && behavior.AreClansIntermarried(_a, _b), "Zero disables the feud restriction, not the political alliance");
+            _truceYears = 1; _weddingClock = 184;
+            check(!Truce(_a, _b).Active && behavior.AreClansIntermarried(_a, _b), "Timed truces end exactly at expiry without ending the alliance");
+            _truceYears = 5;
+            var laterFirst = Blank<Hero>(); laterFirst.StringId = "new_first";
+            var laterSecond = Blank<Hero>(); laterSecond.StringId = "new_second";
+            AccessTools.Field(typeof(Hero), "_clan").SetValue(laterFirst, _a);
+            AccessTools.Field(typeof(Hero), "_clan").SetValue(laterSecond, _b);
+            Roster.AddRange(new[] { laterFirst, laterSecond }); Family.Add(laterFirst); Family.Add(laterSecond);
+            Observe(laterFirst, laterSecond);
+            check(Truce(_a, _b).Days == 420, "A newer living marriage extends the pair's truce without stacking time");
+            void Kill(Hero hero)
+            {
+                _deadTruceSpouse = hero;
+                AccessTools.Method(type, "OnHeroKilled").Invoke(behavior,
+                    new object[] { hero, null, default(KillCharacterAction.KillCharacterActionDetail), false });
+            }
+            Kill(laterSecond);
+            check(Truce(_a, _b).Days == 336, "Losing the later marriage falls back to the earlier living wedding");
+            _truceYears = 100; _weddingClock = 40000;
+            check(Truce(_a, _b) == (true, 0, true), "Lifetime mode stays active beyond one hundred campaign years");
+            Kill(second);
+            check(!Truce(_a, _b).Active, "Losing the last living wedding ends a lifetime truce");
+            _deadTruceSpouse = null; _truceYears = 5; Family.Clear();
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
             records.Clear(); records.Add("v2|alliance_a|alliance_b|first|second"); Dirty();
             check(behavior.AreClansIntermarried(_a, _b), "Ambiguous legacy v2 alliances retain their normal lifetime");
+            check(!Truce(_a, _b).Active, "An undated old alliance does not invent a new timed truce on load");
+            _truceYears = 100;
+            check(Truce(_a, _b).Lifetime, "Lifetime mode includes older alliances without needing a wedding date");
+            _truceYears = 5;
             AccessTools.Field(typeof(Hero), "_clan").SetValue(second, _b);
             first.Spouse = second;
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
@@ -256,6 +330,7 @@ internal static class MarriageRevisionTests
         finally
         {
             h.UnpatchAll(h.Id);
+            ticks.SetValue(null, oldTicks);
             AccessTools.Field(type, "<Instance>k__BackingField").SetValue(null, previous);
         }
     }

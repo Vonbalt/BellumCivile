@@ -4,6 +4,19 @@ using TaleWorlds.CampaignSystem;
 
 namespace BellumCivile
 {
+    internal readonly struct MarriageTruceStatus
+    {
+        internal int RemainingDays { get; }
+        internal bool IsLifetime { get; }
+        internal bool IsActive => IsLifetime || RemainingDays > 0;
+
+        internal MarriageTruceStatus(int remainingDays, bool isLifetime = false)
+        {
+            RemainingDays = remainingDays;
+            IsLifetime = isLifetime;
+        }
+    }
+
     internal static class MarriageAllianceHelper
     {
         public static bool HasMarriageAlliance(Clan clan, Clan alliedClan)
@@ -26,6 +39,9 @@ namespace BellumCivile
             var hero = FindNativeSpouse(clan, alliedClan);
             return (hero, hero?.Spouse);
         }
+
+        internal static MarriageTruceStatus GetMarriageTruce(Clan clan, Clan alliedClan) =>
+            GetBehavior()?.GetMarriageTruce(clan, alliedClan) ?? default;
 
         private static MarriageAllianceBehavior GetBehavior() => MarriageAllianceBehavior.Instance
             ?? Campaign.Current?.GetCampaignBehavior<MarriageAllianceBehavior>();

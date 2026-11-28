@@ -86,6 +86,7 @@ internal static class ClaimFeudCooldownTests
     private static bool _forceTitleCollapse;
     private static InquiryData _inquiry;
     private static float _playerInfluenceSpent;
+    private static int _truceYears;
     private static bool CaptureInquiry(InquiryData data) { _inquiry = data; return false; }
     private static bool CapturePlayerInfluence(float amount) { _playerInfluenceSpent -= amount; return false; }
     private static T Blank<T>() => (T)FormatterServices.GetUninitializedObject(typeof(T));
@@ -122,6 +123,10 @@ internal static class ClaimFeudCooldownTests
     private static bool Decisions(ref MBReadOnlyList<KingdomDecision> __result)
     { __result = new MBReadOnlyList<KingdomDecision>(new List<KingdomDecision>()); return false; }
     private static bool RulingHead(ref Hero __result) { __result = Heads[_crown]; return false; }
+    private static bool TruceYears(ref int __result) { __result = _truceYears; return false; }
+    private static bool LookupMarriageClan(string clanId, ref Clan __result) { __result = Houses.FirstOrDefault(clan => clan.StringId == clanId); return false; }
+    private static bool LookupMarriageHero(string heroId, ref Hero __result) { __result = Heads.Values.FirstOrDefault(hero => hero.StringId == heroId); return false; }
+    private static bool NoLiveMarriages(ref MBReadOnlyList<Hero> __result) { __result = new MBReadOnlyList<Hero>(Array.Empty<Hero>()); return false; }
     private static bool UnsafeUltimatum(ref bool __result) { __result = _unsafeUltimatum; return false; }
     private static bool ShowUltimatum(Action onAccept, Action onRefuse)
     { _acceptUltimatum = onAccept; _refuseUltimatum = onRefuse; return false; }
@@ -299,8 +304,63 @@ internal static class ClaimFeudCooldownTests
             Patch(AccessTools.Method(resolver, "QueuePlayerTribunal"), nameof(CountTribunal));
             Patch(AccessTools.Method(resolver, "ApplyPostWarConsequences"), nameof(CountTribunal));
             RunCrownTitleClaimCases(check);
+            var marriageType = typeof(MarriageAllianceBehavior);
+            Getter(mod.GetType("BellumCivile.BellumCivileOptions", true), "MarriageTruceYears", nameof(TruceYears));
+            Getter(typeof(Hero), "AllAliveHeroes", nameof(NoLiveMarriages));
+            Getter(typeof(Hero), "IsAlive", nameof(Yes));
+            Patch(AccessTools.Method(marriageType, "CanResolveCampaignObjects"), nameof(Yes));
+            Patch(AccessTools.Method(marriageType, "FindClan"), nameof(LookupMarriageClan));
+            Patch(AccessTools.Method(marriageType, "FindHero"), nameof(LookupMarriageHero));
+            RunMarriageTruceCases(check);
         }
         finally { h.UnpatchAll(h.Id); _campaign = null; _allowSpend = false; RealmOverrides.Clear(); Owners.Clear(); }
+    }
+
+    private static void RunMarriageTruceCases(Action<bool, string> check)
+    {
+        Reset();
+        var previous = MarriageAllianceBehavior.Instance;
+        var marriages = new MarriageAllianceBehavior();
+        var ticks = AccessTools.Field(typeof(CampaignTime), "TimeTicksPerDay");
+        object oldTicks = ticks.GetValue(null);
+        ticks.SetValue(null, 1000L);
+        _truceYears = 5;
+        string key = $"v3|{_claimant.StringId}|{_holder.StringId}|{Heads[_claimant].StringId}|{Heads[_holder].StringId}";
+        Field<List<string>>(marriages, "_marriageAlliancePairs").Add(key);
+        Field<Dictionary<string, CampaignTime>>(marriages, "_marriageTruceWeddings")[key] = CampaignTime.Zero;
+        try
+        {
+            var preview = _feuds.GetPressableFeudPreviews(_claimant).Single(p => p.TitleId == _title.TitleId);
+            check(!preview.IsEnabled && preview.DisabledReason.Contains("marriage truce") && preview.DisabledReason.Contains("420 more days"),
+                "A timed marriage truce keeps the Found claim visible but disabled with its remaining days");
+            check(!_feuds.TryStartPlayerFeud(_claimant, _title.TitleId, out _, out string reason)
+                && reason == preview.DisabledReason && Records.Count == 0, "Confirming a claim cannot bypass its truce or open a feud");
+            check(((IList)Call(_feuds, "GetRankedFeudCandidates", _titles, _claimant, false)).Count == 0
+                && !ImmediateWar(out string warReason) && warReason == preview.DisabledReason,
+                "The AI skips the truced claim and the immediate private-war entry cannot bypass the agreement");
+            var revocation = FeudalTitlePlayerActionService.GetRevocationPreview(_claimant, _title);
+            check(!revocation.CanRevoke && revocation.Reason == preview.DisabledReason && _spends == 0,
+                "A vassal cannot use a claimed revocation to sidestep the truce");
+            check(Call(_feuds, "GetNewDisputeBlockReason", _holder, _claimant, _title) != null
+                && Call(_feuds, "GetNewDisputeBlockReason", _other, _holder, _title) == null,
+                "The block is bilateral and does not affect a third house");
+            _truceYears = 100;
+            check(_feuds.GetPressableFeudPreviews(_claimant).Single().DisabledReason.Contains("while their alliance lasts"),
+                "Lifetime truce previews do not display a fabricated day count");
+            Clan crown = _crown;
+            _crown = _claimant;
+            check(Call(_feuds, "GetNewDisputeBlockReason", _claimant, _holder, _title) == null,
+                "Marriage truces do not turn Crown revocations into private feuds");
+            _crown = crown;
+            _truceYears = 0;
+            check(_feuds.GetPressableFeudPreviews(_claimant).Single().IsEnabled && _titles.GetStrongestActiveClaim(_claimant, _title) != null,
+                "Turning off truces immediately restores the feud option without affecting the title claim");
+        }
+        finally
+        {
+            ticks.SetValue(null, oldTicks);
+            AccessTools.Field(typeof(MarriageAllianceBehavior), "<Instance>k__BackingField").SetValue(null, previous);
+        }
     }
 
     private static void RunUsurpationControlCases(Action<bool, string> check)

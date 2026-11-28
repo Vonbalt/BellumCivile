@@ -19,7 +19,9 @@ namespace BellumCivile.Behaviors
         private const string LegacyRecordVersion = "v2";
         private const string HouseholdRecordVersion = "v3h";
         private List<string> _marriageAlliancePairs = new List<string>();
+        private Dictionary<string, CampaignTime> _marriageTruceWeddings = new Dictionary<string, CampaignTime>();
         private readonly Dictionary<ClanPairKey, (Hero First, Hero Second)> _activeAlliancePairs = new Dictionary<ClanPairKey, (Hero, Hero)>();
+        private readonly Dictionary<ClanPairKey, CampaignTime> _latestActiveWeddings = new Dictionary<ClanPairKey, CampaignTime>();
         private readonly HashSet<string> _householdSpousePairs = new HashSet<string>();
         private bool _activeAllianceCacheDirty = true;
 
@@ -43,7 +45,9 @@ namespace BellumCivile.Behaviors
         {
             Instance = this;
             dataStore.SyncData("BellumCivile_MarriageAlliancePairs", ref _marriageAlliancePairs);
+            dataStore.SyncData("BellumCivile_MarriageTruceWeddings", ref _marriageTruceWeddings);
             EnsureCollectionsInitialized();
+            if (dataStore.IsLoading) MarkAllianceCacheDirty(invalidateRelationBaseline: false);
         }
 
         public bool AreClansIntermarried(Clan firstClan, Clan secondClan)
@@ -62,6 +66,24 @@ namespace BellumCivile.Behaviors
             EnsureCollectionsInitialized();
             EnsureActiveAllianceCache();
             return _activeAlliancePairs.TryGetValue(new ClanPairKey(firstClan, secondClan), out var spouses) ? spouses : (null, null);
+        }
+
+        internal MarriageTruceStatus GetMarriageTruce(Clan firstClan, Clan secondClan)
+        {
+            int years = BellumCivileOptions.MarriageTruceYears;
+            if (years == 0 || firstClan == null || secondClan == null || firstClan == secondClan
+                || firstClan.IsEliminated || secondClan.IsEliminated)
+                return default;
+
+            EnsureActiveAllianceCache();
+            var pair = new ClanPairKey(firstClan, secondClan);
+            if (!_activeAlliancePairs.ContainsKey(pair)) return default;
+            if (years == BellumCivileConstants.MarriageTruceLifetimeSetting)
+                return new MarriageTruceStatus(0, isLifetime: true);
+            if (!_latestActiveWeddings.TryGetValue(pair, out CampaignTime wedding)) return default;
+
+            double remaining = years * (double)CampaignTime.DaysInYear - (CampaignTime.Now.ToDays - wedding.ToDays);
+            return remaining > 0d ? new MarriageTruceStatus((int)Math.Ceiling(remaining)) : default;
         }
 
         internal bool HasUnexcludedNativeMarriage(Clan first, Clan second)
@@ -101,6 +123,7 @@ namespace BellumCivile.Behaviors
             if (!string.IsNullOrEmpty(key) && !_marriageAlliancePairs.Contains(key))
             {
                 _marriageAlliancePairs.Add(key);
+                if (dynastic) _marriageTruceWeddings[key] = CampaignTime.Now;
                 MarkAllianceCacheDirty();
                 if (!dynastic)
                 {
@@ -114,7 +137,7 @@ namespace BellumCivile.Behaviors
 
         private void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification)
         {
-            if (victim?.Clan != null)
+            if (victim != null)
                 MarkAllianceCacheDirty();
         }
 
@@ -127,6 +150,8 @@ namespace BellumCivile.Behaviors
         {
             if (_marriageAlliancePairs == null)
                 _marriageAlliancePairs = new List<string>();
+            if (_marriageTruceWeddings == null)
+                _marriageTruceWeddings = new Dictionary<string, CampaignTime>();
         }
 
         private void PruneInvalidPairs()
@@ -137,6 +162,7 @@ namespace BellumCivile.Behaviors
             List<string> pruned = new List<string>();
             List<string> validPairs = new List<string>();
             _activeAlliancePairs.Clear();
+            _latestActiveWeddings.Clear();
             _householdSpousePairs.Clear();
 
             foreach (string pair in _marriageAlliancePairs)
@@ -148,10 +174,19 @@ namespace BellumCivile.Behaviors
                     if (pair.StartsWith(HouseholdRecordVersion + "|", StringComparison.Ordinal))
                         _householdSpousePairs.Add(SpouseKey(firstHero.StringId, secondHero.StringId));
                     else
+                    {
                         AddActiveAlliance(firstClan, secondClan, firstHero, secondHero);
+                        if (firstClan != secondClan && _marriageTruceWeddings.TryGetValue(pair, out CampaignTime wedding))
+                        {
+                            var key = new ClanPairKey(firstClan, secondClan);
+                            if (!_latestActiveWeddings.TryGetValue(key, out CampaignTime latest) || wedding > latest)
+                                _latestActiveWeddings[key] = wedding;
+                        }
+                    }
                 }
                 else
                 {
+                    if (pair != null) _marriageTruceWeddings.Remove(pair);
                     pruned.Add($"{pair} ({pruneReason})");
                 }
             }

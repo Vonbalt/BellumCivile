@@ -547,7 +547,7 @@ namespace BellumCivile.Behaviors
                 previews.Add(preview);
             }
 
-            AppendCooldownFeudPreviews(titleBehavior, clan, previews);
+            AppendBlockedFeudPreviews(titleBehavior, clan, previews);
             if (peaceBlock != null)
             {
                 foreach (ClaimFeudActionPreview preview in previews)
@@ -560,7 +560,7 @@ namespace BellumCivile.Behaviors
             return previews;
         }
 
-        private void AppendCooldownFeudPreviews(FeudalTitleBehavior titleBehavior, Clan clan, List<ClaimFeudActionPreview> previews)
+        private void AppendBlockedFeudPreviews(FeudalTitleBehavior titleBehavior, Clan clan, List<ClaimFeudActionPreview> previews)
         {
             HashSet<string> seenTitles = new HashSet<string>(previews
                 .Where(preview => preview != null && !string.IsNullOrWhiteSpace(preview.TitleId))
@@ -572,7 +572,7 @@ namespace BellumCivile.Behaviors
                 if (title == null || !title.IsActive || title.IsDeliberatelyDissolved || seenTitles.Contains(title.TitleId))
                     continue;
 
-                if (TryBuildCooldownFeudPreview(titleBehavior, clan, title, claim.Strength, out ClaimFeudActionPreview preview))
+                if (TryBuildBlockedFeudPreview(clan, title, claim.Strength, out ClaimFeudActionPreview preview))
                 {
                     previews.Add(preview);
                     seenTitles.Add(title.TitleId);
@@ -584,7 +584,7 @@ namespace BellumCivile.Behaviors
                 if (title == null || !title.IsActive || title.IsDeliberatelyDissolved || title.DeFactoHolderClanId == clan.StringId || seenTitles.Contains(title.TitleId))
                     continue;
 
-                if (TryBuildCooldownFeudPreview(titleBehavior, clan, title, FeudalClaimStrength.Strong, out ClaimFeudActionPreview preview))
+                if (TryBuildBlockedFeudPreview(clan, title, FeudalClaimStrength.Strong, out ClaimFeudActionPreview preview))
                 {
                     previews.Add(preview);
                     seenTitles.Add(title.TitleId);
@@ -592,22 +592,17 @@ namespace BellumCivile.Behaviors
             }
         }
 
-        private bool TryBuildCooldownFeudPreview(
-            FeudalTitleBehavior titleBehavior,
+        private bool TryBuildBlockedFeudPreview(
             Clan claimant,
             FeudalTitleRecord title,
             FeudalClaimStrength strength,
             out ClaimFeudActionPreview preview)
         {
             preview = null;
-            Clan holder = ResolveClan(title?.DeFactoHolderClanId);
-            if (title == null || claimant == null || holder == null || holder == claimant)
-                return false;
+            Clan holder = ResolveNewFeudHolder(claimant, title);
+            if (holder == null) return false;
 
-            if (claimant.Kingdom == null || holder.Kingdom == null || claimant.Kingdom != holder.Kingdom)
-                return false;
-
-            TextObject disabled = GetDisputeCooldownBlockReason(claimant, holder, title);
+            TextObject disabled = GetNewDisputeBlockReason(claimant, holder, title);
             if (disabled == null)
                 return false;
 
@@ -624,6 +619,21 @@ namespace BellumCivile.Behaviors
             };
 
             return true;
+        }
+
+        internal TextObject GetNewDisputeBlockReason(Clan claimant, Clan holder, FeudalTitleRecord title)
+        {
+            // Crown revocations are not private wars, so the marriage truce does not govern them.
+            if (claimant?.Kingdom != null && claimant.Kingdom == holder?.Kingdom && !IsRulingClanInvolvedInFeud(claimant, holder))
+            {
+                var truce = MarriageAllianceHelper.GetMarriageTruce(claimant, holder);
+                if (truce.IsLifetime)
+                    return new TextObject("{=BC_ClaimFeud_MarriageTruceLifetime}A marriage truce binds these houses while their alliance lasts. They cannot start a private feud against each other.");
+                if (truce.IsActive)
+                    return new TextObject("{=BC_ClaimFeud_MarriageTruce}A marriage truce binds these houses for {DAYS} more days. They cannot start a private feud against each other.")
+                        .SetTextVariable("DAYS", truce.RemainingDays);
+            }
+            return GetDisputeCooldownBlockReason(claimant, holder, title);
         }
 
         internal TextObject GetDisputeCooldownBlockReason(Clan claimant, Clan holder, FeudalTitleRecord title)
@@ -681,6 +691,17 @@ namespace BellumCivile.Behaviors
                 .FirstOrDefault(item => item?.Title?.TitleId == titleId);
             if (candidate == null)
             {
+                FeudalTitleRecord title = titleBehavior.GetTitle(titleId);
+                Clan holder = ResolveNewFeudHolder(clan, title);
+                if (holder != null && (string.IsNullOrWhiteSpace(expectedHolderClanId) || holder.StringId == expectedHolderClanId))
+                {
+                    TextObject block = GetNewDisputeBlockReason(clan, holder, title);
+                    if (block != null)
+                    {
+                        report = block.ToString();
+                        return false;
+                    }
+                }
                 report = "No valid claim feud target was found for that title.";
                 return false;
             }
@@ -760,10 +781,10 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            TextObject cooldownBlock = GetDisputeCooldownBlockReason(revoker, holder, title);
-            if (cooldownBlock != null)
+            TextObject disputeBlock = GetNewDisputeBlockReason(revoker, holder, title);
+            if (disputeBlock != null)
             {
-                report = cooldownBlock.ToString();
+                report = disputeBlock.ToString();
                 return false;
             }
 
@@ -3231,7 +3252,7 @@ namespace BellumCivile.Behaviors
                 return null;
             }
 
-            if (GetDisputeCooldownBlockReason(candidate.Claimant, candidate.Holder, candidate.Title) != null)
+            if (GetNewDisputeBlockReason(candidate.Claimant, candidate.Holder, candidate.Title) != null)
                 return null;
 
             float currentDay = CurrentDay;
@@ -3360,27 +3381,11 @@ namespace BellumCivile.Behaviors
             out ClaimFeudCandidate candidate)
         {
             candidate = null;
-            Clan holder = ResolveClan(title.DeFactoHolderClanId);
-            if (holder == null || holder == claimant)
+            Clan holder = ResolveNewFeudHolder(claimant, title);
+            if (holder == null)
                 return false;
 
-            if (holder.Kingdom == null || claimant.Kingdom == null || holder.Kingdom != claimant.Kingdom)
-                return false;
-
-            if (IsRulingClanInvolvedInFeud(claimant, holder))
-                return false;
-
-            if (!IsValidFeudClan(holder, out _))
-                return false;
-
-            if (_feuds.Any(record => record != null
-                                  && record.TargetTitleId == title.TitleId
-                                  && IsActiveFeudState(record.State)))
-            {
-                return false;
-            }
-
-            if (GetDisputeCooldownBlockReason(claimant, holder, title) != null)
+            if (GetNewDisputeBlockReason(claimant, holder, title) != null)
             {
                 return false;
             }
@@ -3436,6 +3441,17 @@ namespace BellumCivile.Behaviors
 
             candidate = new ClaimFeudCandidate(claimant, holder, title, strength, sourceClaimId, score, reasons);
             return true;
+        }
+
+        private Clan ResolveNewFeudHolder(Clan claimant, FeudalTitleRecord title)
+        {
+            if (claimant?.Kingdom == null || title?.IsActive != true || title.IsDeliberatelyDissolved) return null;
+            Clan holder = ResolveClan(title.DeFactoHolderClanId);
+            if (holder == null || holder == claimant || holder.Kingdom != claimant.Kingdom
+                || IsRulingClanInvolvedInFeud(claimant, holder) || !IsValidFeudClan(holder, out _)
+                || _feuds.Any(record => record != null && record.TargetTitleId == title.TitleId && IsActiveFeudState(record.State)))
+                return null;
+            return holder;
         }
 
         private static float CalculatePowerAdvantageScore(Clan claimant, Clan holder)

@@ -427,6 +427,8 @@
     <string id="BC_MCM_MarriageAcceptance_Hint" text="Minimum acceptance score for NPC houses considering a strategic match, including court-backed matches. Higher values make houses pickier; lower values make them more receptive. Does not change marriage eligibility or the price of directly negotiated marriages. Bellum default: 95." />
     <string id="BC_MCM_MarriageCost" text="Marriage Cost Multiplier (%)" />
     <string id="BC_MCM_MarriageCost_Hint" text="Lower values make new dowries and betrothal deposits cheaper; higher values make them more expensive. Applies to player and NPC marriages using Bellum's strategic marriage rules. Does not change existing offers or betrothals. Bellum default: 100%." />
+    <string id="BC_MCM_MarriageTruceYears" text="Marriage Truce Duration (Years)" />
+    <string id="BC_MCM_MarriageTruceYears_Hint" text="Blocks new private feuds between houses joined by a family marriage. Higher values extend the truce from the wedding date. 0 disables it; 100 lasts as long as the marriage alliance. Older marriages without a recorded date only count at 100. Existing feuds and claims are unchanged. Bellum default: 5 years." />
     <string id="BC_MCM_MarriageMaleMinAge" text="Male Minimum Marriage Age" />
     <string id="BC_MCM_MarriageMaleMinAge_Hint" text="Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years." />
     <string id="BC_MCM_MarriageFemaleMinAge" text="Female Minimum Marriage Age" />
@@ -1042,6 +1044,8 @@
     <string id="BC_UI_Err_StartFeudFailed" text="The feud could not be started: {REASON}" />
     <string id="BC_UI_Err_RulerFeud" text="Rulers settle title disputes through judgment and decree, not private house feuds." />
     <string id="BC_UI_Err_ClaimFeudCooldown" text="This dispute is cooling down for {DAYS} more days." />
+    <string id="BC_ClaimFeud_MarriageTruce" text="A marriage truce binds these houses for {DAYS} more days. They cannot start a private feud against each other." />
+    <string id="BC_ClaimFeud_MarriageTruceLifetime" text="A marriage truce binds these houses while their alliance lasts. They cannot start a private feud against each other." />
     <string id="BC_UI_Err_FeudAlreadyResolved" text="This feud is already resolved or cooling down." />
     <string id="BC_UI_Err_FeudActionFailed" text="The feud action failed: {REASON}" />
     <string id="BC_UI_Msg_StartedClaimFeud" text="You have begun pressing your claim. The feud is now active." />
@@ -7482,6 +7486,9 @@
     <string id="BC_ClanSupport_Friendship" text="Close friends" />
     <string id="BC_ClanSupport_Marriage" text="Marriage alliance" />
     <string id="BC_ClanSupport_Spouses" text="{FIRST} and {SECOND}" />
+    <string id="BC_ClanSupport_MarriageTruce" text="Marriage truce" />
+    <string id="BC_ClanSupport_MarriageTruceDays" text="{DAYS} days remaining" />
+    <string id="BC_ClanSupport_MarriageTruceLifetime" text="While the alliance lasts" />
     <string id="BC_ClanSupport_CloseKin" text="Close kin" />
     <string id="BC_ClanSupport_Expected" text="Expected support" />
     <string id="BC_ClanSupport_EstimateHint" text="An estimate of support in a rebellion, not a pledge." />

@@ -54,6 +54,11 @@ namespace BellumCivile.UI
             if (tie.Spouses.First != null && tie.Spouses.Second != null)
                 Add(new TextObject("{=BC_ClanSupport_Marriage}Marriage alliance"), new TextObject("{=BC_ClanSupport_Spouses}{FIRST} and {SECOND}")
                     .SetTextVariable("FIRST", tie.Spouses.First.Name).SetTextVariable("SECOND", tie.Spouses.Second.Name).ToString());
+            if (tie.MarriageTruce.IsActive)
+                Add(new TextObject("{=BC_ClanSupport_MarriageTruce}Marriage truce"), tie.MarriageTruce.IsLifetime
+                    ? new TextObject("{=BC_ClanSupport_MarriageTruceLifetime}While the alliance lasts").ToString()
+                    : new TextObject("{=BC_ClanSupport_MarriageTruceDays}{DAYS} days remaining")
+                        .SetTextVariable("DAYS", tie.MarriageTruce.RemainingDays).ToString());
             if (tie.CloseKin)
                 rows.Add(new TooltipProperty(string.Empty, new TextObject("{=BC_ClanSupport_CloseKin}Close kin").ToString(), 0));
 

@@ -359,11 +359,11 @@ namespace BellumCivile
                 return preview;
             }
 
-            TextObject cooldownBlock = feudBehavior.GetDisputeCooldownBlockReason(clan, holder, selectedTitle);
-            if (cooldownBlock != null)
+            TextObject disputeBlock = feudBehavior.GetNewDisputeBlockReason(clan, holder, selectedTitle);
+            if (disputeBlock != null)
             {
-                preview.RestrictionReason = cooldownBlock;
-                preview.Reason = cooldownBlock.ToString();
+                preview.RestrictionReason = disputeBlock;
+                preview.Reason = disputeBlock.ToString();
                 return preview;
             }
 
@@ -664,10 +664,10 @@ namespace BellumCivile
                 return false;
             }
 
-            TextObject cooldownBlock = feudBehavior.GetDisputeCooldownBlockReason(revokerClan, preview.HolderClan, title);
-            if (cooldownBlock != null)
+            TextObject disputeBlock = feudBehavior.GetNewDisputeBlockReason(revokerClan, preview.HolderClan, title);
+            if (disputeBlock != null)
             {
-                reason = cooldownBlock.ToString();
+                reason = disputeBlock.ToString();
                 return false;
             }
 

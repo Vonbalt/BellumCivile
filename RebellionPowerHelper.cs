@@ -102,16 +102,18 @@ namespace BellumCivile
         internal int? Friendship { get; }
         internal bool CloseKin { get; }
         internal (Hero First, Hero Second) Spouses { get; }
+        internal MarriageTruceStatus MarriageTruce { get; }
         internal ProjectedRebellionSupport ExpectedSupport { get; }
 
         internal ClanSupportConnection(Clan clan, float? serviceShare, int? friendship, bool closeKin,
-            (Hero First, Hero Second) spouses, ProjectedRebellionSupport expectedSupport)
+            (Hero First, Hero Second) spouses, MarriageTruceStatus marriageTruce, ProjectedRebellionSupport expectedSupport)
         {
             Clan = clan;
             ServiceShare = serviceShare;
             Friendship = friendship;
             CloseKin = closeKin;
             Spouses = spouses;
+            MarriageTruce = marriageTruce;
             ExpectedSupport = expectedSupport;
         }
     }
@@ -279,7 +281,8 @@ namespace BellumCivile
                     if (power > 0f)
                         expected = ProjectDirectSupport(clan, power, sponsors, realm, ruler, manager, ideology, shares, null);
                 }
-                entries.Add(new ClanSupportConnection(clan, share, friendship, kin, spouses, expected));
+                var truce = spouses.First == null ? default : MarriageAllianceHelper.GetMarriageTruce(clan, sponsor);
+                entries.Add(new ClanSupportConnection(clan, share, friendship, kin, spouses, truce, expected));
             }
             return entries;
         }

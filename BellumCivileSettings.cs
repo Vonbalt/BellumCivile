@@ -319,6 +319,10 @@ namespace BellumCivile
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageCostPercent { get; set; } = C.MarriageCostPercentDefault;
 
+        [SettingPropertyInteger("{=BC_MCM_MarriageTruceYears}Marriage Truce Duration (Years)", 0, C.MarriageTruceLifetimeSetting, Order = 16, RequireRestart = false, HintText = "{=BC_MCM_MarriageTruceYears_Hint}Blocks new private feuds between houses joined by a family marriage. Higher values extend the truce from the wedding date. 0 disables it; 100 lasts as long as the marriage alliance. Older marriages without a recorded date only count at 100. Existing feuds and claims are unchanged. Bellum default: 5 years.")]
+        [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
+        public int MarriageTruceYears { get; set; } = C.MarriageTruceYearsDefault;
+
         [SettingPropertyInteger("{=BC_MCM_MarriageMaleMinAge}Male Minimum Marriage Age", 16, 80, Order = 20, RequireRestart = false, HintText = "{=BC_MCM_MarriageMaleMinAge_Hint}Minimum age for male nobles to be considered by Bellum's strategic matchmaking. This cannot fall below the active adulthood age and does not change eligibility for player-arranged marriages. Default values: Bellum: 25 years; Vanilla: 18 years.")]
         [SettingPropertyGroup(Marriage, GroupOrder = MarriageGroupOrder)]
         public int MarriageMaleMinimumAge { get; set; } = C.MarriageMaleMinimumAge;

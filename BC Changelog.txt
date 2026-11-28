@@ -893,3 +893,4 @@ Fixed compatibility with Rise of the Rhodoks mod and added missing titles for th
 General performance improvements.
 Fixed RBM compatibility so routine caravan removals no longer raise marshal controversy, while actual caravan attacks still count.
 Added Vassals & Alliances after Retainers on the clan encyclopedia page.
+Added configurable marriage truces that block new private feuds between newly allied houses for five in-game years by default.
