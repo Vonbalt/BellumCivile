@@ -19,7 +19,7 @@ namespace BellumCivile.Behaviors
         private const string LegacyRecordVersion = "v2";
         private const string HouseholdRecordVersion = "v3h";
         private List<string> _marriageAlliancePairs = new List<string>();
-        private readonly HashSet<ClanPairKey> _activeAlliancePairs = new HashSet<ClanPairKey>();
+        private readonly Dictionary<ClanPairKey, (Hero First, Hero Second)> _activeAlliancePairs = new Dictionary<ClanPairKey, (Hero, Hero)>();
         private readonly HashSet<string> _householdSpousePairs = new HashSet<string>();
         private bool _activeAllianceCacheDirty = true;
 
@@ -53,7 +53,15 @@ namespace BellumCivile.Behaviors
                 return false;
 
             EnsureActiveAllianceCache();
-            return _activeAlliancePairs.Contains(new ClanPairKey(firstClan, secondClan));
+            return _activeAlliancePairs.ContainsKey(new ClanPairKey(firstClan, secondClan));
+        }
+
+        internal (Hero First, Hero Second) GetMarriageAllianceSpouses(Clan firstClan, Clan secondClan)
+        {
+            if (firstClan == null || secondClan == null || firstClan == secondClan) return (null, null);
+            EnsureCollectionsInitialized();
+            EnsureActiveAllianceCache();
+            return _activeAlliancePairs.TryGetValue(new ClanPairKey(firstClan, secondClan), out var spouses) ? spouses : (null, null);
         }
 
         internal bool HasUnexcludedNativeMarriage(Clan first, Clan second)
@@ -128,13 +136,19 @@ namespace BellumCivile.Behaviors
 
             List<string> pruned = new List<string>();
             List<string> validPairs = new List<string>();
+            _activeAlliancePairs.Clear();
+            _householdSpousePairs.Clear();
 
             foreach (string pair in _marriageAlliancePairs)
             {
-                if (IsValidPairKey(pair, out string pruneReason))
+                if (TryResolvePair(pair, out var firstClan, out var secondClan, out var firstHero, out var secondHero, out string pruneReason))
                 {
-                    if (!validPairs.Contains(pair))
-                        validPairs.Add(pair);
+                    if (validPairs.Contains(pair)) continue;
+                    validPairs.Add(pair);
+                    if (pair.StartsWith(HouseholdRecordVersion + "|", StringComparison.Ordinal))
+                        _householdSpousePairs.Add(SpouseKey(firstHero.StringId, secondHero.StringId));
+                    else
+                        AddActiveAlliance(firstClan, secondClan, firstHero, secondHero);
                 }
                 else
                 {
@@ -143,7 +157,16 @@ namespace BellumCivile.Behaviors
             }
 
             _marriageAlliancePairs = validPairs;
-            RebuildActiveAllianceCache();
+            foreach (Hero hero in Hero.AllAliveHeroes)
+            {
+                Hero spouse = hero?.Spouse;
+                Clan firstClan = hero?.Clan;
+                Clan secondClan = spouse?.Clan;
+                if (firstClan != null && secondClan != null && firstClan != secondClan && MarriageParticipantPolicy.IsDynasticPair(hero, spouse)
+                    && !_householdSpousePairs.Contains(SpouseKey(hero.StringId, spouse.StringId)))
+                    AddActiveAlliance(firstClan, secondClan, hero, spouse);
+            }
+            _activeAllianceCacheDirty = false;
 
             foreach (string entry in pruned)
                 TraceMarriage($"alliance pruned: {entry}.");
@@ -157,38 +180,11 @@ namespace BellumCivile.Behaviors
             PruneInvalidPairs();
         }
 
-        private void RebuildActiveAllianceCache()
+        private void AddActiveAlliance(Clan first, Clan second, Hero firstHero, Hero secondHero)
         {
-            _activeAlliancePairs.Clear();
-            _householdSpousePairs.Clear();
-
-            foreach (string record in _marriageAlliancePairs)
-            {
-                if (!TryParseRecord(record, out string firstClanId, out string secondClanId, out string firstHeroId, out string secondHeroId))
-                    continue;
-
-                if (record.StartsWith(HouseholdRecordVersion + "|", StringComparison.Ordinal))
-                {
-                    _householdSpousePairs.Add(SpouseKey(firstHeroId, secondHeroId));
-                    continue;
-                }
-
-                Clan firstClan = FindClan(firstClanId);
-                Clan secondClan = FindClan(secondClanId);
-                if (firstClan != null && secondClan != null && firstClan != secondClan)
-                    _activeAlliancePairs.Add(new ClanPairKey(firstClan, secondClan));
-            }
-
-            foreach (Hero hero in Hero.AllAliveHeroes)
-            {
-                Clan firstClan = hero?.Clan;
-                Clan secondClan = hero?.Spouse?.Clan;
-                if (firstClan != null && secondClan != null && MarriageParticipantPolicy.IsDynasticPair(hero, hero.Spouse)
-                    && !_householdSpousePairs.Contains(SpouseKey(hero.StringId, hero.Spouse.StringId)))
-                    _activeAlliancePairs.Add(new ClanPairKey(firstClan, secondClan));
-            }
-
-            _activeAllianceCacheDirty = false;
+            if (first == second) return;
+            var key = new ClanPairKey(first, second);
+            if (!_activeAlliancePairs.ContainsKey(key)) _activeAlliancePairs.Add(key, (firstHero, secondHero));
         }
 
         private void MarkAllianceCacheDirty(bool invalidateRelationBaseline = true)
@@ -198,14 +194,12 @@ namespace BellumCivile.Behaviors
                 Campaign.Current?.GetCampaignBehavior<DynamicRelationBehavior>()?.InvalidateBaselineCache();
         }
 
-        private static bool IsValidPairKey(string key)
-        {
-            return IsValidPairKey(key, out _);
-        }
-
-        private static bool IsValidPairKey(string key, out string reason)
+        private static bool TryResolvePair(string key, out Clan firstClan, out Clan secondClan,
+            out Hero firstHero, out Hero secondHero, out string reason)
         {
             reason = "invalid record";
+            firstClan = secondClan = null;
+            firstHero = secondHero = null;
 
             if (!TryParseRecord(key, out string firstClanId, out string secondClanId, out string firstHeroId, out string secondHeroId))
             {
@@ -213,10 +207,10 @@ namespace BellumCivile.Behaviors
                 return false;
             }
 
-            Clan firstClan = FindClan(firstClanId);
-            Clan secondClan = FindClan(secondClanId);
-            Hero firstHero = FindHero(firstHeroId);
-            Hero secondHero = FindHero(secondHeroId);
+            firstClan = FindClan(firstClanId);
+            secondClan = FindClan(secondClanId);
+            firstHero = FindHero(firstHeroId);
+            secondHero = FindHero(secondHeroId);
 
             if (firstClan == null || secondClan == null)
             {
@@ -244,17 +238,6 @@ namespace BellumCivile.Behaviors
 
             reason = null;
             return true;
-        }
-
-        private static bool IsActiveRecordForClans(string record, Clan firstClan, Clan secondClan)
-        {
-            if (!TryParseRecord(record, out string firstClanId, out string secondClanId, out _, out _))
-                return false;
-
-            return (string.Equals(firstClanId, firstClan.StringId, StringComparison.Ordinal)
-                    && string.Equals(secondClanId, secondClan.StringId, StringComparison.Ordinal))
-                || (string.Equals(firstClanId, secondClan.StringId, StringComparison.Ordinal)
-                    && string.Equals(secondClanId, firstClan.StringId, StringComparison.Ordinal));
         }
 
         private static bool TryParseRecord(string record, out string firstClanId, out string secondClanId, out string firstHeroId, out string secondHeroId)

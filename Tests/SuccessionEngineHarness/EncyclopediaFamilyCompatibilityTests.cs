@@ -120,10 +120,10 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
             check(Enabled, "The real UIExtender registry can be inspected without a mock or a running campaign");
             harmony.CreateClassProcessor(Core.GetType("BellumCivile.UI.EncyclopediaFamilyPrefabFinalizationPatch", true)).Patch();
             extender = UIExtender.Create("bellum.tests.family.registry");
-            extender.Register(new[] { typeof(RegistryFamilyEditor) });
+            extender.Register(new[] { typeof(RegistryFamilyEditor), typeof(RegistryClanEditor) });
             extender.Enable();
-            AccessTools.Method(typeof(UIExtender).Assembly.GetType("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch", true), "ApplyPatches")
-                .Invoke(null, new object[] { "EncyclopediaHeroPage", previouslyOwned });
+            var applyPatches = AccessTools.Method(typeof(UIExtender).Assembly.GetType("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch", true), "ApplyPatches");
+            applyPatches.Invoke(null, new object[] { "EncyclopediaHeroPage", previouslyOwned });
             check(!Enabled && previouslyOwned.SelectSingleNode("//*[@Id='FamilyGrid' and @MarginTop='31' and not(@IsHidden)]") != null,
                 "Actual UIExtender patch completion restores shared visibility before prefab compilation");
             var document = (XmlDocument)native.CloneNode(true);
@@ -133,6 +133,14 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
             extender.Disable(typeof(RegistryFamilyEditor));
             Apply((XmlDocument)native.CloneNode(true));
             check(Enabled, "Disabling the actual foreign patch returns layout ownership to Bellum");
+
+            var clan = new XmlDocument();
+            clan.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaClanPage.xml"));
+            applyPatches.Invoke(null, new object[] { "EncyclopediaClanPage", clan });
+            check(clan.SelectSingleNode("//*[@Id='RegistryClanMembers' and not(@IsHidden)]") != null
+                && clan.SelectSingleNode("//*[@Id='BellumClanHousehold']") == null
+                && clan.SelectSingleNode("//*[@Id='SettlementsDivider']/preceding-sibling::*[1][@Id='BellumClanSupportSection']") != null,
+                "Live UIExtender finalization keeps another mod's clan members and adds the support section before Settlements");
         }
         finally
         {
@@ -468,5 +476,12 @@ internal sealed class EncyclopediaFamilyCompatibilityTests : IDisposable
     {
         public override List<PrefabExtensionSetAttributePatch.Attribute> Attributes
             => new List<PrefabExtensionSetAttributePatch.Attribute> { new PrefabExtensionSetAttributePatch.Attribute("MarginTop", "31") };
+    }
+
+    [PrefabExtension("EncyclopediaClanPage", "//*[@Id='MembersGrid']")]
+    public sealed class RegistryClanEditor : PrefabExtensionSetAttributePatch
+    {
+        public override List<PrefabExtensionSetAttributePatch.Attribute> Attributes
+            => new List<PrefabExtensionSetAttributePatch.Attribute> { new PrefabExtensionSetAttributePatch.Attribute("Id", "RegistryClanMembers") };
     }
 }

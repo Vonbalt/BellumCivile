@@ -193,6 +193,8 @@ internal static class MarriageRevisionTests
         Roster.Add(first); Roster.Add(second);
         void Observe() => AccessTools.Method(type, "OnBeforeHeroesMarried").Invoke(behavior, new object[] { first, second, false });
         void Dirty() => AccessTools.Field(type, "_activeAllianceCacheDirty").SetValue(behavior, true);
+        (Hero First, Hero Second) Source(Clan a, Clan b) => ((Hero, Hero))AccessTools.Method(type, "GetMarriageAllianceSpouses")
+            .Invoke(behavior, new object[] { a, b });
         try
         {
             Patch(AccessTools.Method(Membership, "IsFamily"), nameof(IsFamily));
@@ -215,6 +217,8 @@ internal static class MarriageRevisionTests
             Family.Clear();
             check(behavior.AreClansIntermarried(_a, _b),
                 "A qualifying original-house tie survives household transfer or later family reclassification");
+            check(Source(_a, _b).Equals((first, second)) && Source(_b, _a).Equals((first, second)),
+                "Either original house can name the spouses who made the alliance after one moves clan");
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
             records.Clear(); records.Add("v2|alliance_a|alliance_b|first|second"); Dirty();
             check(behavior.AreClansIntermarried(_a, _b), "Ambiguous legacy v2 alliances retain their normal lifetime");
@@ -238,9 +242,11 @@ internal static class MarriageRevisionTests
                 "Actual native father-clan lookup rejects the recorded non-dynastic wedding");
             Family.Add(first); Family.Add(second); Dirty();
             check(!behavior.AreClansIntermarried(_a, _b), "Later family standing does not rewrite an explicitly non-dynastic wedding");
+            check(Source(_a, _b).First == null, "A household wedding supplies no alliance provenance");
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
             records.Clear(); Dirty();
             check(behavior.AreClansIntermarried(_a, _b), "Unrecorded separate-house family marriages retain the qualifying live fallback");
+            check(Source(_a, _b).Equals((first, second)), "The live fallback also supplies the married pair");
             records = (List<string>)AccessTools.Field(type, "_marriageAlliancePairs").GetValue(behavior);
             records.Add("v2|alliance_a|alliance_b|missing|second"); Dirty();
             behavior.AreClansIntermarried(_a, _b);

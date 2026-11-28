@@ -90,6 +90,8 @@ internal static class CrownRebellionSafetyTests
     { __result = Friendships.Contains((__instance, __0)) ? 80 : 0; return false; }
     private static bool Marriage(Clan clan, Clan alliedClan, ref bool __result)
     { __result = Marriages.Contains((clan, alliedClan)); return false; }
+    private static bool MarriageSpouses(Clan clan, Clan alliedClan, ref (Hero, Hero) __result)
+    { __result = Marriages.Contains((clan, alliedClan)) ? (Heads[clan], Heads[alliedClan]) : (null, null); return false; }
     private static bool Trait(ref int __result) { __result = 0; return false; }
     private static bool Opportunity(Action onUltimatum) { _opportunity = onUltimatum; return false; }
     private static bool Ultimatum(ref bool __result) { _ultimata++; __result = true; return false; }
@@ -462,6 +464,38 @@ internal static class CrownRebellionSafetyTests
         check(Near(Number(connected, "FactionPower"), 950) && Near(Number(connected, "LoyalistPower"), 1750)
             && Near(concession.Faction, 600) && Near(concession.Loyalist, 2100),
             "AI concession alone caps the 650 support at 300 pledged and restores the corresponding Crown power");
+
+        var helper = mod.GetType("BellumCivile.RebellionPowerHelper");
+        var networkMethod = AccessTools.Method(helper, "GetClanSupportNetwork");
+        patch(AccessTools.Method(mod.GetType("BellumCivile.MarriageAllianceHelper"), "GetMarriageAllianceSpouses"), nameof(MarriageSpouses));
+        (object[] Entries, float? Own) Network(Clan sponsor)
+        {
+            var args = new object[] { sponsor, null };
+            var ties = ((IEnumerable)networkMethod.Invoke(null, args)).Cast<object>().ToArray();
+            return (ties, (float?)args[1]);
+        }
+        Marriages.Add((vassal, founder));
+        Friendships.Add((Heads[vassal], Heads[founder]));
+        var network = Network(founder);
+        var vassalEntry = network.Entries.Single(entry => Get(entry, "Clan") == (object)vassal);
+        var friendEntry = network.Entries.Single(entry => Get(entry, "Clan") == (object)friend);
+        check(network.Entries.Length == 2 && network.Own == 300 && (int?)Get(vassalEntry, "Friendship") == 80
+            && Get(vassalEntry, "Spouses").Equals((Heads[vassal], Heads[founder])) && (float?)Get(vassalEntry, "ServiceShare") == .25f,
+            "A direct vassal with several ties has one banner; only tied houses in the realm qualify");
+        check(Near(Number(Get(vassalEntry, "ExpectedSupport"), "CreditedPower"), 250)
+            && Near(Number(Get(friendEntry, "ExpectedSupport"), "CreditedPower"), 400)
+            && Near(network.Entries.Sum(entry => Number(Get(entry, "ExpectedSupport"), "CreditedPower")), Number(Forecast(new[] { founder }), "ExpectedSupportPower")),
+            "Single-house encyclopedia support matches the faction forecast with the same caps and no stacking");
+        Marriages.Add((friend, crown));
+        check(Get(Network(founder).Entries.Single(entry => Get(entry, "Clan") == (object)friend), "ExpectedSupport") == null,
+            "A friend tied to the Crown stays visible but does not inflate the estimate");
+        var crownNetwork = Network(crown);
+        check(crownNetwork.Own == null && crownNetwork.Entries.Any(entry => Get(entry, "Clan") == (object)friend)
+            && crownNetwork.Entries.All(entry => Get(entry, "ExpectedSupport") == null),
+            "The ruling house displays its ties without a rebel-style forecast");
+        Marriages.Remove((friend, crown));
+        Marriages.Remove((vassal, founder));
+        Friendships.Remove((Heads[vassal], Heads[founder]));
 
         var coalition = Blank<FactionObject>();
         Set(coalition, "_name", "Power Coalition");

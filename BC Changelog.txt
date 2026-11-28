@@ -892,3 +892,4 @@ Fixed article issue on anglicized preset with repeated "the the" realm names.
 Fixed compatibility with Rise of the Rhodoks mod and added missing titles for them on the anglicized preset.
 General performance improvements.
 Fixed RBM compatibility so routine caravan removals no longer raise marshal controversy, while actual caravan attacks still count.
+Added Vassals & Alliances after Retainers on the clan encyclopedia page.

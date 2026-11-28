@@ -43,6 +43,12 @@ internal static class PrefabFinalizationCompatibilityTests
                 target.Invoke(null, new object[] { type == typeof(ModernApi) ? "EncyclopediaClanPage" : "/modules/EncyclopediaClanPage.xml", clanPage });
                 check(clanPage.SelectSingleNode("//*[@Id='BellumClanHousehold']") != null,
                     "Clan household finalization works with " + type.Name);
+                var household = clanPage.SelectSingleNode("//*[@Id='BellumClanHousehold']");
+                var support = clanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']");
+                check(household.NextSibling == support && support.SelectSingleNode(".//NavigatableGridWidget[@ColumnCount='7' and @DataSource='{BellumClanSupport}']/ItemTemplate/EncyclopediaClanSubPageElement") != null,
+                    "Support follows Retainers and uses the native clan banners with " + type.Name);
+                target.Invoke(null, new object[] { type == typeof(ModernApi) ? "EncyclopediaClanPage" : "/modules/EncyclopediaClanPage.xml", clanPage });
+                check(clanPage.SelectNodes("//*[@Id='BellumClanSupportSection']").Count == 1, "Support finalization is idempotent with " + type.Name);
                 var unrelated = (XmlDocument)native.CloneNode(true);
                 target.Invoke(null, new object[] { "OtherPage", unrelated });
                 check(unrelated.SelectSingleNode("//*[@Id='FamilyGrid' and not(@IsHidden)]") != null,
@@ -51,6 +57,19 @@ internal static class PrefabFinalizationCompatibilityTests
 
             var heroOwned = (XmlDocument)native.CloneNode(true);
             var clanOwned = (XmlDocument)clan.CloneNode(true);
+            var foreignClanPage = (XmlDocument)clan.CloneNode(true);
+            var foreignMembers = (XmlElement)foreignClanPage.SelectSingleNode("//*[@Id='MembersGrid']");
+            foreignMembers.SetAttribute("Id", "OtherModMembers");
+            Finalize("EncyclopediaClanPage", foreignClanPage);
+            var settlements = foreignClanPage.SelectSingleNode("//*[@Id='SettlementsDivider']");
+            check(foreignClanPage.SelectSingleNode("//*[@Id='BellumClanHousehold']") == null && !foreignMembers.HasAttribute("IsHidden")
+                && settlements.PreviousSibling == foreignClanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']"),
+                "A replaced member list is untouched and only the standalone support section is inserted before Settlements");
+            settlements.ParentNode.RemoveChild(settlements);
+            Finalize("EncyclopediaClanPage", foreignClanPage);
+            check(foreignClanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']") == null
+                && foreignClanPage.SelectSingleNode("//*[@Id='OtherModMembers']") == foreignMembers,
+                "Without either safe anchor only the support section is skipped");
             Finalize("EncyclopediaHeroPage", heroOwned);
             Finalize("EncyclopediaClanPage", clanOwned);
             harmony.Patch(AccessTools.Method(Patch, "TargetMethod"), prefix: new HarmonyMethod(typeof(PrefabFinalizationCompatibilityTests), nameof(MissingTarget)));
@@ -62,7 +81,7 @@ internal static class PrefabFinalizationCompatibilityTests
                 && !(bool)AccessTools.Property(Core.GetType("BellumCivile.UI.EncyclopediaFamilyLayoutCompatibility", true), "Enabled").GetValue(null),
                 "Unsupported hooks restore native hero family visibility and hide Bellum's replacement");
             check(clanOwned.SelectSingleNode("//*[@Id='MembersGrid' and not(@IsHidden)]") != null
-                && clanOwned.SelectSingleNode("//*[@Id='BellumClanHousehold']") == null,
+                && clanOwned.SelectSingleNode("//*[@Id='BellumClanHousehold' or @Id='BellumClanSupportSection']") == null,
                 "Unsupported hooks restore the native clan member list without duplicate sections");
         }
         finally

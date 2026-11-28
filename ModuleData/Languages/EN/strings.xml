@@ -7473,6 +7473,18 @@
     <string id="BC_Lordship_RecipientDescription" text="Choose a member of your household to receive {LORDSHIP}. Its revenues will belong exclusively to the holder for as long as they hold the grant." />
     <string id="BC_Lordship_Retainer" text="Retainer" />
     <string id="BC_Lordship_Retainers" text="Retainers" />
+    <string id="BC_ClanSupport_Header" text="Vassals &amp; Alliances" />
+    <string id="BC_ClanSupport_Summary" text="Own power: {OWN}  |  Expected support: {SUPPORT}  |  Projected total: {TOTAL}" />
+    <string id="BC_ClanSupport_Influence" text="Influence" />
+    <string id="BC_ClanSupport_Ties" text="Support ties" />
+    <string id="BC_ClanSupport_Vassal" text="Direct vassal" />
+    <string id="BC_ClanSupport_Service" text="{SHARE}% service" />
+    <string id="BC_ClanSupport_Friendship" text="Close friends" />
+    <string id="BC_ClanSupport_Marriage" text="Marriage alliance" />
+    <string id="BC_ClanSupport_Spouses" text="{FIRST} and {SECOND}" />
+    <string id="BC_ClanSupport_CloseKin" text="Close kin" />
+    <string id="BC_ClanSupport_Expected" text="Expected support" />
+    <string id="BC_ClanSupport_EstimateHint" text="An estimate of support in a rebellion, not a pledge." />
     <string id="BC_Lordship_RevenueHint" text="The holder alone will receive the revenues of {LORDSHIP}." />
     <string id="BC_Lordship_GrantActionHint" text="Grant {LORDSHIP} to an eligible household member or landless vassal house. Its revenues go to the holder or their house, and relations with the recipient increase by 10." />
     <string id="BC_Lordship_RevokeActionHint" text="Revoke {LORDSHIP}, returning its revenues to your house. Relations with the holder decrease by 15. A retainer without another lordship or active indenture may also lose their appointment." />

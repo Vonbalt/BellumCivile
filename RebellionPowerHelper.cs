@@ -95,6 +95,27 @@ namespace BellumCivile
         }
     }
 
+    internal sealed class ClanSupportConnection
+    {
+        internal Clan Clan { get; }
+        internal float? ServiceShare { get; }
+        internal int? Friendship { get; }
+        internal bool CloseKin { get; }
+        internal (Hero First, Hero Second) Spouses { get; }
+        internal ProjectedRebellionSupport ExpectedSupport { get; }
+
+        internal ClanSupportConnection(Clan clan, float? serviceShare, int? friendship, bool closeKin,
+            (Hero First, Hero Second) spouses, ProjectedRebellionSupport expectedSupport)
+        {
+            Clan = clan;
+            ServiceShare = serviceShare;
+            Friendship = friendship;
+            CloseKin = closeKin;
+            Spouses = spouses;
+            ExpectedSupport = expectedSupport;
+        }
+    }
+
     internal static class RebellionPowerHelper
     {
         public static float CalculateRebellionPowerThreshold(Hero leader)
@@ -199,7 +220,7 @@ namespace BellumCivile
                     && CivilWarSolidarityHelper.IsEligibleProjectionCandidate(clan, parentKingdom, committedSet, rebelFaction, factionManager, rulingClan))
                 {
                     support = ProjectDirectSupport(clan, fullPower, sponsors, parentKingdom, rulingClan,
-                        factionManager, ideologyBehavior, titleBehavior, service, projectedSovereign);
+                        factionManager, ideologyBehavior, GetDirectServiceShares(clan, titleBehavior, service), projectedSovereign);
                     if (support != null)
                         projectedSupporters.Add(support);
                 }
@@ -219,18 +240,65 @@ namespace BellumCivile
                 pledgedPower);
         }
 
-        private static ProjectedRebellionSupport ProjectDirectSupport(
-            Clan candidate, float fullPower, IEnumerable<Clan> sponsors, Kingdom kingdom, Clan rulingClan,
-            FactionManagerBehavior manager, IdeologyBehavior ideology, FeudalTitleBehavior titles,
-            FeudalServiceBehavior service, Hero projectedSovereign)
+        internal static List<ClanSupportConnection> GetClanSupportNetwork(Clan sponsor, out float? ownPower)
+        {
+            ownPower = null;
+            var entries = new List<ClanSupportConnection>();
+            Kingdom realm = sponsor?.Kingdom;
+            if (Campaign.Current == null || realm == null || realm.IsEliminated
+                || !CourtAgendaBehavior.Eligible(sponsor, realm) || sponsor.Leader?.IsAlive != true)
+                return entries;
+
+            var manager = Campaign.Current.GetCampaignBehavior<FactionManagerBehavior>();
+            var ideology = Campaign.Current.GetCampaignBehavior<IdeologyBehavior>();
+            var titles = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>();
+            var service = Campaign.Current.GetCampaignBehavior<FeudalServiceBehavior>();
+            Clan ruler = realm.RulingClan;
+            bool canForecast = ruler != null && ruler != sponsor && ruler.Leader?.IsAlive == true && manager != null && ideology != null
+                && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(realm);
+            var sponsors = new[] { sponsor };
+            var committed = canForecast ? new HashSet<Clan>(sponsors) : null;
+            if (canForecast) ownPower = CalculateClanPower(sponsor);
+
+            foreach (Clan clan in realm.Clans.Distinct())
+            {
+                if (clan == sponsor || !CourtAgendaBehavior.Eligible(clan, realm) || clan.Leader?.IsAlive != true) continue;
+                var shares = GetDirectServiceShares(clan, titles, service);
+                float? share = !string.IsNullOrEmpty(sponsor.StringId) && shares != null && shares.TryGetValue(sponsor.StringId, out float rate)
+                    ? (float?)rate : null;
+                int relation = clan.Leader.GetRelation(sponsor.Leader);
+                int? friendship = relation >= C.TreasonSolidarityFriendRelationThreshold ? (int?)relation : null;
+                var spouses = MarriageAllianceHelper.GetMarriageAllianceSpouses(clan, sponsor);
+                bool kin = CivilWarSolidarityHelper.AreCloseDynasticKin(clan, sponsor);
+                if (!share.HasValue && !friendship.HasValue && spouses.First == null && !kin) continue;
+
+                ProjectedRebellionSupport expected = null;
+                if (canForecast && CivilWarSolidarityHelper.IsEligibleProjectionCandidate(clan, realm, committed, null, manager, ruler))
+                {
+                    float power = CalculateClanPower(clan);
+                    if (power > 0f)
+                        expected = ProjectDirectSupport(clan, power, sponsors, realm, ruler, manager, ideology, shares, null);
+                }
+                entries.Add(new ClanSupportConnection(clan, share, friendship, kin, spouses, expected));
+            }
+            return entries;
+        }
+
+        private static Dictionary<string, float> GetDirectServiceShares(Clan candidate, FeudalTitleBehavior titles, FeudalServiceBehavior service)
         {
             // Average multiple contracts with the same liege rather than stacking them.
-            var serviceByLiege = titles?.GetTitlesHeldByClan(candidate, deJure: false)
+            return titles?.GetTitlesHeldByClan(candidate, deJure: false)
                 .Select(title => new { Title = title, Parent = titles.GetParentTitle(title, FeudalHierarchyMode.DeFacto) })
                 .Where(pair => pair.Parent?.IsActive == true && !string.IsNullOrEmpty(pair.Parent.DeFactoHolderClanId))
                 .GroupBy(pair => pair.Parent.DeFactoHolderClanId)
                 .ToDictionary(group => group.Key, group => group.Average(pair =>
                     service?.GetTaxShare(pair.Title, pair.Parent) ?? C.FeudalServiceCustomaryTenureTaxShare));
+        }
+
+        private static ProjectedRebellionSupport ProjectDirectSupport(
+            Clan candidate, float fullPower, IEnumerable<Clan> sponsors, Kingdom kingdom, Clan rulingClan,
+            FactionManagerBehavior manager, IdeologyBehavior ideology, Dictionary<string, float> serviceByLiege, Hero projectedSovereign)
+        {
             bool tiedToCrown = MarriageAllianceHelper.HasMarriageAlliance(candidate, rulingClan);
             float? intent = null;
             ProjectedRebellionSupport best = null;
