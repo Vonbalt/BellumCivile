@@ -17,7 +17,7 @@ namespace BellumCivile
         internal DefensivePactMemberRecord(string realmId, int joiningThreshold)
         {
             if (string.IsNullOrWhiteSpace(realmId)) throw new ArgumentException(nameof(realmId));
-            if (joiningThreshold != 25 && joiningThreshold != 50 && joiningThreshold != 75 && joiningThreshold != 95)
+            if (!DefensivePactEligibilityRules.IsJoiningThreshold(joiningThreshold))
                 throw new ArgumentOutOfRangeException(nameof(joiningThreshold));
             _realmId = realmId;
             _joiningThreshold = joiningThreshold;
@@ -93,7 +93,7 @@ namespace BellumCivile
         {
             if (_activated || string.IsNullOrWhiteSpace(realmId) || realmId == _targetId
                 || _members.Any(m => m != null && m.RealmId == realmId)
-                || (threshold != 25 && threshold != 50 && threshold != 75 && threshold != 95)) return false;
+                || !DefensivePactEligibilityRules.IsJoiningThreshold(threshold)) return false;
             _members.Add(new DefensivePactMemberRecord(realmId, threshold));
             return true;
         }

@@ -513,6 +513,8 @@ namespace BellumCivile.Behaviors
             _frontiers?.Invalidate(newRealm?.StringId);
         }
 
+        internal bool HasKnownDirectFrontier(string firstId, string secondId) => _frontiers?.HasKnownDirectFrontier(firstId, secondId) == true;
+
         internal bool TryGetFrontierDistance(string firstId, string secondId, out int distance)
         {
             distance = 0;

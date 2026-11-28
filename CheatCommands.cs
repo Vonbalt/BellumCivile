@@ -134,6 +134,7 @@ namespace BellumCivile
             double now = CampaignTime.Now.ToDays;
             if (pacts.IsCooldownActive(target.StringId, now)) return "Error: The target's defensive-pact cooldown is active.";
             bool forced = parts.Length == 3;
+            int forcedThreshold = 0;
             if (!forced)
             {
                 var assessment = pacts.Assess(member, target);
@@ -154,14 +155,17 @@ namespace BellumCivile
                 int relation = member.RulingClan.Leader.GetRelation(target.RulingClan.Leader);
                 if (relation >= 60) return "Error: Ruler relations are at least 60, so normal maintenance would immediately remove this member.";
                 double threat = threats.GetThreat(target.StringId, now);
-                if (threat < 25) return $"Error: Target threat is {threat:0.##}; set it to at least 25 with civilwars.defensive_pact_threat first.";
+                if (threat < DefensivePactEligibilityRules.EarlyNeighborThreshold)
+                    return $"Error: Target threat is {threat:0.##}; set it to at least {DefensivePactEligibilityRules.EarlyNeighborThreshold} with civilwars.defensive_pact_threat first.";
+                forcedThreshold = threat >= DefensivePactEligibilityRules.NeighborThreshold
+                    ? DefensivePactEligibilityRules.NeighborThreshold : DefensivePactEligibilityRules.EarlyNeighborThreshold;
                 // Test-only setup bypasses joining geography, size, strength and hostility, but uses the real membership registry.
-                if (!pacts.TryJoin(member.StringId, target.StringId, now, threat, 25, 0, 1, 2,
+                if (!pacts.TryJoin(member.StringId, target.StringId, now, threat, forcedThreshold, 0, 1, 2,
                     Math.Min(-1, relation), true, false, false, false))
                     return "Error: The defensive pact registry rejected the test member.";
             }
             return $"{member.Name} ({member.StringId}) joined the defensive pact against {target.Name} ({target.StringId}). "
-                + (forced ? "Forced setup uses a 25-threat joining threshold and bypasses geography, size, strength and negative-relations requirements. " : "Normal eligibility was satisfied. ")
+                + (forced ? $"Forced setup uses a {forcedThreshold}-threat joining threshold and bypasses geography, size, strength and negative-relations requirements. " : "Normal eligibility was satisfied. ")
                 + "No vote or influence cost was applied; normal maintenance and call-to-arms rules remain active.";
         }
 

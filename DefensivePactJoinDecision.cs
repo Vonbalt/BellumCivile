@@ -23,7 +23,7 @@ namespace BellumCivile
 
         internal static float LeaveSupport(double threat, int threshold, int relation)
         {
-            if (!DefensivePactThreatRules.Finite(threat) || (threshold != 25 && threshold != 50 && threshold != 75 && threshold != 95)) return 0f;
+            if (!DefensivePactThreatRules.Finite(threat) || !DefensivePactEligibilityRules.IsJoiningThreshold(threshold)) return 0f;
             return (float)Math.Max(0d, Math.Min(100d, 50d + (threshold - threat) * .5d
                 + Math.Max(-100, Math.Min(100, relation)) * .25d));
         }

@@ -22,6 +22,8 @@ namespace BellumCivile
         internal bool IsTargetClient { get; private set; }
         internal bool IsEligible { get; private set; }
 
+        internal static bool SharesCulture(Kingdom member, Kingdom target) => member?.Culture != null && member.Culture == target?.Culture;
+
         internal static DefensivePactCampaignAssessment Capture(Kingdom member, Kingdom target, int frontierDistance,
             double now, DefensivePactBehavior pacts, DefensivePactThreatBehavior threatBehavior,
             HostagePactBehavior hostages, ClientKingdomBehavior clients)
@@ -37,13 +39,14 @@ namespace BellumCivile
                 || pacts == null || hostages == null || clients == null || threatBehavior?.IsReady != true
                 || frontierDistance < 0 || !DefensivePactThreatRules.Finite(now) || now < 0)
                 return null;
+            int fiefs = member.Fiefs.Count;
             var result = new DefensivePactCampaignAssessment
             {
                 Member = member,
                 Target = target,
                 Threat = threatBehavior.GetThreat(target.StringId, now),
-                JoiningThreshold = DefensivePactEligibilityRules.JoiningThreshold(frontierDistance),
-                Fiefs = member.Fiefs.Count,
+                JoiningThreshold = DefensivePactEligibilityRules.JoiningThreshold(frontierDistance, fiefs, SharesCulture(member, target)),
+                Fiefs = fiefs,
                 MemberStrength = member.CurrentTotalStrength,
                 TargetStrength = target.CurrentTotalStrength,
                 RulerRelation = member.RulingClan.Leader.GetRelation(target.RulingClan.Leader),

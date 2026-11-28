@@ -8238,12 +8238,29 @@
     <string id="BC_VoluntaryPact_ResultDeclined" text="The ruler of {TARGET} declined the proposed pact with {SOURCE}." />
     <string id="BC_VoluntaryPact_ResultInvalid" text="The proposed pact between {SOURCE} and {TARGET} could no longer be concluded." />
     <string id="BC_VoluntaryPact_RefusalCooldown" text="These realms recently rejected a pledge. Another proposal may be made in {DAYS} days." />
-    <string id="BC_DefensivePact_ForecastIncrease" text="{REALM}: threat increases from {BEFORE} to {AFTER}." />
-    <string id="BC_DefensivePact_ForecastDecrease" text="{REALM}: threat decreases from {BEFORE} to {AFTER}." />
-    <string id="BC_DefensivePact_ForecastUnchanged" text="{REALM}: threat remains at {BEFORE}." />
     <string id="BC_DefensivePact_ForecastUnavailable" text="Treaty threat forecast unavailable." />
-    <string id="BC_DefensivePact_CurrentThreat" text="{REALM}: current threat is {THREAT}." />
-    <string id="BC_DefensivePact_ThreatIndicatorHint" text="{FORECAST}&#xA;&#xA;Higher threat makes defensive pacts against this realm more likely. Eligible realms may form or join at these thresholds:&#xA;{NEIGHBOR}: neighboring realms&#xA;{TWO}: up to two borders away&#xA;{THREE}: up to three borders away&#xA;{ANYWHERE}: any distance&#xA;&#xA;Joining also requires peace with other kingdoms, fewer than 25 towns and castles, strength below 80% of the target's, and negative relations between the rulers. Alliance, a hostage pact or clientage with the target, existing defensive pact membership, and cooldowns may prevent joining." />
+    <string id="BC_DefensivePact_ThreatTitle" text="Threat" />
+    <string id="BC_DefensivePact_TooltipCurrent" text="Current threat" />
+    <string id="BC_DefensivePact_TooltipChange" text="Treaty change" />
+    <string id="BC_DefensivePact_TooltipProjected" text="After treaty" />
+    <string id="BC_DefensivePact_TooltipBands" text="Pact Thresholds" />
+    <string id="BC_DefensivePact_TooltipEarlyBand" text="Small or same-culture direct neighbors" />
+    <string id="BC_DefensivePact_TooltipNeighborBand" text="Other direct neighbors" />
+    <string id="BC_DefensivePact_TooltipSecondBand" text="Up to two borders away" />
+    <string id="BC_DefensivePact_TooltipThirdBand" text="Up to three borders away" />
+    <string id="BC_DefensivePact_TooltipAnyBand" text="Any distance" />
+    <string id="BC_DefensivePact_TooltipSmallRealm" text="Small realms hold 1-{MAX} towns or castles in total." />
+    <string id="BC_DefensivePact_TooltipRequirements" text="Joining Requirements" />
+    <string id="BC_DefensivePact_TooltipPeace" text="At peace" />
+    <string id="BC_DefensivePact_TooltipOtherRealms" text="With other kingdoms" />
+    <string id="BC_DefensivePact_TooltipSize" text="Realm size" />
+    <string id="BC_DefensivePact_TooltipSizeLimit" text="Fewer than 25 towns or castles" />
+    <string id="BC_DefensivePact_TooltipStrength" text="Relative strength" />
+    <string id="BC_DefensivePact_TooltipStrengthLimit" text="Below 80% of the target's" />
+    <string id="BC_DefensivePact_TooltipRelations" text="Ruler relations" />
+    <string id="BC_DefensivePact_TooltipNegative" text="Negative" />
+    <string id="BC_DefensivePact_TooltipProtectedTies" text="An alliance, hostage pact, or clientage with the target blocks joining." />
+    <string id="BC_DefensivePact_TooltipOtherBlocks" text="Existing pact membership and cooldowns also block joining." />
     <string id="BC_DefensivePact_ProposeUnavailable" text="A defensive pact cannot be proposed under the current circumstances." />
     <string id="BC_DefensivePact_AlreadyMember" text="Your realm already belongs to a defensive pact." />
     <string id="BC_DefensivePact_VotePending" text="Your realm is already considering a defensive pact." />
@@ -8263,9 +8280,8 @@
     <string id="BC_DefensivePact_Done" text="Done" />
     <string id="BC_Overview_DefensivePacts" text="Defensive Pacts" />
     <string id="BC_Overview_DefensiveAgainst" text="Against {REALM}" />
-    <string id="BC_Overview_DefensiveThreat" text="Threat: {THREAT}" />
     <string id="BC_Overview_DefensiveThreatUnavailable" text="Threat is currently unavailable." />
-    <string id="BC_Overview_DefensiveMembers" text="Members: {MEMBERS}" />
+    <string id="BC_Overview_DefensiveRoster" text="Member Realms ({COUNT})" />
     <string id="BC_Diplomacy_ActionButton" text="Diplomatic Action" />
     <string id="BC_Diplomacy_ActionTitle" text="Diplomatic Action" />
     <string id="BC_Diplomacy_ActionPrompt" text="Select an action concerning {REALM}." />

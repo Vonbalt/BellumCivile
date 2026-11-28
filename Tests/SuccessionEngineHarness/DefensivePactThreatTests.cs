@@ -9,6 +9,7 @@ using BellumCivile.Behaviors;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.Core.ViewModelCollection.Information;
 
 internal static class DefensivePactThreatTests
 {
@@ -237,24 +238,14 @@ internal static class DefensivePactThreatTests
         ImpactCall(conceder, "LoseFief", 40);
         check(Near(Project(recipient, 30), 50) && Near(Project(conceder, 40), 30),
             "An unclaimed 40-WS fief increases the recipient by 20 and reduces the conceder by 10");
-        var termVm = assembly.GetType("BellumCivile.UI.Parley.TreatyTermVM", true);
-        var forecastMethod = AccessTools.Method(termVm, "BuildThreatForecast");
-        string Forecast(double before, object impact) => (string)forecastMethod.Invoke(null,
-            new object[] { new TaleWorlds.Localization.TextObject("Vlandia"), before, impact });
-        check(Forecast(30, recipient).Contains("increases from 30 to 50")
-            && Forecast(40, conceder).Contains("decreases from 40 to 30")
-            && Forecast(3, conceder).Contains("decreases from 3 to 0"),
-            "Treaty forecast describes increases and decreases after applying threat bounds");
-        check(Forecast(100, recipient).Contains("remains at 100")
-            && Forecast(0, null).Contains("remains at 0"),
-            "A capped or unaffected treaty forecast reports no change");
         var indicatorType = assembly.GetType("BellumCivile.UI.Parley.TreatyThreatIndicatorVM", true);
         object Indicator(double before, object impact) => Activator.CreateInstance(indicatorType,
             BindingFlags.Instance | BindingFlags.NonPublic, null,
             new object[] { new TaleWorlds.Localization.TextObject("Vlandia"), before, impact }, null);
         string Display(object indicator) => (string)AccessTools.Property(indicatorType, "ValueText").GetValue(indicator);
-        string Hint(object indicator) => ((TaleWorlds.Core.ViewModelCollection.Information.HintViewModel)
-            AccessTools.Field(indicatorType, "_hint").GetValue(indicator)).HintText.ToString();
+        List<TooltipProperty> Hint(object indicator) => ((Func<List<TooltipProperty>>)AccessTools.Field(typeof(BasicTooltipViewModel), "_tooltipProperties")
+            .GetValue(AccessTools.Field(indicatorType, "_hint").GetValue(indicator)))();
+        string HintValue(object indicator, string label) => Hint(indicator).Single(row => row.DefinitionLabel == label).ValueLabel;
         var increase = Indicator(30, recipient); var decrease = Indicator(3, conceder);
         check(Display(increase) == "30 +20" && Display(decrease) == "3 -3"
             && Display(Indicator(100, recipient)) == "100 +0" && Display(Indicator(0, null)) == "0 +0",
@@ -263,13 +254,21 @@ internal static class DefensivePactThreatTests
         string fraction = .25.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture);
         check(Display(Indicator(10, quarter)) == "10 +" + fraction && Display(Indicator(99, recipient)) == "99 +1",
             "Fractional and near-cap forecasts show precise, locally formatted changes");
-        string hint = Hint(increase);
-        check(hint.Contains("increases from 30 to 50") && hint.Contains("25: neighboring")
-            && hint.Contains("50: up to two borders") && hint.Contains("75: up to three borders")
-            && hint.Contains("95: any distance") && hint.Contains("80%") && hint.Contains("negative relations"),
-            "Each threat tooltip includes its own forecast, actual reach thresholds and key eligibility restrictions");
+        check(HintValue(increase, "Current threat") == "30" && HintValue(increase, "Treaty change") == "+20"
+            && HintValue(increase, "After treaty") == "50" && HintValue(decrease, "Treaty change") == "-3"
+            && HintValue(decrease, "After treaty") == "0" && HintValue(Indicator(40, conceder), "After treaty") == "30",
+            "Treaty forecast rows report the current, clamped change, and projected threat separately");
+        check(HintValue(Indicator(100, recipient), "Treaty change") == "+0" && HintValue(Indicator(0, null), "After treaty") == "0"
+            && HintValue(Indicator(10, quarter), "Treaty change") == "+" + fraction,
+            "Capped and unaffected threat rows show no change and fractions match the counter");
+        var hint = Hint(increase);
+        check(hint.Where(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.Title).Select(row => row.DefinitionLabel)
+                .SequenceEqual(new[] { "Vlandia", "Pact Thresholds", "Joining Requirements" })
+            && hint.Count(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.DefaultSeperator) == 3,
+            "The parley tooltip uses native title and separator rows for all three groups");
         var unavailable = Activator.CreateInstance(indicatorType, true);
-        check(Display(unavailable) == "?" && Hint(unavailable).Contains("forecast unavailable"),
+        check(Display(unavailable) == "?" && Hint(unavailable).Any(row => row.ValueLabel.Contains("forecast unavailable"))
+            && !Hint(unavailable).Any(row => row.DefinitionLabel == "Current threat"),
             "Unavailable projections do not invent a threat value or outcome");
         ImpactCall(recipient, "GainFief", 40, true);
         ImpactCall(recipient, "GainForcedTerm", 60);
@@ -614,7 +613,8 @@ internal static class DefensivePactThreatTests
             "An invalid journal cannot publish a partial threat result");
 
         var eligibility = assembly.GetType("BellumCivile.DefensivePactEligibilityRules", true);
-        int Threshold(int distance) => (int)AccessTools.Method(eligibility, "JoiningThreshold").Invoke(null, new object[] { distance });
+        int Threshold(int distance, int fiefs = 6, bool sharesCulture = false) => (int)AccessTools.Method(eligibility, "JoiningThreshold")
+            .Invoke(null, new object[] { distance, fiefs, sharesCulture });
         bool Join(double threat, int tier, int fiefs, double strength, double target, int relation,
             bool peace = true, bool member = false, bool ally = false, bool pact = false, bool client = false, bool cooldown = false)
             => (bool)AccessTools.Method(eligibility, "CanJoin").Invoke(null,
@@ -624,6 +624,14 @@ internal static class DefensivePactThreatTests
                 new object[] { threat, tier, relation, ally, pact, client });
         check(Threshold(1) == 25 && Threshold(2) == 50 && Threshold(3) == 75
             && Threshold(4) == 95 && Threshold(0) == 95, "Frontier tiers unlock reach at 25, 50, 75 and 95 threat");
+        check(Threshold(1, 1) == 5 && Threshold(1, 5) == 5 && Threshold(1, 24, true) == 5
+            && Threshold(1, 6) == 25 && Threshold(1, 0, true) == 25
+            && Threshold(2, 1, true) == 50 && Threshold(0, 1, true) == 95,
+            "Only landed direct neighbors qualify for the early band by small size or shared culture");
+        check(Join(5, 5, 5, 79, 100, -1) && !Join(4.99, 5, 5, 79, 100, -1)
+            && !Join(5, 5, 5, 80, 100, -1) && !Join(5, 5, 25, 79, 100, -1) && !Join(5, 5, 5, 79, 100, 0)
+            && !Join(5, 5, 5, 79, 100, -1, peace: false) && !Join(5, 5, 5, 79, 100, -1, cooldown: true),
+            "The early band opens at exactly five without relaxing strength, size, relations, peace or cooldown rules");
         check(Join(50, 50, 24, 79, 100, -1) && !Join(49.99, 50, 24, 79, 100, -1)
             && !Join(50, 50, 25, 79, 100, -1) && !Join(50, 50, 24, 80, 100, -1)
             && !Join(50, 50, 24, 79, 100, 0), "Joining honors strict fief, strength and relationship boundaries");
@@ -635,6 +643,7 @@ internal static class DefensivePactThreatTests
             && !Join(50, 50, 1, 1, 100, -1, cooldown: true), "War, existing membership, protected ties and cooldown block joining");
         check(!Leave(25, 50, 59) && Leave(24.99, 50, 59) && Leave(50, 50, 60)
             && Leave(50, 50, 0, pact: true), "Members leave below half their joining tier, at +60 relations or on a protected tie");
+        check(!Leave(2.5, 5, 59) && Leave(2.49, 5, 59), "Early-band membership persists down to exactly 2.5 threat");
         bool AutomaticLeave(double threat, int tier, int relation, bool player, bool ally = false, bool pledge = false, bool client = false)
             => (bool)AccessTools.Method(eligibility, "MustLeaveWithoutVote").Invoke(null,
                 new object[] { threat, tier, relation, ally, pledge, client, player });
@@ -643,6 +652,8 @@ internal static class DefensivePactThreatTests
             && AutomaticLeave(50, 50, 0, true, ally: true) && AutomaticLeave(50, 50, 0, true, pledge: true)
             && AutomaticLeave(50, 50, 0, true, client: true),
             "Player realms vote on reduced threat or improved relations, while contradictory protected ties end membership");
+        check(AutomaticLeave(2.49, 5, 0, false) && !AutomaticLeave(2.49, 5, 0, true)
+            && AutomaticLeave(5, 5, 0, true, ally: true), "The early band preserves the player departure vote and protected-tie exceptions");
         var graph = new Dictionary<string, string[]> {
             ["target"] = new[] { "a", "b" }, ["a"] = new[] { "target", "b", "c" },
             ["b"] = new[] { "target", "a", "c" }, ["c"] = new[] { "a", "b", "d" },
@@ -672,6 +683,20 @@ internal static class DefensivePactThreatTests
         int Pending(object cache) => (int)AccessTools.Property(cacheType, "PendingCount").GetValue(cache);
         void Invalidate(object cache, string id) => AccessTools.Method(cacheType, "Invalidate").Invoke(cache, new object[] { id });
         object frontier = NewFrontier("a", "b", "c", "d", "e");
+        var candidateOwner = new DefensivePactBehavior();
+        AccessTools.Field(typeof(DefensivePactBehavior), "_frontiers").SetValue(candidateOwner, frontier);
+        Kingdom Realm(string id)
+        {
+            var realm = (Kingdom)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(Kingdom));
+            realm.StringId = id;
+            return realm;
+        }
+        var memberRealm = Realm("a"); var targetRealm = Realm("b"); var distantRealm = Realm("c");
+        var aiCandidate = AccessTools.Method(aiType, "IsThreatCandidate");
+        bool Candidate(Kingdom targetRealmForTest, int fiefs, double threat) => (bool)aiCandidate.Invoke(null,
+            new object[] { candidateOwner, memberRealm, targetRealmForTest, fiefs, threat });
+        check(!Candidate(targetRealm, 3, 5) && Pending(frontier) == 10,
+            "Unknown low-threat frontiers do not create unbounded AI geography work");
         bool bcConnected = true;
         int pairCalls = 0;
         Func<string, string, bool?> pairQuery = (first, second) =>
@@ -684,6 +709,13 @@ internal static class DefensivePactThreatTests
             && FrontierDistance(frontier, "a", "b", out int direct) && direct == 1
             && !FrontierDistance(frontier, "a", "c", out _),
             "Frontier work respects its daily budget and reports incomplete routes as unknown");
+        check(Candidate(targetRealm, 3, 5) && !Candidate(targetRealm, 3, 4.99) && !Candidate(targetRealm, 6, 5),
+            "The AI samples a direct small neighbor at five threat and does not confuse two unknown cultures with a match");
+        var sharedCulture = (CultureObject)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(CultureObject));
+        var setCulture = AccessTools.PropertySetter(typeof(Kingdom), "Culture");
+        foreach (var realm in new[] { memberRealm, targetRealm, distantRealm }) setCulture.Invoke(realm, new object[] { sharedCulture });
+        check(Candidate(targetRealm, 6, 5) && !Candidate(distantRealm, 3, 5) && Candidate(distantRealm, 6, 25),
+            "Shared realm culture qualifies on a known direct frontier; the ordinary band keeps its normal candidate path");
         check(FrontierStep(frontier, 100, pairQuery) == 8 && Pending(frontier) == 0
             && FrontierDistance(frontier, "a", "d", out int thirdHop) && thirdHop == 3
             && FrontierDistance(frontier, "a", "e", out int disconnected) && disconnected == 0,
@@ -812,6 +844,8 @@ internal static class DefensivePactThreatTests
             && LeaveSupport(100, 25, -100) == 0 && LeaveSupport(0, 95, 100) == 100
             && LeaveSupport(double.NaN, 50, 0) == 0,
             "Leaving support grows as threat falls or personal relations improve and remains bounded");
+        check(Near(VoteSupport(5, 5, -10), 52.5) && Near(LeaveSupport(2.5, 5, 0), 51.25),
+            "Join and departure votes use the actual early band as their baseline");
         var vote = (DefensivePactJoinDecision)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(DefensivePactJoinDecision));
         check(vote.GetProposalInfluenceCost() == 100 && vote.DetermineInitialCandidates().Count() == 2,
             "The native defensive-pact ballot has two outcomes and costs 100 influence");
@@ -941,11 +975,20 @@ internal static class DefensivePactThreatTests
         finally { cachedSettings.SetValue(null, priorSettings); }
         var testSetup = new DefensivePactBehavior();
         var joinMethod = AccessTools.Method(pactBehaviorType, "TryJoin");
-        bool ForcedJoin(string member, double threat) => (bool)joinMethod.Invoke(testSetup,
-            new object[] { member, "test_target", 0d, threat, 25, 0, 1d, 2d, -1, true, false, false, false });
+        bool ForcedJoin(string member, double threat, int threshold = 25) => (bool)joinMethod.Invoke(testSetup,
+            new object[] { member, "test_target", 0d, threat, threshold, 0, 1d, 2d, -1, true, false, false, false });
         check(!ForcedJoin("too_early", 24.99) && ForcedJoin("first", 25) && ForcedJoin("second", 25)
             && !ForcedJoin("first", 25),
             "Forced test setup still records real members once and requires its stored joining threshold");
+        check(!ForcedJoin("too_early_at_five", 4.99, 5) && ForcedJoin("early", 5, 5), "The registry accepts the new joining band");
+        var savedEarly = new MemoryStore { IsSaving = true };
+        testSetup.SyncData(savedEarly);
+        var restoredEarly = new DefensivePactBehavior(); savedEarly.IsSaving = false; restoredEarly.SyncData(savedEarly);
+        var restoredMembers = (IEnumerable)AccessTools.Method(pactBehaviorType, "GetMembersAgainst")
+            .Invoke(restoredEarly, new object[] { "test_target" });
+        var lowBand = restoredMembers.Cast<object>().Single(entry => (string)AccessTools.Property(entry.GetType(), "RealmId").GetValue(entry) == "early");
+        check((int)AccessTools.Property(lowBand.GetType(), "JoiningThreshold").GetValue(lowBand) == 5,
+            "Save and restore preserve the member's original early threshold for departure");
         var joinCommand = PatchProcessor.GetOriginalInstructions(AccessTools.Method(typeof(CheatCommands), "JoinDefensivePactForTesting"));
         check(joinCommand.Any(i => i.Calls(joinMethod))
             && joinCommand.Any(i => i.Calls(AccessTools.Method(pactBehaviorType, "TryJoinAfterVote"))),

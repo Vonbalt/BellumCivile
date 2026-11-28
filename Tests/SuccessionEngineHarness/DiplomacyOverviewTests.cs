@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -245,27 +246,61 @@ internal static class DiplomacyOverviewTests
         check(replaced.OuterXml == unchanged, "Threat patch also safely defers on a replacement wrapper");
 
         var threatHint = assembly.GetType("BellumCivile.UI.DefensivePactThreatHint", true);
-        var currentHint = AccessTools.Method(threatHint, "Current");
-        string CurrentThreatText(string name, double value) => currentHint.Invoke(null, new object[] { new TextObject(name), value }).ToString();
-        string firstThreat = CurrentThreatText("First Realm", 10), secondThreat = CurrentThreatText("Second Realm", 25);
-        check(firstThreat.Contains("First Realm: current threat is 10") && secondThreat.Contains("Second Realm: current threat is 25")
-            && !firstThreat.Contains("Second Realm") && !secondThreat.Contains("First Realm"),
-            "Each diplomacy tooltip identifies the correct realm and current threat");
-        string explanation = firstThreat.Substring(firstThreat.IndexOf("\n\n", StringComparison.Ordinal));
-        check(explanation == secondThreat.Substring(secondThreat.IndexOf("\n\n", StringComparison.Ordinal))
-            && explanation.Contains("25: neighboring") && explanation.Contains("50: up to two borders")
-            && explanation.Contains("75: up to three borders") && explanation.Contains("95: any distance")
-            && explanation.Contains("80%") && explanation.Contains("negative relations"),
-            "Both realms share the parley threshold and eligibility explanation");
+        var currentHint = AccessTools.Method(threatHint, "Build");
+        List<TooltipProperty> CurrentThreatRows(string name, double value) => (List<TooltipProperty>)currentHint
+            .Invoke(null, new object[] { new TextObject(name), value, null });
+        List<TooltipProperty> TooltipRows(BasicTooltipViewModel vm) =>
+            ((Func<List<TooltipProperty>>)AccessTools.Field(typeof(BasicTooltipViewModel), "_tooltipProperties").GetValue(vm))();
+        string Value(IEnumerable<TooltipProperty> rows, string label) => rows.Single(row => row.DefinitionLabel == label).ValueLabel;
+        var firstThreat = CurrentThreatRows("First Realm", 10);
+        var secondThreat = CurrentThreatRows("Second Realm", 25);
+        check(firstThreat[0].DefinitionLabel == "First Realm" && secondThreat[0].DefinitionLabel == "Second Realm"
+            && firstThreat[0].PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.Title
+            && Value(firstThreat, "Current threat") == "10" && Value(secondThreat, "Current threat") == "25"
+            && !firstThreat.Any(row => row.DefinitionLabel == "After treaty"),
+            "Each diplomacy tooltip uses the correct realm as its gold header and shows only current threat");
+        (string Label, string Value, int Style)[] Explanation(IEnumerable<TooltipProperty> rows) => rows
+            .SkipWhile(row => row.DefinitionLabel != "Pact Thresholds")
+            .Select(row => (row.DefinitionLabel, row.ValueLabel, row.PropertyModifier)).ToArray();
+        var explanation = Explanation(firstThreat);
+        check(explanation.SequenceEqual(Explanation(secondThreat))
+            && explanation.Where(row => int.TryParse(row.Label, out _)).Select(row => row.Label).SequenceEqual(new[] { "5", "25", "50", "75", "95" })
+            && Value(firstThreat, "5") == "Small or same-culture direct neighbors"
+            && firstThreat.Any(row => row.ValueLabel.Contains("1-5 towns or castles"))
+            && Value(firstThreat, "Relative strength").Contains("80%") && Value(firstThreat, "Ruler relations") == "Negative",
+            "The shared structured sections show all bands, the early qualification, and the existing requirements");
         var parleyType = assembly.GetType("BellumCivile.UI.Parley.TreatyThreatIndicatorVM", true);
         var parleyIndicator = Activator.CreateInstance(parleyType, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
             null, new object[] { new TextObject("First Realm"), 10d, null }, null);
-        string parleyHint = ((HintViewModel)AccessTools.Field(parleyType, "_hint").GetValue(parleyIndicator)).HintText.ToString();
-        check(parleyHint.Substring(parleyHint.IndexOf("\n\n", StringComparison.Ordinal)) == explanation,
+        var parleyHint = TooltipRows((BasicTooltipViewModel)AccessTools.Field(parleyType, "_hint").GetValue(parleyIndicator));
+        check(Explanation(parleyHint).SequenceEqual(explanation) && Value(parleyHint, "After treaty") == "10",
             "Diplomacy and peace parley use the same actual defensive-pact explanation");
-        check(localizedIds.Count(id => id == "BC_DefensivePact_CurrentThreat") == 1
-            && localizedIds.Count(id => id == "BC_DefensivePact_ThreatIndicatorHint") == 1,
+        check(new[] { "Current", "Projected", "Bands", "EarlyBand", "Requirements" }
+            .All(suffix => localizedIds.Count(id => id == "BC_DefensivePact_Tooltip" + suffix) == 1),
             "Current threat and shared rules have unique English localization entries");
+
+        var overviewType = assembly.GetType("BellumCivile.UI.Diplomacy.BellumDiplomacyOverviewVM", true);
+        var pactHintBuilder = AccessTools.Method(overviewType, "BuildDefensivePactHint");
+        List<TooltipProperty> PactRows(double? threat, params string[] members) =>
+            (List<TooltipProperty>)pactHintBuilder.Invoke(null, new object[] { new TextObject("Vlandia"), threat, members });
+        var activePactRows = PactRows(12.345, "Battania", "Sturgia");
+        check(activePactRows.Where(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.Title)
+                .Select(row => row.DefinitionLabel).SequenceEqual(new[] { "Against Vlandia", "Member Realms (2)" })
+            && activePactRows.Count(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.DefaultSeperator) == 2
+            && Value(activePactRows, "Current threat") == Value(CurrentThreatRows("Vlandia", 12.345), "Current threat"),
+            "Pact banners have native styled sections and use the same threat formatting as the skull tooltip");
+        check(activePactRows.Where(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.MultiLine)
+                .Select(row => row.ValueLabel).SequenceEqual(new[] { "Battania", "Sturgia" }),
+            "Each defensive pact member gets its own tooltip row");
+        var untrackedPactRows = PactRows(null, "Battania");
+        check(untrackedPactRows.Any(row => row.ValueLabel == "Threat is currently unavailable.")
+            && untrackedPactRows.Any(row => row.DefinitionLabel == "Member Realms (1)"),
+            "Missing threat data still leaves an active pact's roster visible");
+        var endedPactRows = PactRows(null);
+        check(endedPactRows.Count == 3 && endedPactRows[2].ValueLabel == "This agreement is no longer in force.",
+            "A stale banner shows the agreement ended without an empty roster or a false threat value");
+        check(localizedIds.Count(id => id == "BC_Overview_DefensiveRoster") == 1,
+            "The counted pact roster heading has a unique English localization entry");
 
         string root = FindRoot();
         var overview = new XmlDocument(); overview.Load(Path.Combine(root, "GUI/Prefabs/KingdomManagement/Diplomacy/BellumDiplomacyOverview.xml"));
@@ -351,20 +386,23 @@ internal static class DiplomacyOverviewTests
         adjust.Invoke(tracker, new object[] { "first", 0d, 1d, 10d });
         adjust.Invoke(tracker, new object[] { "second", 0d, 1d, 25d });
         var updateThreat = AccessTools.Method(mixinType, "UpdateThreatHint");
-        var leftHint = new HintViewModel(); var rightHint = new HintViewModel();
+        var leftHint = new BasicTooltipViewModel(); var rightHint = new BasicTooltipViewModel();
         var hintHarmony = new Harmony("bellum.tests.overview.threat");
         try
         {
             hintHarmony.Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Name"),
                 prefix: new HarmonyMethod(typeof(DiplomacyOverviewTests), nameof(RealmName)));
-            bool Update(Kingdom realm, double day, HintViewModel hint) => (bool)updateThreat.Invoke(null, new object[] { realm, tracker, day, hint });
+            bool Update(Kingdom realm, double day, BasicTooltipViewModel hint) => (bool)updateThreat.Invoke(null, new object[] { realm, tracker, day, hint });
+            bool Shows(BasicTooltipViewModel hint, string realm, string value)
+            {
+                var rows = TooltipRows(hint);
+                return rows[0].DefinitionLabel == realm && Value(rows, "Current threat") == value;
+            }
             check(Update(first, 0, leftHint) && Update(second, 0, rightHint)
-                && leftHint.HintText.ToString().Contains("first: current threat is 10")
-                && rightHint.HintText.ToString().Contains("second: current threat is 25"),
+                && Shows(leftHint, "first", "10") && Shows(rightHint, "second", "25"),
                 "Diplomacy reads each selected kingdom's actual threat ledger");
             check(Update(second, 7, leftHint) && Update(first, 7, rightHint)
-                && leftHint.HintText.ToString().Contains("second: current threat is 24")
-                && rightHint.HintText.ToString().Contains("first: current threat is 9")
+                && Shows(leftHint, "second", "24") && Shows(rightHint, "first", "9")
                 && !Update(null, 7, leftHint),
                 "Switching realms refreshes the correct hint and reads lazy threat decay; missing realms are hidden");
         }

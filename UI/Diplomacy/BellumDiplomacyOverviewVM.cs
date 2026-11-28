@@ -99,25 +99,40 @@ namespace BellumCivile.UI.Diplomacy
 
         private static List<TooltipProperty> DefensivePactHint(Kingdom target)
         {
-            var owner = Campaign.Current?.GetCampaignBehavior<DefensivePactBehavior>();
-            var threats = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            var campaign = Campaign.Current;
+            var membership = campaign?.GetCampaignBehavior<DefensivePactBehavior>()?.GetMembersAgainst(target.StringId);
+            if (membership == null || membership.Count == 0 || target.IsEliminated)
+                return BuildDefensivePactHint(target.Name, null, Array.Empty<string>());
+
+            var memberIds = new HashSet<string>(membership
+                .Where(m => m != null && !string.IsNullOrWhiteSpace(m.RealmId)).Select(m => m.RealmId), StringComparer.Ordinal);
+            var members = Kingdom.All.Where(k => k != null && !k.IsEliminated && memberIds.Contains(k.StringId))
+                .Select(k => k.Name.ToString()).OrderBy(name => name).ToArray();
+            var threats = campaign.GetCampaignBehavior<DefensivePactThreatBehavior>();
+            double? threat = members.Length > 0 && threats?.IsReady == true
+                ? threats.GetThreat(target.StringId, CampaignTime.Now.ToDays) : (double?)null;
+            return BuildDefensivePactHint(target.Name, threat, members);
+        }
+
+        internal static List<TooltipProperty> BuildDefensivePactHint(TextObject target, double? threat, IReadOnlyList<string> members)
+        {
             var result = new List<TooltipProperty> { Title(new TextObject("{=BC_Overview_DefensiveAgainst}Against {REALM}")
-                .SetTextVariable("REALM", target.Name)) };
-            if (owner == null || owner.GetMembersAgainst(target.StringId).Count == 0)
+                .SetTextVariable("REALM", target)), Separator() };
+            if (members.Count == 0)
             {
                 result.Add(Paragraph(new TextObject("{=BC_Overview_AgreementEnded}This agreement is no longer in force.")));
                 return result;
             }
-            if (threats?.IsReady == true)
-                result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveThreat}Threat: {THREAT}")
-                    .SetTextVariable("THREAT", threats.GetThreat(target.StringId, CampaignTime.Now.ToDays).ToString("0.##"))));
+            if (threat.HasValue)
+                result.Add(new TooltipProperty(new TextObject("{=BC_DefensivePact_TooltipCurrent}Current threat").ToString(),
+                    DefensivePactThreatHint.FormatValue(threat.Value), 0));
             else result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveThreatUnavailable}Threat is currently unavailable.")));
-            var memberIds = new HashSet<string>(owner.GetMembersAgainst(target.StringId)
-                .Where(m => m != null && !string.IsNullOrWhiteSpace(m.RealmId)).Select(m => m.RealmId), StringComparer.Ordinal);
-            var members = Kingdom.All.Where(k => k != null && !k.IsEliminated && memberIds.Contains(k.StringId))
-                .OrderBy(k => k.Name.ToString()).Select(k => k.Name.ToString());
-            result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveMembers}Members: {MEMBERS}")
-                .SetTextVariable("MEMBERS", string.Join(", ", members))));
+
+            result.Add(Separator());
+            result.Add(Title(new TextObject("{=BC_Overview_DefensiveRoster}Member Realms ({COUNT})")
+                .SetTextVariable("COUNT", members.Count)));
+            foreach (string member in members)
+                result.Add(new TooltipProperty(string.Empty, member, 0, false, TooltipProperty.TooltipPropertyFlags.MultiLine));
             return result;
         }
 
@@ -180,6 +195,8 @@ namespace BellumCivile.UI.Diplomacy
 
         private static TooltipProperty Title(TextObject text) => new TooltipProperty(text.ToString(), "", 0,
             false, TooltipProperty.TooltipPropertyFlags.Title);
+        private static TooltipProperty Separator() => new TooltipProperty("", "", 0,
+            false, TooltipProperty.TooltipPropertyFlags.DefaultSeperator);
         private static TooltipProperty Paragraph(TextObject text) => new TooltipProperty("", text.ToString(), 0,
             false, TooltipProperty.TooltipPropertyFlags.MultiLine);
 

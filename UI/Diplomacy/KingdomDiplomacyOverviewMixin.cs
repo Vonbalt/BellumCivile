@@ -28,8 +28,8 @@ namespace BellumCivile.ViewModelMixin
         [DataSourceProperty] public bool BellumDiplomacyExternalButtonsVisible => !BellumCentralDiplomacyActionVisible
             || !DiplomacyExternalActionAdapter.CanReplace(ViewModel.CurrentSelectedDiplomacyItem);
         [DataSourceProperty] public string BellumDiplomaticActionText => new TextObject("{=BC_Diplomacy_ActionButton}Diplomatic Action").ToString();
-        [DataSourceProperty] public HintViewModel BellumFirstThreatHint { get; } = new HintViewModel();
-        [DataSourceProperty] public HintViewModel BellumSecondThreatHint { get; } = new HintViewModel();
+        [DataSourceProperty] public BasicTooltipViewModel BellumFirstThreatHint { get; } = new BasicTooltipViewModel();
+        [DataSourceProperty] public BasicTooltipViewModel BellumSecondThreatHint { get; } = new BasicTooltipViewModel();
         [DataSourceProperty] public bool BellumFirstThreatVisible => _firstThreatVisible;
         [DataSourceProperty] public bool BellumSecondThreatVisible => _secondThreatVisible;
 
@@ -60,6 +60,8 @@ namespace BellumCivile.ViewModelMixin
         {
             _firstThreatVisible = false;
             _secondThreatVisible = false;
+            BellumFirstThreatHint.SetToolipCallback(null);
+            BellumSecondThreatHint.SetToolipCallback(null);
             var tracker = Campaign.Current?.GetCampaignBehavior<DefensivePactThreatBehavior>();
             if (BellumCivileOptions.DefensivePactsActive && tracker?.IsReady == true)
             {
@@ -75,11 +77,13 @@ namespace BellumCivile.ViewModelMixin
             ViewModel.OnPropertyChangedWithValue(_secondThreatVisible, nameof(BellumSecondThreatVisible));
         }
 
-        private static bool UpdateThreatHint(Kingdom realm, DefensivePactThreatBehavior tracker, double now, HintViewModel hint)
+        private static bool UpdateThreatHint(Kingdom realm, DefensivePactThreatBehavior tracker, double now, BasicTooltipViewModel hint)
         {
             if (realm == null || realm.IsEliminated || string.IsNullOrWhiteSpace(realm.StringId) || tracker == null || hint == null)
                 return false;
-            hint.HintText = DefensivePactThreatHint.Current(realm.Name, tracker.GetThreat(realm.StringId, now));
+            TextObject name = realm.Name;
+            double threat = tracker.GetThreat(realm.StringId, now);
+            hint.SetToolipCallback(() => DefensivePactThreatHint.Build(name, threat));
             return true;
         }
 

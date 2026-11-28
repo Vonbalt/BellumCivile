@@ -91,6 +91,11 @@ namespace BellumCivile
             return attempts;
         }
 
+        internal bool HasKnownDirectFrontier(string firstId, string secondId) =>
+            !string.IsNullOrWhiteSpace(firstId) && !string.IsNullOrWhiteSpace(secondId)
+            && _indexes.TryGetValue(firstId, out int first) && _indexes.TryGetValue(secondId, out int second)
+            && _edges[first, second] > 0;
+
         // Unknown edges are considered both absent and present; only agree-on-both results are returned.
         internal bool TryGetDistance(string firstId, string secondId, out int distance)
         {
@@ -98,6 +103,7 @@ namespace BellumCivile
             if (string.IsNullOrWhiteSpace(firstId) || string.IsNullOrWhiteSpace(secondId)
                 || !_indexes.TryGetValue(firstId, out int first) || !_indexes.TryGetValue(secondId, out int second)
                 || first == second) return false;
+            if (_edges[first, second] > 0) { distance = 1; return true; }
             int known = Distance(first, second, false);
             int possible = Distance(first, second, true);
             if (known != possible) return false;

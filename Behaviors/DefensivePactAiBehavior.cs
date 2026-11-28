@@ -113,9 +113,10 @@ namespace BellumCivile.Behaviors
             if (member.RulingClan.Influence < DefensivePactVoteRules.InfluenceCost || pacts.HasMembership(member.StringId)) return;
             var sample = new List<Kingdom>();
             int seen = 0;
+            int fiefs = member.Fiefs?.Count ?? 0;
             foreach (var realm in _realms)
             {
-                if (realm == member || realm.IsEliminated || threats.GetThreat(realm.StringId, now) < 25) continue;
+                if (realm == member || realm.IsEliminated || !IsThreatCandidate(pacts, member, realm, fiefs, threats.GetThreat(realm.StringId, now))) continue;
                 seen++;
                 if (sample.Count < MaxCandidateChecks) sample.Add(realm);
                 else { int slot = MBRandom.RandomInt(seen); if (slot < MaxCandidateChecks) sample[slot] = realm; }
@@ -136,5 +137,11 @@ namespace BellumCivile.Behaviors
             }
             if (best != null) pacts.TryFileJoinVote(member.RulingClan, best);
         }
+
+        private static bool IsThreatCandidate(DefensivePactBehavior pacts, Kingdom member, Kingdom target, int fiefs, double threat) =>
+            threat >= DefensivePactEligibilityRules.NeighborThreshold
+            || (threat >= DefensivePactEligibilityRules.EarlyNeighborThreshold
+                && DefensivePactEligibilityRules.CanUseEarlyNeighborBand(fiefs, DefensivePactCampaignAssessment.SharesCulture(member, target))
+                && pacts.HasKnownDirectFrontier(member.StringId, target.StringId));
     }
 }
