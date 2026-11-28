@@ -468,18 +468,18 @@ internal static class CrownRebellionSafetyTests
         var helper = mod.GetType("BellumCivile.RebellionPowerHelper");
         var networkMethod = AccessTools.Method(helper, "GetClanSupportNetwork");
         patch(AccessTools.Method(mod.GetType("BellumCivile.MarriageAllianceHelper"), "GetMarriageAllianceSpouses"), nameof(MarriageSpouses));
-        (object[] Entries, float? Own) Network(Clan sponsor)
+        (object[] Entries, bool CanForecast) Network(Clan sponsor)
         {
             var args = new object[] { sponsor, null };
             var ties = ((IEnumerable)networkMethod.Invoke(null, args)).Cast<object>().ToArray();
-            return (ties, (float?)args[1]);
+            return (ties, (bool)args[1]);
         }
         Marriages.Add((vassal, founder));
         Friendships.Add((Heads[vassal], Heads[founder]));
         var network = Network(founder);
         var vassalEntry = network.Entries.Single(entry => Get(entry, "Clan") == (object)vassal);
         var friendEntry = network.Entries.Single(entry => Get(entry, "Clan") == (object)friend);
-        check(network.Entries.Length == 2 && network.Own == 300 && (int?)Get(vassalEntry, "Friendship") == 80
+        check(network.Entries.Length == 2 && network.CanForecast && (int?)Get(vassalEntry, "Friendship") == 80
             && Get(vassalEntry, "Spouses").Equals((Heads[vassal], Heads[founder])) && (float?)Get(vassalEntry, "ServiceShare") == .25f,
             "A direct vassal with several ties has one banner; only tied houses in the realm qualify");
         check(Near(Number(Get(vassalEntry, "ExpectedSupport"), "CreditedPower"), 250)
@@ -490,7 +490,7 @@ internal static class CrownRebellionSafetyTests
         check(Get(Network(founder).Entries.Single(entry => Get(entry, "Clan") == (object)friend), "ExpectedSupport") == null,
             "A friend tied to the Crown stays visible but does not inflate the estimate");
         var crownNetwork = Network(crown);
-        check(crownNetwork.Own == null && crownNetwork.Entries.Any(entry => Get(entry, "Clan") == (object)friend)
+        check(!crownNetwork.CanForecast && crownNetwork.Entries.Any(entry => Get(entry, "Clan") == (object)friend)
             && crownNetwork.Entries.All(entry => Get(entry, "ExpectedSupport") == null),
             "The ruling house displays its ties without a rebel-style forecast");
         Marriages.Remove((friend, crown));

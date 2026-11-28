@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Xml;
 using BellumCivile;
 using HarmonyLib;
+using TaleWorlds.GauntletUI.PrefabSystem;
 
 internal static class PrefabFinalizationCompatibilityTests
 {
@@ -18,7 +19,10 @@ internal static class PrefabFinalizationCompatibilityTests
         var native = new XmlDocument();
         native.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaHeroPage.xml"));
         var clan = new XmlDocument();
-        clan.Load(Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaClanPage.xml"));
+        string clanPath = Path.Combine(game, "Modules/SandBox/GUI/Prefabs/Encyclopedia/EncyclopediaSubPages/EncyclopediaClanPage.xml");
+        using (var reader = XmlReader.Create(clanPath, new XmlReaderSettings { IgnoreComments = true }))
+            clan.Load(reader);
+        check(LoadClanTemplate(clan) != null, "The unmodified clan prefab loads through the native widget parser");
         check(Resolve(typeof(ModernApi))?.Name == "ApplyPatches", "Current UIExtenderEx selects the shared ApplyPatches finalization point");
         check(Resolve(typeof(LegacyApi))?.Name == "ProcessMovie", "Older UIExtenderEx selects its ProcessMovie finalization point");
         check(Resolve(typeof(BothApis))?.Name == "ApplyPatches", "Only the shared hook is selected when both entry points exist");
@@ -47,8 +51,11 @@ internal static class PrefabFinalizationCompatibilityTests
                 var support = clanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']");
                 check(household.NextSibling == support && support.SelectSingleNode(".//NavigatableGridWidget[@ColumnCount='7' and @DataSource='{BellumClanSupport}']/ItemTemplate/EncyclopediaClanSubPageElement") != null,
                     "Support follows Retainers and uses the native clan banners with " + type.Name);
+                check(support.SelectSingleNode("./Children/RichTextWidget") == null,
+                    "Support lists clan banners without a section-wide power summary");
                 target.Invoke(null, new object[] { type == typeof(ModernApi) ? "EncyclopediaClanPage" : "/modules/EncyclopediaClanPage.xml", clanPage });
                 check(clanPage.SelectNodes("//*[@Id='BellumClanSupportSection']").Count == 1, "Support finalization is idempotent with " + type.Name);
+                check(LoadClanTemplate(clanPage) != null, "The patched clan prefab loads through the native widget parser with " + type.Name);
                 var unrelated = (XmlDocument)native.CloneNode(true);
                 target.Invoke(null, new object[] { "OtherPage", unrelated });
                 check(unrelated.SelectSingleNode("//*[@Id='FamilyGrid' and not(@IsHidden)]") != null,
@@ -65,6 +72,7 @@ internal static class PrefabFinalizationCompatibilityTests
             check(foreignClanPage.SelectSingleNode("//*[@Id='BellumClanHousehold']") == null && !foreignMembers.HasAttribute("IsHidden")
                 && settlements.PreviousSibling == foreignClanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']"),
                 "A replaced member list is untouched and only the standalone support section is inserted before Settlements");
+            check(LoadClanTemplate(foreignClanPage) != null, "The standalone support section loads through the native widget parser");
             settlements.ParentNode.RemoveChild(settlements);
             Finalize("EncyclopediaClanPage", foreignClanPage);
             check(foreignClanPage.SelectSingleNode("//*[@Id='BellumClanSupportSection']") == null
@@ -95,6 +103,10 @@ internal static class PrefabFinalizationCompatibilityTests
 
     private static void Finalize(string movie, XmlDocument document)
         => AccessTools.Method(Patch, "FinalizePrefab").Invoke(null, new object[] { movie, document });
+
+    private static WidgetTemplate LoadClanTemplate(XmlDocument document)
+        => WidgetTemplate.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(),
+            document.SelectSingleNode("/Prefab/Window/*"));
 
     private static void RegistryEdit(XmlDocument document)
     {

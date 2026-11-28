@@ -15,6 +15,7 @@
     <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.CampaignSystem.ViewModelCollection.dll" />
     <Reference Include="TaleWorlds.Core" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Core.dll" />
     <Reference Include="TaleWorlds.Core.ViewModelCollection" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Core.ViewModelCollection.dll" />
+    <Reference Include="TaleWorlds.GauntletUI.PrefabSystem" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.GauntletUI.PrefabSystem.dll" />
     <Reference Include="TaleWorlds.Library" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Library.dll" />
     <Reference Include="TaleWorlds.Localization" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.Localization.dll" />
     <Reference Include="TaleWorlds.ModuleManager" HintPath="$(GameFolder)/bin/Win64_Shipping_Client/TaleWorlds.ModuleManager.dll" />

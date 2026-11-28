@@ -7478,7 +7478,6 @@
     <string id="BC_Lordship_Retainer" text="Retainer" />
     <string id="BC_Lordship_Retainers" text="Retainers" />
     <string id="BC_ClanSupport_Header" text="Vassals &amp; Alliances" />
-    <string id="BC_ClanSupport_Summary" text="Own power: {OWN}  |  Expected support: {SUPPORT}  |  Projected total: {TOTAL}" />
     <string id="BC_ClanSupport_Influence" text="Influence" />
     <string id="BC_ClanSupport_Ties" text="Support ties" />
     <string id="BC_ClanSupport_Vassal" text="Direct vassal" />
@@ -8280,6 +8279,7 @@
     <string id="BC_DefensivePact_Done" text="Done" />
     <string id="BC_Overview_DefensivePacts" text="Defensive Pacts" />
     <string id="BC_Overview_DefensiveAgainst" text="Against {REALM}" />
+    <string id="BC_Overview_DefensiveCurrentThreat" text="Current threat: {THREAT}" />
     <string id="BC_Overview_DefensiveThreatUnavailable" text="Threat is currently unavailable." />
     <string id="BC_Overview_DefensiveRoster" text="Member Realms ({COUNT})" />
     <string id="BC_Diplomacy_ActionButton" text="Diplomatic Action" />

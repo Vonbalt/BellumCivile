@@ -242,9 +242,9 @@ namespace BellumCivile
                 pledgedPower);
         }
 
-        internal static List<ClanSupportConnection> GetClanSupportNetwork(Clan sponsor, out float? ownPower)
+        internal static List<ClanSupportConnection> GetClanSupportNetwork(Clan sponsor, out bool canForecast)
         {
-            ownPower = null;
+            canForecast = false;
             var entries = new List<ClanSupportConnection>();
             Kingdom realm = sponsor?.Kingdom;
             if (Campaign.Current == null || realm == null || realm.IsEliminated
@@ -256,11 +256,10 @@ namespace BellumCivile
             var titles = Campaign.Current.GetCampaignBehavior<FeudalTitleBehavior>();
             var service = Campaign.Current.GetCampaignBehavior<FeudalServiceBehavior>();
             Clan ruler = realm.RulingClan;
-            bool canForecast = ruler != null && ruler != sponsor && ruler.Leader?.IsAlive == true && manager != null && ideology != null
+            canForecast = ruler != null && ruler != sponsor && ruler.Leader?.IsAlive == true && manager != null && ideology != null
                 && !BellumKingdomVisibilityHelper.IsTemporaryBellumKingdom(realm);
             var sponsors = new[] { sponsor };
             var committed = canForecast ? new HashSet<Clan>(sponsors) : null;
-            if (canForecast) ownPower = CalculateClanPower(sponsor);
 
             foreach (Clan clan in realm.Clans.Distinct())
             {

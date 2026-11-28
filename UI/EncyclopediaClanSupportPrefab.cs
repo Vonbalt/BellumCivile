@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Xml;
 
 namespace BellumCivile.UI
@@ -19,19 +18,19 @@ namespace BellumCivile.UI
                 "//Children[ NavigatableGridWidget[@Id='SettlementsGrid' and @DataSource='{Settlements}'] ]/EncyclopediaDivider[@Id='SettlementsDivider' and @Parameter.ItemList='..\\SettlementsGrid']") : null;
             if (household == null && settlements == null) return;
 
-            var section = document.CreateDocumentFragment();
-            section.InnerXml = @"
+            // Gauntlet treats every child node as a widget; parse without retaining indentation.
+            var section = new XmlDocument { PreserveWhitespace = false };
+            section.LoadXml(@"
                 <ListPanel Id='BellumClanSupportSection' IsVisible='@HasBellumClanSupport' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' StackLayout.LayoutMethod='VerticalTopToBottom'>
                     <Children>
                         <EncyclopediaDivider Id='BellumClanSupportDivider' MarginTop='30' Parameter.Title='@BellumClanSupportTitle' Parameter.ItemList='..\BellumClanSupportGrid' GamepadNavigationIndex='0'/>
-                        <RichTextWidget IsVisible='@HasBellumClanSupportEstimate' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' MarginTop='8' MarginLeft='20' MarginRight='20' Brush='Encyclopedia.Stat.DefinitionText' Text='@BellumClanSupportEstimate'/>
                         <NavigationScopeTargeter ScopeID='BellumClanSupportScope' ScopeParent='..\BellumClanSupportGrid' ScopeMovements='Horizontal' AlternateScopeMovements='Vertical' AlternateMovementStepSize='7'/>
                         <NavigatableGridWidget Id='BellumClanSupportGrid' DataSource='{BellumClanSupport}' WidthSizePolicy='StretchToParent' HeightSizePolicy='CoverChildren' DefaultCellWidth='100' DefaultCellHeight='100' HorizontalAlignment='Left' ColumnCount='7' MarginTop='10' MarginLeft='15' AutoScrollTopOffset='35' AutoScrollBottomOffset='35'>
                             <ItemTemplate><EncyclopediaClanSubPageElement/></ItemTemplate>
                         </NavigatableGridWidget>
                     </Children>
-                </ListPanel>";
-            var panel = section.ChildNodes.OfType<XmlElement>().Single();
+                </ListPanel>");
+            var panel = document.ImportNode(section.DocumentElement, true);
             if (household != null) household.ParentNode.InsertAfter(panel, household);
             else settlements.ParentNode.InsertBefore(panel, settlements);
             Enabled = true;

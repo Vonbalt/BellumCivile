@@ -286,11 +286,15 @@ internal static class DiplomacyOverviewTests
         var activePactRows = PactRows(12.345, "Battania", "Sturgia");
         check(activePactRows.Where(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.Title)
                 .Select(row => row.DefinitionLabel).SequenceEqual(new[] { "Against Vlandia", "Member Realms (2)" })
-            && activePactRows.Count(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.DefaultSeperator) == 2
-            && Value(activePactRows, "Current threat") == Value(CurrentThreatRows("Vlandia", 12.345), "Current threat"),
-            "Pact banners have native styled sections and use the same threat formatting as the skull tooltip");
+            && activePactRows.Count(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.DefaultSeperator) == 2,
+            "Pact banners retain native styled sections");
+        var threatRow = activePactRows[2];
+        check(string.IsNullOrEmpty(threatRow.DefinitionLabel)
+            && threatRow.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.MultiLine
+            && threatRow.ValueLabel == "Current threat: " + Value(CurrentThreatRows("Vlandia", 12.345), "Current threat"),
+            "The pact banner uses a left-aligned threat line with the same numeric formatting as the skull tooltip");
         check(activePactRows.Where(row => row.PropertyModifier == (int)TooltipProperty.TooltipPropertyFlags.MultiLine)
-                .Select(row => row.ValueLabel).SequenceEqual(new[] { "Battania", "Sturgia" }),
+                .Skip(1).Select(row => row.ValueLabel).SequenceEqual(new[] { "Battania", "Sturgia" }),
             "Each defensive pact member gets its own tooltip row");
         var untrackedPactRows = PactRows(null, "Battania");
         check(untrackedPactRows.Any(row => row.ValueLabel == "Threat is currently unavailable.")

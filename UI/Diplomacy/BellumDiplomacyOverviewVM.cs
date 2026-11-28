@@ -124,8 +124,8 @@ namespace BellumCivile.UI.Diplomacy
                 return result;
             }
             if (threat.HasValue)
-                result.Add(new TooltipProperty(new TextObject("{=BC_DefensivePact_TooltipCurrent}Current threat").ToString(),
-                    DefensivePactThreatHint.FormatValue(threat.Value), 0));
+                result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveCurrentThreat}Current threat: {THREAT}")
+                    .SetTextVariable("THREAT", DefensivePactThreatHint.FormatValue(threat.Value))));
             else result.Add(Paragraph(new TextObject("{=BC_Overview_DefensiveThreatUnavailable}Threat is currently unavailable.")));
 
             result.Add(Separator());
