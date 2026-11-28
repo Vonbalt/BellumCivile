@@ -655,7 +655,7 @@
     <string id="BC_Item_Rivals" text="Rivals: {FACTION_NAME}" />
     <string id="BC_Item_Discontent" text="Discontent: {DISCONTENT}%" />
     <string id="BC_Heir_None" text="None" />
-    <string id="BC_UI_Hint_Discontent" text="Discontent rises daily whenever Faction Power exceeds the Current Threshold. The larger the power advantage, the faster it rises. At {THRESHOLD} rebellious intent, a formal ultimatum is automatically issued to the ruler." />
+    <string id="BC_UI_Hint_Discontent" text="Discontent rises daily while faction power meets or exceeds the required threshold. The greater the power advantage, the faster it rises. At {THRESHOLD}% discontent, the faction attempts to issue an ultimatum to the ruler." />
     <string id="BC_UI_Hint_BoP" text="Combined clan strength + influence of every clan supporting their faction measured against each other." />
     <string id="BC_UI_Err_Mercenary" text="Mercenaries cannot found political factions." />
     <string id="BC_UI_Err_Tier4" text="You need an active weak or strong claim to the realm title to press a claim for the throne." />
@@ -7373,6 +7373,7 @@
     <string id="BC_MCM_CivilWarGrace_Hint" text="Realm-wide recovery after a civil war against the crown ends. Increasing reduces instability by delaying new rebellions; decreasing increases instability by shortening the delay. Zero disables new postwar grace periods. The duration is recorded when settlement begins; existing periods are unchanged. Applies to player and AI rebellions, including court coalitions and succession disputes. Private feuds, Enforce Peace, committed armed challenges and resistance to treason judgments are unaffected. Personal challenge cooldowns remain separate. New campaigns also receive one initial year of pacification, independently of this setting. Bellum default: 2 years." />
     <string id="BC_CivilWarGrace_Settling" text="The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days." />
     <string id="BC_CivilWarGrace_Blocked" text="The realm is currently pacified. New rebellions against the crown are barred for {DAYS} days." />
+    <string id="BC_CivilWarGrace_FactionDisbanded" text="With peace restored in {REALM}, {FACTION} has disbanded. New rebellions against the Crown are barred for {DAYS} days." />
     <string id="BC_CourtCrisisSetAside" text="Set the crisis aside" />
     <string id="BC_RoyalPeaceRestriction" text="Royal Peace is in force. The Crown has forbidden private feuds, private wars and claimed-title revocations throughout {REALM}. Remaining duration: {DAYS} days. Your claim is preserved." />
     <string id="BC_RoyalPeaceSettling" text="An earlier Royal Peace decree is still being settled." />

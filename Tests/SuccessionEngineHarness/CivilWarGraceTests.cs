@@ -49,6 +49,7 @@ internal static class CivilWarGraceTests
     private static MultiSelectionInquiryData _inquiry;
     private static InquiryData _confirmation;
     private static int _memories, _notices;
+    private static readonly List<string> PersonalNotices = new List<string>();
     private static bool _warActive;
     private static Clan _ruler;
     private static Hero _head;
@@ -74,10 +75,11 @@ internal static class CivilWarGraceTests
     private static bool Two(ref int __result) { __result = 2; return false; }
     private static bool Influence(ref float __result) { __result = _influence; return false; }
     private static bool Name(ref TextObject __result) { __result = new TextObject("Test Realm"); return false; }
+    private static bool ClanName(Clan __instance, ref TextObject __result) { __result = new TextObject(__instance.StringId); return false; }
     private static bool NoPolicy(ref PolicyObject __result) { __result = null; return false; }
     private static bool Capture(MultiSelectionInquiryData __0) { _inquiry = __0; return false; }
     private static bool Confirm(InquiryData __0) { _confirmation = __0; return false; }
-    private static bool Notice() { _notices++; return false; }
+    private static bool Notice(TextObject __0) { _notices++; PersonalNotices.Add(__0.ToString()); return false; }
     private static bool Memory() { _memories++; return false; }
     private static bool Future(CampaignTime __instance, ref bool __result) { __result = __instance.ToDays > _day; return false; }
     private static bool Past(CampaignTime __instance, ref bool __result) { __result = __instance.ToDays < _day; return false; }
@@ -142,13 +144,16 @@ internal static class CivilWarGraceTests
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "IsEliminated"), nameof(Eliminated));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Kingdom"), nameof(Realm));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "PlayerClan"), nameof(Player));
+            Patch(AccessTools.PropertyGetter(typeof(Clan), "Name"), nameof(ClanName));
             Patch(AccessTools.PropertyGetter(typeof(Clan), "Leader"), nameof(Head));
+            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Name"), nameof(Name));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "RulingClan"), nameof(Ruler));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "UnresolvedDecisions"), nameof(Decisions));
             Patch(AccessTools.PropertyGetter(typeof(Kingdom), "All"), nameof(All));
             Patch(AccessTools.Method(typeof(FactionObject), "IsCivilWarActive"), nameof(Active));
             Patch(AccessTools.Method(typeof(FactionObject), "ShouldDelayUltimatumForUnsafeLeaderLocation"), nameof(NoUnsafe));
             Patch(AccessTools.Method(typeof(FactionObject).Assembly.GetType("BellumCivile.FeudalTitleStylePresetCatalog"), "CreateDropdown"), nameof(Skip));
+            Patch(AccessTools.Method(typeof(FactionObject).Assembly.GetType("BellumCivile.BellumCivileNotifications"), "ShowPersonal", new[] { typeof(TextObject), typeof(Color) }), nameof(Notice));
             ticks.SetValue(null, 1000L);
             calendar[0].SetValue(null, 7); calendar[1].SetValue(null, 3); calendar[2].SetValue(null, 4);
             settings = Activator.CreateInstance(settingsType, true); settingsCache.SetValue(null, settings);
@@ -226,6 +231,77 @@ internal static class CivilWarGraceTests
             check(!Protected(_parent) && !Blocked(fresh), "Protection expires exactly at its saved deadline without a daily-tick delay");
             check(Call(behavior, "CivilWarGraceBlock", _parent) == null, "Expired protection leaves no stale blocking tooltip");
 
+            Setup(); PersonalNotices.Clear();
+            var independent = NewRealm("independent");
+            var unrelated = Faction(NewRealm("unrelated"));
+            var npcClan = Blank<Clan>(); npcClan.StringId = "Other House";
+            var playerLed = Faction(_parent, FactionType.Independence);
+            var playerJoined = Faction(independent);
+            playerJoined.Leader = npcClan;
+            playerJoined.Members.Add(npcClan);
+            var npcOnly = Faction(_parent, FactionType.InstallRuler);
+            npcOnly.Leader = npcClan;
+            npcOnly.Members.Remove(_clan);
+            npcOnly.Members.Add(npcClan);
+            var courtFaction = Faction(_parent, FactionType.Nobility);
+            var issued = Faction(_parent); Field(issued, "_ultimatumPending", true);
+            var resolved = Faction(_parent); Field(resolved, "_ultimatumResolved", true);
+            var starting = Faction(_parent); Field(starting, "_rebellionCreationStarted", true);
+            var parallelWar = Faction(_parent, fought: true); Field(parallelWar, "_rebelKingdomStringId", "other_rebels_shell");
+            var committedCourt = Faction(_parent); Call(committedCourt, "MarkCommittedCourtChallenge");
+            var resisting = Faction(_parent); Call(resisting, "MarkJudgmentResistance");
+            var frozenChallenge = Faction(_parent); Call(frozenChallenge, "BindSuccessionChallenge", "another-heir");
+            var protectedFactions = new[] { unrelated, courtFaction, issued, resolved, starting, parallelWar, committedCourt, resisting, frozenChallenge };
+            active.AddRange(protectedFactions);
+            active.AddRange(new[] { playerLed, playerJoined, npcOnly });
+            war = Faction(_parent, fought: true); active.Add(war);
+            Queue(war, shell, independent); Maintain();
+            check(active.Contains(playerLed) && active.Contains(playerJoined) && PersonalNotices.Count == 0,
+                "An unfinished settlement blocks new rebels but does not disband their existing factions yet");
+            active.Remove(war); Gone.Add(shell); Maintain();
+            check(active.SequenceEqual(protectedFactions),
+                "Settlement disbands only uncommitted rebels in its protected realms, including permanent independence outcomes");
+            check(PersonalNotices.Count == 2 && PersonalNotices.Any(n => n.Contains("rebels Secessionists"))
+                && PersonalNotices.Any(n => n.Contains("Other House Coalition"))
+                && PersonalNotices.All(n => n.Contains("Test Realm") && n.Contains("barred for " + (2 * year) + " days")),
+                "Only the player leader and member cases get a personal notice with the remaining grace");
+            Maintain(); Queue(war, shell, independent); Maintain();
+            check(PersonalNotices.Count == 2, "Settlement retries do not repeat disband notices");
+            var lateRealm = NewRealm("late_outcome");
+            var lateFaction = Faction(lateRealm); lateFaction.Leader = npcClan; lateFaction.Members.Remove(_clan);
+            active.Add(lateFaction);
+            Outcomes(war, lateRealm); Maintain();
+            check(!active.Contains(lateFaction) && Protected(lateRealm) && PersonalNotices.Count == 2,
+                "A newly recorded permanent outcome of a settled war also disbands its dormant factions");
+
+            var priorSave = new Store();
+            Call(behavior, "SyncCivilWarGrace", priorSave); priorSave.IsLoading = true;
+            var olderLoad = new FactionManagerBehavior();
+            var staleFaction = Faction(_parent);
+            var savedFactions = new List<FactionObject> { staleFaction, issued };
+            Field(olderLoad, "_activeFactions", savedFactions);
+            Call(olderLoad, "SyncCivilWarGrace", priorSave);
+            _day += 10;
+            manager.Items.Add(accession);
+            crown.Completed = false;
+            Call(olderLoad, "MaintainCivilWarGrace");
+            check(savedFactions.Contains(staleFaction) && PersonalNotices.Count == 2,
+                "Save cleanup waits for an unfinished crown accession");
+            crown.Completed = true;
+            Call(olderLoad, "MaintainCivilWarGrace");
+            check(savedFactions.SequenceEqual(new[] { issued }) && PersonalNotices.Count == 3
+                && PersonalNotices.Last().Contains("barred for " + (2 * year - 10) + " days"),
+                "Loading an already pacified realm clears a stranded faction without resetting its timer");
+            Call(olderLoad, "MaintainCivilWarGrace");
+            check(PersonalNotices.Count == 3, "Subsequent hourly ticks do not repeat the save cleanup");
+            var expiredLoad = new FactionManagerBehavior();
+            var expiredFactions = new List<FactionObject> { Faction(_parent) };
+            Field(expiredLoad, "_activeFactions", expiredFactions);
+            Call(expiredLoad, "SyncCivilWarGrace", priorSave);
+            _day = records.Single().UntilDay;
+            Call(expiredLoad, "MaintainCivilWarGrace");
+            check(expiredFactions.Count == 1 && PersonalNotices.Count == 3, "Expired postwar protection does not disband factions on load");
+
             Setup(3); war = Faction(_parent, FactionType.Independence, true); Queue(war, shell);
             var countyA = NewRealm("empire_w_indep_a"); var countyB = NewRealm("empire_w_indep_b");
             Outcomes(war, countyA, countyB, countyA, shell, null); Gone.Add(shell); Maintain();
@@ -244,10 +320,12 @@ internal static class CivilWarGraceTests
             check(!Protected(_parent) && Protected(restored) && records.Single().DurationDays == year,
                 "A restored successor receives the one-year configured recovery while the destroyed parent is ignored");
             Setup(0); war = Faction(_parent, fought: true); Queue(war, shell);
+            var zeroGraceFaction = Faction(_parent); active.Add(zeroGraceFaction);
             check(!Protected(_parent), "Zero records no new blocking period even during settlement");
             Years(2); Queue(war, shell); check(records.Count == 1 && !Protected(_parent), "A recorded zero cannot become a new grace period on retry after changing settings");
             Gone.Add(shell); Maintain();
             check(records.Single().Settled && !Protected(_parent), "Zero-duration settlements finish without granting protection");
+            check(active.Contains(zeroGraceFaction), "Disabling postwar grace leaves existing conspiracies alone");
             Setup(); Queue(Faction(_parent), null); Queue(Faction(_parent, FactionType.Nobility, true), shell);
             check(records.Count == 0, "Peaceful ultimatums, preparations and ordinary court factions cannot generate postwar immunity");
             check(!Protected(null) && !Protected(NewRealm("foreign")), "Unrelated kingdoms and null references are unaffected");
@@ -409,7 +487,6 @@ internal static class CivilWarGraceTests
             check(Call(behavior, "CivilWarGraceJoinBlock", bloc) == null && Call(behavior, "CivilWarGraceJoinBlock", resistance) == null,
                 "Court affiliation and resistance to judgment retain their join exceptions");
 
-            Patch(AccessTools.PropertyGetter(typeof(Kingdom), "Name"), nameof(Name));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "CanChooseTermBusiness"), nameof(Yes));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "Eligible"), nameof(Yes));
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "MemberCount"), nameof(Two));
@@ -421,7 +498,6 @@ internal static class CivilWarGraceTests
             Patch(AccessTools.Method(typeof(CourtAgendaBehavior), "ApplyMemberMemory"), nameof(Memory));
             Patch(AccessTools.Method(typeof(MBInformationManager), "ShowMultiSelectionInquiry"), nameof(Capture));
             Patch(AccessTools.Method(typeof(InformationManager), "ShowInquiry"), nameof(Confirm));
-            Patch(AccessTools.Method(typeof(FactionObject).Assembly.GetType("BellumCivile.BellumCivileNotifications"), "ShowPersonal", new[] { typeof(TextObject), typeof(Color) }), nameof(Notice));
             var agenda = new CourtAgendaRecord { Realm = _parent, Faction = bloc, Sponsor = _clan,
                 State = CourtAgendaState.AwaitingPlayerDecision, SessionDate = CampaignTime.Days((float)_day + 10),
                 ObjectiveData = new CourtObjectiveRecord { Kind = "policy" } };

@@ -18,8 +18,9 @@ Check ($resolution.Contains('QueueCivilWarGrace(faction, rebelKingdom, outcome)'
 Check ($resolution.Contains('AddCivilWarGraceRealms(faction, permanentKingdoms.ToArray())') -and
     $resolution.Contains('"parent realm collapsed into a civil-war successor", restoredSuccessorKingdom') -and
     (Read 'Behaviors/CivilWarCollapseContinuation.cs').Contains('"Crown mantle restored after outside conquest", record.Successor')) 'Independence partitions and restored successors explicitly identify their permanent outcome realms.'
-Check ($grace.Contains('record.RebelRealm?.IsEliminated == false') -and $grace.Contains('IsPending(r)') -and
-    $grace.Contains('PendingDeposition(r)') -and $grace.Contains('!challenge.ResolutionReturned')) 'Grace does not count down while shell retirement, Crown settlement or hereditary restitution is pending.'
+Check ($grace.Contains('record.RebelRealm?.IsEliminated == false') -and $grace.Contains('IsGraceSettlementPending(r)') -and
+    $grace.Contains('IsRealmTransferPending(realm)') -and $grace.Contains('IsPending(realm)') -and
+    $grace.Contains('PendingDeposition(realm)') -and $grace.Contains('!challenge.ResolutionReturned')) 'Grace does not count down while shell retirement, Crown settlement or hereditary restitution is pending.'
 Check ($grace.Contains('!faction.IsJudgmentResistance && !faction.IsCommittedCrownChallenge') -and
     $faction.Contains('[SaveableField(37)] private bool _judgmentResistance') -and
     $faction.Contains('[SaveableField(38)] private bool _committedCourtChallenge')) 'Committed challenges and explicit judgment resistance have persisted exceptions.'

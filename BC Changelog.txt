@@ -895,3 +895,4 @@ Fixed RBM compatibility so routine caravan removals no longer raise marshal cont
 Added Vassals & Alliances after Retainers on the clan encyclopedia page.
 Added configurable marriage truces that block new private feuds between newly allied houses for five in-game years by default.
 Added a new 5 threat band for defensive pacts used by small realms with less than 5 settlements or shared culture with the target with the other existing conditions also applying, also improved the pacts tooltip.
+Postwar pacification now dissolves rebel factions that haven’t issued an ultimatum and notifies affected players how long pacification will last.

@@ -84,7 +84,7 @@ namespace BellumCivile.UI
             CreateDestroyHint = new HintViewModel();
             UltimatumHint = new HintViewModel();
             MoodHint = CreateEmptyTooltip();
-            TextObject discontentHint = new TextObject("{=BC_UI_Hint_Discontent}Discontent rises daily whenever Faction Power exceeds the Current Threshold. The larger the power advantage, the faster it rises. At {THRESHOLD} rebellious intent, a formal ultimatum is automatically issued to the ruler.");
+            TextObject discontentHint = new TextObject("{=BC_UI_Hint_Discontent}Discontent rises daily while faction power meets or exceeds the required threshold. The greater the power advantage, the faster it rises. At {THRESHOLD}% discontent, the faction attempts to issue an ultimatum to the ruler.");
             discontentHint.SetTextVariable("THRESHOLD", C.DiscontentTrigger.ToString("0"));
             DiscontentHint = new HintViewModel(discontentHint);
             BalanceOfPowerHint = CreateTextTooltip(
